@@ -2,6 +2,7 @@
 import { useState, useRef, useEffect, useMemo, useCallback, memo } from "react";
 import { countryList, type Country } from "@/data/phones";
 import clsx from "clsx";
+import { Input } from "@/components/ui/input";
 
 const ITEM_H = 36;
 const VISIBLE_H = 208;
@@ -35,13 +36,13 @@ const CountryItem = memo(function CountryItem({
       data-code={c.code}
       style={style}
       className={clsx(
-        "absolute left-0 right-0 flex items-center gap-2.5 px-3 text-sm cursor-pointer hover:bg-gray-50",
-        isSelected ? "bg-blue-50 text-blue-600" : "text-gray-700",
+        "absolute top-0 left-0 w-full flex items-center gap-2.5 px-3 text-sm cursor-pointer hover:bg-input rounded-sm",
+        isSelected ? "text-secondary" : "text-grey",
       )}
     >
       <Flag country={c} />
       <span className="flex-1 text-left truncate">{c.name}</span>
-      <span className="text-gray-400 text-xs shrink-0">{c.dial}</span>
+      <span className="text-xs shrink-0">{c.dial}</span>
     </div>
   );
 });
@@ -181,16 +182,14 @@ export const PhoneInput = memo(function PhoneInput({
           type="button"
           onClick={handleToggle}
           className={clsx(
-            "w-25 flex items-center gap-1.5 h-10 px-3 rounded-lg border border-gray-200 bg-white text-sm text-gray-700 hover:border-gray-300 focus:outline-none focus:ring-1 focus:ring-gray-300",
-            error
-              ? "border-red-400 focus-visible:ring-red-200"
-              : "border-gray-200",
+            "w-25 flex items-center gap-1.5 h-10 px-3 bg-transparent dark:bg-input/30 rounded-lg border border-border text-sm text-grey",
+            error ? "border-red focus-visible:ring-red-75" : "border-border",
           )}
         >
           <Flag country={selected} />
-          <span className="text-gray-500">{selected.dial}</span>
+          <span>{selected.dial}</span>
           <svg
-            className={clsx("w-3 h-3 text-gray-400 ml-0.5 transition", {
+            className={clsx("w-3 h-3 ml-0.5 transition", {
               "rotate-180": open,
             })}
             viewBox="0 0 12 12"
@@ -207,13 +206,13 @@ export const PhoneInput = memo(function PhoneInput({
         </button>
         <div
           className={clsx(
-            "absolute z-50 top-[calc(100%+4px)] left-0 w-64 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden transition-opacity duration-75",
+            "absolute z-50 top-[calc(100%+4px)] left-0 w-64 bg-background border border-border rounded-xl shadow-lg overflow-hidden transition-opacity duration-75",
             open
               ? "opacity-100 pointer-events-auto"
               : "opacity-0 pointer-events-none",
           )}
         >
-          <div className="p-2 border-b border-gray-100">
+          <div className="p-2 border-b border-border">
             <input
               ref={searchRef}
               type="text"
@@ -223,11 +222,11 @@ export const PhoneInput = memo(function PhoneInput({
               placeholder="Search..."
               value={query}
               onChange={handleQuery}
-              className="w-full h-8 px-3 rounded-lg bg-gray-50 border border-gray-200 text-sm focus:outline-none focus:ring-1 focus:ring-gray-300"
+              className="w-full h-8 px-3 rounded-lg bg-input/30 border border-border text-sm"
             />
           </div>
           {filtered.length === 0 ? (
-            <p className="text-center text-sm text-gray-400 py-4">No results</p>
+            <p className="text-center text-sm text-gray py-4">No results</p>
           ) : (
             <VirtualList
               items={filtered}
@@ -237,7 +236,7 @@ export const PhoneInput = memo(function PhoneInput({
           )}
         </div>
       </div>
-      <input
+      <Input
         autoComplete="tel"
         type="tel"
         value={value}
@@ -246,10 +245,8 @@ export const PhoneInput = memo(function PhoneInput({
         placeholder="999 123 4567"
         onChange={handlePhone}
         className={clsx(
-          "flex-1 h-10 px-3 rounded-lg border border-gray-200 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-300",
-          error
-            ? "border-red-400 focus-visible:ring-red-200"
-            : "border-gray-200",
+          "h-10 rounded-lg text-sm placeholder:text-grey",
+          error ? "border-red focus-visible:ring-red-75" : "border-border",
         )}
       />
     </div>

@@ -106,10 +106,10 @@ const PhoneStep = memo(function PhoneStep() {
 
   return (
     <>
-      <h1 className="text-[28px] font-bold text-gray-900 mb-1 tracking-tight">
+      <h1 className="text-[28px] font-bold text-foreground mb-1 tracking-tight">
         Reset password
       </h1>
-      <p className="text-sm text-gray-500 mb-6 leading-relaxed">
+      <p className="text-sm text-gray mb-6 leading-relaxed">
         Enter your phone number — we&apos;ll send a code via WhatsApp.
       </p>
       <MethodToggle method="phone" onChange={(m) => goToEntry(m)} />
@@ -118,7 +118,7 @@ const PhoneStep = memo(function PhoneStep() {
           <Label
             className={clsx(
               "text-sm font-medium mb-1.5 block",
-              error ? "text-red" : "text-gray-700",
+              error ? "text-red" : "text-grey",
             )}
             htmlFor="phone"
           >
@@ -137,7 +137,7 @@ const PhoneStep = memo(function PhoneStep() {
         <Button
           type="submit"
           disabled={isLoading}
-          className="h-10 w-full rounded-lg bg-[#5a6478] hover:bg-[#4a5468] text-white text-sm font-medium"
+          className="h-10 w-full rounded-lg bg-primary text-white text-sm font-medium"
         >
           {isLoading ? "Sending..." : "Send code"}
         </Button>
@@ -178,10 +178,10 @@ const EmailStep = memo(function EmailStep() {
 
   return (
     <>
-      <h1 className="text-[28px] font-bold text-gray-900 mb-1 tracking-tight">
+      <h1 className="text-[28px] font-bold text-foreground mb-1 tracking-tight">
         Reset password
       </h1>
-      <p className="text-sm text-gray-500 mb-6 leading-relaxed">
+      <p className="text-sm text-gray mb-6 leading-relaxed">
         Enter your email — we&apos;ll send a reset link.
       </p>
       <MethodToggle method="email" onChange={(m) => goToEntry(m)} />
@@ -191,7 +191,7 @@ const EmailStep = memo(function EmailStep() {
             htmlFor="email"
             className={clsx(
               "text-sm font-medium mb-1.5 block",
-              error ? "text-red" : "text-gray-700",
+              error ? "text-red" : "text-grey",
             )}
           >
             Email
@@ -208,10 +208,8 @@ const EmailStep = memo(function EmailStep() {
               setError("");
             }}
             className={clsx(
-              "h-10 rounded-lg text-sm placeholder:text-gray-400",
-              error
-                ? "border-red-400 focus-visible:ring-red-200"
-                : "border-gray-200",
+              "h-10 rounded-lg text-sm placeholder:text-grey",
+              error ? "border-red focus-visible:ring-red-75" : "border-border",
             )}
           />
           <FieldError message={error} />
@@ -219,7 +217,7 @@ const EmailStep = memo(function EmailStep() {
         <Button
           type="submit"
           disabled={isLoading}
-          className="h-10 w-full rounded-lg bg-[#5a6478] hover:bg-[#4a5468] text-white text-sm font-medium"
+          className="h-10 w-full rounded-lg bg-primary text-white text-sm font-medium"
         >
           {isLoading ? "Sending..." : "Send reset link"}
         </Button>
@@ -271,13 +269,13 @@ const OtpStep = memo(function OtpStep() {
 
   return (
     <>
-      <h1 className="text-[28px] font-bold text-gray-900 mb-1 tracking-tight leading-tight">
+      <h1 className="text-[28px] font-bold text-foreground mb-1 tracking-tight leading-tight">
         Verification code sent to your WhatsApp
       </h1>
-      <p className="text-sm text-gray-500 mb-8 leading-relaxed">
+      <p className="text-sm text-gray mb-8 leading-relaxed">
         Please enter the code you received below.
       </p>
-      <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-3">
         <div className="form-group">
           <InputOTP
             maxLength={6}
@@ -295,12 +293,12 @@ const OtpStep = memo(function OtpStep() {
           </InputOTP>
           <FieldError message={error} />
         </div>
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-gray">
           {"Didn't get a code? "}
           <button
             type="button"
             onClick={handleResend}
-            className="text-gray-800 font-medium hover:underline"
+            className="text-primary hover:text-primary/90 font-medium hover:underline"
           >
             Send again
           </button>
@@ -308,7 +306,7 @@ const OtpStep = memo(function OtpStep() {
         <Button
           type="submit"
           disabled={isLoading || digits.length < 6}
-          className="h-10 w-full rounded-lg bg-[#5a6478] hover:bg-[#4a5468] text-white text-sm font-medium disabled:bg-gray-300 disabled:cursor-not-allowed"
+          className="h-10 w-full rounded-lg bg-primary text-white text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isLoading ? "Verifying..." : "Continue"}
         </Button>
@@ -326,28 +324,31 @@ const EmailSentStep = memo(function EmailSentStep() {
   const router = useRouter();
   return (
     <div className="flex flex-col gap-5">
-      <div className="w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center">
-        <Check className="w-5 h-5 text-gray-700" />
+      <div className="w-10 h-10 rounded-full border border-primary flex items-center justify-center">
+        <Check className="w-5 h-5 text-primary" />
       </div>
       <div className="form-group">
-        <h1 className="text-[28px] font-bold text-gray-900 mb-2 tracking-tight leading-tight">
+        <h1 className="text-[28px] font-bold text-foreground mb-2 tracking-tight leading-tight">
           Check your email
         </h1>
-        <p className="text-sm text-gray-500 leading-relaxed">
+        <p className="text-sm text-gray leading-relaxed">
           We&apos;ve sent a password reset link to your email address. The link
           will expire in 30 minutes.
         </p>
       </div>
-      <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 flex gap-2">
-        <Info className="w-4 h-4 text-gray-400 mt-0.5 shrink-0" />
-        <p className="text-sm text-gray-500 leading-relaxed">
+      <div className="rounded-lg bg-primary/5 px-4 py-3 flex gap-1 flex-col">
+        <div className="flex items-center gap-1 color">
+          <Info className="w-4 h-4 text-foreground mt-0.5 shrink-0" />
+          <span className="text-sm text-foreground font-semibold">Hint</span>
+        </div>
+        <p className="text-sm text-primary leading-relaxed">
           Didn&apos;t receive it? Check your spam folder or try again with a
           different method.
         </p>
       </div>
       <Button
         onClick={() => router.push("/login")}
-        className="h-10 w-full rounded-lg bg-[#5a6478] hover:bg-[#4a5468] text-white text-sm font-medium"
+        className="h-10 w-full rounded-lg bg-primary text-white text-sm font-medium"
       >
         Back to sign in
       </Button>
@@ -400,10 +401,10 @@ const NewPasswordStep = memo(function NewPasswordStep() {
 
   return (
     <>
-      <h1 className="text-[28px] font-bold text-gray-900 mb-1 tracking-tight">
+      <h1 className="text-[28px] font-bold text-foreground mb-1 tracking-tight">
         Create new password
       </h1>
-      <p className="text-sm text-gray-500 mb-8 leading-relaxed">
+      <p className="text-sm text-gray mb-8 leading-relaxed">
         Create a new strong password for your account.
       </p>
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
@@ -413,7 +414,7 @@ const NewPasswordStep = memo(function NewPasswordStep() {
               htmlFor={field}
               className={clsx(
                 "text-sm font-medium mb-1.5 block",
-                errors[field] ? "text-red" : "text-gray-700",
+                errors[field] ? "text-red" : "text-grey",
               )}
             >
               {field === "password" ? "New password" : "Repeat new password"}
@@ -429,10 +430,10 @@ const NewPasswordStep = memo(function NewPasswordStep() {
                 value={form[field]}
                 onChange={handleChange(field)}
                 className={clsx(
-                  "h-10 rounded-lg text-sm placeholder:text-gray-400 pr-10",
+                  "h-10 rounded-lg text-sm placeholder:text-grey pr-10",
                   errors[field]
-                    ? "border-red-400 focus-visible:ring-red-200"
-                    : "border-gray-200",
+                    ? "border-red focus-visible:ring-red-75"
+                    : "border-border",
                 )}
               />
               <PasswordToggle
@@ -448,17 +449,20 @@ const NewPasswordStep = memo(function NewPasswordStep() {
             <FieldError message={errors[field]} />
           </div>
         ))}
-        <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 flex gap-2">
-          <Info className="w-4 h-4 text-gray-400 mt-0.5 shrink-0" />
-          <p className="text-sm text-gray-500 leading-relaxed">
-            {`At least 8 characters. Use upper and lower case letters, numbers, and symbols like ! " ? $ % ^ & ).`}
+        <div className="rounded-lg bg-primary/5 px-4 py-3 flex gap-1 flex-col">
+          <div className="flex items-center gap-1 color">
+            <Info className="w-4 h-4 text-foreground mt-0.5 shrink-0" />
+            <span className="text-sm text-foreground font-semibold">Hint</span>
+          </div>
+          <p className="text-sm text-primary leading-relaxed">
+            {`The password should be at least twelve characters long. To make it stronger, use upper and lower case letters, numbers, and symbols like ! " ? $ % ^ & ).`}
           </p>
         </div>
         {errors.general && <p className="text-xs text-red">{errors.general}</p>}
         <Button
           type="submit"
           disabled={isLoading}
-          className="h-10 w-full rounded-lg bg-[#5a6478] hover:bg-[#4a5468] text-white text-sm font-medium disabled:bg-gray-300"
+          className="h-10 w-full rounded-lg bg-primary text-white text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isLoading ? "Saving..." : "Continue"}
         </Button>
@@ -476,20 +480,20 @@ const SuccessStep = memo(function SuccessStep() {
   const router = useRouter();
   return (
     <div className="flex flex-col gap-5">
-      <div className="w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center">
-        <Check className="w-5 h-5 text-gray-700" />
+      <div className="w-10 h-10 rounded-full border border-primary flex items-center justify-center">
+        <Check className="w-5 h-5 text-primary" />
       </div>
       <div className="form-group">
-        <h1 className="text-[28px] font-bold text-gray-900 mb-2 tracking-tight leading-tight">
+        <h1 className="text-[28px] font-bold text-foreground mb-2 tracking-tight leading-tight">
           Password changed successfully
         </h1>
-        <p className="text-sm text-gray-500 leading-relaxed">
+        <p className="text-sm text-gray leading-relaxed">
           You can now sign in with your new password.
         </p>
       </div>
       <Button
         onClick={() => router.push("/login")}
-        className="h-10 w-full rounded-lg bg-[#5a6478] hover:bg-[#4a5468] text-white text-sm font-medium"
+        className="h-10 w-full rounded-lg bg-primary text-white text-sm font-medium"
       >
         Sign in
       </Button>
@@ -503,10 +507,10 @@ const TokenErrorStep = memo(function TokenErrorStep() {
   return (
     <div className="flex flex-col gap-5">
       <div>
-        <h1 className="text-[28px] font-bold text-gray-900 mb-2 tracking-tight leading-tight">
+        <h1 className="text-[28px] font-bold text-foreground mb-2 tracking-tight leading-tight">
           {tokenError.title}
         </h1>
-        <p className="text-sm text-gray-500 leading-relaxed">
+        <p className="text-sm text-gray leading-relaxed">
           {tokenError.message}
         </p>
       </div>
@@ -515,7 +519,7 @@ const TokenErrorStep = memo(function TokenErrorStep() {
           goToEntry("email");
           router.replace("/forgot-password");
         }}
-        className="h-10 w-full rounded-lg bg-[#5a6478] hover:bg-[#4a5468] text-white text-sm font-medium"
+        className="h-10 w-full rounded-lg bg-primary text-white text-sm font-medium"
       >
         Request a new link
       </Button>

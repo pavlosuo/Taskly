@@ -16,6 +16,8 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
 
+  --color-grey: var(--grey);
+
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
 
@@ -56,6 +58,8 @@
   --color-sidebar-ring: var(--sidebar-ring);
 
   --color-red: #e3170a;
+  --color-red-75: rgba(227, 23, 10, 0.25);
+  --color-black: #201e1f;
 }
 
 @layer base {
@@ -77,10 +81,12 @@
 :root {
   --radius: 0.625rem;
 
-  --background: #fcfcfc;
+  --background: #ffffff;
   --foreground: #201e1f;
 
-  --primary: #20bf55;
+  --grey: rgba(32, 30, 31, 0.75);
+
+  --primary: #3a5a40;
   --secondary: #67aaf9;
 
   --primary-foreground: oklch(0.985 0 0);
@@ -97,10 +103,12 @@
 }
 
 .dark {
-  --background: #201e1f;
+  --background: #02140b;
   --foreground: #fcfcfc;
 
-  --primary: #20bf55;
+  --grey: rgba(252, 252, 252, 0.75);
+
+  --primary: #0B6E3B;
   --secondary: #67aaf9;
 
   --primary-foreground: oklch(0.985 0 0);
@@ -126,12 +134,9 @@
     width: 10px;
     height: 10px;
   }
-  ::-webkit-scrollbar-track {
-    background: var(--scrollbar-track);
-  }
   ::-webkit-scrollbar-thumb {
     background: var(--scrollbar-thumb);
-    border-radius: 9999px;
+    border-radius: 100vw;
     border: 2px solid var(--scrollbar-track);
     transition: background 0.2s ease;
   }

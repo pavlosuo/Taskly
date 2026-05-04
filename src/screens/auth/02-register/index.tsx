@@ -134,10 +134,10 @@ export function Register() {
 
   return (
     <AuthLayout>
-      <h1 className="text-[28px] font-bold text-gray-900 mb-1 tracking-tight">
+      <h1 className="text-[28px] font-bold text-foreground tracking-tight">
         Create Account
       </h1>
-      <p className="text-sm text-gray-500 mb-8 leading-relaxed">
+      <p className="text-sm text-gray mb-8 leading-relaxed">
         Sign up to get started with your new account.
       </p>
       <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-5">
@@ -149,7 +149,7 @@ export function Register() {
                 htmlFor={name}
                 className={clsx(
                   "text-sm font-medium mb-1.5 block",
-                  error ? "text-red" : "text-gray-700",
+                  error ? "text-red" : "text-foreground",
                 )}
               >
                 {label}
@@ -174,10 +174,10 @@ export function Register() {
                   value={form[name] as string}
                   onChange={handleChange(name)}
                   className={clsx(
-                    "h-10 rounded-lg text-sm placeholder:text-gray-400",
+                    "h-10 rounded-lg text-sm placeholder:text-grey",
                     error
-                      ? "border-red-400 focus-visible:ring-red-200"
-                      : "border-gray-200",
+                      ? "border-red focus-visible:ring-red-75"
+                      : "border-border",
                   )}
                 />
               )}
@@ -193,7 +193,7 @@ export function Register() {
                 htmlFor={field}
                 className={clsx(
                   "text-sm font-medium mb-1.5 block",
-                  error ? "text-red" : "text-gray-700",
+                  error ? "text-red" : "text-grey",
                 )}
               >
                 {field === "password" ? "Password" : "Confirm password"}
@@ -212,10 +212,10 @@ export function Register() {
                   value={form[field]}
                   onChange={handleChange(field)}
                   className={clsx(
-                    "h-10 rounded-lg text-sm placeholder:text-gray-400 pr-10",
+                    "h-10 rounded-lg text-sm placeholder:text-grey pr-10",
                     error
-                      ? "border-red-400 focus-visible:ring-red-200"
-                      : "border-gray-200",
+                      ? "border-red focus-visible:ring-red-75"
+                      : "border-border",
                   )}
                 />
                 <PasswordToggle
@@ -247,7 +247,7 @@ export function Register() {
         <Button
           type="submit"
           disabled={isLoading}
-          className="h-10 w-full rounded-lg bg-[#5a6478] hover:bg-[#4a5468] text-white text-sm font-medium"
+          className="h-10 w-full rounded-lg bg-primary text-white text-sm font-medium"
         >
           {isLoading ? "Creating account..." : "Create account"}
         </Button>

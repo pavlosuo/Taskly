@@ -7,13 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { loginSchema } from "../../../../include/schemas";
 import { LoginForm, ZodErrors } from "@/types";
-import {
-  FieldError,
-  GoogleIcon,
-  PasswordToggle,
-  BottomLink,
-  AuthLayout,
-} from "../ui";
+import { FieldError, PasswordToggle, BottomLink, AuthLayout } from "../ui";
 import { getAxiosError } from "@/utils/getAxiosError";
 
 export function Login() {
@@ -56,17 +50,17 @@ export function Login() {
 
   return (
     <AuthLayout>
-      <h1 className="text-[28px] font-bold text-gray-900 mb-1 tracking-tight">
+      <h1 className="text-[28px] font-bold text-foreground mb-1 tracking-tight">
         Welcome Back
       </h1>
-      <p className="text-sm text-gray-500 mb-8 leading-relaxed">
+      <p className="text-sm text-grey mb-8 leading-relaxed">
         Sign in to access your account and manage your dashboard.
       </p>
       <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-5">
         <div className="form-group">
           <Label
             htmlFor="email"
-            className={`text-sm font-medium mb-1.5 block ${errors.email ? "text-red" : "text-gray-700"}`}
+            className={`text-sm font-medium mb-1.5 block ${errors.email ? "text-red" : "text-grey"}`}
           >
             Email
           </Label>
@@ -78,14 +72,14 @@ export function Login() {
             placeholder="Enter your email"
             value={form.email}
             onChange={handleChange("email")}
-            className={`h-10 rounded-lg text-sm placeholder:text-gray-400 ${errors.email ? "border-red-400 focus-visible:ring-red-200" : "border-gray-200"}`}
+            className={`h-10 rounded-lg text-sm placeholder:text-grey ${errors.email ? "border-red focus-visible:ring-red-75" : "border-border"}`}
           />
           <FieldError message={errors.email} />
         </div>
         <div className="form-group">
           <Label
             htmlFor="password"
-            className={`text-sm font-medium mb-1.5 block ${errors.password ? "text-red" : "text-gray-700"}`}
+            className={`text-sm font-medium mb-1.5 block ${errors.password ? "text-red" : "text-grey"}`}
           >
             Password
           </Label>
@@ -97,7 +91,7 @@ export function Login() {
               placeholder="Enter your password"
               value={form.password}
               onChange={handleChange("password")}
-              className={`h-10 rounded-lg text-sm placeholder:text-gray-400 pr-10 ${errors.password ? "border-red-400 focus-visible:ring-red-200" : "border-gray-200"}`}
+              className={`h-10 rounded-lg text-sm placeholder:text-grey pr-10 ${errors.password ? "border-red focus-visible:ring-red-75" : "border-border"}`}
             />
             <PasswordToggle
               show={showPassword}
@@ -109,7 +103,7 @@ export function Login() {
             <button
               type="button"
               onClick={() => router.push("/forgot-password")}
-              className="text-sm text-gray-500 hover:text-gray-800 transition-colors"
+              className="text-sm text-primary hover:text-primary/90 font-medium hover:underline"
             >
               Forgot password?
             </button>
@@ -121,23 +115,15 @@ export function Login() {
         <Button
           type="submit"
           disabled={isLoading}
-          className="h-10 w-full rounded-lg bg-[#5a6478] hover:bg-[#4a5468] text-white text-sm font-medium"
+          className="h-10 w-full rounded-lg bg-primary text-white text-sm font-medium"
         >
           {isLoading ? "Signing in..." : "Log in"}
         </Button>
         <div className="flex items-center gap-3">
-          <div className="flex-1 h-px bg-gray-100" />
-          <span className="text-xs text-gray-400">or</span>
-          <div className="flex-1 h-px bg-gray-100" />
+          <div className="flex-1 h-px bg-grey" />
+          <span className="text-xs text-foreground">or</span>
+          <div className="flex-1 h-px bg-grey" />
         </div>
-        <Button
-          type="button"
-          variant="outline"
-          className="h-10 w-full rounded-lg border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-        >
-          <GoogleIcon />
-          Continue with Google
-        </Button>
       </form>
       <BottomLink
         text="Don't have an account yet?"

@@ -37,7 +37,7 @@ const btn = (
       "h-7 min-w-7 px-2 rounded-md text-sm font-medium transition-colors",
       active
         ? "bg-gray-900 text-white"
-        : "text-gray-600 hover:bg-gray-100 hover:text-gray-900",
+        : "text-gray-600 hover:bg-gray-100 hover:text-foreground",
     )}
   >
     {label}
@@ -51,7 +51,7 @@ export const MenuBar = ({ editor }: { editor: Editor }) => {
   });
   if (!editor) return null;
   return (
-    <div className="flex items-center flex-wrap gap-0.5 px-2 py-1.5 rounded-lg border border-gray-200 bg-white shadow-sm">
+    <div className="flex items-center flex-wrap gap-0.5 px-2 py-1.5 rounded-lg border border-border bg-white shadow-sm">
       {btn(
         "B",
         () => editor.chain().focus().toggleBold().run(),
@@ -136,7 +136,7 @@ export const MenuBar = ({ editor }: { editor: Editor }) => {
 };
 
 export const MenuBarSkeleton = () => (
-  <div className="flex items-center flex-wrap gap-0.5 px-2 py-1.5 rounded-lg border border-gray-200 bg-white shadow-sm">
+  <div className="flex items-center flex-wrap gap-0.5 px-2 py-1.5 rounded-lg border border-border bg-white shadow-sm">
     {BUTTONS.map((group, gi) => (
       <Fragment key={gi}>
         {group.map((label) => (
@@ -147,7 +147,7 @@ export const MenuBarSkeleton = () => (
               "h-7 min-w-7 px-2 rounded-md text-sm font-medium transition-colors",
               label === "H2"
                 ? "bg-gray-900 text-white"
-                : "text-gray-600 hover:bg-gray-100 hover:text-gray-900",
+                : "text-gray-600 hover:bg-gray-100 hover:text-foreground",
             )}
           >
             {label}

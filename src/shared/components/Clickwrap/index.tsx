@@ -130,14 +130,14 @@ export const ClickwrapProvider = ({ children }: { children: ReactNode }) => {
         >
           <div className="flex flex-col gap-6 max-w-3xl mx-auto p-6 bg-white rounded-2xl">
             <div ref={contentRef} className="flex flex-col gap-5">
-              <h2 className="text-2xl font-semibold text-gray-900 text-center">
+              <h2 className="text-2xl font-semibold text-foreground text-center">
                 {data?.policyTitle}
               </h2>
               <div className="tiptap p-6">{parsedContent}</div>
             </div>
             <div className="flex flex-col gap-3">
               <div className="flex items-center justify-between">
-                <Label className="text-sm font-medium text-gray-700">
+                <Label className="text-sm font-medium text-grey">
                   Signature
                 </Label>
                 <button
@@ -152,7 +152,7 @@ export const ClickwrapProvider = ({ children }: { children: ReactNode }) => {
                 className={clsx(
                   "relative rounded-lg border-2 border-dashed bg-gray-50 overflow-hidden transition-colors",
                   error
-                    ? "border-red-400 hover:border-red-500"
+                    ? "border-red hover:border-red-500"
                     : "border-gray-300 hover:border-gray-400",
                 )}
               >
@@ -172,7 +172,7 @@ export const ClickwrapProvider = ({ children }: { children: ReactNode }) => {
                     <span
                       className={clsx(
                         "text-sm select-none",
-                        error ? "text-red" : "text-gray-500",
+                        error ? "text-red" : "text-gray",
                       )}
                     >
                       Sign here with your mouse or a pen.
@@ -205,7 +205,7 @@ export const ClickwrapProvider = ({ children }: { children: ReactNode }) => {
                 <Button
                   type="button"
                   variant="outline"
-                  className="h-10 rounded-lg border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                  className="h-10 rounded-lg border-border text-sm font-medium text-grey hover:bg-gray-50"
                   onClick={handleClose}
                 >
                   Cancel

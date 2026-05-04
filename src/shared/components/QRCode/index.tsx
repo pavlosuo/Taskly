@@ -53,7 +53,7 @@ export function QRCode({ url }: { url: string }) {
           includeMargin={true}
         />
       </div>
-      <p className="max-w-55 truncate text-sm text-gray-500" title={url}>
+      <p className="max-w-55 truncate text-sm text-gray" title={url}>
         {url}
       </p>
       <div className="flex gap-2">
@@ -65,7 +65,7 @@ export function QRCode({ url }: { url: string }) {
         </button>
         <button
           onClick={handleDownloadPng}
-          className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 active:scale-95"
+          className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-grey transition hover:bg-gray-50 active:scale-95"
         >
           Download Code
         </button>
