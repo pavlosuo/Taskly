@@ -1,0 +1,129 @@
+.tiptap-separator {
+  flex-shrink: 0;
+  background-color: var(--tt-link-border-color);
+  --tt-link-border-color: var(--tt-gray-light-a-200);
+  .dark & {
+    --tt-link-border-color: var(--tt-gray-dark-a-200);
+  }
+  &[data-orientation="horizontal"] {
+    height: 1px;
+    width: 100%;
+    margin: 0.5rem 0;
+  }
+  &[data-orientation="vertical"] {
+    height: 1.5rem;
+    width: 1px;
+  }
+}
+
+.tiptap {
+  padding: 1.5rem !important;
+  border: 1px solid rgb(229, 229, 229) !important;
+  border-radius: calc(0.625rem - 2px) !important;
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-size: revert;
+    font-weight: revert;
+    margin: revert;
+    line-height: 1.2;
+    text-wrap: pretty;
+  }
+
+  h1 {
+    font-size: 1.4rem !important;
+    font-weight: 700 !important;
+    margin-top: 3.5rem !important;
+    margin-bottom: 1.5rem !important;
+    line-height: 150% !important;
+  }
+  h2 {
+    font-size: 1.2rem !important;
+    font-weight: 700 !important;
+    margin-top: 3.5rem !important;
+    margin-bottom: 1.5rem !important;
+    line-height: 150% !important;
+  }
+  h3 {
+    font-size: 1.1rem !important;
+    font-weight: 600 !important;
+    margin-top: 2.5rem !important;
+    line-height: 150% !important;
+  }
+  h4,
+  h5,
+  h6 {
+    font-size: 1rem !important;
+    font-weight: 600 !important;
+    margin-top: 2.5rem !important;
+    line-height: 150% !important;
+  }
+  ul,
+  ol {
+    list-style: revert;
+    padding: 0 1rem !important;
+    margin: 1.25rem 1rem 1.25rem 0.4rem !important;
+  }
+  ul,
+  li {
+    list-style-type: disc !important;
+    list-style: disc !important;
+  }
+  ol {
+    list-style-type: decimal !important;
+    list-style: decimal !important;
+  }
+  b,
+  strong {
+    font-weight: bold !important;
+  }
+  em,
+  i {
+    font-style: italic !important;
+  }
+  p {
+    margin-top: 0.75rem;
+    margin-bottom: 0.75rem;
+  }
+  :first-child {
+    margin-top: 0 !important;
+  }
+  pre {
+    background: #000 !important;
+    border-radius: 0.5rem !important;
+    color: #fff !important;
+    font-family: "JetBrainsMono", monospace !important;
+    margin: 1.5rem 0 !important;
+    padding: 0.75rem 1rem !important;
+  }
+  blockquote {
+    border-left: 3px solid #000 !important;
+    margin: 1.5rem 0 !important;
+    padding-left: 1rem !important;
+    border-top: none !important;
+    border-right: none !important;
+    border-bottom: none !important;
+  }
+  hr {
+    border: none !important;
+    border-top: 1px solid #000 !important;
+    margin: 2rem 0 !important;
+  }
+  a {
+    color: revert;
+    text-decoration: underline;
+  }
+  img {
+    display: block;
+    max-width: 100%;
+  }
+}
+
+.tiptap-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}

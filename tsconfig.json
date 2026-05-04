@@ -1,0 +1,41 @@
+{
+  "compilerOptions": {
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "react-jsx",
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "app/*": ["./src/app/*"],
+      "api/*": ["./src/app/api/*"],
+      "interfaces/*": ["./src/interfaces/*"],
+      "utils/*": ["./src/utils/*"],
+      "providers/*": ["./src/providers/*"],
+      "layouts/*": ["./src/layouts/*"],
+      "screens": ["./src/screens"],
+      "widgets/*": ["./src/widgets/*"],
+      "features/*": ["./src/features/*"],
+      "entities/*": ["./src/entities/*"],
+      "shared/*": ["./src/shared/*"],
+      "public/*": ["./public/*"],
+      "styles/*": ["/src/styles/*"],
+      "@/*": ["./src/*"]
+    },
+    "noUnusedLocals": false,
+    "target": "ES2017"
+  },
+  "include": ["./src/**/*", ".next/types/**/*.ts", ".next/dev/types/**/*.ts"],
+  "exclude": ["node_modules"]
+}
