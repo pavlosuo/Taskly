@@ -7,7 +7,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { loginSchema } from "../../../../include/schemas";
 import { LoginForm, ZodErrors } from "@/types";
-import { FieldError, PasswordToggle, BottomLink, AuthLayout } from "../ui";
+import {
+  FieldError,
+  PasswordToggle,
+  BottomLink,
+  AuthLayout,
+  Title,
+} from "../ui";
 import { getAxiosError } from "@/utils/getAxiosError";
 
 export function Login() {
@@ -50,9 +56,7 @@ export function Login() {
 
   return (
     <AuthLayout>
-      <h1 className="text-[28px] font-bold text-foreground mb-1 tracking-tight">
-        Welcome Back
-      </h1>
+      <Title>Welcome Back</Title>
       <p className="text-sm text-grey mb-8 leading-relaxed">
         Sign in to access your account and manage your dashboard.
       </p>

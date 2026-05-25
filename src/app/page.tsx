@@ -1,14 +1,8 @@
-import { Screens } from "screens";
-import { getMetaData } from "utils/Metadata";
-export const metadata = getMetaData({
-  title: "Home",
-  description: "Home page",
-});
+import { getUser } from "@/api/getUser";
+import { redirect } from "next/navigation";
 
-export default function Home() {
-  return (
-    <main className="page">
-      <Screens.Main.Main />
-    </main>
-  );
+export default async function Root() {
+  const user = await getUser();
+  if (!user) redirect("/login");
+  redirect("/profile");
 }

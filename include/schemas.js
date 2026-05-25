@@ -140,37 +140,9 @@ export const taskerRegisterSchema = z
       ),
     username: usernameField,
     phone: phoneField,
-    HETU: z.string().refine((hetu) => {
-      if (!/^\d{6}[+-A]\d{3}[0-9A-Y]$/.test(hetu)) return false;
-      const HETU_CHARS = "0123456789ABCDEFHJKLMNPRSTUVWXY";
-      const [_, dd, mm, yy, century, individual, control] = hetu.match(
-        /^(\d{2})(\d{2})(\d{2})([+-A])(\d{3})([0-9A-Y])$/,
-      );
-
-      const yearPrefix = century === "+" ? "18" : century === "-" ? "19" : "20";
-
-      const fullDate = `${yearPrefix}${yy}-${mm}-${dd}`;
-      const date = new Date(fullDate);
-
-      if (
-        date.getFullYear().toString() !== `${yearPrefix}${yy}` ||
-        date.getMonth() + 1 !== Number(mm) ||
-        date.getDate() !== Number(dd)
-      ) {
-        return false;
-      }
-
-      const checksumBase = `${dd}${mm}${yy}${individual}`;
-      const remainder = Number(checksumBase) % 31;
-
-      return HETU_CHARS[remainder] === control;
-    }, "Invalid Finnish personal identity number"),
     email: emailField,
     password: passwordField,
     confirm: confirmPasswordField,
-    agreementAccepted: z.boolean().refine((val) => val === true, {
-      message: "You must accept the agreement to continue",
-    }),
   })
   .refine((data) => data.password === data.confirm, {
     message: "Passwords do not match",

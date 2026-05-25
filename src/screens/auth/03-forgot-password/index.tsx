@@ -25,6 +25,7 @@ import {
   PasswordToggle,
   BottomLink,
   MethodToggle,
+  Title,
 } from "../ui";
 import { getAxiosError } from "@/utils/getAxiosError";
 import { PhoneInput } from "@/shared/components/PhoneInput";
@@ -106,9 +107,7 @@ const PhoneStep = memo(function PhoneStep() {
 
   return (
     <>
-      <h1 className="text-[28px] font-bold text-foreground mb-1 tracking-tight">
-        Reset password
-      </h1>
+      <Title>Reset password</Title>
       <p className="text-sm text-gray mb-6 leading-relaxed">
         Enter your phone number — we&apos;ll send a code via WhatsApp.
       </p>
@@ -178,9 +177,7 @@ const EmailStep = memo(function EmailStep() {
 
   return (
     <>
-      <h1 className="text-[28px] font-bold text-foreground mb-1 tracking-tight">
-        Reset password
-      </h1>
+      <Title>Reset password</Title>
       <p className="text-sm text-gray mb-6 leading-relaxed">
         Enter your email — we&apos;ll send a reset link.
       </p>
@@ -269,9 +266,7 @@ const OtpStep = memo(function OtpStep() {
 
   return (
     <>
-      <h1 className="text-[28px] font-bold text-foreground mb-1 tracking-tight leading-tight">
-        Verification code sent to your WhatsApp
-      </h1>
+      <Title>Verification code sent to your WhatsApp</Title>
       <p className="text-sm text-gray mb-8 leading-relaxed">
         Please enter the code you received below.
       </p>
@@ -328,9 +323,7 @@ const EmailSentStep = memo(function EmailSentStep() {
         <Check className="w-5 h-5 text-primary" />
       </div>
       <div className="form-group">
-        <h1 className="text-[28px] font-bold text-foreground mb-2 tracking-tight leading-tight">
-          Check your email
-        </h1>
+        <Title>Check your email</Title>
         <p className="text-sm text-gray leading-relaxed">
           We&apos;ve sent a password reset link to your email address. The link
           will expire in 30 minutes.
@@ -401,9 +394,7 @@ const NewPasswordStep = memo(function NewPasswordStep() {
 
   return (
     <>
-      <h1 className="text-[28px] font-bold text-foreground mb-1 tracking-tight">
-        Create new password
-      </h1>
+      <Title>Create new password</Title>
       <p className="text-sm text-gray mb-8 leading-relaxed">
         Create a new strong password for your account.
       </p>
@@ -484,9 +475,7 @@ const SuccessStep = memo(function SuccessStep() {
         <Check className="w-5 h-5 text-primary" />
       </div>
       <div className="form-group">
-        <h1 className="text-[28px] font-bold text-foreground mb-2 tracking-tight leading-tight">
-          Password changed successfully
-        </h1>
+        <Title>Password changed successfully</Title>
         <p className="text-sm text-gray leading-relaxed">
           You can now sign in with your new password.
         </p>
@@ -507,9 +496,7 @@ const TokenErrorStep = memo(function TokenErrorStep() {
   return (
     <div className="flex flex-col gap-5">
       <div>
-        <h1 className="text-[28px] font-bold text-foreground mb-2 tracking-tight leading-tight">
-          {tokenError.title}
-        </h1>
+        <Title>{tokenError.title}</Title>
         <p className="text-sm text-gray leading-relaxed">
           {tokenError.message}
         </p>

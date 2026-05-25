@@ -1,5 +1,4 @@
 "use client";
-
 import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useUser } from "providers/User";
@@ -8,10 +7,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { taskerRegisterSchema } from "../../../../include/schemas";
 import { RegisterForm } from "@/types";
-import { AuthLayout, FieldError, PasswordToggle, BottomLink } from "../ui";
+import {
+  AuthLayout,
+  FieldError,
+  PasswordToggle,
+  BottomLink,
+  Title,
+} from "../ui";
 import { getAxiosError } from "@/utils/getAxiosError";
 import { getPasswordStrength } from "@/utils/getPasswordStrength";
-import { ClickwrapPublic } from "shared/components/Clickwrap";
 import clsx from "clsx";
 import { PhoneInput } from "@/shared/components/PhoneInput";
 
@@ -20,10 +24,8 @@ type RegisterErrors = {
   email?: string;
   username?: string;
   phone?: string;
-  HETU?: string;
   password?: string;
   confirm?: string;
-  agreementAccepted?: string;
   general?: string;
 };
 
@@ -34,7 +36,6 @@ export function Register() {
   const [localPhone, setLocalPhone] = useState("");
   const [show, setShow] = useState({ password: false, confirm: false });
   const [errors, setErrors] = useState<RegisterErrors>({});
-  const [agreementFile, setAgreementFile] = useState<File | null>(null);
   const [form, setForm] = useState<RegisterForm>({
     email: "",
     password: "",
@@ -42,8 +43,6 @@ export function Register() {
     username: "",
     fullName: "",
     phone: "",
-    HETU: "",
-    agreementAccepted: false,
   });
   const strength = getPasswordStrength(form.password);
 
@@ -65,51 +64,27 @@ export function Register() {
         email?: { _errors: string[] };
         username?: { _errors: string[] };
         phone?: { _errors: string[] };
-        HETU?: { _errors: string[] };
         password?: { _errors: string[] };
         confirm?: { _errors: string[] };
-        agreementAccepted?: { _errors: string[] };
       };
       setErrors({
         fullName: fmt.fullName?._errors[0],
         email: fmt.email?._errors[0],
         username: fmt.username?._errors[0],
         phone: fmt.phone?._errors[0],
-        HETU: fmt.HETU?._errors[0],
         password: fmt.password?._errors[0],
         confirm: fmt.confirm?._errors[0],
-        agreementAccepted: fmt.agreementAccepted?._errors[0],
         general: fmt._errors[0],
       });
       return;
     }
 
     try {
-      const fd = new FormData();
-      fd.append("email", form.email);
-      fd.append("password", form.password);
-      fd.append("confirm", form.confirm);
-      fd.append("username", form.username);
-      fd.append("fullName", form.fullName);
-      fd.append("phone", form.phone);
-      fd.append("HETU", form.HETU);
-      fd.append("agreementFile", agreementFile as File);
-      fd.append("agreementAccepted", form.agreementAccepted ? "true" : "false");
-      await register(fd);
+      await register(form);
       router.push("/");
     } catch (err) {
       setErrors({ general: getAxiosError(err) });
     }
-  };
-
-  const onConfirm = (blob: Blob) => {
-    setAgreementFile(
-      new File([blob], "agreement.pdf", {
-        type: blob.type || "application/pdf",
-      }),
-    );
-    setForm((p) => ({ ...p, agreementAccepted: true }));
-    setErrors((p) => ({ ...p, agreementAccepted: undefined }));
   };
 
   useEffect(() => {
@@ -129,14 +104,11 @@ export function Register() {
     { name: "email", label: "Email", type: "email", autoComplete: "email" },
     { name: "username", label: "Username", autoComplete: "username" },
     { name: "phone", label: "Phone", autoComplete: "tel" },
-    { name: "HETU", label: "HETU", autoComplete: "off" },
   ];
 
   return (
     <AuthLayout>
-      <h1 className="text-[28px] font-bold text-foreground tracking-tight">
-        Create Account
-      </h1>
+      <Title>Create Account</Title>
       <p className="text-sm text-gray mb-8 leading-relaxed">
         Sign up to get started with your new account.
       </p>
@@ -234,13 +206,6 @@ export function Register() {
             </div>
           );
         })}
-        <ClickwrapPublic
-          error={!!errors.agreementAccepted}
-          onConfirm={onConfirm}
-        />
-        {errors.agreementAccepted && (
-          <p className="text-xs text-red">{errors.agreementAccepted}</p>
-        )}
         {errors.general && (
           <p className="text-xs text-red -mt-2">{errors.general}</p>
         )}

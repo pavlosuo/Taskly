@@ -14,6 +14,14 @@ export function AuthLayout({ children }: { children: React.ReactNode }) {
   );
 }
 
+export function Title({ children }: { children: React.ReactNode }) {
+  return (
+    <h1 className="text-[40px] font-bold text-foreground mb-1 tracking-tight">
+      {children}
+    </h1>
+  );
+}
+
 export function FormPanel({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex flex-col mb-10 px-0 py-0 md:px-14 md:mb-0 md:py-10 md:overflow-y-auto relative">

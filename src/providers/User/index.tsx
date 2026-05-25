@@ -6,7 +6,7 @@ import {
   useCallback,
   ReactNode,
 } from "react";
-import { User, LoginForm, AuthResponse } from "@/types";
+import { User, LoginForm, AuthResponse, RegisterForm } from "@/types";
 import { axiosApi } from "@/api";
 import { AutoLogoutPopup } from "@/shared/components/AutoLogoutPopup";
 
@@ -15,7 +15,7 @@ interface UserContextType {
   isLoading: boolean;
   setUser: (user: User | null) => void;
   login: (payload: LoginForm) => Promise<AuthResponse>;
-  register: (payload: FormData) => Promise<AuthResponse>;
+  register: (payload: RegisterForm) => Promise<AuthResponse>;
   logout: () => Promise<void>;
   sendResetOtp: (phone: string) => Promise<void>;
   verifyResetOtp: (phone: string, otp: string) => Promise<string>;
@@ -50,7 +50,7 @@ export const UserProvider = ({
     }
   }, []);
 
-  const register = useCallback(async (payload: FormData) => {
+  const register = useCallback(async (payload: RegisterForm) => {
     setIsLoading(true);
     try {
       const { data } = await axiosApi.register(payload);

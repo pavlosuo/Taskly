@@ -23,9 +23,6 @@ import {
 } from "./include/schemas.js";
 import { authLimiter, globalLimiter } from "./include/limiters.js";
 import {
-  getClientIp,
-  getDeviceInfo,
-  uploadAgreementLocally,
   hashToken,
   generateOtp,
   safeEqual,
@@ -340,70 +337,25 @@ export class Server {
   }
 
   async registerTasker(req, res) {
-    let body = {
-      ...req.body,
-    };
-    try {
-      body = {
-        ...body,
-        agreementAccepted: body.agreementAccepted === "true",
-      };
-    } catch {
-      return res
-        .status(400)
-        .json({ success: false, message: "Invalid data format." });
-    }
-    const parsed = taskerRegisterSchema.safeParse(body);
+    const parsed = taskerRegisterSchema.safeParse(req.body);
+    console.log(parsed);
     if (!parsed.success)
       return res
         .status(400)
         .json({ success: false, message: parsed.error.issues[0].message });
-
     try {
-      const {
-        email,
-        password,
-        username,
-        fullName,
-        phone,
-        HETU,
-        agreementAccepted,
-      } = parsed.data;
+      const { email, password, username, fullName, phone } =
+        parsed.data;
       const db = await this.getDb();
       const users = db.collection("users");
       const existing = await users.findOne({
-        $or: [{ email }, { username }, { HETU }, { phone }],
+        $or: [{ email }, { username }, { phone }],
       });
-
       if (existing)
         return res
           .status(400)
           .json({ success: false, message: "User already exists.", existing });
-
-      let agreement = null;
-      if (req.file) {
-        const ip = getClientIp(req);
-        const userAgent = getDeviceInfo(req);
-        const tempName = `agreement-${Date.now()}-${Buffer.from(email).toString("hex").slice(0, 8)}.pdf`;
-        try {
-          const { key } = await uploadAgreementLocally(
-            req.file.buffer,
-            tempName,
-          );
-          agreement = {
-            pdfKey: key,
-            acceptedAt: new Date(),
-            ip,
-            userAgent,
-            agreementAccepted,
-          };
-        } catch (uploadErr) {
-          console.error("Agreement PDF upload failed:", uploadErr.message);
-        }
-      }
-
       const passwordHash = await bcrypt.hash(password, 10);
-
       const doc = {
         email,
         username,
@@ -412,13 +364,10 @@ export class Server {
         profile: {
           fullName,
           phone,
-          HETU,
           verified: false,
         },
-        agreement,
         createdAt: new Date(),
       };
-
       const result = await users.insertOne(doc);
       const { passwordHash: _, ...userSecure } = {
         _id: result.insertedId,

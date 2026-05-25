@@ -106,7 +106,7 @@ export const PhoneInput = memo(function PhoneInput({
   error?: string;
 }) {
   const [selected, setSelected] = useState<Country>(
-    () => countryList.find((c) => c.code === "SG") ?? countryList[0],
+    () => countryList.find((c) => c.code === "FI") ?? countryList[0],
   );
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");

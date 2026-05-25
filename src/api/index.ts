@@ -1,5 +1,5 @@
 import axios from "axios";
-import { LoginForm, User, AuthResponse, Data } from "@/types";
+import { LoginForm, User, AuthResponse, Data, RegisterForm } from "@/types";
 
 export const BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:5050";
@@ -15,7 +15,7 @@ export const axiosApi = {
   login: (payload: LoginForm) =>
     api.post<AuthResponse>("/api/auth/login", payload),
 
-  register: (payload: FormData) =>
+  register: (payload: RegisterForm) =>
     api.post<AuthResponse>("/api/auth/register/tasker", payload),
 
   logout: () => api.post("/api/auth/logout"),

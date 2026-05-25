@@ -25,8 +25,6 @@ export type RegisterForm = {
   username: string;
   fullName: string;
   phone: string;
-  HETU: string;
-  agreementAccepted: boolean;
 };
 
 export interface User {
@@ -38,7 +36,6 @@ export interface User {
   profile?: {
     fullName: string;
     phone: string;
-    HETU: string;
     verified: boolean;
     agreementAccepted: boolean;
   };
@@ -68,3 +65,7 @@ export type ZodErrors<T> = {
 } & {
   general?: string;
 };
+
+export type Lang = "en" | "fi" | "sv";
+
+export type Theme = "light" | "dark";
