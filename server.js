@@ -22,12 +22,7 @@ import {
   forgotPasswordEmailSchema,
 } from "./include/schemas.js";
 import { authLimiter, globalLimiter } from "./include/limiters.js";
-import {
-  hashToken,
-  generateOtp,
-  safeEqual,
-  upload,
-} from "./include/utils.js";
+import { hashToken, generateOtp, safeEqual, upload } from "./include/utils.js";
 
 import dns from "node:dns/promises";
 dns.setServers(["1.1.1.1", "1.0.0.1"]);
@@ -173,24 +168,6 @@ export class Server {
     );
   }
 
-  async getUserFromCookie(req) {
-    const token = req.cookies?.token;
-    if (!token) return null;
-    try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      const db = await this.getDb();
-      const user = await db
-        .collection("users")
-        .findOne(
-          { _id: new ObjectId(decoded.id) },
-          { projection: { passwordHash: 0 } },
-        );
-      return user ?? null;
-    } catch {
-      return null;
-    }
-  }
-
   issueToken(res, user) {
     const token = jwt.sign(
       {
@@ -210,6 +187,24 @@ export class Server {
       maxAge: 60 * 60 * 24 * 7 * 1000,
     });
     return token;
+  }
+
+  async getUserFromCookie(req) {
+    const token = req.cookies?.token;
+    if (!token) return null;
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const db = await this.getDb();
+      const user = await db
+        .collection("users")
+        .findOne(
+          { _id: new ObjectId(decoded.id) },
+          { projection: { passwordHash: 0 } },
+        );
+      return user ?? null;
+    } catch {
+      return null;
+    }
   }
 
   async me(req, res) {
@@ -338,14 +333,12 @@ export class Server {
 
   async registerTasker(req, res) {
     const parsed = taskerRegisterSchema.safeParse(req.body);
-    console.log(parsed);
     if (!parsed.success)
       return res
         .status(400)
         .json({ success: false, message: parsed.error.issues[0].message });
     try {
-      const { email, password, username, fullName, phone } =
-        parsed.data;
+      const { email, password, username, fullName, phone } = parsed.data;
       const db = await this.getDb();
       const users = db.collection("users");
       const existing = await users.findOne({

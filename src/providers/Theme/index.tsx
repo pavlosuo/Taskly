@@ -16,11 +16,11 @@ export const useTheme = () => {
   return context;
 };
 
-export const ThemeProvider: React.FC<{ children: ReactNode, langInitial?: Lang, themeInitial?: Theme }> = ({
-  children,
-  langInitial,
-  themeInitial,
-}) => {
+export const ThemeProvider: React.FC<{
+  children: ReactNode;
+  langInitial?: Lang;
+  themeInitial?: Theme;
+}> = ({ children, langInitial, themeInitial }) => {
   const [lang, setLang] = useState<Lang>(langInitial || "en");
   const [theme, setTheme] = useState<Theme>(themeInitial || "light");
   return (

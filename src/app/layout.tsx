@@ -14,7 +14,7 @@ export default async function LocaleLayout({
 }) {
   const [user, data] = await Promise.all([getUser(), getPolicyData()]);
   return (
-    <html className="dark" lang={"en"} suppressHydrationWarning>
+    <html className="da rk" lang={"en"} suppressHydrationWarning>
       <body className={clsx(fonts.map((f) => f.variable))}>
         <RootLayout
           initialDataJson={data ? JSON.stringify(data) : null}
