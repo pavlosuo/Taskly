@@ -1,12 +1,90 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 import { useState, useRef, useEffect, useMemo, useCallback, memo } from "react";
 import { countryList, type Country } from "@/data/phones";
 import clsx from "clsx";
 import { Input } from "@/components/ui/input";
+import { PhoneNumberUtil, AsYouTypeFormatter } from "google-libphonenumber";
 
+const util = PhoneNumberUtil.getInstance();
+const nsnLengthCache = new Map<string, number>();
+const placeholderCache = new Map<string, string>();
 const ITEM_H = 36;
 const VISIBLE_H = 208;
 const OVERSCAN = 3;
+
+function formatNSN(nsn: string, regionCode: string): string {
+  if (!nsn) return "";
+  const prefix = util.getNddPrefixForRegion(regionCode, true) ?? "";
+  let countryCallingCode = "";
+  try {
+    countryCallingCode =
+      util.getExampleNumber(regionCode).getCountryCode()?.toString() ?? "";
+  } catch {}
+  const usePrefix = prefix && prefix !== countryCallingCode;
+  const formatter = new AsYouTypeFormatter(regionCode);
+  const input = usePrefix ? prefix + nsn : nsn;
+  let result = "";
+  for (const digit of input) {
+    result = formatter.inputDigit(digit);
+  }
+  if (usePrefix && result.startsWith(prefix)) {
+    result = result.slice(prefix.length).replace(/^[\s\-()]/, "");
+  }
+  return result;
+}
+
+function getNSNMaxLength(regionCode: string): number {
+  if (nsnLengthCache.has(regionCode)) return nsnLengthCache.get(regionCode)!;
+  try {
+    const len = util
+      .getExampleNumber(regionCode)
+      .getNationalNumber()!
+      .toString().length;
+    nsnLengthCache.set(regionCode, len);
+    return len;
+  } catch {
+    return 10;
+  }
+}
+
+function getPhonePlaceholder(regionCode: string): string {
+  if (placeholderCache.has(regionCode))
+    return placeholderCache.get(regionCode)!;
+  try {
+    const nsn = util
+      .getExampleNumber(regionCode)
+      .getNationalNumber()!
+      .toString();
+    const formatted = formatNSN(nsn, regionCode);
+    placeholderCache.set(regionCode, formatted);
+    return formatted;
+  } catch {
+    return "000 000 0000";
+  }
+}
+
+function parsePastedPhone(
+  raw: string,
+  countryList: Country[],
+): { country: Country; nsn: string } | null {
+  const trimmed = raw.trim();
+  const hasIntl = trimmed.startsWith("+") || trimmed.startsWith("00");
+  if (!hasIntl) return null;
+  try {
+    const parsed = util.parseAndKeepRawInput(trimmed, undefined);
+    if (!util.isValidNumber(parsed)) return null;
+    const regionCode = util.getRegionCodeForNumber(parsed);
+    if (!regionCode) return null;
+    const nsn = parsed.getNationalNumber()?.toString();
+    if (!nsn) return null;
+    const country = countryList.find((c) => c.code === regionCode);
+    if (!country) return null;
+    return { country, nsn };
+  } catch {
+    return null;
+  }
+}
 
 const Flag = memo(function Flag({ country }: { country: Country }) {
   if (!country.FlagComponent) {
@@ -65,7 +143,7 @@ function VirtualList({
     Math.ceil((scrollTop + VISIBLE_H) / ITEM_H) + OVERSCAN,
   );
 
-  const visible = [];
+  const visible: React.ReactNode[] = [];
   for (let i = startIdx; i <= endIdx; i++) {
     visible.push(
       <CountryItem
@@ -99,9 +177,8 @@ export const PhoneInput = memo(function PhoneInput({
   error,
 }: {
   value: string;
-  onChange: (phone: string) => void;
-  code: string;
-  setCode: (code: string) => void;
+  onChange: (formatted: string) => void;
+  setCode: (dialCode: string) => void;
   id: string;
   error?: string;
 }) {
@@ -110,8 +187,16 @@ export const PhoneInput = memo(function PhoneInput({
   );
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
-  const ref = useRef<HTMLDivElement>(null);
+
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const maxLen = useMemo(() => getNSNMaxLength(selected.code), [selected.code]);
+  const placeholder = useMemo(
+    () => getPhonePlaceholder(selected.code),
+    [selected.code],
+  );
 
   const filtered = useMemo(
     () =>
@@ -128,7 +213,10 @@ export const PhoneInput = memo(function PhoneInput({
   useEffect(() => {
     if (!open) return;
     const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(e.target as Node)
+      ) {
         setOpen(false);
         setQuery("");
       }
@@ -137,37 +225,59 @@ export const PhoneInput = memo(function PhoneInput({
     return () => document.removeEventListener("mousedown", handler);
   }, [open]);
 
+  const applyCountry = useCallback(
+    (country: Country, nsn?: string) => {
+      setSelected(country);
+      setCode(country.dial);
+      const digits = (nsn ?? value.replace(/\D/g, "")).slice(
+        0,
+        getNSNMaxLength(country.code),
+      );
+      onChange(formatNSN(digits, country.code));
+    },
+    [value, onChange, setCode],
+  );
+
   const handleToggle = useCallback(() => {
     setOpen((v) => {
-      const next = !v;
-      setQuery("");
-      if (next) {
-        requestAnimationFrame(() => searchRef.current?.focus());
-      }
-      return next;
+      if (!v) requestAnimationFrame(() => searchRef.current?.focus());
+      else setQuery("");
+      return !v;
     });
   }, []);
 
   const handleListMouseDown = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
       e.preventDefault();
-      const item = (e.target as HTMLElement).closest<HTMLElement>(
-        "[data-code]",
-      );
-      if (!item) return;
-      const country = countryList.find((c) => c.code === item.dataset.code);
+      const el = (e.target as HTMLElement).closest<HTMLElement>("[data-code]");
+      if (!el) return;
+      const country = countryList.find((c) => c.code === el.dataset.code);
       if (!country) return;
-      setSelected(country);
-      setCode(country.dial);
+      applyCountry(country);
       setOpen(false);
+      setQuery("");
+      requestAnimationFrame(() => inputRef.current?.focus());
     },
-    [setCode],
+    [applyCountry],
   );
 
   const handlePhone = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) =>
-      onChange(e.target.value.replace(/\D/g, "")),
-    [onChange],
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const digits = e.target.value.replace(/\D/g, "").slice(0, maxLen);
+      onChange(formatNSN(digits, selected.code));
+    },
+    [selected.code, maxLen, onChange],
+  );
+
+  const handlePaste = useCallback(
+    (e: React.ClipboardEvent<HTMLInputElement>) => {
+      const raw = e.clipboardData.getData("text");
+      const parsed = parsePastedPhone(raw, countryList);
+      if (!parsed) return;
+      e.preventDefault();
+      applyCountry(parsed.country, parsed.nsn);
+    },
+    [applyCountry],
   );
 
   const handleQuery = useCallback(
@@ -175,15 +285,19 @@ export const PhoneInput = memo(function PhoneInput({
     [],
   );
 
+  useEffect(() => {
+    setCode(selected.dial);
+  }, [setCode]);
+
   return (
     <div className="flex gap-2">
-      <div className="relative" ref={ref}>
+      <div className="relative" ref={dropdownRef}>
         <button
           type="button"
           onClick={handleToggle}
           className={clsx(
-            "w-25 flex items-center gap-1.5 h-10 px-3 bg-transparent dark:bg-input/30 rounded-lg border border-border text-sm text-grey",
-            error ? "border-red focus-visible:ring-red-75" : "border-border",
+            "w-25 flex items-center gap-1.5 h-10 px-3 bg-transparent dark:bg-input/30 rounded-lg border text-sm text-grey",
+            error ? "border-red" : "border-border",
           )}
         >
           <Flag country={selected} />
@@ -237,13 +351,16 @@ export const PhoneInput = memo(function PhoneInput({
         </div>
       </div>
       <Input
+        ref={inputRef}
         autoComplete="tel"
         type="tel"
+        inputMode="numeric"
         value={value}
         id={id}
         name={id}
-        placeholder="999 123 4567"
+        placeholder={placeholder}
         onChange={handlePhone}
+        onPaste={handlePaste}
         className={clsx(
           "h-10 rounded-lg text-sm placeholder:text-grey",
           error ? "border-red focus-visible:ring-red-75" : "border-border",

@@ -1,0 +1,59 @@
+{
+  "roleStep": {
+    "title": "Join Taskly",
+    "subtitle": "How are you planning to use the app?",
+    "continue": "Continue"
+  },
+  "formStep": {
+    "title": "Create Account",
+    "back": "Back",
+    "submit": {
+      "idle": "Create account",
+      "loading": "Creating account..."
+    }
+  },
+  "roles": {
+    "client": {
+      "title": "I need help",
+      "desc": "Post tasks, find reliable people nearby.",
+      "tags": ["Post tasks", "Hire taskers"],
+      "hint": "Quick sign up — no verification needed."
+    },
+    "tasker": {
+      "title": "I want to work",
+      "desc": "Browse local tasks, earn on your schedule.",
+      "tags": ["Earn money", "Flexible hours"],
+      "hint": "You'll verify your identity after signing up."
+    }
+  },
+  "fields": {
+    "fullName": {
+      "label": "Full name",
+      "placeholder": "Enter your full name"
+    },
+    "email": {
+      "label": "Email",
+      "placeholder": "Enter your email"
+    },
+    "username": {
+      "label": "Username",
+      "placeholder": "Enter your username"
+    },
+    "phone": {
+      "label": "Phone",
+      "placeholder": "Enter your phone"
+    },
+    "password": {
+      "label": "Password",
+      "placeholder": "Create a password"
+    },
+    "confirm": {
+      "label": "Confirm password",
+      "placeholder": "Repeat your password"
+    }
+  },
+  "bottomLink": {
+    "text": "Already have an account?",
+    "label": "Sign in"
+  }
+}

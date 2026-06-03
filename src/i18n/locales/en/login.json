@@ -1,0 +1,22 @@
+{
+  "title": "Welcome Back",
+  "subtitle": "Sign in to access your account and manage your dashboard.",
+  "email": {
+    "label": "Email",
+    "placeholder": "Enter your email"
+  },
+  "password": {
+    "label": "Password",
+    "placeholder": "Enter your password"
+  },
+  "forgotPassword": "Forgot password?",
+  "submit": {
+    "idle": "Log in",
+    "loading": "Signing in..."
+  },
+  "divider": "or",
+  "bottomLink": {
+    "text": "Don't have an account yet?",
+    "label": "Create now"
+  }
+}

@@ -30,24 +30,13 @@ import {
 import { getAxiosError } from "@/utils/getAxiosError";
 import { PhoneInput } from "@/shared/components/PhoneInput";
 import clsx from "clsx";
+import { useTranslation } from "react-i18next";
 
 type NewPasswordErrors = {
   password?: string;
   confirm?: string;
   general?: string;
 };
-
-const errorMessages = {
-  expired: "Your reset link has expired. Please request a new one.",
-  invalid: "This reset link is invalid. Please request a new one.",
-  error: "Something went wrong. Please try again.",
-} satisfies Record<"expired" | "invalid" | "error", string>;
-
-const errorTitles = {
-  expired: "Link expired",
-  invalid: "Invalid link",
-  error: "Something went wrong",
-} satisfies Record<"expired" | "invalid" | "error", string>;
 
 interface ForgotPasswordContextValue {
   step: Step;
@@ -76,6 +65,7 @@ function useForgotPassword() {
 }
 
 const PhoneStep = memo(function PhoneStep() {
+  const { t } = useTranslation("forgotPassword");
   const { setStep, setPhone, goToEntry } = useForgotPassword();
   const [phone, setLocalPhone] = useState("");
   const [code, setCode] = useState("");
@@ -107,9 +97,9 @@ const PhoneStep = memo(function PhoneStep() {
 
   return (
     <>
-      <Title>Reset password</Title>
+      <Title>{t("phone.title")}</Title>
       <p className="text-sm text-gray mb-6 leading-relaxed">
-        Enter your phone number — we&apos;ll send a code via WhatsApp.
+        {t("phone.subtitle")}
       </p>
       <MethodToggle method="phone" onChange={(m) => goToEntry(m)} />
       <form onSubmit={handleSubmit} className="flex flex-col gap-5">
@@ -121,13 +111,12 @@ const PhoneStep = memo(function PhoneStep() {
             )}
             htmlFor="phone"
           >
-            Phone number
+            {t("phone.label")}
           </Label>
           <PhoneInput
             error={error}
             value={phone}
             onChange={setLocalPhone}
-            code={code}
             setCode={setCode}
             id="phone"
           />
@@ -136,14 +125,13 @@ const PhoneStep = memo(function PhoneStep() {
         <Button
           type="submit"
           disabled={isLoading}
-          className="h-10 w-full rounded-lg bg-primary text-white text-sm font-medium"
         >
-          {isLoading ? "Sending..." : "Send code"}
+          {isLoading ? t("phone.submit.loading") : t("phone.submit.idle")}
         </Button>
       </form>
       <BottomLink
-        text="Don't have an account yet?"
-        label="Create now"
+        text={t("bottomLink.text")}
+        label={t("bottomLink.label")}
         onClick={() => router.push("/register")}
       />
     </>
@@ -151,6 +139,7 @@ const PhoneStep = memo(function PhoneStep() {
 });
 
 const EmailStep = memo(function EmailStep() {
+  const { t } = useTranslation("forgotPassword");
   const { setStep, goToEntry } = useForgotPassword();
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
@@ -177,9 +166,9 @@ const EmailStep = memo(function EmailStep() {
 
   return (
     <>
-      <Title>Reset password</Title>
+      <Title>{t("email.title")}</Title>
       <p className="text-sm text-gray mb-6 leading-relaxed">
-        Enter your email — we&apos;ll send a reset link.
+        {t("email.subtitle")}
       </p>
       <MethodToggle method="email" onChange={(m) => goToEntry(m)} />
       <form onSubmit={handleSubmit} className="flex flex-col gap-5">
@@ -191,14 +180,14 @@ const EmailStep = memo(function EmailStep() {
               error ? "text-red" : "text-grey",
             )}
           >
-            Email
+            {t("email.label")}
           </Label>
           <Input
             id="email"
             name="email"
             autoComplete="email"
             type="email"
-            placeholder="Enter your email"
+            placeholder={t("email.placeholder")}
             value={email}
             onChange={(e) => {
               setEmail(e.target.value);
@@ -214,14 +203,13 @@ const EmailStep = memo(function EmailStep() {
         <Button
           type="submit"
           disabled={isLoading}
-          className="h-10 w-full rounded-lg bg-primary text-white text-sm font-medium"
         >
-          {isLoading ? "Sending..." : "Send reset link"}
+          {isLoading ? t("email.submit.loading") : t("email.submit.idle")}
         </Button>
       </form>
       <BottomLink
-        text="Don't have an account yet?"
-        label="Create now"
+        text={t("bottomLink.text")}
+        label={t("bottomLink.label")}
         onClick={() => router.push("/register")}
       />
     </>
@@ -229,6 +217,7 @@ const EmailStep = memo(function EmailStep() {
 });
 
 const OtpStep = memo(function OtpStep() {
+  const { t } = useTranslation("forgotPassword");
   const { phone, setStep, setResetToken } = useForgotPassword();
   const [digits, setDigits] = useState("");
   const [error, setError] = useState("");
@@ -266,9 +255,9 @@ const OtpStep = memo(function OtpStep() {
 
   return (
     <>
-      <Title>Verification code sent to your WhatsApp</Title>
+      <Title>{t("otp.title")}</Title>
       <p className="text-sm text-gray mb-8 leading-relaxed">
-        Please enter the code you received below.
+        {t("otp.subtitle")}
       </p>
       <form onSubmit={handleSubmit} className="flex flex-col gap-3">
         <div className="form-group">
@@ -289,26 +278,25 @@ const OtpStep = memo(function OtpStep() {
           <FieldError message={error} />
         </div>
         <p className="text-sm text-gray">
-          {"Didn't get a code? "}
+          {t("otp.resendText")}{" "}
           <button
             type="button"
             onClick={handleResend}
             className="text-primary hover:text-primary/90 font-medium hover:underline"
           >
-            Send again
+            {t("otp.resendLink")}
           </button>
         </p>
         <Button
           type="submit"
           disabled={isLoading || digits.length < 6}
-          className="h-10 w-full rounded-lg bg-primary text-white text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {isLoading ? "Verifying..." : "Continue"}
+          {isLoading ? t("otp.submit.loading") : t("otp.submit.idle")}
         </Button>
       </form>
       <BottomLink
-        text="Don't have an account yet?"
-        label="Create now"
+        text={t("bottomLink.text")}
+        label={t("bottomLink.label")}
         onClick={() => router.push("/register")}
       />
     </>
@@ -316,6 +304,7 @@ const OtpStep = memo(function OtpStep() {
 });
 
 const EmailSentStep = memo(function EmailSentStep() {
+  const { t } = useTranslation("forgotPassword");
   const router = useRouter();
   return (
     <div className="flex flex-col gap-5">
@@ -323,33 +312,33 @@ const EmailSentStep = memo(function EmailSentStep() {
         <Check className="w-5 h-5 text-primary" />
       </div>
       <div className="form-group">
-        <Title>Check your email</Title>
+        <Title>{t("emailSent.title")}</Title>
         <p className="text-sm text-gray leading-relaxed">
-          We&apos;ve sent a password reset link to your email address. The link
-          will expire in 30 minutes.
+          {t("emailSent.subtitle")}
         </p>
       </div>
       <div className="rounded-lg bg-primary/5 px-4 py-3 flex gap-1 flex-col">
         <div className="flex items-center gap-1 color">
           <Info className="w-4 h-4 text-foreground mt-0.5 shrink-0" />
-          <span className="text-sm text-foreground font-semibold">Hint</span>
+          <span className="text-sm text-foreground font-semibold">
+            {t("hint.label")}
+          </span>
         </div>
         <p className="text-sm text-primary leading-relaxed">
-          Didn&apos;t receive it? Check your spam folder or try again with a
-          different method.
+          {t("emailSent.hint")}
         </p>
       </div>
       <Button
         onClick={() => router.push("/login")}
-        className="h-10 w-full rounded-lg bg-primary text-white text-sm font-medium"
       >
-        Back to sign in
+        {t("emailSent.backToLogin")}
       </Button>
     </div>
   );
 });
 
 const NewPasswordStep = memo(function NewPasswordStep() {
+  const { t } = useTranslation("forgotPassword");
   const { resetToken, setStep } = useForgotPassword();
   const [form, setForm] = useState<NewPasswordForm>({
     password: "",
@@ -394,9 +383,9 @@ const NewPasswordStep = memo(function NewPasswordStep() {
 
   return (
     <>
-      <Title>Create new password</Title>
+      <Title>{t("newPassword.title")}</Title>
       <p className="text-sm text-gray mb-8 leading-relaxed">
-        Create a new strong password for your account.
+        {t("newPassword.subtitle")}
       </p>
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         {(["password", "confirm"] as const).map((field) => (
@@ -408,16 +397,14 @@ const NewPasswordStep = memo(function NewPasswordStep() {
                 errors[field] ? "text-red" : "text-grey",
               )}
             >
-              {field === "password" ? "New password" : "Repeat new password"}
+              {t(`newPassword.fields.${field}`)}
             </Label>
             <div className="relative">
               <Input
                 id={field}
                 name={field}
                 type={show[field] ? "text" : "password"}
-                placeholder={
-                  field === "password" ? "New password" : "Repeat new password"
-                }
+                placeholder={t(`newPassword.fields.${field}`)}
                 value={form[field]}
                 onChange={handleChange(field)}
                 className={clsx(
@@ -443,24 +430,27 @@ const NewPasswordStep = memo(function NewPasswordStep() {
         <div className="rounded-lg bg-primary/5 px-4 py-3 flex gap-1 flex-col">
           <div className="flex items-center gap-1 color">
             <Info className="w-4 h-4 text-foreground mt-0.5 shrink-0" />
-            <span className="text-sm text-foreground font-semibold">Hint</span>
+            <span className="text-sm text-foreground font-semibold">
+              {t("hint.label")}
+            </span>
           </div>
           <p className="text-sm text-primary leading-relaxed">
-            {`The password should be at least twelve characters long. To make it stronger, use upper and lower case letters, numbers, and symbols like ! " ? $ % ^ & ).`}
+            {t("newPassword.hint")}
           </p>
         </div>
         {errors.general && <p className="text-xs text-red">{errors.general}</p>}
         <Button
           type="submit"
           disabled={isLoading}
-          className="h-10 w-full rounded-lg bg-primary text-white text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {isLoading ? "Saving..." : "Continue"}
+          {isLoading
+            ? t("newPassword.submit.loading")
+            : t("newPassword.submit.idle")}
         </Button>
       </form>
       <BottomLink
-        text="Don't have an account yet?"
-        label="Create now"
+        text={t("bottomLink.text")}
+        label={t("bottomLink.label")}
         onClick={() => router.push("/register")}
       />
     </>
@@ -468,6 +458,7 @@ const NewPasswordStep = memo(function NewPasswordStep() {
 });
 
 const SuccessStep = memo(function SuccessStep() {
+  const { t } = useTranslation("forgotPassword");
   const router = useRouter();
   return (
     <div className="flex flex-col gap-5">
@@ -475,22 +466,22 @@ const SuccessStep = memo(function SuccessStep() {
         <Check className="w-5 h-5 text-primary" />
       </div>
       <div className="form-group">
-        <Title>Password changed successfully</Title>
+        <Title>{t("success.title")}</Title>
         <p className="text-sm text-gray leading-relaxed">
-          You can now sign in with your new password.
+          {t("success.subtitle")}
         </p>
       </div>
       <Button
         onClick={() => router.push("/login")}
-        className="h-10 w-full rounded-lg bg-primary text-white text-sm font-medium"
       >
-        Sign in
+        {t("success.signIn")}
       </Button>
     </div>
   );
 });
 
 const TokenErrorStep = memo(function TokenErrorStep() {
+  const { t } = useTranslation("forgotPassword");
   const { tokenError, goToEntry } = useForgotPassword();
   const router = useRouter();
   return (
@@ -506,9 +497,8 @@ const TokenErrorStep = memo(function TokenErrorStep() {
           goToEntry("email");
           router.replace("/forgot-password");
         }}
-        className="h-10 w-full rounded-lg bg-primary text-white text-sm font-medium"
       >
-        Request a new link
+        {t("tokenError.requestNew")}
       </Button>
     </div>
   );
@@ -529,6 +519,20 @@ export function ForgotPassword({
   initialToken?: string;
   error?: "expired" | "invalid" | "error";
 }) {
+  const { t } = useTranslation("forgotPassword");
+
+  const errorMessages = {
+    expired: t("tokenError.messages.expired"),
+    invalid: t("tokenError.messages.invalid"),
+    error: t("tokenError.messages.error"),
+  };
+
+  const errorTitles = {
+    expired: t("tokenError.titles.expired"),
+    invalid: t("tokenError.titles.invalid"),
+    error: t("tokenError.titles.error"),
+  };
+
   const [step, setStep] = useState<Step>(
     initialToken ? "new-password" : error ? "token-error" : "entry",
   );

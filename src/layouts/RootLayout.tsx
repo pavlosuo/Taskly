@@ -4,6 +4,7 @@ import { UserProvider } from "@/providers/User";
 import { User } from "@/types/index";
 import { DataProvider } from "@/providers/Data";
 import { ClickwrapProvider } from "@/shared/components/Clickwrap";
+import { ThemeProvider } from "@/providers/Theme";
 
 type IRootLayout = {
   userJson: string | null;
@@ -20,7 +21,9 @@ export const RootLayout: FC<PropsWithChildren<IRootLayout>> = ({
   return (
     <DataProvider initialData={initialData}>
       <UserProvider initialUser={user as User}>
-        <ClickwrapProvider>{children}</ClickwrapProvider>
+        <ThemeProvider>
+          <ClickwrapProvider>{children}</ClickwrapProvider>
+        </ThemeProvider>
       </UserProvider>
     </DataProvider>
   );

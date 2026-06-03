@@ -1,0 +1,58 @@
+{
+  "errors": {
+    "role": {
+      "invalid": "Invalid role"
+    },
+    "email": {
+      "required": "Email is required",
+      "tooLong": "Email is too long",
+      "noSpaces": "Email must not contain spaces",
+      "noDomain": "Email must include a domain (e.g. user@example.com)",
+      "invalid": "Email address is not valid"
+    },
+    "password": {
+      "required": "Password is required",
+      "tooShort": "Password must be at least 8 characters",
+      "tooLong": "Password must be under 100 characters",
+      "noUppercase": "Password must contain at least one uppercase letter",
+      "noLowercase": "Password must contain at least one lowercase letter",
+      "noNumber": "Password must contain at least one number",
+      "noSpecial": "Password must contain at least one special character",
+      "noSpaces": "Password must not contain spaces"
+    },
+    "confirm": {
+      "required": "Please confirm your password",
+      "mismatch": "Passwords do not match"
+    },
+    "username": {
+      "required": "Username is required",
+      "tooShort": "Username must be at least 3 characters",
+      "tooLong": "Username must be under 30 characters",
+      "invalidChars": "Username may only contain letters, numbers, underscores, dots, or hyphens",
+      "invalidStart": "Username must start with a letter or number",
+      "invalidEnd": "Username must end with a letter or number"
+    },
+    "phone": {
+      "required": "Phone number is required",
+      "invalid": "Invalid phone number",
+      "tooShort": "Phone number is too short",
+      "tooLong": "Phone number is too long"
+    },
+    "otp": {
+      "required": "OTP code is required",
+      "invalidLength": "OTP must be exactly 6 digits",
+      "digitsOnly": "OTP must contain digits only"
+    },
+    "token": {
+      "required": "Reset token is required",
+      "invalid": "Reset token appears to be invalid"
+    },
+    "fullName": {
+      "required": "Full name is required",
+      "tooShort": "Full name must be at least 2 characters",
+      "tooLong": "Full name must be under 100 characters",
+      "invalidChars": "Full name may only contain letters, spaces, hyphens, or apostrophes",
+      "missingLastName": "Please enter both first and last name"
+    }
+  }
+}

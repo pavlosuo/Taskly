@@ -1,77 +1,66 @@
 import { z } from "zod";
 
+const roleField = z
+  .enum(["admin", "tasker", "client"])
+  .refine(
+    (val) => ["admin", "tasker", "client"].includes(val),
+    "errors.role.invalid",
+  );
+
 const emailField = z
   .string()
-  .min(1, "Email is required")
-  .max(254, "Email is too long")
-  .refine((val) => !val.includes(" "), "Email must not contain spaces")
+  .min(1, "errors.email.required")
+  .max(254, "errors.email.tooLong")
+  .refine((val) => !val.includes(" "), "errors.email.noSpaces")
   .refine(
     (val) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val),
-    "Email must include a domain (e.g. user@example.com)",
+    "errors.email.noDomain",
   )
-  .email("Email address is not valid");
+  .email("errors.email.invalid");
 
 const passwordField = z
   .string()
-  .min(1, "Password is required")
-  .min(8, "Password must be at least 8 characters")
-  .max(100, "Password must be under 100 characters")
-  .refine(
-    (val) => /[A-Z]/.test(val),
-    "Password must contain at least one uppercase letter",
-  )
-  .refine(
-    (val) => /[a-z]/.test(val),
-    "Password must contain at least one lowercase letter",
-  )
-  .refine(
-    (val) => /[0-9]/.test(val),
-    "Password must contain at least one number",
-  )
-  .refine(
-    (val) => /[^A-Za-z0-9]/.test(val),
-    "Password must contain at least one special character",
-  )
-  .refine((val) => !/\s/.test(val), "Password must not contain spaces");
+  .min(1, "errors.password.required")
+  .min(8, "errors.password.tooShort")
+  .max(100, "errors.password.tooLong")
+  .refine((val) => /[A-Z]/.test(val), "errors.password.noUppercase")
+  .refine((val) => /[a-z]/.test(val), "errors.password.noLowercase")
+  .refine((val) => /[0-9]/.test(val), "errors.password.noNumber")
+  .refine((val) => /[^A-Za-z0-9]/.test(val), "errors.password.noSpecial")
+  .refine((val) => !/\s/.test(val), "errors.password.noSpaces");
 
-const confirmPasswordField = z.string().min(1, "Please confirm your password");
+const confirmPasswordField = z.string().min(1, "errors.confirm.required");
 
 const usernameField = z
   .string()
-  .min(1, "Username is required")
-  .min(3, "Username must be at least 3 characters")
-  .max(30, "Username must be under 30 characters")
+  .min(1, "errors.username.required")
+  .min(3, "errors.username.tooShort")
+  .max(30, "errors.username.tooLong")
   .refine(
     (val) => /^[a-zA-Z0-9_.-]+$/.test(val),
-    "Username may only contain letters, numbers, underscores, dots, or hyphens",
+    "errors.username.invalidChars",
   )
-  .refine(
-    (val) => /^[a-zA-Z0-9]/.test(val),
-    "Username must start with a letter or number",
-  )
-  .refine(
-    (val) => /[a-zA-Z0-9]$/.test(val),
-    "Username must end with a letter or number",
-  );
+  .refine((val) => /^[a-zA-Z0-9]/.test(val), "errors.username.invalidStart")
+  .refine((val) => /[a-zA-Z0-9]$/.test(val), "errors.username.invalidEnd");
 
 const phoneField = z
   .string()
-  .min(1, "Phone number is required")
-  .refine((val) => /^\+\d{1,4}\d{8,15}$/.test(val), "Invalid phone number")
+  .min(1, "errors.phone.required")
+  .refine((val) => /^\+\d{1,4}\d{8,15}$/.test(val), "errors.phone.invalid")
   .refine(
     (val) => val.replace(/^\+\d{1,4}/, "").length >= 8,
-    "Phone number is too short",
+    "errors.phone.tooShort",
   )
   .refine(
     (val) => val.replace(/^\+\d{1,4}/, "").length <= 15,
-    "Phone number is too long",
+    "errors.phone.tooLong",
   );
 
 const otpField = z
   .string()
-  .min(1, "OTP code is required")
-  .length(6, "OTP must be exactly 6 digits")
-  .refine((val) => /^\d+$/.test(val), "OTP must contain digits only");
+  .min(1, "errors.otp.required")
+  .length(6, "errors.otp.invalidLength")
+  .refine((val) => /^\d+$/.test(val), "errors.otp.digitsOnly");
 
 export const loginSchema = z.object({
   email: emailField,
@@ -92,15 +81,15 @@ export const newPasswordSchema = z
     confirm: confirmPasswordField,
   })
   .refine((data) => data.password === data.confirm, {
-    message: "Passwords do not match",
+    message: "errors.confirm.mismatch",
     path: ["confirm"],
   });
 
 export const resetPasswordSchema = z.object({
   token: z
     .string()
-    .min(1, "Reset token is required")
-    .min(10, "Reset token appears to be invalid"),
+    .min(1, "errors.token.required")
+    .min(10, "errors.token.invalid"),
   password: passwordField,
 });
 
@@ -121,30 +110,32 @@ export const adminRegisterSchema = z.object({
   email: emailField,
   username: usernameField,
   password: passwordField,
+  role: roleField,
 });
 
-export const taskerRegisterSchema = z
+export const registerSchema = z
   .object({
     fullName: z
       .string()
-      .min(1, "Full name is required")
-      .min(2, "Full name must be at least 2 characters")
-      .max(100, "Full name must be under 100 characters")
+      .min(1, "errors.fullName.required")
+      .min(2, "errors.fullName.tooShort")
+      .max(100, "errors.fullName.tooLong")
       .refine(
         (val) => /^[a-zA-Z\s'-]+$/.test(val),
-        "Full name may only contain letters, spaces, hyphens, or apostrophes",
+        "errors.fullName.invalidChars",
       )
       .refine(
         (val) => val.trim().includes(" "),
-        "Please enter both first and last name",
+        "errors.fullName.missingLastName",
       ),
     username: usernameField,
     phone: phoneField,
     email: emailField,
     password: passwordField,
     confirm: confirmPasswordField,
+    role: roleField,
   })
   .refine((data) => data.password === data.confirm, {
-    message: "Passwords do not match",
+    message: "errors.confirm.mismatch",
     path: ["confirm"],
   });

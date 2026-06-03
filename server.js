@@ -14,7 +14,7 @@ import helmet from "helmet";
 import {
   loginSchema,
   adminRegisterSchema,
-  taskerRegisterSchema,
+  registerSchema,
   resetPasswordSchema,
   otpVerifySchema,
   sendResetOtpSchema,
@@ -23,7 +23,6 @@ import {
 } from "./include/schemas.js";
 import { authLimiter, globalLimiter } from "./include/limiters.js";
 import { hashToken, generateOtp, safeEqual, upload } from "./include/utils.js";
-
 import dns from "node:dns/promises";
 dns.setServers(["1.1.1.1", "1.0.0.1"]);
 
@@ -33,7 +32,6 @@ export class Server {
 
     this.nodemailer = null;
     this.app = express();
-    this.app.set("trust proxy", true);
     this.port = PORT || 5050;
     this._client = null;
     this._dbPromise = null;
@@ -111,10 +109,10 @@ export class Server {
 
   initRoutes() {
     this.app.post(
-      "/api/auth/register/tasker",
+      "/api/auth/register",
       authLimiter,
       upload.single("agreementFile"),
-      this.registerTasker.bind(this),
+      this.register.bind(this),
     );
     this.app.post("/api/auth/login", authLimiter, this.login.bind(this));
     this.app.post("/api/auth/logout", this.logout.bind(this));
@@ -331,14 +329,14 @@ export class Server {
     }
   }
 
-  async registerTasker(req, res) {
-    const parsed = taskerRegisterSchema.safeParse(req.body);
+  async register(req, res) {
+    const parsed = registerSchema.safeParse(req.body);
     if (!parsed.success)
       return res
         .status(400)
         .json({ success: false, message: parsed.error.issues[0].message });
     try {
-      const { email, password, username, fullName, phone } = parsed.data;
+      const { email, password, username, fullName, phone, role } = parsed.data;
       const db = await this.getDb();
       const users = db.collection("users");
       const existing = await users.findOne({
@@ -353,7 +351,7 @@ export class Server {
         email,
         username,
         passwordHash,
-        role: "tasker",
+        role,
         profile: {
           fullName,
           phone,
@@ -707,6 +705,9 @@ export class Server {
         password: process.env.ADMIN_PASSWORD,
         username: process.env.ADMIN_USERNAME,
       });
+      const db = await this.getDb();
+      const users = await db.collection("users").find().toArray();
+      console.log("Users:", users);
     } catch (err) {
       console.error("DB init error:", err);
     }

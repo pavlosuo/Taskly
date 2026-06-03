@@ -14,7 +14,12 @@ export function AppSidebar() {
     <Sidebar className="p-2 border-none">
       <div className="grid grid-cols-[100%] grid-rows-[max-content_1fr_max-content] p-2 bg-primary/75 w-full h-full rounded-xl">
         <Link href="/" className="flex items-center justify-center">
-          <Image src="/assets/logo.png" alt="Logo Taskly" width={180} height={60} />
+          <Image
+            src="/assets/logo.png"
+            alt="Logo Taskly"
+            width={180}
+            height={60}
+          />
         </Link>
         <nav>
           <ul>
@@ -32,14 +37,14 @@ export function AppSidebar() {
 export const SidebarWrapper = ({ children }: { children: React.ReactNode }) => {
   return (
     <SidebarProvider>
-        <AppSidebar />
-        <div className="flex-1 flex flex-col p-2">
-          <header>
-            <SidebarTrigger />
-            <span>My Profile</span>
-          </header>
-          {children}
-        </div>
-      </SidebarProvider>
+      <AppSidebar />
+      <div className="flex-1 flex flex-col p-2">
+        <header>
+          <SidebarTrigger />
+          <span>My Profile</span>
+        </header>
+        {children}
+      </div>
+    </SidebarProvider>
   );
 };

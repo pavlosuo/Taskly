@@ -2,11 +2,12 @@ import { memo } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { Method } from "@/types";
 import Image from "next/image";
+import { useTranslation } from "react-i18next";
 
 export function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="w-full md:h-screen flex items-center justify-center p-5 md:p-6">
-      <div className="w-full h-full overflow-hidden grid grid-rows-[max-content max-content] grid-cols-[100%] md:grid-cols-2 md:max-w-360 md:max-h-200">
+    <div className="w-full md:h-screen flex items-center justify-center p-4 md:p-6">
+      <div className="w-full h-full overflow-hidden grid grid-cols-[100%] md:grid-cols-2 md:max-w-360 md:max-h-200">
         <FormPanel>{children}</FormPanel>
         <ImagePanel />
       </div>
@@ -16,7 +17,7 @@ export function AuthLayout({ children }: { children: React.ReactNode }) {
 
 export function Title({ children }: { children: React.ReactNode }) {
   return (
-    <h1 className="text-[40px] font-bold text-foreground mb-1 tracking-tight">
+    <h1 className="text-[24px] md:text-[42px] font-bold text-foreground mb-4 tracking-tight leading-6.5 md:leading-10">
       {children}
     </h1>
   );
@@ -24,8 +25,8 @@ export function Title({ children }: { children: React.ReactNode }) {
 
 export function FormPanel({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex flex-col mb-10 px-0 py-0 md:px-14 md:mb-0 md:py-10 md:overflow-y-auto relative">
-      <div className="flex-1 flex flex-col justify-center max-w-sm mx-auto w-full">
+    <div className="flex flex-col mb-10 px-0 py-0 md:px-8 md:mb-0 md:py-10 md:overflow-y-auto relative">
+      <div className="flex-1 flex flex-col justify-center max-w-110 mx-auto w-full">
         {children}
       </div>
     </div>
@@ -36,8 +37,8 @@ export function ImagePanel() {
   return (
     <div className="rounded-2xl relative flex items-center justify-center aspect-square w-full md:aspect-auto md:h-full overflow-hidden">
       <Image
-        className="w-full h-full object-cover"
-        src="/assets/login.jpg"
+        className="w-full h-full object-contain"
+        src="/assets/smart-people.svg"
         alt="Login Image"
         width={720}
         height={800}
@@ -49,8 +50,9 @@ export function ImagePanel() {
 }
 
 export function FieldError({ message }: { message?: string }) {
+  const { t } = useTranslation("errors");
   if (!message) return null;
-  return <p className="text-xs text-red mt-1">{message}</p>;
+  return <p className="text-xs text-red mt-1">{message ? t(message) : ""}</p>;
 }
 
 export const PasswordToggle = memo(function PasswordToggle({

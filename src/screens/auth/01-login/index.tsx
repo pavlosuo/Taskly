@@ -15,8 +15,10 @@ import {
   Title,
 } from "../ui";
 import { getAxiosError } from "@/utils/getAxiosError";
+import { useTranslation } from "react-i18next";
 
 export function Login() {
+  const { t } = useTranslation("login");
   const { login, isLoading } = useUser();
   const router = useRouter();
   const [form, setForm] = useState<LoginForm>({ email: "", password: "" });
@@ -56,24 +58,22 @@ export function Login() {
 
   return (
     <AuthLayout>
-      <Title>Welcome Back</Title>
-      <p className="text-sm text-grey mb-8 leading-relaxed">
-        Sign in to access your account and manage your dashboard.
-      </p>
+      <Title>{t("title")}</Title>
+      <p className="text-sm text-grey mb-8 leading-relaxed">{t("subtitle")}</p>
       <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-5">
         <div className="form-group">
           <Label
             htmlFor="email"
             className={`text-sm font-medium mb-1.5 block ${errors.email ? "text-red" : "text-grey"}`}
           >
-            Email
+            {t("email.label")}
           </Label>
           <Input
             name="email"
             id="email"
             autoComplete="email"
             type="text"
-            placeholder="Enter your email"
+            placeholder={t("email.placeholder")}
             value={form.email}
             onChange={handleChange("email")}
             className={`h-10 rounded-lg text-sm placeholder:text-grey ${errors.email ? "border-red focus-visible:ring-red-75" : "border-border"}`}
@@ -85,14 +85,14 @@ export function Login() {
             htmlFor="password"
             className={`text-sm font-medium mb-1.5 block ${errors.password ? "text-red" : "text-grey"}`}
           >
-            Password
+            {t("password.label")}
           </Label>
           <div className="relative">
             <Input
               name="password"
               id="password"
               type={showPassword ? "text" : "password"}
-              placeholder="Enter your password"
+              placeholder={t("password.placeholder")}
               value={form.password}
               onChange={handleChange("password")}
               className={`h-10 rounded-lg text-sm placeholder:text-grey pr-10 ${errors.password ? "border-red focus-visible:ring-red-75" : "border-border"}`}
@@ -109,7 +109,7 @@ export function Login() {
               onClick={() => router.push("/forgot-password")}
               className="text-sm text-primary hover:text-primary/90 font-medium hover:underline"
             >
-              Forgot password?
+              {t("forgotPassword")}
             </button>
           </div>
         </div>
@@ -119,19 +119,18 @@ export function Login() {
         <Button
           type="submit"
           disabled={isLoading}
-          className="h-10 w-full rounded-lg bg-primary text-white text-sm font-medium"
         >
-          {isLoading ? "Signing in..." : "Log in"}
+          {isLoading ? t("submit.loading") : t("submit.idle")}
         </Button>
         <div className="flex items-center gap-3">
           <div className="flex-1 h-px bg-grey" />
-          <span className="text-xs text-foreground">or</span>
+          <span className="text-xs text-foreground">{t("divider")}</span>
           <div className="flex-1 h-px bg-grey" />
         </div>
       </form>
       <BottomLink
-        text="Don't have an account yet?"
-        label="Create now"
+        text={t("bottomLink.text")}
+        label={t("bottomLink.label")}
         onClick={() => router.push("/register")}
       />
     </AuthLayout>

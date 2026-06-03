@@ -1,5 +1,7 @@
 export type Method = "phone" | "email";
 
+export type Role = "tasker" | "client";
+
 export type Step =
   | "entry"
   | "otp"
@@ -25,13 +27,14 @@ export type RegisterForm = {
   username: string;
   fullName: string;
   phone: string;
+  role: Role | "";
 };
 
 export interface User {
   _id: string;
   username: string;
   email: string;
-  role: "admin" | "tasker" | "client";
+  role: "admin" | Role;
   createdAt: string;
   profile?: {
     fullName: string;
