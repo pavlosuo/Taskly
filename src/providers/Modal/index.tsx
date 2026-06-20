@@ -111,7 +111,7 @@ export const ModalProvider: React.FC<{ children: ReactNode }> = ({
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
           onClick={handleBackdropClick}
         >
-          <div className="bg-white rounded-xl shadow-lg w-full max-w-sm mx-4 overflow-hidden">
+          <div className="bg-background rounded-xl shadow-lg w-full max-w-sm mx-4 overflow-hidden">
             <div className="px-6 pt-6 pb-2">
               <h3 className="text-base font-semibold text-foreground">
                 {modalState.title}

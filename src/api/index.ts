@@ -16,7 +16,7 @@ export const axiosApi = {
     api.post<AuthResponse>("/api/auth/login", payload),
 
   register: (payload: RegisterForm) =>
-    api.post<AuthResponse>("/api/auth/register/tasker", payload),
+    api.post<AuthResponse>("/api/auth/register", payload),
 
   logout: () => api.post("/api/auth/logout"),
 

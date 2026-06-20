@@ -122,10 +122,7 @@ const PhoneStep = memo(function PhoneStep() {
           />
           <FieldError message={error} />
         </div>
-        <Button
-          type="submit"
-          disabled={isLoading}
-        >
+        <Button type="submit" disabled={isLoading}>
           {isLoading ? t("phone.submit.loading") : t("phone.submit.idle")}
         </Button>
       </form>
@@ -200,10 +197,7 @@ const EmailStep = memo(function EmailStep() {
           />
           <FieldError message={error} />
         </div>
-        <Button
-          type="submit"
-          disabled={isLoading}
-        >
+        <Button type="submit" disabled={isLoading}>
           {isLoading ? t("email.submit.loading") : t("email.submit.idle")}
         </Button>
       </form>
@@ -287,10 +281,7 @@ const OtpStep = memo(function OtpStep() {
             {t("otp.resendLink")}
           </button>
         </p>
-        <Button
-          type="submit"
-          disabled={isLoading || digits.length < 6}
-        >
+        <Button type="submit" disabled={isLoading || digits.length < 6}>
           {isLoading ? t("otp.submit.loading") : t("otp.submit.idle")}
         </Button>
       </form>
@@ -328,9 +319,7 @@ const EmailSentStep = memo(function EmailSentStep() {
           {t("emailSent.hint")}
         </p>
       </div>
-      <Button
-        onClick={() => router.push("/login")}
-      >
+      <Button onClick={() => router.push("/login")}>
         {t("emailSent.backToLogin")}
       </Button>
     </div>
@@ -439,10 +428,7 @@ const NewPasswordStep = memo(function NewPasswordStep() {
           </p>
         </div>
         {errors.general && <p className="text-xs text-red">{errors.general}</p>}
-        <Button
-          type="submit"
-          disabled={isLoading}
-        >
+        <Button type="submit" disabled={isLoading}>
           {isLoading
             ? t("newPassword.submit.loading")
             : t("newPassword.submit.idle")}
@@ -471,9 +457,7 @@ const SuccessStep = memo(function SuccessStep() {
           {t("success.subtitle")}
         </p>
       </div>
-      <Button
-        onClick={() => router.push("/login")}
-      >
+      <Button onClick={() => router.push("/login")}>
         {t("success.signIn")}
       </Button>
     </div>

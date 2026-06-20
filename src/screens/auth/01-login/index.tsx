@@ -116,10 +116,7 @@ export function Login() {
         {errors.general && (
           <p className="text-xs text-red -mt-2">{errors.general}</p>
         )}
-        <Button
-          type="submit"
-          disabled={isLoading}
-        >
+        <Button type="submit" disabled={isLoading}>
           {isLoading ? t("submit.loading") : t("submit.idle")}
         </Button>
         <div className="flex items-center gap-3">

@@ -1,6 +1,5 @@
 import env from "dotenv";
 env.config();
-
 import fs from "fs";
 import path from "path";
 import express from "express";
@@ -29,13 +28,11 @@ dns.setServers(["1.1.1.1", "1.0.0.1"]);
 export class Server {
   constructor(PORT) {
     this.time = 15 * 60 * 1000;
-
     this.nodemailer = null;
     this.app = express();
     this.port = PORT || 5050;
     this._client = null;
     this._dbPromise = null;
-
     this.app.use(helmet());
     this.app.use(express.json());
     this.app.use(cookieParser());
@@ -108,12 +105,7 @@ export class Server {
   }
 
   initRoutes() {
-    this.app.post(
-      "/api/auth/register",
-      authLimiter,
-      upload.single("agreementFile"),
-      this.register.bind(this),
-    );
+    this.app.post("/api/auth/register", authLimiter, this.register.bind(this));
     this.app.post("/api/auth/login", authLimiter, this.login.bind(this));
     this.app.post("/api/auth/logout", this.logout.bind(this));
     this.app.get("/api/auth/me", this.requireAuth(), this.me.bind(this));
@@ -159,11 +151,6 @@ export class Server {
       this.requireAdmin(),
       this.updatePolicy.bind(this),
     );
-    this.app.get(
-      "/api/agreement/pdf",
-      this.requireAuth(),
-      this.getPdf.bind(this),
-    );
   }
 
   issueToken(res, user) {
@@ -207,52 +194,6 @@ export class Server {
 
   async me(req, res) {
     return res.json({ success: true, user: req.user });
-  }
-
-  async getPdf(req, res) {
-    try {
-      const user = req.user;
-
-      if (!user) {
-        return res
-          .status(401)
-          .json({ success: false, message: "Unauthorized" });
-      }
-
-      if (!user.agreement?.pdfKey) {
-        return res
-          .status(404)
-          .json({ success: false, message: "PDF not found" });
-      }
-
-      const filePath = path.join(
-        process.cwd(),
-        "uploads",
-        user.agreement.pdfKey,
-      );
-
-      if (!fs.existsSync(filePath)) {
-        return res
-          .status(404)
-          .json({ success: false, message: "File missing" });
-      }
-      const filename = `${user.profile.fullName}-agreement.pdf`;
-      res.setHeader("Content-Type", "application/pdf");
-      res.setHeader(
-        "Content-Disposition",
-        `inline; filename*=UTF-8''${encodeURIComponent(filename)}`,
-      );
-      res.setHeader("Cache-Control", "no-store");
-      const stream = fs.createReadStream(filePath);
-      stream.on("error", (err) => {
-        console.error("Stream error:", err);
-        res.sendStatus(500);
-      });
-      stream.pipe(res);
-    } catch (err) {
-      console.error("getPdf error:", err);
-      return res.status(500).json({ success: false, message: "Server error" });
-    }
   }
 
   async login(req, res) {
@@ -307,7 +248,6 @@ export class Server {
       const existing = await users.findOne({ $or: [{ email }, { username }] });
       if (existing)
         return { success: false, status: 400, message: "User already exists." };
-
       const passwordHash = await bcrypt.hash(password, 10);
       const doc = {
         email,
@@ -355,7 +295,9 @@ export class Server {
         profile: {
           fullName,
           phone,
-          verified: false,
+          phoneVerified: false,
+          emailVerified: false,
+          personVerified: false,
         },
         createdAt: new Date(),
       };
@@ -367,7 +309,7 @@ export class Server {
       this.issueToken(res, { _id: result.insertedId, ...doc });
       return res.json({
         success: true,
-        message: "Tasker registered successfully.",
+        message: "User registered successfully.",
         user: userSecure,
       });
     } catch (error) {
@@ -705,9 +647,6 @@ export class Server {
         password: process.env.ADMIN_PASSWORD,
         username: process.env.ADMIN_USERNAME,
       });
-      const db = await this.getDb();
-      const users = await db.collection("users").find().toArray();
-      console.log("Users:", users);
     } catch (err) {
       console.error("DB init error:", err);
     }

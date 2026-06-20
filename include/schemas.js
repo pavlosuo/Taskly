@@ -1,4 +1,24 @@
 import { z } from "zod";
+import libphonenumber from "google-libphonenumber";
+
+const phoneUtil = libphonenumber.PhoneNumberUtil.getInstance();
+
+const phoneField = z
+  .string()
+  .min(1, "errors.phone.required")
+  .refine(
+    (value) => {
+      try {
+        const phone = phoneUtil.parse(value);
+        return phoneUtil.isValidNumber(phone);
+      } catch {
+        return false;
+      }
+    },
+    {
+      message: "errors.phone.invalid",
+    },
+  );
 
 const roleField = z
   .enum(["admin", "tasker", "client"])
@@ -42,19 +62,6 @@ const usernameField = z
   )
   .refine((val) => /^[a-zA-Z0-9]/.test(val), "errors.username.invalidStart")
   .refine((val) => /[a-zA-Z0-9]$/.test(val), "errors.username.invalidEnd");
-
-const phoneField = z
-  .string()
-  .min(1, "errors.phone.required")
-  .refine((val) => /^\+\d{1,4}\d{8,15}$/.test(val), "errors.phone.invalid")
-  .refine(
-    (val) => val.replace(/^\+\d{1,4}/, "").length >= 8,
-    "errors.phone.tooShort",
-  )
-  .refine(
-    (val) => val.replace(/^\+\d{1,4}/, "").length <= 15,
-    "errors.phone.tooLong",
-  );
 
 const otpField = z
   .string()

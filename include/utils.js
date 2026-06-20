@@ -13,21 +13,6 @@ export function getDeviceInfo(req) {
   return req.headers["user-agent"] || "unknown";
 }
 
-export async function uploadAgreementLocally(buffer, filename) {
-  try {
-    const dir = path.resolve("uploads/agreements");
-    await fs.mkdir(dir, { recursive: true });
-    const key = `agreements/${filename}`;
-    const filePath = path.join(dir, filename);
-    await fs.writeFile(filePath, buffer);
-    const url = `/uploads/${key}`;
-    return { key, url };
-  } catch (error) {
-    console.error(error);
-    return { key: null, url: null };
-  }
-}
-
 export const hashToken = (t) => createHash("sha256").update(t).digest("hex");
 
 export const safeEqual = (a, b) => {

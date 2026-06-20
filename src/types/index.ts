@@ -2,6 +2,10 @@ export type Method = "phone" | "email";
 
 export type Role = "tasker" | "client";
 
+export type Lang = "en" | "fi" | "sv";
+
+export type Theme = "light" | "dark";
+
 export type Step =
   | "entry"
   | "otp"
@@ -41,14 +45,11 @@ export interface User {
     phone: string;
     verified: boolean;
     agreementAccepted: boolean;
+    avatar?: string;
   };
-  agreement?: {
-    pdfKey: string;
-    pdfUrl: string;
-    acceptedAt: string;
-    ip: string;
-    userAgent: string;
-    agreementAccepted: boolean;
+  settings?: {
+    lang: Lang;
+    theme: Theme;
   };
 }
 
@@ -68,7 +69,3 @@ export type ZodErrors<T> = {
 } & {
   general?: string;
 };
-
-export type Lang = "en" | "fi" | "sv";
-
-export type Theme = "light" | "dark";

@@ -34,9 +34,7 @@
     },
     "phone": {
       "required": "Phone number is required",
-      "invalid": "Invalid phone number",
-      "tooShort": "Phone number is too short",
-      "tooLong": "Phone number is too long"
+      "invalid": "Invalid phone number format"
     },
     "otp": {
       "required": "OTP code is required",

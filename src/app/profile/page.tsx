@@ -9,7 +9,7 @@ export const metadata = getMetaData({
 
 export default function Home() {
   return (
-    <SidebarWrapper>
+    <SidebarWrapper title="Profile">
       <main className="page">
         <Screens.Profile.Main />
       </main>

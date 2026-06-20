@@ -1,8 +1,8 @@
 "use client";
 import { useUser } from "providers/User";
-import { PDFView } from "shared/components/PDFView";
 
 export function Main() {
   const { user } = useUser();
+  console.log(user);
   return <section></section>;
 }

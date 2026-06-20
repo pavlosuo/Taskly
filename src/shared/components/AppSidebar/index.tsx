@@ -1,49 +1,77 @@
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarGroup,
-  SidebarHeader,
-} from "@/components/ui/sidebar";
-import Image from "next/image";
+"use client";
+import { Sidebar } from "@/components/ui/sidebar";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import Link from "next/link";
+import {
+  LayoutDashboard,
+  PlusCircle,
+  ClipboardList,
+  MessageCircle,
+} from "lucide-react";
+import { UserDropdown } from "shared/components/UserDropdown";
+import { useUser } from "providers/User";
+import { useMemo } from "react";
 
 export function AppSidebar() {
+  const { user } = useUser();
+
+  const navItems = useMemo(() => {
+    if (user?.role === "tasker") {
+      return [
+        { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+        { label: "Post a Task", href: "/post-task", icon: PlusCircle },
+        { label: "My Tasks", href: "/tasks", icon: ClipboardList },
+        { label: "Chats", href: "/chats", icon: MessageCircle },
+      ];
+    }
+  }, [user]);
+
   return (
-    <Sidebar className="p-2 border-none">
-      <div className="grid grid-cols-[100%] grid-rows-[max-content_1fr_max-content] p-2 bg-primary/75 w-full h-full rounded-xl">
-        <Link href="/" className="flex items-center justify-center">
-          <Image
-            src="/assets/logo.png"
-            alt="Logo Taskly"
-            width={180}
-            height={60}
-          />
+    <Sidebar className="pt-2 pb-2 pl-2 border-none">
+      <div className="Sidebar overflow-hidden grid grid-cols-[100%] grid-rows-[max-content_1fr_max-content] p-2 w-full h-full bg-background">
+        <Link href="/" className="flex items-center justify-center py-2 mb-4">
+          Logo
         </Link>
         <nav>
-          <ul>
-            <li>Item 1</li>
-            <li>Item 2</li>
-            <li>Item 3</li>
+          <ul className="flex flex-col gap-1">
+            {navItems &&
+              navItems.map(({ label, href, icon: Icon }) => (
+                <li key={href}>
+                  <Link
+                    href={href}
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors group"
+                  >
+                    <Icon className="shrink-0 w-4 h-4" />
+                    <span>{label}</span>
+                  </Link>
+                </li>
+              ))}
           </ul>
         </nav>
-        <div>user</div>
+        <UserDropdown />
       </div>
     </Sidebar>
   );
 }
 
-export const SidebarWrapper = ({ children }: { children: React.ReactNode }) => {
+export const SidebarWrapper = ({
+  children,
+  title,
+}: {
+  children: React.ReactNode;
+  title: string;
+}) => {
   return (
-    <SidebarProvider>
+    <SidebarProvider className="bg-muted">
       <AppSidebar />
-      <div className="flex-1 flex flex-col p-2">
-        <header>
+      <div className="flex-1 gap-2 flex flex-col p-2">
+        <header className="py-5 px-4 rounded-xl bg-background flex items-center gap-3">
           <SidebarTrigger />
-          <span>My Profile</span>
+          <span className="text-sm font-medium">{title}</span>
         </header>
-        {children}
+        <div className="flex-1 overflow-hidden bg-background rounded-xl">
+          {children}
+        </div>
       </div>
     </SidebarProvider>
   );

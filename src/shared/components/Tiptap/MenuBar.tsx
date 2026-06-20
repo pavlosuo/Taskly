@@ -51,7 +51,7 @@ export const MenuBar = ({ editor }: { editor: Editor }) => {
   });
   if (!editor) return null;
   return (
-    <div className="flex items-center flex-wrap gap-0.5 px-2 py-1.5 rounded-lg border border-border bg-white shadow-sm">
+    <div className="flex items-center flex-wrap gap-0.5 px-2 py-1.5 rounded-lg border border-border bg-background shadow-sm">
       {btn(
         "B",
         () => editor.chain().focus().toggleBold().run(),
@@ -136,7 +136,7 @@ export const MenuBar = ({ editor }: { editor: Editor }) => {
 };
 
 export const MenuBarSkeleton = () => (
-  <div className="flex items-center flex-wrap gap-0.5 px-2 py-1.5 rounded-lg border border-border bg-white shadow-sm">
+  <div className="flex items-center flex-wrap gap-0.5 px-2 py-1.5 rounded-lg border border-border bg-background shadow-sm">
     {BUTTONS.map((group, gi) => (
       <Fragment key={gi}>
         {group.map((label) => (

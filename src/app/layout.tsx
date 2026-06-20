@@ -13,8 +13,10 @@ export default async function LocaleLayout({
   children: ReactNode;
 }) {
   const [user, data] = await Promise.all([getUser(), getPolicyData()]);
+  const lang = user?.settings?.lang || "en";
+  const theme = user?.settings?.theme || "light";
   return (
-    <html className="da rk" lang={"en"} suppressHydrationWarning>
+    <html className={theme} lang={lang} suppressHydrationWarning>
       <body className={clsx(fonts.map((f) => f.variable))}>
         <RootLayout
           initialDataJson={data ? JSON.stringify(data) : null}

@@ -41,7 +41,7 @@ export function QRCode({ url }: { url: string }) {
   };
 
   return (
-    <div className="flex flex-col items-center gap-4 rounded-2xl bg-white p-6 shadow-md w-fit">
+    <div className="flex flex-col items-center gap-4 rounded-2xl bg-background p-6 shadow-md w-fit">
       <div className="rounded-xl border border-gray-100 p-3">
         <QRCodeSVG
           id="qr-svg"

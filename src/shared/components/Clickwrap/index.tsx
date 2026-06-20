@@ -128,7 +128,7 @@ export const ClickwrapProvider = ({ children }: { children: ReactNode }) => {
             if (e.target === e.currentTarget) handleClose();
           }}
         >
-          <div className="flex flex-col gap-6 max-w-3xl mx-auto p-6 bg-white rounded-2xl">
+          <div className="flex flex-col gap-6 max-w-3xl mx-auto p-6 bg-background rounded-2xl">
             <div ref={contentRef} className="flex flex-col gap-5">
               <h2 className="text-2xl font-semibold text-foreground text-center">
                 {data?.policyTitle}

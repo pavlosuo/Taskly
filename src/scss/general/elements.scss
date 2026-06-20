@@ -1,0 +1,5 @@
+.Sidebar {
+  border-radius: calc(0.625rem + 4px) !important;
+  border-radius: calc(var(--radius) + 4px) !important;
+  background-color: none !important;
+}

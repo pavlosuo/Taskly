@@ -179,7 +179,7 @@ export function Register() {
               />
               <div
                 className={clsx(
-                  "w-10 h-10 bg-white rounded-md border border-border flex items-center justify-content-center text-2xl",
+                  "w-10 h-10 bg-background rounded-md border border-border flex items-center justify-content-center text-2xl",
                   "transition-colors duration-150 flex items-center justify-center",
                   r.id === "client" ? "text-primary" : "text-accent",
                 )}
@@ -195,7 +195,7 @@ export function Register() {
                   <span
                     key={tag}
                     className={clsx(
-                      "text-[11px] px-2 py-0.5 rounded-full bg-white",
+                      "text-[11px] px-2 py-0.5 rounded-full bg-background",
                       r.id === "client" ? "text-primary" : "text-accent",
                     )}
                   >
