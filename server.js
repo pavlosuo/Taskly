@@ -1,7 +1,5 @@
 import env from "dotenv";
 env.config();
-import fs from "fs";
-import path from "path";
 import express from "express";
 import { MongoClient, ServerApiVersion, ObjectId } from "mongodb";
 import bcrypt from "bcrypt";
@@ -21,7 +19,7 @@ import {
   forgotPasswordEmailSchema,
 } from "./include/schemas.js";
 import { authLimiter, globalLimiter } from "./include/limiters.js";
-import { hashToken, generateOtp, safeEqual, upload } from "./include/utils.js";
+import { hashToken, generateOtp, safeEqual } from "./include/utils.js";
 import dns from "node:dns/promises";
 dns.setServers(["1.1.1.1", "1.0.0.1"]);
 
@@ -276,7 +274,8 @@ export class Server {
         .status(400)
         .json({ success: false, message: parsed.error.issues[0].message });
     try {
-      const { email, password, username, fullName, phone, role } = parsed.data;
+      const { email, password, username, fullName, phone, role, code, fullPhone } =
+        parsed.data;
       const db = await this.getDb();
       const users = db.collection("users");
       const existing = await users.findOne({
@@ -288,18 +287,28 @@ export class Server {
           .json({ success: false, message: "User already exists.", existing });
       const passwordHash = await bcrypt.hash(password, 10);
       const doc = {
-        email,
         username,
-        passwordHash,
+        email,
         role,
-        profile: {
-          fullName,
-          phone,
+        createdAt: new Date(),
+        acceptance: {
           phoneVerified: false,
           emailVerified: false,
           personVerified: false,
+          agreementAccepted: false,
         },
-        createdAt: new Date(),
+        profile: {
+          fullName,
+          phone,
+          code,
+          fullPhone,
+          avatar: null,
+        },
+        settings: {
+          lang: "en",
+          theme: "light",
+        },
+        passwordHash,
       };
       const result = await users.insertOne(doc);
       const { passwordHash: _, ...userSecure } = {

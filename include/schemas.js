@@ -3,22 +3,24 @@ import libphonenumber from "google-libphonenumber";
 
 const phoneUtil = libphonenumber.PhoneNumberUtil.getInstance();
 
-const phoneField = z
-  .string()
-  .min(1, "errors.phone.required")
-  .refine(
-    (value) => {
-      try {
-        const phone = phoneUtil.parse(value);
-        return phoneUtil.isValidNumber(phone);
-      } catch {
-        return false;
-      }
-    },
-    {
-      message: "errors.phone.invalid",
-    },
-  );
+const phoneField = z.string().superRefine((value, ctx) => {
+  if (!value.trim()) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, message: "errors.phone.required" });
+    return;
+  }
+  try {
+    const phone = phoneUtil.parse(value);
+    if (!phoneUtil.isValidNumber(phone)) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "errors.phone.invalid" });
+    }
+  } catch (e) {
+    if (e.message === "The string supplied is too short to be a phone number") {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "errors.phone.required" });
+    } else {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "errors.phone.invalid" });
+    }
+  }
+});
 
 const roleField = z
   .enum(["admin", "tasker", "client"])
@@ -136,7 +138,7 @@ export const registerSchema = z
         "errors.fullName.missingLastName",
       ),
     username: usernameField,
-    phone: phoneField,
+    fullPhone: phoneField,
     email: emailField,
     password: passwordField,
     confirm: confirmPasswordField,

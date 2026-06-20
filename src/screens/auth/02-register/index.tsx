@@ -1,5 +1,5 @@
 "use client";
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useUser } from "providers/User";
 import { Button } from "@/components/ui/button";
@@ -31,6 +31,8 @@ type RegisterErrors = {
   confirm?: string;
   general?: string;
   role?: string;
+  code?: string;
+  fullPhone?: string;
 };
 
 export function Register() {
@@ -38,8 +40,6 @@ export function Register() {
   const { register, isLoading } = useUser();
   const router = useRouter();
   const [step, setStep] = useState<"role" | "form">("role");
-  const [code, setCode] = useState("");
-  const [localPhone, setLocalPhone] = useState("");
   const [show, setShow] = useState({ password: false, confirm: false });
   const [errors, setErrors] = useState<RegisterErrors>({});
   const [form, setForm] = useState<RegisterForm>({
@@ -49,9 +49,10 @@ export function Register() {
     username: "",
     fullName: "",
     phone: "",
+    code: "",
     role: "",
+    fullPhone: "",
   });
-
   const strength = getPasswordStrength(form.password);
 
   const roles = [
@@ -100,7 +101,7 @@ export function Register() {
       autoComplete: "username",
     },
     {
-      name: "phone",
+      name: "fullPhone",
       label: t("fields.phone.label"),
       placeholder: t("fields.phone.placeholder"),
       autoComplete: "tel",
@@ -115,12 +116,10 @@ export function Register() {
     [],
   );
 
-  useEffect(() => {
-    if (!localPhone) return;
-    requestAnimationFrame(() => {
-      setForm((p) => ({ ...p, phone: code + localPhone }));
-    });
-  }, [localPhone, code]);
+  const handleLocalPhone = useCallback((phone: string) => {
+    setErrors((p) => ({ ...p, phone: undefined, general: undefined }));
+    setForm((p) => ({ ...p, phone, fullPhone: form.code + phone.replace(/\s/g, "") }));
+  }, [form.code]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -134,7 +133,7 @@ export function Register() {
         fullName: fmt.fullName?._errors[0],
         email: fmt.email?._errors[0],
         username: fmt.username?._errors[0],
-        phone: fmt.phone?._errors[0],
+        fullPhone: fmt.fullPhone?._errors[0],
         password: fmt.password?._errors[0],
         confirm: fmt.confirm?._errors[0],
         general: fmt._errors[0],
@@ -261,13 +260,14 @@ export function Register() {
                 >
                   {label}
                 </Label>
-                {name === "phone" ? (
+                {name === "fullPhone" ? (
                   <PhoneInput
                     error={error}
-                    setCode={setCode}
+                    code={form.code}
+                    setCode={(code) => setForm((p) => ({ ...p, code }))}
                     id={name}
-                    value={localPhone}
-                    onChange={setLocalPhone}
+                    value={form.phone}
+                    onChange={handleLocalPhone}
                   />
                 ) : (
                   <Input
@@ -276,7 +276,7 @@ export function Register() {
                     name={name}
                     autoComplete={autoComplete}
                     placeholder={placeholder}
-                    value={form[name] as string}
+                    value={form[name]}
                     onChange={handleChange(name)}
                     className={clsx(
                       "h-10 rounded-lg text-sm placeholder:text-grey",

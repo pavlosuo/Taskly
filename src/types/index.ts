@@ -32,6 +32,8 @@ export type RegisterForm = {
   fullName: string;
   phone: string;
   role: Role | "";
+  code: string;
+  fullPhone: string;
 };
 
 export interface User {
@@ -40,11 +42,17 @@ export interface User {
   email: string;
   role: "admin" | Role;
   createdAt: string;
+  acceptance: {
+    phoneVerified: boolean;
+    emailVerified: boolean;
+    personVerified: boolean;
+    agreementAccepted: boolean;
+  };
   profile?: {
     fullName: string;
     phone: string;
-    verified: boolean;
-    agreementAccepted: boolean;
+    code: string;
+    fullPhone: string;
     avatar?: string;
   };
   settings?: {

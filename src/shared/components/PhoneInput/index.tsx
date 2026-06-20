@@ -175,12 +175,14 @@ export const PhoneInput = memo(function PhoneInput({
   setCode,
   id,
   error,
+  code,
 }: {
   value: string;
   onChange: (formatted: string) => void;
   setCode: (dialCode: string) => void;
   id: string;
   error?: string;
+  code?: string;
 }) {
   const [selected, setSelected] = useState<Country>(
     () => countryList.find((c) => c.code === "FI") ?? countryList[0],
@@ -286,8 +288,9 @@ export const PhoneInput = memo(function PhoneInput({
   );
 
   useEffect(() => {
+    if (code === selected.dial) return;
     setCode(selected.dial);
-  }, [setCode]);
+  }, [setCode, code]);
 
   return (
     <div className="flex gap-2">
