@@ -21,6 +21,21 @@ interface UserContextType {
   verifyResetOtp: (phone: string, otp: string) => Promise<string>;
   resetPassword: (token: string, password: string) => Promise<void>;
   sendResetEmail: (email: string) => Promise<void>;
+  updateProfile: (
+    payload: Partial<{
+      fullName: string;
+      username: string;
+      phone: string;
+      email: string;
+      payout: { iban: string; bankName: string };
+    }>,
+  ) => Promise<void>;
+  requestEmailChange: (newEmail: string) => Promise<void>;
+  confirmEmailChange: (token: string) => Promise<void>;
+  deactivateAccount: () => Promise<void>;
+  sendPhoneOtp: () => Promise<void>;
+  verifyPhoneOtp: (otp: string) => Promise<void>;
+  sendOtp: () => Promise<void>;
 }
 
 interface UserProviderProps {
@@ -119,6 +134,91 @@ export const UserProvider = ({
     }
   }, []);
 
+  const updateProfile = useCallback(
+    async (
+      payload: Partial<{ fullName: string; username: string; phone: string }>,
+    ) => {
+      try {
+        setIsLoading(true);
+        const { data } = await axiosApi.updateProfile(payload);
+        if (data.user) setUser(data.user);
+      } catch (error) {
+        throw error;
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [],
+  );
+
+  const requestEmailChange = useCallback(async (newEmail: string) => {
+    try {
+      setIsLoading(true);
+      await axiosApi.requestEmailChange(newEmail);
+    } catch (error) {
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const confirmEmailChange = useCallback(async (token: string) => {
+    try {
+      setIsLoading(true);
+      await axiosApi.confirmEmailChange(token);
+    } catch (error) {
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const deactivateAccount = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      await axiosApi.deactivateAccount();
+      setUser(null);
+    } catch (error) {
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const sendPhoneOtp = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      await axiosApi.sendPhoneOtp();
+    } catch (error) {
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const verifyPhoneOtp = useCallback(async (otp: string) => {
+    try {
+      setIsLoading(true);
+      const { data } = await axiosApi.verifyPhoneOtp(otp);
+      if (data.user) setUser(data.user);
+    } catch (error) {
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const sendOtp = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      await axiosApi.sendOtp();
+    } catch (error) {
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
   return (
     <UserContext.Provider
       value={{
@@ -132,6 +232,13 @@ export const UserProvider = ({
         verifyResetOtp,
         resetPassword,
         sendResetEmail,
+        updateProfile,
+        requestEmailChange,
+        confirmEmailChange,
+        deactivateAccount,
+        sendPhoneOtp,
+        verifyPhoneOtp,
+        sendOtp,
       }}
     >
       {user && <AutoLogoutPopup />}

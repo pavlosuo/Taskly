@@ -6,6 +6,6 @@ export const getPolicyData = async () => {
     const json = await res.json();
     if (!json.success) return null;
     return json.data;
-  } catch (e) {}
+  } catch {}
   return null;
 };

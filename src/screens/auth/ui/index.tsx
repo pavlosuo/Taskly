@@ -38,7 +38,7 @@ export function ImagePanel() {
     <div className="rounded-2xl relative flex items-center justify-center aspect-square w-full md:aspect-auto md:h-full overflow-hidden">
       <Image
         className="w-full h-full object-contain"
-        src="/assets/smart-people.svg"
+        src="/assets/login.svg"
         alt="Login Image"
         width={720}
         height={800}

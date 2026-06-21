@@ -56,4 +56,31 @@ export const axiosApi = {
 
   saveDataPolicy: (payload: Data) =>
     api.put<{ success: boolean; message: string }>("/api/policy", payload),
+
+  updateProfile: (
+    payload: Partial<{ fullName: string; username: string; phone: string }>,
+  ) => api.put<AuthResponse>("/api/profile", payload),
+
+  requestEmailChange: (newEmail: string) =>
+    api.post<{ success: boolean; message: string }>(
+      "/api/profile/email/request",
+      { newEmail },
+    ),
+
+  confirmEmailChange: (token: string) =>
+    api.post<{ success: boolean; message: string }>(
+      "/api/profile/email/confirm",
+      { token },
+    ),
+
+  deactivateAccount: () =>
+    api.delete<{ success: boolean; message: string }>("/api/profile"),
+
+  sendPhoneOtp: () =>
+    api.post<{ success: boolean; message: string }>(
+      "/api/profile/phone/send-otp",
+    ),
+
+  verifyPhoneOtp: (otp: string) =>
+    api.post<AuthResponse>("/api/profile/phone/verify-otp", { otp }),
 };

@@ -149,6 +149,37 @@ export class Server {
       this.requireAdmin(),
       this.updatePolicy.bind(this),
     );
+
+    this.app.put(
+      "/api/profile",
+      this.requireAuth(),
+      this.updateProfile.bind(this),
+    );
+    this.app.post(
+      "/api/profile/email/request",
+      this.requireAuth(),
+      this.requestEmailChange.bind(this),
+    );
+    this.app.post(
+      "/api/profile/email/confirm",
+      this.confirmEmailChange.bind(this),
+    );
+    this.app.delete(
+      "/api/profile",
+      this.requireAuth(),
+      this.deactivateAccount.bind(this),
+    );
+
+    this.app.post(
+      "/api/profile/phone/send-otp",
+      this.requireAuth(),
+      this.sendPhoneOtp.bind(this),
+    );
+    this.app.post(
+      "/api/profile/phone/verify-otp",
+      this.requireAuth(),
+      this.verifyPhoneOtp.bind(this),
+    );
   }
 
   issueToken(res, user) {
@@ -170,6 +201,266 @@ export class Server {
       maxAge: 60 * 60 * 24 * 7 * 1000,
     });
     return token;
+  }
+
+  async updateProfile(req, res) {
+    const parsed = updateProfileSchema.safeParse(req.body);
+    if (!parsed.success)
+      return res
+        .status(400)
+        .json({ success: false, message: parsed.error.issues[0].message });
+
+    try {
+      const { username, fullName, phone, email, avatar, payout } = parsed.data;
+      const db = await this.getDb();
+      const users = db.collection("users");
+      const updates = {};
+
+      if (username !== undefined && username !== req.user.username) {
+        const exists = await users.findOne({
+          username,
+          _id: { $ne: req.user._id },
+        });
+        if (exists)
+          return res
+            .status(400)
+            .json({ success: false, message: "Username already taken." });
+        updates.username = username;
+      }
+
+      if (fullName !== undefined) updates["profile.fullName"] = fullName;
+      if (avatar !== undefined) updates["profile.avatar"] = avatar;
+
+      if (phone !== undefined && phone !== req.user.profile?.fullPhone) {
+        const phoneTaken = await users.findOne({
+          "profile.fullPhone": phone,
+          _id: { $ne: req.user._id },
+        });
+        if (phoneTaken)
+          return res
+            .status(400)
+            .json({ success: false, message: "Phone already in use." });
+        updates["profile.fullPhone"] = phone;
+        updates["acceptance.phoneVerified"] = false;
+      }
+
+      if (email !== undefined && email !== req.user.email) {
+        const emailTaken = await users.findOne({
+          email,
+          _id: { $ne: req.user._id },
+        });
+        if (emailTaken)
+          return res
+            .status(400)
+            .json({ success: false, message: "Email already in use." });
+        updates.email = email;
+        updates["acceptance.emailVerified"] = false;
+      }
+
+      if (payout !== undefined) {
+        updates.payout = {
+          iban: payout.iban.replace(/\s/g, "").toUpperCase(),
+          bankName: payout.bankName,
+          updatedAt: new Date(),
+        };
+      }
+
+      if (Object.keys(updates).length === 0)
+        return res.json({ success: true, message: "Nothing to update." });
+
+      await users.updateOne({ _id: req.user._id }, { $set: updates });
+      const updatedUser = await users.findOne(
+        { _id: req.user._id },
+        { projection: { passwordHash: 0 } },
+      );
+
+      return res.json({
+        success: true,
+        message: "Profile updated.",
+        user: updatedUser,
+      });
+    } catch (error) {
+      console.error("Update profile error:", error);
+      return res.status(500).json({ success: false, message: "Server error." });
+    }
+  }
+
+  async requestEmailChange(req, res) {
+    const parsed = updateEmailRequestSchema.safeParse(req.body);
+    if (!parsed.success)
+      return res
+        .status(400)
+        .json({ success: false, message: parsed.error.issues[0].message });
+
+    try {
+      const { newEmail } = parsed.data;
+      const db = await this.getDb();
+      const users = db.collection("users");
+
+      const exists = await users.findOne({ email: newEmail });
+      if (exists)
+        return res
+          .status(400)
+          .json({ success: false, message: "Email already in use." });
+
+      const token = jwt.sign(
+        { id: req.user._id.toString(), newEmail },
+        process.env.JWT_SECRET,
+        { expiresIn: "30m" },
+      );
+
+      await users.updateOne(
+        { _id: req.user._id },
+        { $set: { pendingEmailHash: hashToken(token) } },
+      );
+
+      const confirmUrl = `${process.env.CLIENT_URL}/confirm-email?token=${token}`;
+      await this.getTransporter().sendMail({
+        from: process.env.SMTP_USER,
+        to: newEmail,
+        subject: "Confirm your new email",
+        text: `Confirm your new email: ${confirmUrl}\n\nLink expires in 30 minutes.`,
+      });
+
+      return res.json({
+        success: true,
+        message: "Confirmation link sent to new email.",
+      });
+    } catch (error) {
+      console.error("Request email change error:", error);
+      return res.status(500).json({ success: false, message: "Server error." });
+    }
+  }
+
+  async confirmEmailChange(req, res) {
+    const { token } = req.body;
+    if (!token)
+      return res
+        .status(400)
+        .json({ success: false, message: "Token is required." });
+
+    try {
+      let decoded;
+      try {
+        decoded = jwt.verify(token, process.env.JWT_SECRET);
+      } catch {
+        return res
+          .status(400)
+          .json({ success: false, message: "Invalid or expired token." });
+      }
+
+      const db = await this.getDb();
+      const users = db.collection("users");
+      const user = await users.findOne({
+        _id: new ObjectId(decoded.id),
+        pendingEmailHash: hashToken(token),
+      });
+      if (!user)
+        return res
+          .status(400)
+          .json({ success: false, message: "Invalid or expired token." });
+
+      await users.updateOne(
+        { _id: user._id },
+        {
+          $set: { email: decoded.newEmail, "profile.emailVerified": true },
+          $unset: { pendingEmailHash: "" },
+        },
+      );
+
+      return res.json({
+        success: true,
+        message: "Email updated successfully.",
+      });
+    } catch (error) {
+      console.error("Confirm email change error:", error);
+      return res.status(500).json({ success: false, message: "Server error." });
+    }
+  }
+
+  async sendPhoneOtp(req, res) {
+    try {
+      const phone = req.user.profile?.fullPhone;
+      if (!phone)
+        return res
+          .status(400)
+          .json({ success: false, message: "No phone number set." });
+
+      const otp = generateOtp();
+      const expiresAt = new Date(Date.now() + this.time);
+      const db = await this.getDb();
+      await db
+        .collection("users")
+        .updateOne(
+          { _id: req.user._id },
+          { $set: { phoneOtp: { code: otp, expiresAt } } },
+        );
+
+      await this.whatsappService.sendOtp(phone, `${otp}`);
+      return res.json({ success: true, message: "Code sent." });
+    } catch (error) {
+      console.error("Send phone OTP error:", error);
+      return res.status(500).json({ success: false, message: "Server error." });
+    }
+  }
+
+  async verifyPhoneOtp(req, res) {
+    const parsed = verifyPhoneOtpSchema.safeParse(req.body);
+    if (!parsed.success)
+      return res
+        .status(400)
+        .json({ success: false, message: parsed.error.issues[0].message });
+
+    try {
+      const { otp } = parsed.data;
+      const db = await this.getDb();
+      const user = await db.collection("users").findOne({ _id: req.user._id });
+
+      if (!user.phoneOtp)
+        return res
+          .status(400)
+          .json({ success: false, message: "No code requested." });
+      if (new Date() > new Date(user.phoneOtp.expiresAt))
+        return res
+          .status(400)
+          .json({ success: false, message: "Code expired." });
+      if (!safeEqual(user.phoneOtp.code, otp))
+        return res
+          .status(400)
+          .json({ success: false, message: "Invalid code." });
+
+      const updatedUser = await db.collection("users").findOneAndUpdate(
+        { _id: req.user._id },
+        {
+          $unset: { phoneOtp: "" },
+          $set: { "acceptance.phoneVerified": true },
+        },
+        { returnDocument: "after", projection: { passwordHash: 0 } },
+      );
+
+      return res.json({
+        success: true,
+        message: "Phone verified.",
+        user: updatedUser,
+      });
+    } catch (error) {
+      console.error("Verify phone OTP error:", error);
+      return res.status(500).json({ success: false, message: "Server error." });
+    }
+  }
+
+  async deactivateAccount(req, res) {
+    try {
+      const db = await this.getDb();
+      await db
+        .collection("users")
+        .deleteOne({ _id: req.user._id }, { projection: { passwordHash: 0 } });
+      res.clearCookie("token", { path: "/" });
+      return res.json({ success: true, message: "Account deactivated." });
+    } catch (error) {
+      console.error("Deactivate account error:", error);
+      return res.status(500).json({ success: false, message: "Server error." });
+    }
   }
 
   async getUserFromCookie(req) {
@@ -274,8 +565,16 @@ export class Server {
         .status(400)
         .json({ success: false, message: parsed.error.issues[0].message });
     try {
-      const { email, password, username, fullName, phone, role, code, fullPhone } =
-        parsed.data;
+      const {
+        email,
+        password,
+        username,
+        fullName,
+        phone,
+        role,
+        code,
+        fullPhone,
+      } = parsed.data;
       const db = await this.getDb();
       const users = db.collection("users");
       const existing = await users.findOne({

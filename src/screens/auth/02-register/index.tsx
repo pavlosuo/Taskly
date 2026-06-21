@@ -116,10 +116,17 @@ export function Register() {
     [],
   );
 
-  const handleLocalPhone = useCallback((phone: string) => {
-    setErrors((p) => ({ ...p, phone: undefined, general: undefined }));
-    setForm((p) => ({ ...p, phone, fullPhone: form.code + phone.replace(/\s/g, "") }));
-  }, [form.code]);
+  const handleLocalPhone = useCallback(
+    (phone: string) => {
+      setErrors((p) => ({ ...p, phone: undefined, general: undefined }));
+      setForm((p) => ({
+        ...p,
+        phone,
+        fullPhone: form.code + phone.replace(/\s/g, ""),
+      }));
+    },
+    [form.code],
+  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -43,7 +43,7 @@ export const UserDropdown = () => {
             <p className="text-sm font-medium text-foreground truncate leading-tight">
               {user.username}
             </p>
-            <p className="text-xs text-muted-foreground truncate">
+            <p className="text-xs text-muted-foreground truncate capitalize">
               {user.role}
             </p>
           </div>

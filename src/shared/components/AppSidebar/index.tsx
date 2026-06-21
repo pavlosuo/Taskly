@@ -70,6 +70,9 @@ export const SidebarWrapper = ({
           <span className="text-sm font-medium">{title}</span>
         </header>
         <div className="flex-1 overflow-hidden bg-background rounded-xl">
+          <h1 className="text-2xl font-semibold text-foreground px-4 py-5">
+            {title}
+          </h1>
           {children}
         </div>
       </div>

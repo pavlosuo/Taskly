@@ -5,19 +5,31 @@ const phoneUtil = libphonenumber.PhoneNumberUtil.getInstance();
 
 const phoneField = z.string().superRefine((value, ctx) => {
   if (!value.trim()) {
-    ctx.addIssue({ code: z.ZodIssueCode.custom, message: "errors.phone.required" });
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "errors.phone.required",
+    });
     return;
   }
   try {
     const phone = phoneUtil.parse(value);
     if (!phoneUtil.isValidNumber(phone)) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "errors.phone.invalid" });
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "errors.phone.invalid",
+      });
     }
   } catch (e) {
     if (e.message === "The string supplied is too short to be a phone number") {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "errors.phone.required" });
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "errors.phone.required",
+      });
     } else {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "errors.phone.invalid" });
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "errors.phone.invalid",
+      });
     }
   }
 });
@@ -148,3 +160,30 @@ export const registerSchema = z
     message: "errors.confirm.mismatch",
     path: ["confirm"],
   });
+
+export const updateProfileSchema = z.object({
+  username: z.string().min(3).max(30).optional(),
+  fullName: z.string().min(2).max(100).optional(),
+  phone: phoneField.optional(),
+  email: z.string().email().optional(),
+  avatar: z.string().optional(),
+  payout: z
+    .object({
+      iban: z.string().min(15).max(34),
+      bankName: z.string().min(2).max(60),
+    })
+    .optional(),
+});
+
+export const updateEmailRequestSchema = z.object({
+  newEmail: z.string().email(),
+});
+
+export const payoutDetailsSchema = z.object({
+  iban: z.string().min(15).max(34),
+  bankName: z.string().min(2).max(60).optional(),
+});
+
+export const verifyPhoneOtpSchema = z.object({
+  otp: z.string().length(6),
+});

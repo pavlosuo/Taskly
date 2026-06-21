@@ -48,6 +48,10 @@ export interface User {
     personVerified: boolean;
     agreementAccepted: boolean;
   };
+  payout: {
+    iban: string;
+    bankName: string;
+  }
   profile?: {
     fullName: string;
     phone: string;
