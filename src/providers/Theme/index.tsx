@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, ReactNode } from "react";
-import { Lang, Theme } from "@/types";
+import { Lang, Theme } from "root/include/types";
 import "@/i18n";
 
 interface ThemeContextType {

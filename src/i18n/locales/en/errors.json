@@ -1,5 +1,17 @@
 {
   "errors": {
+    "iban": {
+      "tooShort": "IBAN is too short",
+      "tooLong": "IBAN is too long",
+      "invalid": "Invalid Finnish IBAN"
+    },
+    "bankName": {
+      "invalid": "Please select a valid bank"
+    },
+    "phone": {
+      "required": "Phone number is required",
+      "invalid": "Invalid phone number"
+    },
     "role": {
       "invalid": "Invalid role"
     },
@@ -7,13 +19,13 @@
       "required": "Email is required",
       "tooLong": "Email is too long",
       "noSpaces": "Email must not contain spaces",
-      "noDomain": "Email must include a domain (e.g. user@example.com)",
-      "invalid": "Email address is not valid"
+      "noDomain": "Email must contain a domain",
+      "invalid": "Invalid email address"
     },
     "password": {
       "required": "Password is required",
       "tooShort": "Password must be at least 8 characters",
-      "tooLong": "Password must be under 100 characters",
+      "tooLong": "Password is too long",
       "noUppercase": "Password must contain at least one uppercase letter",
       "noLowercase": "Password must contain at least one lowercase letter",
       "noNumber": "Password must contain at least one number",
@@ -27,29 +39,25 @@
     "username": {
       "required": "Username is required",
       "tooShort": "Username must be at least 3 characters",
-      "tooLong": "Username must be under 30 characters",
-      "invalidChars": "Username may only contain letters, numbers, underscores, dots, or hyphens",
+      "tooLong": "Username must be at most 30 characters",
+      "invalidChars": "Username may only contain letters, numbers, underscores, dots and dashes",
       "invalidStart": "Username must start with a letter or number",
       "invalidEnd": "Username must end with a letter or number"
     },
-    "phone": {
-      "required": "Phone number is required",
-      "invalid": "Invalid phone number format"
-    },
     "otp": {
-      "required": "OTP code is required",
-      "invalidLength": "OTP must be exactly 6 digits",
-      "digitsOnly": "OTP must contain digits only"
+      "required": "Code is required",
+      "invalidLength": "Code must be 6 digits",
+      "digitsOnly": "Code must contain digits only"
     },
     "token": {
-      "required": "Reset token is required",
-      "invalid": "Reset token appears to be invalid"
+      "required": "Token is required",
+      "invalid": "Invalid token"
     },
     "fullName": {
       "required": "Full name is required",
-      "tooShort": "Full name must be at least 2 characters",
-      "tooLong": "Full name must be under 100 characters",
-      "invalidChars": "Full name may only contain letters, spaces, hyphens, or apostrophes",
+      "tooShort": "Full name is too short",
+      "tooLong": "Full name is too long",
+      "invalidChars": "Full name may only contain letters, spaces, hyphens and apostrophes",
       "missingLastName": "Please enter both first and last name"
     }
   }

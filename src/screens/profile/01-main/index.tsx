@@ -20,7 +20,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { getAxiosError } from "@/utils/getAxiosError";
-import { finnishBanks } from "@/data/finnishBanks";
+import { finnishBanks } from "root/include/data";
 import {
   User as UserIcon,
   Shield,
@@ -32,6 +32,8 @@ import {
   Plus,
 } from "lucide-react";
 import clsx from "clsx";
+import { PhoneInput } from "@/shared/components/PhoneInput";
+import Image from "next/image";
 
 function Field({
   label,
@@ -113,6 +115,10 @@ function SectionCard({
   );
 }
 
+function formatIban(iban: string) {
+  return iban.replace(/(.{4})/g, "$1 ").trim();
+}
+
 export function Main() {
   const {
     user,
@@ -135,7 +141,9 @@ export function Main() {
     fullName: user?.profile?.fullName ?? "",
     username: user?.username ?? "",
     email: user?.email ?? "",
-    phone: user?.profile?.fullPhone ?? "",
+    fullPhone: user?.profile?.fullPhone ?? "",
+    phone: user?.profile?.phone ?? "",
+    code: user?.profile?.code ?? "",
   });
 
   const [payoutForm, setPayoutForm] = useState({
@@ -150,12 +158,25 @@ export function Main() {
     [],
   );
 
+  const handleLocalPhone = useCallback(
+    (phone: string) => {
+      setForm((p) => ({
+        ...p,
+        phone,
+        fullPhone: form.code + phone.replace(/\s/g, ""),
+      }));
+    },
+    [form.code],
+  );
+
   const openPersonal = () => {
     setForm({
       fullName: user?.profile?.fullName ?? "",
       username: user?.username ?? "",
       email: user?.email ?? "",
-      phone: user?.profile?.fullPhone ?? "",
+      fullPhone: user?.profile?.fullPhone ?? "",
+      phone: user?.profile?.phone ?? "",
+      code: user?.profile?.code ?? "",
     });
     setError("");
     setPersonalOpen(true);
@@ -228,12 +249,13 @@ export function Main() {
 
   if (!user) return null;
 
-  const bankLabel = finnishBanks.find((b) => b.value === user.payout?.bankName)?.label;
+  const bankLabel = finnishBanks.find(
+    (b) => b.value === user.payout?.bankName,
+  )?.label;
 
   return (
     <section className="w-full px-4">
       <div className="flex flex-col gap-4">
-        {/* Personal information */}
         <div className="grid grid-cols-[400px_1fr] gap-6">
           <SectionCard
             icon={<UserIcon className="w-6 h-6 text-background" />}
@@ -250,16 +272,19 @@ export function Main() {
                 <span>Edit</span>
               </button>
             </div>
-
             <div className="grid grid-cols-2 gap-y-4 gap-x-6">
               <Field label="Full name" value={user.profile?.fullName || "—"} />
               <Field label="Username" value={user.username} />
               <Field
                 label="Email"
                 value={user.email}
-                badge={user.acceptance.emailVerified ? "Verified" : "Unverified"}
+                badge={
+                  user.acceptance.emailVerified ? "Verified" : "Unverified"
+                }
                 badgeOk={user.acceptance.emailVerified}
-                onVerify={!user.acceptance.emailVerified ? () => sendOtp() : undefined}
+                onVerify={
+                  !user.acceptance.emailVerified ? () => sendOtp() : undefined
+                }
               />
               <div>
                 <p className="text-xs text-grey mb-1">Phone number</p>
@@ -277,16 +302,16 @@ export function Main() {
                   >
                     {user.acceptance.phoneVerified ? "Verified" : "Unverified"}
                   </span>
-                  {!user.acceptance.phoneVerified && phoneOtpStep === "idle" && (
-                    <button
-                      onClick={handleSendPhoneOtp}
-                      className="text-[11px] text-primary hover:underline"
-                    >
-                      Verify now
-                    </button>
-                  )}
+                  {!user.acceptance.phoneVerified &&
+                    phoneOtpStep === "idle" && (
+                      <button
+                        onClick={handleSendPhoneOtp}
+                        className="text-[11px] text-primary hover:underline"
+                      >
+                        Verify now
+                      </button>
+                    )}
                 </div>
-
                 {phoneOtpStep === "sent" && (
                   <div className="flex items-center gap-2 mt-2">
                     <Input
@@ -311,13 +336,13 @@ export function Main() {
                     </button>
                   </div>
                 )}
-                {otpError && <p className="text-xs text-red mt-1">{otpError}</p>}
+                {otpError && (
+                  <p className="text-xs text-red mt-1">{otpError}</p>
+                )}
               </div>
             </div>
           </div>
         </div>
-
-        {/* Payout details */}
         <div className="grid grid-cols-[400px_1fr] gap-6">
           <SectionCard
             icon={<Landmark className="w-6 h-6 text-background" />}
@@ -343,7 +368,6 @@ export function Main() {
                 )}
               </button>
             </div>
-
             {user.payout?.iban ? (
               <div className="grid grid-cols-2 gap-y-4 gap-x-6">
                 <Field label="IBAN" value={formatIban(user.payout.iban)} />
@@ -354,8 +378,6 @@ export function Main() {
             )}
           </div>
         </div>
-
-        {/* Security */}
         <div className="grid grid-cols-[400px_1fr] gap-6">
           <SectionCard
             icon={<Shield className="w-6 h-6 text-background" />}
@@ -379,30 +401,27 @@ export function Main() {
           </div>
         </div>
       </div>
-
-      {/* Personal information dialog */}
       <Dialog open={personalOpen} onOpenChange={setPersonalOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-xl border-primary">
           <DialogHeader>
             <DialogTitle>Edit personal information</DialogTitle>
             <DialogDescription>
               Update your personal details and contact information.
             </DialogDescription>
           </DialogHeader>
-
           <div className="grid grid-cols-2 gap-4 py-2">
             <FormField label="Full name">
               <Input
                 value={form.fullName}
                 onChange={handleChange("fullName")}
-                className="h-10 rounded-lg text-sm"
+                className="h-10 rounded-lg text-sm placeholder:text-grey"
               />
             </FormField>
             <FormField label="Username">
               <Input
                 value={form.username}
                 onChange={handleChange("username")}
-                className="h-10 rounded-lg text-sm"
+                className="h-10 rounded-lg text-sm placeholder:text-grey"
               />
             </FormField>
             <FormField label="Email">
@@ -410,7 +429,7 @@ export function Main() {
                 type="email"
                 value={form.email}
                 onChange={handleChange("email")}
-                className="h-10 rounded-lg text-sm"
+                className="h-10 rounded-lg text-sm placeholder:text-grey"
               />
               {form.email !== user.email && (
                 <p className="text-xs text-warning mt-1">
@@ -419,21 +438,21 @@ export function Main() {
               )}
             </FormField>
             <FormField label="Phone number">
-              <Input
+              <PhoneInput
+                code={form.code}
+                setCode={(code) => setForm((p) => ({ ...p, code }))}
                 value={form.phone}
-                onChange={handleChange("phone")}
-                className="h-10 rounded-lg text-sm"
+                onChange={handleLocalPhone}
+                id="phone"
               />
-              {form.phone !== user.profile?.fullPhone && (
+              {form.fullPhone !== user.profile?.fullPhone && (
                 <p className="text-xs text-warning mt-1">
                   Changing phone will require re-verification.
                 </p>
               )}
             </FormField>
           </div>
-
           {error && <p className="text-xs text-red">{error}</p>}
-
           <DialogFooter>
             <Button
               type="button"
@@ -442,16 +461,18 @@ export function Main() {
             >
               Cancel
             </Button>
-            <Button type="button" onClick={handleSavePersonal} disabled={isLoading}>
+            <Button
+              type="button"
+              onClick={handleSavePersonal}
+              disabled={isLoading}
+            >
               {isLoading ? "Saving..." : "Save changes"}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      {/* Payout details dialog */}
       <Dialog open={payoutOpen} onOpenChange={setPayoutOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-xl border-primary">
           <DialogHeader>
             <DialogTitle>Edit payout details</DialogTitle>
             <DialogDescription>
@@ -459,7 +480,6 @@ export function Main() {
               completed task.
             </DialogDescription>
           </DialogHeader>
-
           <div className="flex flex-col gap-4 py-2">
             <FormField label="Bank">
               <Select
@@ -471,9 +491,20 @@ export function Main() {
                 <SelectTrigger className="h-10 rounded-lg text-sm w-full">
                   <SelectValue placeholder="Select your bank" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="w-full bg-background">
                   {finnishBanks.map((bank) => (
-                    <SelectItem key={bank.value} value={bank.value}>
+                    <SelectItem
+                      key={bank.value}
+                      value={bank.value}
+                      className="flex items-center gap-2"
+                    >
+                      <Image
+                        className="w-7 h-7"
+                        src={bank.src}
+                        alt={bank.label}
+                        width={20}
+                        height={20}
+                      />
                       {bank.label}
                     </SelectItem>
                   ))}
@@ -491,9 +522,7 @@ export function Main() {
               />
             </FormField>
           </div>
-
           {error && <p className="text-xs text-red">{error}</p>}
-
           <DialogFooter>
             <Button
               type="button"
@@ -502,7 +531,11 @@ export function Main() {
             >
               Cancel
             </Button>
-            <Button type="button" onClick={handleSavePayout} disabled={isLoading}>
+            <Button
+              type="button"
+              onClick={handleSavePayout}
+              disabled={isLoading}
+            >
               {isLoading ? "Saving..." : "Save changes"}
             </Button>
           </DialogFooter>
@@ -510,8 +543,4 @@ export function Main() {
       </Dialog>
     </section>
   );
-}
-
-function formatIban(iban: string) {
-  return iban.replace(/(.{4})/g, "$1 ").trim();
 }

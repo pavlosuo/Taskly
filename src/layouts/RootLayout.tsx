@@ -1,7 +1,7 @@
 "use client";
 import { FC, PropsWithChildren } from "react";
 import { UserProvider } from "@/providers/User";
-import { User } from "@/types/index";
+import { User } from "root/include/types";
 import { DataProvider } from "@/providers/Data";
 import { ClickwrapProvider } from "@/shared/components/Clickwrap";
 import { ThemeProvider } from "@/providers/Theme";

@@ -1,7 +1,41 @@
 import { z } from "zod";
 import libphonenumber from "google-libphonenumber";
+import { finnishBanks } from "./data.ts";
+
+export function validateIban(raw: string) {
+  const cleaned = raw.replace(/\s/g, "").toUpperCase();
+  if (!/^FI\d{16}$/.test(cleaned)) return false;
+  const rearranged = cleaned.slice(4) + cleaned.slice(0, 4);
+  const numeric = rearranged
+    .split("")
+    .map((c) =>
+      isNaN(c as unknown as number) ? String(c.charCodeAt(0) - 55) : c,
+    )
+    .join("");
+  let remainder = 0;
+  for (const chunk of numeric.match(/.{1,9}/g) ?? []) {
+    remainder = Number(String(remainder) + chunk) % 97;
+  }
+  return remainder === 1;
+}
 
 const phoneUtil = libphonenumber.PhoneNumberUtil.getInstance();
+
+export const finnishBankValues = finnishBanks.map((b) => b.value) as [
+  (typeof finnishBanks)[number]["value"],
+  ...(typeof finnishBanks)[number]["value"][],
+];
+
+const payoutField = z
+  .object({
+    iban: z
+      .string()
+      .min(15, "errors.iban.tooShort")
+      .max(34, "errors.iban.tooLong")
+      .refine(validateIban, { message: "errors.iban.invalid" }),
+    bankName: z.enum(finnishBankValues, { message: "errors.bankName.invalid" }),
+  })
+  .optional();
 
 const phoneField = z.string().superRefine((value, ctx) => {
   if (!value.trim()) {
@@ -20,26 +54,20 @@ const phoneField = z.string().superRefine((value, ctx) => {
       });
     }
   } catch (e) {
-    if (e.message === "The string supplied is too short to be a phone number") {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "errors.phone.required",
-      });
-    } else {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "errors.phone.invalid",
-      });
-    }
+    const err = e as Error;
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message:
+        err.message === "The string supplied is too short to be a phone number"
+          ? "errors.phone.required"
+          : "errors.phone.invalid",
+    });
   }
 });
 
-const roleField = z
-  .enum(["admin", "tasker", "client"])
-  .refine(
-    (val) => ["admin", "tasker", "client"].includes(val),
-    "errors.role.invalid",
-  );
+const roleField = z.enum(["admin", "tasker", "client"], {
+  message: "errors.role.invalid",
+});
 
 const emailField = z
   .string()
@@ -131,7 +159,6 @@ export const adminRegisterSchema = z.object({
   email: emailField,
   username: usernameField,
   password: passwordField,
-  role: roleField,
 });
 
 export const registerSchema = z
@@ -162,28 +189,22 @@ export const registerSchema = z
   });
 
 export const updateProfileSchema = z.object({
-  username: z.string().min(3).max(30).optional(),
-  fullName: z.string().min(2).max(100).optional(),
-  phone: phoneField.optional(),
-  email: z.string().email().optional(),
-  avatar: z.string().optional(),
-  payout: z
-    .object({
-      iban: z.string().min(15).max(34),
-      bankName: z.string().min(2).max(60),
-    })
+  username: usernameField.optional(),
+  fullName: z
+    .string()
+    .min(2, "errors.fullName.tooShort")
+    .max(100, "errors.fullName.tooLong")
     .optional(),
+  phone: phoneField.optional(),
+  email: emailField.optional(),
+  avatar: z.string().optional(),
+  payout: payoutField,
 });
 
 export const updateEmailRequestSchema = z.object({
-  newEmail: z.string().email(),
-});
-
-export const payoutDetailsSchema = z.object({
-  iban: z.string().min(15).max(34),
-  bankName: z.string().min(2).max(60).optional(),
+  newEmail: emailField,
 });
 
 export const verifyPhoneOtpSchema = z.object({
-  otp: z.string().length(6),
+  otp: otpField,
 });

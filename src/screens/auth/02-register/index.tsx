@@ -5,8 +5,8 @@ import { useUser } from "providers/User";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { registerSchema } from "../../../../include/schemas";
-import { RegisterForm, Role } from "@/types";
+import { registerSchema } from "root/include/schemas";
+import { RegisterForm, Role } from "root/include/types";
 import {
   AuthLayout,
   FieldError,
@@ -272,7 +272,7 @@ export function Register() {
                     error={error}
                     code={form.code}
                     setCode={(code) => setForm((p) => ({ ...p, code }))}
-                    id={name}
+                    id="phone"
                     value={form.phone}
                     onChange={handleLocalPhone}
                   />

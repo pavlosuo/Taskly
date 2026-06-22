@@ -7,7 +7,7 @@ import {
   ReactNode,
 } from "react";
 import { axiosApi } from "@/api";
-import { Data } from "@/types";
+import { Data } from "root/include/types";
 
 interface DataContextType {
   data: Data;

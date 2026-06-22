@@ -5,8 +5,8 @@ import { useUser } from "providers/User";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { loginSchema } from "../../../../include/schemas";
-import { LoginForm, ZodErrors } from "@/types";
+import { loginSchema } from "root/include/schemas";
+import { LoginForm, ZodErrors } from "root/include/types";
 import {
   FieldError,
   PasswordToggle,

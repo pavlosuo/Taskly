@@ -24,6 +24,25 @@ export type LoginForm = {
   password: string;
 };
 
+export type NewPasswordErrors = {
+  password?: string;
+  confirm?: string;
+  general?: string;
+};
+
+export interface ForgotPasswordContextValue {
+  step: Step;
+  method: Method;
+  phone: string;
+  resetToken: string;
+  tokenError: { title: string; message: string };
+  setStep: (step: Step) => void;
+  setMethod: (method: Method) => void;
+  setPhone: (phone: string) => void;
+  setResetToken: (token: string) => void;
+  goToEntry: (m?: Method) => void;
+}
+
 export type RegisterForm = {
   email: string;
   password: string;
@@ -51,7 +70,7 @@ export interface User {
   payout: {
     iban: string;
     bankName: string;
-  }
+  };
   profile?: {
     fullName: string;
     phone: string;

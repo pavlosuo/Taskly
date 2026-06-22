@@ -17,8 +17,8 @@ import {
   otpSchema,
   newPasswordSchema,
   sendResetOtpSchema,
-} from "../../../../include/schemas";
-import { NewPasswordForm, Method, Step } from "@/types";
+} from "root/include/schemas";
+import { NewPasswordForm, Method, Step, ForgotPasswordContextValue, NewPasswordErrors } from "root/include/types";
 import {
   AuthLayout,
   FieldError,
@@ -31,25 +31,6 @@ import { getAxiosError } from "@/utils/getAxiosError";
 import { PhoneInput } from "@/shared/components/PhoneInput";
 import clsx from "clsx";
 import { useTranslation } from "react-i18next";
-
-type NewPasswordErrors = {
-  password?: string;
-  confirm?: string;
-  general?: string;
-};
-
-interface ForgotPasswordContextValue {
-  step: Step;
-  method: Method;
-  phone: string;
-  resetToken: string;
-  tokenError: { title: string; message: string };
-  setStep: (step: Step) => void;
-  setMethod: (method: Method) => void;
-  setPhone: (phone: string) => void;
-  setResetToken: (token: string) => void;
-  goToEntry: (m?: Method) => void;
-}
 
 const ForgotPasswordContext = createContext<ForgotPasswordContextValue | null>(
   null,

@@ -17,9 +17,11 @@ import {
   sendResetOtpSchema,
   verifyResetOtpSchema,
   forgotPasswordEmailSchema,
-} from "./include/schemas.js";
-import { authLimiter, globalLimiter } from "./include/limiters.js";
-import { hashToken, generateOtp, safeEqual } from "./include/utils.js";
+  updateProfileSchema,
+  updateEmailRequestSchema,
+} from "./include/schemas.ts";
+import { authLimiter, globalLimiter } from "./include/limiters.ts";
+import { hashToken, generateOtp, safeEqual } from "./include/utils.ts";
 import dns from "node:dns/promises";
 dns.setServers(["1.1.1.1", "1.0.0.1"]);
 
@@ -31,6 +33,7 @@ export class Server {
     this.port = PORT || 5050;
     this._client = null;
     this._dbPromise = null;
+    this.smsSender = null;
     this.app.use(helmet());
     this.app.use(express.json());
     this.app.use(cookieParser());
@@ -363,7 +366,7 @@ export class Server {
       await users.updateOne(
         { _id: user._id },
         {
-          $set: { email: decoded.newEmail, "profile.emailVerified": true },
+          $set: { email: decoded.newEmail, "acceptance.emailVerified": true },
           $unset: { pendingEmailHash: "" },
         },
       );
@@ -396,7 +399,7 @@ export class Server {
           { $set: { phoneOtp: { code: otp, expiresAt } } },
         );
 
-      await this.whatsappService.sendOtp(phone, `${otp}`);
+      await this.smsSender.sendOtp(phone, `${otp}`);
       return res.json({ success: true, message: "Code sent." });
     } catch (error) {
       console.error("Send phone OTP error:", error);
@@ -433,7 +436,7 @@ export class Server {
         { _id: req.user._id },
         {
           $unset: { phoneOtp: "" },
-          $set: { "acceptance.phoneVerified": true },
+          $set: { "acceptance.emailVerified": true },
         },
         { returnDocument: "after", projection: { passwordHash: 0 } },
       );
@@ -452,9 +455,7 @@ export class Server {
   async deactivateAccount(req, res) {
     try {
       const db = await this.getDb();
-      await db
-        .collection("users")
-        .deleteOne({ _id: req.user._id }, { projection: { passwordHash: 0 } });
+      await db.collection("users").deleteOne({ _id: req.user._id });
       res.clearCookie("token", { path: "/" });
       return res.json({ success: true, message: "Account deactivated." });
     } catch (error) {

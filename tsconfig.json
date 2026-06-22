@@ -12,12 +12,14 @@
     "isolatedModules": true,
     "jsx": "react-jsx",
     "incremental": true,
+    "allowImportingTsExtensions": true,
     "plugins": [
       {
         "name": "next"
       }
     ],
     "paths": {
+      "root/*": ["./*"],
       "app/*": ["./src/app/*"],
       "api/*": ["./src/app/api/*"],
       "interfaces/*": ["./src/interfaces/*"],

@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 import { useState, useRef, useEffect, useMemo, useCallback, memo } from "react";
-import { countryList, type Country } from "@/data/phones";
+import { countryList, type Country } from "root/include/data";
 import clsx from "clsx";
 import { Input } from "@/components/ui/input";
 import { PhoneNumberUtil, AsYouTypeFormatter } from "google-libphonenumber";
