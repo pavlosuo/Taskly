@@ -1,5 +1,11 @@
 import axios from "axios";
-import { LoginForm, User, AuthResponse, Data, RegisterForm } from "root/include/types";
+import {
+  LoginForm,
+  User,
+  AuthResponse,
+  Data,
+  RegisterForm,
+} from "root/include/types";
 
 export const BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:5050";

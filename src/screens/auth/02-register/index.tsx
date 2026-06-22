@@ -15,7 +15,7 @@ import {
   Title,
 } from "../ui";
 import { getAxiosError } from "@/utils/getAxiosError";
-import { getPasswordStrength } from "@/utils/getPasswordStrength";
+import { getPasswordStrength } from "root/include/utils";
 import clsx from "clsx";
 import { PhoneInput } from "@/shared/components/PhoneInput";
 import { CalendarCheck, UserPlus, ArrowLeftToLine } from "lucide-react";
@@ -299,7 +299,7 @@ export function Register() {
           },
         )}
         {(["password", "confirm"] as const).map((field) => {
-          const error = errors[field];
+          const error = errors[field] as string;
           return (
             <div key={field} className="form-group col-span-1">
               <Label
@@ -336,10 +336,10 @@ export function Register() {
               </div>
               {field === "password" && strength && (
                 <p className={clsx("text-xs mt-1 font-medium", strength.color)}>
-                  {strength.tips[0] ?? strength.label}
+                  {t(strength.tips[0]) ?? t(strength.label)}
                 </p>
               )}
-              <FieldError message={error} />
+              <FieldError message={t(error)} />
             </div>
           );
         })}

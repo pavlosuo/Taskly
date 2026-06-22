@@ -11,14 +11,20 @@ import {
   InputOTPGroup,
   InputOTPSlot,
 } from "@/components/ui/input-otp";
-import { getPasswordStrength } from "@/utils/getPasswordStrength";
+import { getPasswordStrength } from "root/include/utils";
 import {
   forgotPasswordEmailSchema,
   otpSchema,
   newPasswordSchema,
   sendResetOtpSchema,
 } from "root/include/schemas";
-import { NewPasswordForm, Method, Step, ForgotPasswordContextValue, NewPasswordErrors } from "root/include/types";
+import {
+  NewPasswordForm,
+  Method,
+  Step,
+  ForgotPasswordContextValue,
+  NewPasswordErrors,
+} from "root/include/types";
 import {
   AuthLayout,
   FieldError,

@@ -24,6 +24,7 @@ export function Login() {
   const [form, setForm] = useState<LoginForm>({ email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<ZodErrors<LoginForm>>({});
+  console.log(errors);
 
   const handleChange = useCallback(
     (field: keyof LoginForm) => (e: React.ChangeEvent<HTMLInputElement>) => {

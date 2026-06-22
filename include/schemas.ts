@@ -1,23 +1,7 @@
 import { z } from "zod";
 import libphonenumber from "google-libphonenumber";
 import { finnishBanks } from "./data.ts";
-
-export function validateIban(raw: string) {
-  const cleaned = raw.replace(/\s/g, "").toUpperCase();
-  if (!/^FI\d{16}$/.test(cleaned)) return false;
-  const rearranged = cleaned.slice(4) + cleaned.slice(0, 4);
-  const numeric = rearranged
-    .split("")
-    .map((c) =>
-      isNaN(c as unknown as number) ? String(c.charCodeAt(0) - 55) : c,
-    )
-    .join("");
-  let remainder = 0;
-  for (const chunk of numeric.match(/.{1,9}/g) ?? []) {
-    remainder = Number(String(remainder) + chunk) % 97;
-  }
-  return remainder === 1;
-}
+import { validateIban, validatePassword } from "./utils.ts";
 
 const phoneUtil = libphonenumber.PhoneNumberUtil.getInstance();
 
@@ -80,16 +64,12 @@ const emailField = z
   )
   .email("errors.email.invalid");
 
-const passwordField = z
-  .string()
-  .min(1, "errors.password.required")
-  .min(8, "errors.password.tooShort")
-  .max(100, "errors.password.tooLong")
-  .refine((val) => /[A-Z]/.test(val), "errors.password.noUppercase")
-  .refine((val) => /[a-z]/.test(val), "errors.password.noLowercase")
-  .refine((val) => /[0-9]/.test(val), "errors.password.noNumber")
-  .refine((val) => /[^A-Za-z0-9]/.test(val), "errors.password.noSpecial")
-  .refine((val) => !/\s/.test(val), "errors.password.noSpaces");
+const passwordField = z.string().superRefine((val, ctx) => {
+  const result = validatePassword(val);
+  if (result !== true) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, message: result });
+  }
+});
 
 const confirmPasswordField = z.string().min(1, "errors.confirm.required");
 
