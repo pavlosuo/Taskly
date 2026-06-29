@@ -1,0 +1,136 @@
+"use client";
+import { useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
+import { useUser } from "providers/User";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { loginSchema } from "root/apps/api/include/schemas";
+import { LoginForm, ZodErrors } from "root/apps/api/include/types";
+import {
+  FieldError,
+  PasswordToggle,
+  BottomLink,
+  AuthLayout,
+  Title,
+} from "../ui";
+import { getAxiosError } from "@/utils/getAxiosError";
+import { useTranslation } from "react-i18next";
+
+export function Login() {
+  const { t } = useTranslation("login");
+  const { login, isLoading } = useUser();
+  const router = useRouter();
+  const [form, setForm] = useState<LoginForm>({ email: "", password: "" });
+  const [showPassword, setShowPassword] = useState(false);
+  const [errors, setErrors] = useState<ZodErrors<LoginForm>>({});
+  console.log(errors);
+
+  const handleChange = useCallback(
+    (field: keyof LoginForm) => (e: React.ChangeEvent<HTMLInputElement>) => {
+      setForm((p) => ({ ...p, [field]: e.target.value }));
+      setErrors((p) => ({ ...p, [field]: undefined, general: undefined }));
+    },
+    [],
+  );
+
+  const handleSubmit = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
+      const result = loginSchema.safeParse(form);
+      if (!result.success) {
+        const { fieldErrors, formErrors } = result.error.flatten();
+        setErrors({
+          email: fieldErrors.email?.[0],
+          password: fieldErrors.password?.[0],
+          general: formErrors[0],
+        });
+        return;
+      }
+      try {
+        await login({ email: form.email, password: form.password });
+        router.push("/");
+      } catch (err) {
+        setErrors({ general: getAxiosError(err) });
+      }
+    },
+    [form, login, router],
+  );
+
+  return (
+    <AuthLayout>
+      <Title>{t("title")}</Title>
+      <p className="text-sm text-grey mb-8 leading-relaxed">{t("subtitle")}</p>
+      <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-5">
+        <div className="form-group">
+          <Label
+            htmlFor="email"
+            className={`text-sm font-medium mb-1.5 block ${errors.email ? "text-red" : "text-grey"}`}
+          >
+            {t("email.label")}
+          </Label>
+          <Input
+            name="email"
+            id="email"
+            autoComplete="email"
+            type="text"
+            placeholder={t("email.placeholder")}
+            value={form.email}
+            onChange={handleChange("email")}
+            className={`h-10 rounded-lg text-sm placeholder:text-grey ${errors.email ? "border-red focus-visible:ring-red-75" : "border-border"}`}
+          />
+          <FieldError message={errors.email} />
+        </div>
+        <div className="form-group">
+          <Label
+            htmlFor="password"
+            className={`text-sm font-medium mb-1.5 block ${errors.password ? "text-red" : "text-grey"}`}
+          >
+            {t("password.label")}
+          </Label>
+          <div className="relative">
+            <Input
+              name="password"
+              id="password"
+              type={showPassword ? "text" : "password"}
+              placeholder={t("password.placeholder")}
+              value={form.password}
+              onChange={handleChange("password")}
+              className={`h-10 rounded-lg text-sm placeholder:text-grey pr-10 ${errors.password ? "border-red focus-visible:ring-red-75" : "border-border"}`}
+            />
+            <PasswordToggle
+              show={showPassword}
+              onToggle={() => setShowPassword((v) => !v)}
+            />
+          </div>
+          <FieldError message={errors.password} />
+          <div className="flex justify-end mt-1.5">
+            <button
+              type="button"
+              onClick={() => router.push("/forgot-password")}
+              className="text-sm text-primary hover:text-primary/90 font-medium hover:underline"
+            >
+              {t("forgotPassword")}
+            </button>
+          </div>
+        </div>
+        {errors.general && (
+          <p className="text-xs text-red -mt-2">{errors.general}</p>
+        )}
+        <Button type="submit" disabled={isLoading}>
+          {isLoading ? t("submit.loading") : t("submit.idle")}
+        </Button>
+        <div className="flex items-center gap-3">
+          <div className="flex-1 h-px bg-grey" />
+          <span className="text-xs text-foreground">{t("divider")}</span>
+          <div className="flex-1 h-px bg-grey" />
+        </div>
+      </form>
+      <BottomLink
+        text={t("bottomLink.text")}
+        label={t("bottomLink.label")}
+        onClick={() => router.push("/register")}
+      />
+    </AuthLayout>
+  );
+}
