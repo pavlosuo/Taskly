@@ -1,8 +1,8 @@
 import { cookies } from "next/headers";
-import { User } from "@shared/types";
+import { PublicUser } from "@shared/types";
 import { BASE_URL } from "@/api";
 
-export async function getUser(): Promise<User | null> {
+export async function getUser(): Promise<PublicUser | null> {
   try {
     const cookieStore = await cookies();
     const res = await fetch(`${BASE_URL}/api/auth/me`, {

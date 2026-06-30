@@ -6,14 +6,19 @@ import {
   useCallback,
   ReactNode,
 } from "react";
-import { User, LoginForm, AuthResponse, RegisterForm } from "@shared/types";
+import {
+  PublicUser,
+  LoginForm,
+  AuthResponse,
+  RegisterForm,
+} from "@shared/types";
 import { axiosApi } from "@/api";
 import { AutoLogoutPopup } from "@/shared/components/AutoLogoutPopup";
 
 interface UserContextType {
-  user: User | null;
+  user: PublicUser | null;
   isLoading: boolean;
-  setUser: (user: User | null) => void;
+  setUser: (user: PublicUser | null) => void;
   login: (payload: LoginForm) => Promise<AuthResponse>;
   register: (payload: RegisterForm) => Promise<AuthResponse>;
   logout: () => Promise<void>;
@@ -41,7 +46,7 @@ interface UserContextType {
 
 interface UserProviderProps {
   children: ReactNode;
-  initialUser?: User | null;
+  initialUser?: PublicUser | null;
 }
 
 const UserContext = createContext<UserContextType | null>(null);
@@ -50,7 +55,7 @@ export const UserProvider = ({
   children,
   initialUser = null,
 }: UserProviderProps) => {
-  const [user, setUser] = useState<User | null>(initialUser);
+  const [user, setUser] = useState<PublicUser | null>(initialUser);
   const [isLoading, setIsLoading] = useState(false);
 
   const login = useCallback(async (payload: LoginForm) => {

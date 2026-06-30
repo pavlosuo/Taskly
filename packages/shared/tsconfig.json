@@ -12,11 +12,5 @@
       "@shared/*": ["../../packages/shared/*"]
     }
   },
-  "include": [
-    "index.ts",
-    "schemas",
-    "data",
-    "types",
-    "utils"
-  ]
+  "include": ["index.ts", "schemas", "data", "types", "utils"]
 }

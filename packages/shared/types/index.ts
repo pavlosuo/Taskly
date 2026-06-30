@@ -1,11 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Db, ObjectId } from "mongodb";
-import { Response } from "express";
+import { Response, Request } from "express";
 import nodemailer from "nodemailer";
 
 export type Method = "phone" | "email";
+
 export type Role = "tasker" | "client";
+
 export type Lang = "en" | "fi" | "sv";
+
 export type Theme = "light" | "dark";
 
 export interface User {
@@ -15,7 +18,7 @@ export interface User {
   email: string;
   role: "admin" | Role;
   createdAt: Date;
-  acceptance?: {
+  acceptance: {
     phoneVerified: boolean;
     emailVerified: boolean;
     personVerified: boolean;
@@ -29,29 +32,32 @@ export interface User {
     code: string;
     expiresAt: Date;
   };
-  payout?: {
+  payout: {
     iban: string;
     bankName: string;
   };
-  profile?: {
+  profile: {
     fullName: string;
     phone: string;
     code: string;
     fullPhone: string;
-    avatar?: string;
+    avatar: string;
   };
-  settings?: {
+  settings: {
     lang: Lang;
     theme: Theme;
   };
 }
 
+export type PublicUser = Omit<User, "passwordHash" | "otp" | "phoneOtp">;
+
 export interface IServer {
   time: number;
-  smsSender: any;
   getDb(): Promise<Db>;
   getTransporter(): nodemailer.Transporter;
   issueToken(res: Response, user: User): string;
+  requireAuth(): (req: Request, res: Response, next: any) => void;
+  requireAdmin(): (req: Request, res: Response, next: any) => void;
 }
 
 export type Step =
@@ -114,3 +120,7 @@ export type ZodErrors<T> = {
 } & {
   general?: string;
 };
+
+export interface AuthRequest extends Request {
+  user: User;
+}

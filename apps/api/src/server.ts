@@ -1,52 +1,23 @@
-import env from "dotenv";
-env.config();
-import express, { Request, Response, Application, NextFunction } from "express";
+import "dotenv/config";
 import { MongoClient, ServerApiVersion, ObjectId, Db } from "mongodb";
-import { User } from "./include/types.ts";
+import { Response, Request, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import nodemailer, { Transporter } from "nodemailer";
-import cookieParser from "cookie-parser";
-import cors from "cors";
-import helmet from "helmet";
-import { authLimiter, globalLimiter } from "./include/limiters.ts";
-import { AuthController } from "./modules/auth.controller.js";
-import { OtpController } from "./modules/otp.controller.js";
-import { PasswordController } from "./modules/password.controller.js";
-import { ProfileController } from "./modules/profile.controller.js";
-import { EmailController } from "./modules/email.controller.js";
-import { PhoneController } from "./modules/phone.controller.js";
-import { PolicyController } from "./modules/policy.controller.js";
+import { User, AuthRequest } from "@shared/types";
+import { createApp } from "@/app";
+import { AuthService } from "@/modules/auth/auth.service";
 import dns from "node:dns/promises";
 dns.setServers(["1.1.1.1", "1.0.0.1"]);
 
 export class Server {
-  time: number;
-  nodemailer: Transporter | null;
-  app: Application;
-  port: number;
-  _client: MongoClient | null;
-  _dbPromise: Promise<Db> | null;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  smsSender: any;
+  readonly time = 15 * 60 * 1000;
+  readonly port: number;
+  private _client: MongoClient | null = null;
+  private _dbPromise: Promise<Db> | null = null;
+  private _mailer: Transporter | null = null;
 
-  constructor(PORT: number | undefined) {
-    this.time = 15 * 60 * 1000;
-    this.nodemailer = null;
-    this.app = express();
-    this.port = PORT || 5050;
-    this._client = null;
-    this._dbPromise = null;
-    this.smsSender = null;
-    this.app.use(helmet());
-    this.app.use(express.json());
-    this.app.use(cookieParser());
-    this.app.use(
-      cors({
-        origin: process.env.CLIENT_URL || "http://localhost:3000/",
-        credentials: true,
-      }),
-    );
-    this.app.use(globalLimiter);
+  constructor(port = 5050) {
+    this.port = port;
   }
 
   getDb(): Promise<Db> {
@@ -60,11 +31,11 @@ export class Server {
       });
       this._dbPromise = this._client
         .connect()
-        .then((c: MongoClient) => c.db("app"))
+        .then((c) => c.db("app"))
         .catch(async (err) => {
           await this._client?.close().catch(() => {});
-          this._dbPromise = null;
           this._client = null;
+          this._dbPromise = null;
           return Promise.reject(err);
         });
     }
@@ -72,18 +43,16 @@ export class Server {
   }
 
   getTransporter(): Transporter {
-    if (this.nodemailer) return this.nodemailer;
-    const transporter = nodemailer.createTransport({
+    if (this._mailer) return this._mailer;
+    const t = nodemailer.createTransport({
       host: process.env.SMTP_HOST,
       port: Number(process.env.SMTP_PORT),
       secure: process.env.SMTP_SECURE === "true",
       auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
     });
-    transporter.verify().catch((err) => {
-      console.error("SMTP configuration error:", err);
-    });
-    this.nodemailer = transporter;
-    return this.nodemailer;
+    t.verify().catch((err) => console.error("SMTP error:", err));
+    this._mailer = t;
+    return this._mailer;
   }
 
   issueToken(res: Response, user: User): string {
@@ -112,15 +81,13 @@ export class Server {
     if (!token) return null;
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET || "");
-      if (!decoded || typeof decoded !== "object") return null;
       const db = await this.getDb();
-      const user = (await db
+      return (await db
         .collection("users")
         .findOne(
-          { _id: new ObjectId(decoded.id) },
-          { projection: { passwordHash: 0 } },
+          { _id: new ObjectId((decoded as any).id) },
+          { projection: { passwordHash: 0, otp: 0, phoneOtp: 0 } },
         )) as User | null;
-      return user ?? null;
     } catch {
       return null;
     }
@@ -133,142 +100,32 @@ export class Server {
         return res
           .status(401)
           .json({ success: false, message: "Unauthorized." });
-      req.user = user;
+      (req as AuthRequest).user = user;
       next();
     };
   }
 
   requireAdmin() {
-    return async (req: Request, res: Response, next: NextFunction) => {
-      if (req?.user?.role !== "admin")
-        return res
-          .status(401)
-          .json({ success: false, message: "Unauthorized." });
+    return (_req: Request, res: Response, next: NextFunction) => {
+      if (_req?.user?.role !== "admin")
+        return res.status(403).json({ success: false, message: "Forbidden." });
       next();
     };
   }
 
-  initRoutes() {
-    const auth = new AuthController(this);
-    console.log(auth);
-    const otp = new OtpController(this);
-    const password = new PasswordController(this);
-    const profile = new ProfileController(this);
-    const email = new EmailController(this);
-    const phone = new PhoneController(this);
-    const policy = new PolicyController(this);
-
-    this.app.post("/api/auth/register", authLimiter, auth.register.bind(auth));
-    this.app.post("/api/auth/login", authLimiter, auth.login.bind(auth));
-    this.app.post("/api/auth/logout", auth.logout.bind(auth));
-    this.app.get("/api/auth/me", this.requireAuth(), auth.me.bind(auth));
-
-    this.app.post(
-      "/api/auth/otp/send",
-      this.requireAuth(),
-      otp.sendOtp.bind(otp),
-    );
-    this.app.post(
-      "/api/auth/otp/verify",
-      this.requireAuth(),
-      otp.verifyOtp.bind(otp),
-    );
-    this.app.post(
-      "/api/auth/otp/send-reset",
-      authLimiter,
-      otp.sendResetOtp.bind(otp),
-    );
-    this.app.post(
-      "/api/auth/otp/verify-reset",
-      authLimiter,
-      otp.verifyResetOtp.bind(otp),
-    );
-
-    this.app.post(
-      "/api/auth/reset-email",
-      authLimiter,
-      password.forgotPassword.bind(password),
-    );
-    this.app.post(
-      "/api/auth/reset-password",
-      authLimiter,
-      password.resetPassword.bind(password),
-    );
-    this.app.post(
-      "/api/auth/verify-reset-token",
-      authLimiter,
-      password.verifyResetToken.bind(password),
-    );
-
-    this.app.put(
-      "/api/profile",
-      this.requireAuth(),
-      profile.updateProfile.bind(profile),
-    );
-    this.app.delete(
-      "/api/profile",
-      this.requireAuth(),
-      profile.deactivateAccount.bind(profile),
-    );
-
-    this.app.post(
-      "/api/profile/email/request",
-      this.requireAuth(),
-      email.requestEmailChange.bind(email),
-    );
-    this.app.post(
-      "/api/profile/email/confirm",
-      email.confirmEmailChange.bind(email),
-    );
-
-    this.app.post(
-      "/api/profile/phone/send-otp",
-      this.requireAuth(),
-      phone.sendPhoneOtp.bind(phone),
-    );
-    this.app.post(
-      "/api/profile/phone/verify-otp",
-      this.requireAuth(),
-      phone.verifyPhoneOtp.bind(phone),
-    );
-
-    this.app.get("/api/policy", policy.getPolicy.bind(policy));
-    this.app.put(
-      "/api/policy",
-      this.requireAuth(),
-      this.requireAdmin(),
-      policy.updatePolicy.bind(policy),
-    );
-  }
-
   async start() {
-    this.initRoutes();
-    try {
-      await this.getDb();
-      const auth = new AuthController(this);
-      await auth.registerAdmin({
-        email: process.env.ADMIN_EMAIL || "",
-        password: process.env.ADMIN_PASSWORD || "",
-        username: process.env.ADMIN_USERNAME || "admin",
-      });
-    } catch (err) {
-      console.error("DB init error:", err);
-    }
-    await this.listen();
-  }
-
-  listen() {
-    return new Promise((resolve, reject) => {
-      this.app
-        .listen(this.port, () => {
-          console.log(`Server running on port ${this.port}`);
-          resolve(true);
-        })
-        .on("error", reject);
+    await this.getDb();
+    const authService = new AuthService(this);
+    await authService.registerAdmin({
+      email: process.env.ADMIN_EMAIL || "",
+      password: process.env.ADMIN_PASSWORD || "",
+      username: process.env.ADMIN_USERNAME || "admin",
+    });
+    const app = createApp(this);
+    app.listen(this.port, () => {
+      console.log(`Server running on port ${this.port}`);
     });
   }
 }
 
-const server = new Server(5050);
-server.start();
-export default server.app;
+new Server(5050).start().catch(console.error);
