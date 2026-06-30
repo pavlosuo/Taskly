@@ -50,7 +50,11 @@ export class UsersController {
       return res
         .status(result.status)
         .json({ success: false, message: result.message });
-    return res.json({ success: true, message: "Email updated successfully." });
+    return res.json({
+      success: true,
+      message: "Email updated successfully.",
+      ...(result.data ?? {}),
+    });
   };
 
   sendPhoneOtp = async (req: AuthRequest, res: Response) => {

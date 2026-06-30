@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { IServer } from "@shared/types";
 import { UsersController } from "@/modules/users/users.controller";
-import { asAuth } from "@/utils";
+import { asAuth } from "@/utils/auth";
 
 export function usersRoutes(server: IServer): Router {
   const router = Router();

@@ -1,7 +1,8 @@
 import { Router } from "express";
 import { IServer } from "@shared/types";
 import { AuthController } from "@/modules/auth/auth.controller";
-import { authLimiter, asAuth } from "@/utils";
+import { asAuth } from "@/utils/auth";
+import { authLimiter } from "@/utils/limiters";
 
 export function authRoutes(server: IServer): Router {
   const router = Router();

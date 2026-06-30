@@ -1,7 +1,7 @@
 "use client";
 import Image from "next/image";
 import Link from "next/link";
-import { useUser } from "providers/User";
+import { useUser } from "@/providers/User";
 import { ChevronDown, User, Settings, HelpCircle, LogOut } from "lucide-react";
 import {
   DropdownMenu,

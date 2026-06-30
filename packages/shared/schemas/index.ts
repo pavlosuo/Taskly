@@ -10,12 +10,13 @@ export const finnishBankValues = finnishBanks.map((b) => b.value) as [
   ...(typeof finnishBanks)[number]["value"][],
 ];
 
+const FI_IBAN_REGEX = /^FI\d{16}$/;
+
 const payoutField = z
   .object({
     iban: z
       .string()
-      .min(15, "errors.iban.tooShort")
-      .max(34, "errors.iban.tooLong")
+      .regex(FI_IBAN_REGEX, "errors.iban.invalidFormat")
       .refine(validateIban, { message: "errors.iban.invalid" }),
     bankName: z.enum(finnishBankValues, { message: "errors.bankName.invalid" }),
   })

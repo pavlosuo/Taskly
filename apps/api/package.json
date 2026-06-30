@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "nodemon --exec tsx --require tsconfig-paths/register src/server.ts",
+    "dev": "tsx watch --require tsconfig-paths/register src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js"
   },

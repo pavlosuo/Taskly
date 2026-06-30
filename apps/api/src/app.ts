@@ -3,7 +3,7 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import helmet from "helmet";
 import { Server } from "@/server";
-import { globalLimiter } from "@/utils";
+import { globalLimiter } from "@/utils/limiters";
 import { authRoutes } from "@/modules/auth/auth.routes";
 import { policyRoutes } from "@/modules/policy/policy.routes";
 import { usersRoutes } from "@/modules/users/users.routes";

@@ -69,11 +69,16 @@ export class AuthController {
 
   verifyOtp = async (req: AuthRequest, res: Response) => {
     const result = await this.service.verifyOtp(req.user, req.body);
+    console.log(result);
     if (!result.success)
       return res
         .status(result.status)
         .json({ success: false, message: result.message });
-    return res.json({ success: true, message: "OTP verified." });
+    return res.json({
+      success: true,
+      message: "OTP verified.",
+      ...(result.data ?? {}),
+    });
   };
 
   sendResetOtp = async (req: Request, res: Response) => {

@@ -14,6 +14,8 @@ import jwt from "jsonwebtoken";
 import { ObjectId } from "mongodb";
 import { generateOtp, hashToken, safeEqual } from "@shared/utils";
 
+console.log("🔥 AUTH SERVICE LOADED FROM:", __filename);
+
 type ServiceResult<T = unknown> =
   | { success: true; status: number; data: T }
   | { success: false; status: number; message: string; data?: T };
@@ -217,6 +219,7 @@ export class AuthService {
           { _id: user._id },
           { $unset: { otp: "" }, $set: { "acceptance.emailVerified": true } },
         );
+        
       return { success: true, status: 200, data: {} };
     } catch (error) {
       console.error("Verify OTP error:", error);

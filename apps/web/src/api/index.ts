@@ -1,7 +1,7 @@
 import axios from "axios";
 import {
   LoginForm,
-  User,
+  PublicUser,
   AuthResponse,
   Data,
   RegisterForm,
@@ -16,7 +16,7 @@ export const api = axios.create({
 });
 
 export const axiosApi = {
-  me: () => api.get<{ user: User }>("/api/auth/me"),
+  me: () => api.get<{ user: PublicUser }>("/api/auth/me"),
 
   login: (payload: LoginForm) =>
     api.post<AuthResponse>("/api/auth/login", payload),
@@ -45,9 +45,12 @@ export const axiosApi = {
     api.post<{ success: boolean; message: string }>("/api/auth/otp/send"),
 
   verifyOtp: (otp: string) =>
-    api.post<{ success: boolean; resetToken: string }>("/api/auth/otp/verify", {
-      otp,
-    }),
+    api.post<{ success: boolean; resetToken: string; user: PublicUser }>(
+      "/api/auth/otp/verify",
+      {
+        otp,
+      },
+    ),
 
   resetPassword: (token: string, password: string) =>
     api.post<{ success: boolean; message: string }>(
@@ -74,10 +77,7 @@ export const axiosApi = {
     ),
 
   confirmEmailChange: (token: string) =>
-    api.post<{ success: boolean; message: string }>(
-      "/api/profile/email/confirm",
-      { token },
-    ),
+    api.post<AuthResponse>("/api/profile/email/confirm", { token }),
 
   deactivateAccount: () =>
     api.delete<{ success: boolean; message: string }>("/api/profile"),

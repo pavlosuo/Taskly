@@ -11,6 +11,21 @@ export type Lang = "en" | "fi" | "sv";
 
 export type Theme = "light" | "dark";
 
+export type Payout = {
+  iban: string;
+  bankName: string;
+};
+
+export type UpdateProfileForm = Partial<{
+  fullName: string;
+  username: string;
+  phone: string;
+  email: string;
+  payout: Payout;
+}>;
+
+export type BankItem = { value: string; label: string; src: string };
+
 export interface User {
   _id: ObjectId;
   passwordHash: string;
@@ -32,10 +47,7 @@ export interface User {
     code: string;
     expiresAt: Date;
   };
-  payout: {
-    iban: string;
-    bankName: string;
-  };
+  payout: Payout;
   profile: {
     fullName: string;
     phone: string;
@@ -107,7 +119,7 @@ export type RegisterForm = {
 export interface AuthResponse {
   success: boolean;
   message: string;
-  user: User;
+  user: PublicUser;
 }
 
 export type Data = {

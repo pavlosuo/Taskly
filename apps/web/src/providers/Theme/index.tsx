@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, ReactNode } from "react";
+import { useUser } from "@/providers/User";
 import { Lang, Theme } from "@shared/types";
 import "@/i18n";
 
@@ -19,11 +20,10 @@ export const useTheme = () => {
 
 export const ThemeProvider: React.FC<{
   children: ReactNode;
-  langInitial?: Lang;
-  themeInitial?: Theme;
-}> = ({ children, langInitial, themeInitial }) => {
-  const [lang, setLang] = useState<Lang>(langInitial || "en");
-  const [theme, setTheme] = useState<Theme>(themeInitial || "light");
+}> = ({ children }) => {
+  const { user } = useUser();
+  const [lang, setLang] = useState<Lang>(user?.settings?.lang || "en");
+  const [theme, setTheme] = useState<Theme>(user?.settings?.theme || "light");
   return (
     <ThemeContext.Provider value={{ lang, setLang, theme, setTheme }}>
       {children}
