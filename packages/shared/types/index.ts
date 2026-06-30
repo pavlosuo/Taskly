@@ -1,15 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Db } from "mongodb";
+import { Db, ObjectId } from "mongodb";
 import { Response } from "express";
 import nodemailer from "nodemailer";
-import { ObjectId } from "mongodb";
 
 export type Method = "phone" | "email";
-
 export type Role = "tasker" | "client";
-
 export type Lang = "en" | "fi" | "sv";
-
 export type Theme = "light" | "dark";
 
 export interface User {
@@ -28,11 +24,11 @@ export interface User {
   otp?: {
     code: string;
     expiresAt: Date;
-  }
+  };
   phoneOtp?: {
     code: string;
     expiresAt: Date;
-  }
+  };
   payout?: {
     iban: string;
     bankName: string;
@@ -59,12 +55,7 @@ export interface IServer {
 }
 
 export type Step =
-  | "entry"
-  | "otp"
-  | "new-password"
-  | "success"
-  | "email-sent"
-  | "token-error";
+  "entry" | "otp" | "new-password" | "success" | "email-sent" | "token-error";
 
 export type NewPasswordForm = {
   password: string;

@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 import { useState, useRef, useEffect, useMemo, useCallback, memo } from "react";
-import { countryList, type Country } from "root/apps/api/include/data";
+import { countryList, type Country } from "@shared/index";
 import clsx from "clsx";
 import { Input } from "@/components/ui/input";
 import { PhoneNumberUtil, AsYouTypeFormatter } from "google-libphonenumber";
@@ -185,7 +185,7 @@ export const PhoneInput = memo(function PhoneInput({
   code?: string;
 }) {
   const [selected, setSelected] = useState<Country>(
-    () => countryList.find((c) => c.code === "FI") ?? countryList[0],
+    () => countryList.find((c: Country) => c.code === "FI") ?? countryList[0],
   );
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -204,7 +204,7 @@ export const PhoneInput = memo(function PhoneInput({
     () =>
       query
         ? countryList.filter(
-            (c) =>
+            (c: Country) =>
               c.name.toLowerCase().includes(query.toLowerCase()) ||
               c.dial.includes(query),
           )
@@ -253,7 +253,7 @@ export const PhoneInput = memo(function PhoneInput({
       e.preventDefault();
       const el = (e.target as HTMLElement).closest<HTMLElement>("[data-code]");
       if (!el) return;
-      const country = countryList.find((c) => c.code === el.dataset.code);
+      const country = countryList.find((c: Country) => c.code === el.dataset.code);
       if (!country) return;
       applyCountry(country);
       setOpen(false);

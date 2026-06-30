@@ -3,7 +3,7 @@ import {
   loginSchema,
   adminRegisterSchema,
   registerSchema,
-} from "../include/schemas.ts";
+} from "@shared/index";
 import { Request, Response } from "express";
 import { IServer, User, Lang, Theme } from "../include/types.ts";
 
@@ -136,7 +136,9 @@ export class AuthController {
       const { email, password } = parsed.data;
       console.log(email, password);
       const db = await this.server.getDb();
-      const user = await db.collection("users").findOne({ email }) as User | null;;
+      const user = (await db
+        .collection("users")
+        .findOne({ email })) as User | null;
       const isPasswordValid =
         user && (await bcrypt.compare(password, user.passwordHash));
       if (!user || !isPasswordValid)

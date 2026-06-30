@@ -2,8 +2,8 @@ import path from "path";
 import fs from "fs";
 
 const styles = () => {
-  const scssDirectory = "src/scss/";
-  const outputFile = "src/scss/style.scss";
+  const scssDirectory = "apps/web/src/scss";
+  const outputFile = "apps/web/src/scss/style.scss";
 
   function getScssFiles(dir, fileList = []) {
     const files = fs.readdirSync(dir);

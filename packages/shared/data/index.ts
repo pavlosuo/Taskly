@@ -1,12 +1,5 @@
 import { countries } from "country-codes-flags-phone-codes";
 import * as flags from "country-flag-icons/react/3x2";
-import { User } from "./types.ts";
-
-declare module "express-serve-static-core" {
-  interface Request {
-    user?: User;
-  }
-}
 
 export const countryList = countries.map((c) => ({
   name: c.name,

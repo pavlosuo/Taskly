@@ -1,6 +1,6 @@
 "use client";
 import { useState, useCallback } from "react";
-import { useUser } from "providers/User";
+import { useUser } from "@/providers/User";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,7 +20,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { getAxiosError } from "@/utils/getAxiosError";
-import { finnishBanks } from "root/apps/api/include/data";
+import { finnishBanks } from "@shared/data";
 import {
   User as UserIcon,
   Shield,
@@ -39,8 +39,6 @@ import {
   InputOTPGroup,
   InputOTPSlot,
 } from "@/components/ui/input-otp";
-
-// ─── вспомогательные компоненты ──────────────────────────────────────────────
 
 function Field({
   label,
@@ -176,8 +174,6 @@ function formatIban(iban: string) {
   return iban.replace(/(.{4})/g, "$1 ").trim();
 }
 
-// ─── главный компонент ────────────────────────────────────────────────────────
-
 type OtpDialogTarget = "email" | "phone" | null;
 type PersonalStep = "form" | "verify-email" | "verify-phone";
 
@@ -193,16 +189,10 @@ export function Main() {
     deactivateAccount,
   } = useUser();
 
-  console.log("user", user);
-
-  // диалоги
   const [personalOpen, setPersonalOpen] = useState(false);
   const [payoutOpen, setPayoutOpen] = useState(false);
   const [otpDialogTarget, setOtpDialogTarget] = useState<OtpDialogTarget>(null);
-
-  // шаг внутри диалога персональных данных
   const [personalStep, setPersonalStep] = useState<PersonalStep>("form");
-
   const [error, setError] = useState("");
   const [otpError, setOtpError] = useState("");
 
@@ -263,7 +253,6 @@ export function Main() {
     setPayoutOpen(true);
   };
 
-  // ── сохранение личных данных ──────────────────────────────────────────────
   const handleSavePersonal = async () => {
     setError("");
     try {
@@ -275,12 +264,12 @@ export function Main() {
       });
 
       if (emailChanged) {
-        await sendOtp(); // отправляем код на новый email
+        await sendOtp();
         setPersonalStep("verify-email");
         return;
       }
       if (phoneChanged) {
-        await sendPhoneOtp(); // отправляем код на новый телефон
+        await sendPhoneOtp();
         setPersonalStep("verify-phone");
         return;
       }
@@ -291,7 +280,6 @@ export function Main() {
     }
   };
 
-  // ── подтверждение кода внутри диалога ────────────────────────────────────
   const handleConfirmEmailCode = async (code: string) => {
     setOtpError("");
     try {
@@ -314,7 +302,6 @@ export function Main() {
     }
   };
 
-  // ── verify now (без смены) ────────────────────────────────────────────────
   const handleOpenOtpDialog = async (target: OtpDialogTarget) => {
     setOtpError("");
     setOtpDialogTarget(target);
@@ -333,7 +320,6 @@ export function Main() {
     }
   };
 
-  // ── payout ────────────────────────────────────────────────────────────────
   const handleSavePayout = async () => {
     setError("");
     try {
@@ -363,7 +349,6 @@ export function Main() {
   return (
     <section className="w-full px-4">
       <div className="flex flex-col gap-4">
-        {/* ── personal ── */}
         <div className="grid grid-cols-[400px_1fr] gap-6 items-start">
           <SectionCard
             icon={<UserIcon className="w-6 h-6 text-background" />}
@@ -387,11 +372,11 @@ export function Main() {
                 label="Email"
                 value={user.email}
                 badge={
-                  user.acceptance.emailVerified ? "Verified" : "Unverified"
+                  user.acceptance?.emailVerified ? "Verified" : "Unverified"
                 }
-                badgeOk={user.acceptance.emailVerified}
+                badgeOk={user.acceptance?.emailVerified}
                 onVerify={
-                  !user.acceptance.emailVerified
+                  !user.acceptance?.emailVerified
                     ? () => handleOpenOtpDialog("email")
                     : undefined
                 }
@@ -400,11 +385,11 @@ export function Main() {
                 label="Phone number"
                 value={user.profile?.fullPhone || "—"}
                 badge={
-                  user.acceptance.phoneVerified ? "Verified" : "Unverified"
+                  user.acceptance?.phoneVerified ? "Verified" : "Unverified"
                 }
-                badgeOk={user.acceptance.phoneVerified}
+                badgeOk={user.acceptance?.phoneVerified}
                 onVerify={
-                  !user.acceptance.phoneVerified
+                  !user.acceptance?.phoneVerified
                     ? () => handleOpenOtpDialog("phone")
                     : undefined
                 }
@@ -412,8 +397,6 @@ export function Main() {
             </div>
           </div>
         </div>
-
-        {/* ── payout ── */}
         <div className="grid grid-cols-[400px_1fr] gap-6 items-start">
           <SectionCard
             icon={<Landmark className="w-6 h-6 text-background" />}
@@ -449,8 +432,6 @@ export function Main() {
             )}
           </div>
         </div>
-
-        {/* ── security ── */}
         <div className="grid grid-cols-[400px_1fr] gap-6 items-start">
           <SectionCard
             icon={<Shield className="w-6 h-6 text-background" />}
@@ -474,8 +455,6 @@ export function Main() {
           </div>
         </div>
       </div>
-
-      {/* ── диалог personal ── */}
       <Dialog
         open={personalOpen}
         onOpenChange={(o) => {
@@ -580,8 +559,6 @@ export function Main() {
           )}
         </DialogContent>
       </Dialog>
-
-      {/* ── диалог verify now (без смены) ── */}
       <Dialog
         open={!!otpDialogTarget}
         onOpenChange={(o) => {
@@ -609,8 +586,6 @@ export function Main() {
           />
         </DialogContent>
       </Dialog>
-
-      {/* ── диалог payout ── */}
       <Dialog open={payoutOpen} onOpenChange={setPayoutOpen}>
         <DialogContent className="sm:max-w-xl border-primary">
           <DialogHeader>

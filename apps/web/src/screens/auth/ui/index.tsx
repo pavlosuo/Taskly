@@ -1,6 +1,6 @@
 import { memo } from "react";
 import { Eye, EyeOff } from "lucide-react";
-import { Method } from "root/apps/api/include/types";
+import { Method } from "@shared/types";
 import Image from "next/image";
 import { useTranslation } from "react-i18next";
 

@@ -1,7 +1,7 @@
 "use client";
 import { useState, useCallback, memo, createContext, useContext } from "react";
 import { useRouter } from "next/navigation";
-import { useUser } from "providers/User";
+import { useUser } from "@/providers/User";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,20 +11,20 @@ import {
   InputOTPGroup,
   InputOTPSlot,
 } from "@/components/ui/input-otp";
-import { getPasswordStrength } from "root/apps/api/include/utils";
+import { getPasswordStrength } from "@shared/utils";
 import {
   forgotPasswordEmailSchema,
   otpSchema,
   newPasswordSchema,
   sendResetOtpSchema,
-} from "root/apps/api/include/schemas";
+} from "@shared/index";
 import {
   NewPasswordForm,
   Method,
   Step,
   ForgotPasswordContextValue,
   NewPasswordErrors,
-} from "root/apps/api/include/types";
+} from "@shared/types";
 import {
   AuthLayout,
   FieldError,
@@ -32,7 +32,7 @@ import {
   BottomLink,
   MethodToggle,
   Title,
-} from "../ui";
+} from "@/screens/auth/ui";
 import { getAxiosError } from "@/utils/getAxiosError";
 import { PhoneInput } from "@/shared/components/PhoneInput";
 import clsx from "clsx";

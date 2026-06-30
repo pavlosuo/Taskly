@@ -1,21 +1,21 @@
 "use client";
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { useUser } from "providers/User";
+import { useUser } from "@/providers/User";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { registerSchema } from "root/apps/api/include/schemas";
-import { RegisterForm, Role } from "root/apps/api/include/types";
+import { registerSchema } from "@shared/index";
+import { RegisterForm, Role } from "@shared/types";
 import {
   AuthLayout,
   FieldError,
   PasswordToggle,
   BottomLink,
   Title,
-} from "../ui";
+} from "@/screens/auth/ui";
 import { getAxiosError } from "@/utils/getAxiosError";
-import { getPasswordStrength } from "root/apps/api/include/utils";
+import { getPasswordStrength } from "@shared/utils";
 import clsx from "clsx";
 import { PhoneInput } from "@/shared/components/PhoneInput";
 import { CalendarCheck, UserPlus, ArrowLeftToLine } from "lucide-react";

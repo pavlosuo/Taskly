@@ -32,8 +32,7 @@ interface ModalState {
   confirmText: string;
   cancelText: string;
   resolve:
-    | ((value: boolean | undefined | null | PromiseLike<boolean>) => void)
-    | null;
+    ((value: boolean | undefined | null | PromiseLike<boolean>) => void) | null;
 }
 
 const ModalContext = createContext<ModalContextType | undefined>(undefined);

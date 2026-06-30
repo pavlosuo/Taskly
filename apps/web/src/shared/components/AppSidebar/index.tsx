@@ -8,8 +8,8 @@ import {
   ClipboardList,
   MessageCircle,
 } from "lucide-react";
-import { UserDropdown } from "shared/components/UserDropdown";
-import { useUser } from "providers/User";
+import { UserDropdown } from "@/shared/components/UserDropdown";
+import { useUser } from "@/providers/User";
 import { useMemo } from "react";
 
 export function AppSidebar() {

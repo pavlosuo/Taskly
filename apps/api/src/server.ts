@@ -150,7 +150,7 @@ export class Server {
 
   initRoutes() {
     const auth = new AuthController(this);
-    console.log(auth)
+    console.log(auth);
     const otp = new OtpController(this);
     const password = new PasswordController(this);
     const profile = new ProfileController(this);

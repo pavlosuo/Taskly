@@ -1,5 +1,5 @@
-import { Screens } from "screens";
-import { getMetaData } from "utils/Metadata";
+import { Screens } from "@/screens";
+import { getMetaData } from "@/utils/Metadata";
 import { redirect } from "next/navigation";
 import { isTokenValid } from "@/api/isTokenValid";
 

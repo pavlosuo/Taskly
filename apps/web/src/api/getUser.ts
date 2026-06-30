@@ -1,5 +1,5 @@
 import { cookies } from "next/headers";
-import { User } from "root/apps/api/include/types";
+import { User } from "@shared/types";
 import { BASE_URL } from "@/api";
 
 export async function getUser(): Promise<User | null> {

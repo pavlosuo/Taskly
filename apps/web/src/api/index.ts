@@ -5,7 +5,7 @@ import {
   AuthResponse,
   Data,
   RegisterForm,
-} from "root/apps/api/include/types";
+} from "@shared/types";
 
 export const BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:5050";

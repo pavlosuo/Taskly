@@ -5,7 +5,7 @@ import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { MenuBar, MenuBarSkeleton } from "./MenuBar";
 import parse from "html-react-parser";
-import { useData } from "providers/Data";
+import { useData } from "@/providers/Data";
 
 const EXTENSIONS = [TextStyleKit, StarterKit];
 

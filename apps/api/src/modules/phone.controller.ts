@@ -11,7 +11,10 @@ export class PhoneController {
 
   async sendPhoneOtp(req: Request, res: Response) {
     try {
-      if(!req.user) return res.status(401).json({ success: false, message: "Unauthorized." });
+      if (!req.user)
+        return res
+          .status(401)
+          .json({ success: false, message: "Unauthorized." });
       const phone = req.user.profile?.fullPhone;
       if (!phone)
         return res
@@ -44,11 +47,17 @@ export class PhoneController {
         .json({ success: false, message: parsed.error.issues[0].message });
 
     try {
-      if(!req.user) return res.status(401).json({ success: false, message: "Unauthorized." });
+      if (!req.user)
+        return res
+          .status(401)
+          .json({ success: false, message: "Unauthorized." });
       const { otp } = parsed.data;
       const db = await this.server.getDb();
       const user = await db.collection("users").findOne({ _id: req.user._id });
-      if(!user) return res.status(401).json({ success: false, message: "Unauthorized." });
+      if (!user)
+        return res
+          .status(401)
+          .json({ success: false, message: "Unauthorized." });
       if (!user.phoneOtp)
         return res
           .status(400)

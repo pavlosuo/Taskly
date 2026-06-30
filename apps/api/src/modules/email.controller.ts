@@ -29,7 +29,10 @@ export class EmailController {
           .status(400)
           .json({ success: false, message: "Email already in use." });
 
-        if(!req.user) return res.status(401).json({ success: false, message: "Unauthorized." });
+      if (!req.user)
+        return res
+          .status(401)
+          .json({ success: false, message: "Unauthorized." });
 
       const token = jwt.sign(
         { id: req.user._id.toString(), newEmail },

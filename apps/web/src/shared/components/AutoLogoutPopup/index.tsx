@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useState, useCallback, useRef, useEffect } from "react";
-import { useUser } from "providers/User";
+import { useUser } from "@/providers/User";
 import clsx from "clsx";
 
 const INACTIVITY_TIMEOUT_MS = 2 * 60 * 1000;

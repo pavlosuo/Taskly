@@ -6,7 +6,9 @@
     "dev": "pnpm --parallel -r run dev",
     "dev:web": "pnpm --filter @taskly/web dev",
     "dev:api": "pnpm --filter @taskly/api dev",
-    "build": "pnpm -r run build"
+    "build": "pnpm -r run build",
+    "format": "prettier --write .",
+    "lint": "pnpm --filter @taskly/web lint && pnpm --filter @taskly/api lint"
   },
   "devDependencies": {
     "typescript": "^5.5.4"

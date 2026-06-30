@@ -1,19 +1,19 @@
 "use client";
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { useUser } from "providers/User";
+import { useUser } from "@/providers/User";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { loginSchema } from "root/apps/api/include/schemas";
-import { LoginForm, ZodErrors } from "root/apps/api/include/types";
+import { loginSchema } from "@shared/index";
+import { LoginForm, ZodErrors } from "@shared/types";
 import {
   FieldError,
   PasswordToggle,
   BottomLink,
   AuthLayout,
   Title,
-} from "../ui";
+} from "@/screens/auth/ui";
 import { getAxiosError } from "@/utils/getAxiosError";
 import { useTranslation } from "react-i18next";
 

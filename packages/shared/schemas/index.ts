@@ -1,7 +1,7 @@
 import { z } from "zod";
 import libphonenumber from "google-libphonenumber";
-import { finnishBanks } from "./data.ts";
-import { validateIban, validatePassword } from "./utils.ts";
+import { finnishBanks } from "@shared/data";
+import { validateIban, validatePassword } from "@shared/utils";
 
 const phoneUtil = libphonenumber.PhoneNumberUtil.getInstance();
 

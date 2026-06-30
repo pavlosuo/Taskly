@@ -46,7 +46,10 @@ export class ProfileController {
           bankName: string;
         };
       } = {};
-      if(!req.user) return res.status(401).json({ success: false, message: "Unauthorized." });
+      if (!req.user)
+        return res
+          .status(401)
+          .json({ success: false, message: "Unauthorized." });
       if (username !== undefined && username !== req.user.username) {
         const exists = await users.findOne({
           username,
@@ -122,7 +125,10 @@ export class ProfileController {
 
   async deactivateAccount(req: Request, res: Response) {
     try {
-      if(!req.user) return res.status(401).json({ success: false, message: "Unauthorized." });
+      if (!req.user)
+        return res
+          .status(401)
+          .json({ success: false, message: "Unauthorized." });
       const db = await this.server.getDb();
       await db.collection("users").deleteOne({ _id: req.user._id });
       res.clearCookie("token", { path: "/" });

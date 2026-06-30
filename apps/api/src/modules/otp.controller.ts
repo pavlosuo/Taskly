@@ -16,7 +16,10 @@ export class OtpController {
 
   async sendOtp(req: Request, res: Response) {
     try {
-      if(!req.user) return res.status(401).json({ success: false, message: "Unauthorized." });
+      if (!req.user)
+        return res
+          .status(401)
+          .json({ success: false, message: "Unauthorized." });
       const otp = generateOtp();
       const expiresAt = new Date(Date.now() + this.server.time);
       const db = await this.server.getDb();
@@ -47,10 +50,15 @@ export class OtpController {
         .json({ success: false, message: parsed.error.issues[0].message });
 
     try {
-      if(!req.user) return res.status(401).json({ success: false, message: "Unauthorized." });
+      if (!req.user)
+        return res
+          .status(401)
+          .json({ success: false, message: "Unauthorized." });
       const { otp } = parsed.data;
       const db = await this.server.getDb();
-      const user = await db.collection("users").findOne({ _id: req.user._id }) as User;
+      const user = (await db
+        .collection("users")
+        .findOne({ _id: req.user._id })) as User;
       if (!user.otp)
         return res
           .status(400)

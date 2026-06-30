@@ -6,12 +6,7 @@ import {
   useCallback,
   ReactNode,
 } from "react";
-import {
-  User,
-  LoginForm,
-  AuthResponse,
-  RegisterForm,
-} from "root/apps/api/include/types";
+import { User, LoginForm, AuthResponse, RegisterForm } from "@shared/types";
 import { axiosApi } from "@/api";
 import { AutoLogoutPopup } from "@/shared/components/AutoLogoutPopup";
 
