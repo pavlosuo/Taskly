@@ -7,6 +7,7 @@ import { globalLimiter } from "@/utils/limiters";
 import { authRoutes } from "@/modules/auth/auth.routes";
 import { policyRoutes } from "@/modules/policy/policy.routes";
 import { usersRoutes } from "@/modules/users/users.routes";
+import { otpRoutes } from "@/modules/otp/otp.routes";
 
 export function createApp(server: Server): Application {
   const app = express();
@@ -21,6 +22,7 @@ export function createApp(server: Server): Application {
   );
   app.use(globalLimiter);
   app.use("/api/auth", authRoutes(server));
+  app.use("/api/otp", otpRoutes(server));
   app.use("/api/profile", usersRoutes(server));
   app.use("/api/policy", policyRoutes(server));
   return app;

@@ -5,15 +5,16 @@ import {
   updateEmailRequestSchema,
   verifyPhoneOtpSchema,
 } from "@shared/schemas";
-import { generateOtp, hashToken, safeEqual } from "@shared/utils";
-import { IServer, User, PublicUser } from "@shared/types";
-
-type ServiceResult<T = unknown> =
-  | { success: true; status: number; data: T }
-  | { success: false; status: number; message: string; data?: T };
+import { hashToken } from "@shared/utils";
+import { IServer, PublicUser, ServiceResult } from "@shared/types";
+import { OtpService } from "@/modules/otp/otp.service";
 
 export class UsersService {
-  constructor(private server: IServer) {}
+  private otpService: OtpService;
+
+  constructor(private server: IServer) {
+    this.otpService = new OtpService(server);
+  }
 
   async updateProfile(user: PublicUser, body: unknown): Promise<ServiceResult> {
     const parsed = updateProfileSchema.safeParse(body);
@@ -215,29 +216,6 @@ export class UsersService {
     }
   }
 
-  async sendPhoneOtp(user: PublicUser): Promise<ServiceResult> {
-    try {
-      const phone = user.profile?.fullPhone;
-      if (!phone)
-        return { success: false, status: 400, message: "No phone number set." };
-
-      const otp = generateOtp();
-      const expiresAt = new Date(Date.now() + this.server.time);
-      const db = await this.server.getDb();
-      await db
-        .collection("users")
-        .updateOne(
-          { _id: user._id },
-          { $set: { phoneOtp: { code: otp, expiresAt } } },
-        );
-      // await this.server.smsSender.sendOtp(phone, `${otp}`);
-      return { success: true, status: 200, data: {} };
-    } catch (error) {
-      console.error("Send phone OTP error:", error);
-      return { success: false, status: 500, message: "Server error." };
-    }
-  }
-
   async verifyPhoneOtp(
     user: PublicUser,
     body: unknown,
@@ -249,26 +227,24 @@ export class UsersService {
         status: 400,
         message: parsed.error.issues[0].message,
       };
+
+    const check = await this.otpService.consume(
+      user._id,
+      "verify-phone",
+      parsed.data.otp,
+    );
+    if (!check.ok)
+      return { success: false, status: check.status, message: check.message };
+
     try {
       const db = await this.server.getDb();
-      const fresh = (await db
+      const updated = await db
         .collection("users")
-        .findOne({ _id: user._id })) as User | null;
-      if (!fresh?.phoneOtp)
-        return { success: false, status: 400, message: "No code requested." };
-      if (new Date() > new Date(fresh.phoneOtp.expiresAt))
-        return { success: false, status: 400, message: "Code expired." };
-      if (!safeEqual(fresh.phoneOtp.code, parsed.data.otp))
-        return { success: false, status: 400, message: "Invalid code." };
-
-      const updated = await db.collection("users").findOneAndUpdate(
-        { _id: user._id },
-        {
-          $unset: { phoneOtp: "" },
-          $set: { "acceptance.phoneVerified": true },
-        },
-        { returnDocument: "after", projection: { passwordHash: 0 } },
-      );
+        .findOneAndUpdate(
+          { _id: user._id },
+          { $set: { "acceptance.phoneVerified": true } },
+          { returnDocument: "after", projection: { passwordHash: 0 } },
+        );
       return { success: true, status: 200, data: { user: updated } };
     } catch (error) {
       console.error("Verify phone OTP error:", error);

@@ -5,6 +5,7 @@ import {
   AuthResponse,
   Data,
   RegisterForm,
+  OtpPurpose,
 } from "@shared/types";
 
 export const BASE_URL =
@@ -26,42 +27,40 @@ export const axiosApi = {
 
   logout: () => api.post("/api/auth/logout"),
 
-  sendResetOtp: (phone: string) =>
-    api.post<{ success: boolean; message: string }>(
-      "/api/auth/otp/send-reset",
-      { phone },
+  sendOtp: (purpose: OtpPurpose, phone?: string) =>
+    api.post<{ success: boolean; message: string }>("/api/otp/send", {
+      purpose,
+      ...(phone ? { phone } : {}),
+    }),
+
+  verifyEmailOtp: (otp: string) =>
+    api.post<{ success: boolean; user: PublicUser }>(
+      "/api/auth/otp/verify-email",
+      { otp },
     ),
 
-  verifyResetOtp: (phone: string, otp: string) =>
+  verifyPasswordResetOtp: (phone: string, otp: string) =>
     api.post<{ success: boolean; resetToken: string }>(
-      "/api/auth/otp/verify-reset",
-      {
-        phone,
-        otp,
-      },
+      "/api/auth/otp/verify-password-reset",
+      { phone, otp },
     ),
 
-  sendOtp: () =>
-    api.post<{ success: boolean; message: string }>("/api/auth/otp/send"),
-
-  verifyOtp: (otp: string) =>
-    api.post<{ success: boolean; resetToken: string; user: PublicUser }>(
-      "/api/auth/otp/verify",
-      {
-        otp,
-      },
+  sendPasswordResetLink: (email: string) =>
+    api.post<{ success: boolean; message: string }>(
+      "/api/auth/password-reset/send-link",
+      { email },
     ),
+
+  verifyPasswordResetToken: (token: string) =>
+    api.post<{ success: boolean }>("/api/auth/password-reset/verify-token", {
+      token,
+    }),
 
   resetPassword: (token: string, password: string) =>
     api.post<{ success: boolean; message: string }>(
-      "/api/auth/reset-password",
+      "/api/auth/password-reset/confirm",
       { token, password },
     ),
-
-  sendResetEmail: (email: string) =>
-    api.post<{ success: boolean; message: string }>("/api/auth/reset-email", {
-      email,
-    }),
 
   saveDataPolicy: (payload: Data) =>
     api.put<{ success: boolean; message: string }>("/api/policy", payload),
@@ -81,11 +80,6 @@ export const axiosApi = {
 
   deactivateAccount: () =>
     api.delete<{ success: boolean; message: string }>("/api/profile"),
-
-  sendPhoneOtp: () =>
-    api.post<{ success: boolean; message: string }>(
-      "/api/profile/phone/send-otp",
-    ),
 
   verifyPhoneOtp: (otp: string) =>
     api.post<AuthResponse>("/api/profile/phone/verify-otp", { otp }),

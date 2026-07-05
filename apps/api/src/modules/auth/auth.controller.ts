@@ -17,7 +17,6 @@ export class AuthController {
         message: result.message,
         ...(result.data ? result.data : {}),
       });
-
     const { user, fullUser } = result.data as {
       user: PublicUser;
       fullUser: User;
@@ -58,18 +57,8 @@ export class AuthController {
     return res.json({ success: true, user: req.user });
   };
 
-  sendOtp = async (req: AuthRequest, res: Response) => {
-    const result = await this.service.sendOtp(req.user);
-    if (!result.success)
-      return res
-        .status(result.status)
-        .json({ success: false, message: result.message });
-    return res.json({ success: true, message: "OTP sent." });
-  };
-
-  verifyOtp = async (req: AuthRequest, res: Response) => {
-    const result = await this.service.verifyOtp(req.user, req.body);
-    console.log(result);
+  verifyEmailOtp = async (req: AuthRequest, res: Response) => {
+    const result = await this.service.verifyEmailOtp(req.user, req.body);
     if (!result.success)
       return res
         .status(result.status)
@@ -81,17 +70,8 @@ export class AuthController {
     });
   };
 
-  sendResetOtp = async (req: Request, res: Response) => {
-    const result = await this.service.sendResetOtp(req.body);
-    if (!result.success)
-      return res
-        .status(result.status)
-        .json({ success: false, message: result.message });
-    return res.json({ success: true, message: "Code sent if phone exists." });
-  };
-
-  verifyResetOtp = async (req: Request, res: Response) => {
-    const result = await this.service.verifyResetOtp(req.body);
+  verifyPasswordResetOtp = async (req: Request, res: Response) => {
+    const result = await this.service.verifyPasswordResetOtp(req.body);
     if (!result.success)
       return res
         .status(result.status)
@@ -102,8 +82,8 @@ export class AuthController {
     });
   };
 
-  forgotPassword = async (req: Request, res: Response) => {
-    const result = await this.service.forgotPassword(req.body);
+  sendPasswordResetLink = async (req: Request, res: Response) => {
+    const result = await this.service.sendPasswordResetLink(req.body);
     if (!result.success)
       return res
         .status(result.status)
@@ -123,8 +103,8 @@ export class AuthController {
     return res.json({ success: true, message: "Password reset successfully." });
   };
 
-  verifyResetToken = async (req: Request, res: Response) => {
-    const result = await this.service.verifyResetToken(req.body.token);
+  verifyPasswordResetToken = async (req: Request, res: Response) => {
+    const result = await this.service.verifyPasswordResetToken(req.body.token);
     if (!result.success)
       return res.status(result.status).json({
         success: false,

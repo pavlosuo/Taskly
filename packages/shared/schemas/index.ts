@@ -193,3 +193,9 @@ export const updateEmailRequestSchema = z.object({
 export const verifyPhoneOtpSchema = z.object({
   otp: otpField,
 });
+
+export const sendOtpSchema = z.discriminatedUnion("purpose", [
+  z.object({ purpose: z.literal("verify-email") }),
+  z.object({ purpose: z.literal("verify-phone") }),
+  z.object({ purpose: z.literal("reset-password"), phone: z.string().min(1) }),
+]);

@@ -2,8 +2,8 @@ import { ReactNode } from "react";
 import clsx from "clsx";
 import { fonts } from "@/app/fonts";
 import { RootLayout } from "@/layouts/RootLayout";
-import { getUser } from "@/api/getUser";
-import { getPolicyData } from "@/api/getPolicyData";
+import { getUser } from "api/get-user";
+import { getPolicyData } from "api/policy";
 import "@/app/globals.css";
 import "@/scss/style.scss";
 

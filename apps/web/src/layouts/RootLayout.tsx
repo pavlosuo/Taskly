@@ -1,7 +1,6 @@
 "use client";
 import { FC, PropsWithChildren } from "react";
 import { UserProvider } from "@/providers/User";
-import { PublicUser } from "@shared/types";
 import { DataProvider } from "@/providers/Data";
 import { ClickwrapProvider } from "@/shared/components/Clickwrap";
 import { ThemeProvider } from "@/providers/Theme";
@@ -22,7 +21,7 @@ export const RootLayout: FC<PropsWithChildren<IRootLayout>> = ({
   return (
     <ModalProvider>
       <DataProvider initialData={initialData}>
-        <UserProvider initialUser={user as PublicUser}>
+        <UserProvider initialUser={user}>
           <ThemeProvider>
             <ClickwrapProvider>{children}</ClickwrapProvider>
           </ThemeProvider>

@@ -5,9 +5,8 @@ import { MongoClient, ServerApiVersion, ObjectId, Db } from "mongodb";
 import { Response, Request, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import nodemailer, { Transporter } from "nodemailer";
-import { User, AuthRequest } from "@shared/types";
+import { User, AuthRequest, PublicUser } from "@shared/types";
 import { createApp } from "@/app";
-import { AuthService } from "@/modules/auth/auth.service";
 import dns from "node:dns/promises";
 dns.setServers(["1.1.1.1", "1.0.0.1"]);
 
@@ -82,17 +81,31 @@ export class Server {
     const token = req.cookies?.token;
     if (!token) return null;
     try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET || "");
+      const decoded = jwt.verify(token, process.env.JWT_SECRET || "") as Record<
+        string,
+        string
+      >;
       const db = await this.getDb();
       return (await db
         .collection("users")
         .findOne(
-          { _id: new ObjectId((decoded as any).id) },
-          { projection: { passwordHash: 0, otp: 0, phoneOtp: 0 } },
+          { _id: new ObjectId(decoded.id) },
+          { projection: { passwordHash: 0, otps: 0 } },
         )) as User | null;
     } catch {
       return null;
     }
+  }
+
+  async getUserPublic(id: ObjectId): Promise<PublicUser | null> {
+    const db = await this.getDb();
+    const user = (await db
+      .collection("users")
+      .findOne(
+        { _id: id },
+        { projection: { passwordHash: 0, otps: 0 } },
+      )) as PublicUser | null;
+    return user;
   }
 
   requireAuth() {
@@ -117,12 +130,6 @@ export class Server {
 
   async start() {
     await this.getDb();
-    const authService = new AuthService(this);
-    await authService.registerAdmin({
-      email: process.env.ADMIN_EMAIL || "",
-      password: process.env.ADMIN_PASSWORD || "",
-      username: process.env.ADMIN_USERNAME || "admin",
-    });
     const app = createApp(this);
     app.listen(this.port, () => {
       console.log(`Server running on port ${this.port}`);

@@ -1,7 +1,7 @@
 import { Screens } from "@/screens";
 import { getMetaData } from "@/utils/Metadata";
 import { redirect } from "next/navigation";
-import { isTokenValid } from "@/api/isTokenValid";
+import { isTokenValid } from "api/verify-reset-token.ts";
 
 export const metadata = getMetaData({
   title: "Forgot Password",

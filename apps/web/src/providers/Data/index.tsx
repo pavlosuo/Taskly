@@ -6,7 +6,7 @@ import {
   useCallback,
   ReactNode,
 } from "react";
-import { axiosApi } from "@/api";
+import { axiosApi } from "api/index";
 import { Data } from "@shared/types";
 
 interface DataContextType {

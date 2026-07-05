@@ -1,4 +1,4 @@
-import { BASE_URL } from "@/api";
+import { BASE_URL } from "api/index";
 
 export const getPolicyData = async () => {
   try {
@@ -6,6 +6,7 @@ export const getPolicyData = async () => {
     const json = await res.json();
     if (!json.success) return null;
     return json.data;
-  } catch {}
-  return null;
+  } catch {
+    return null;
+  }
 };

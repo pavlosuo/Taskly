@@ -4,24 +4,27 @@ import {
   adminRegisterSchema,
   registerSchema,
   otpVerifySchema,
-  sendResetOtpSchema,
   verifyResetOtpSchema,
   forgotPasswordEmailSchema,
   resetPasswordSchema,
 } from "@shared/index";
-import { IServer, User, PublicUser } from "@shared/types";
+import { IServer, User, ServiceResult } from "@shared/types";
 import jwt from "jsonwebtoken";
 import { ObjectId } from "mongodb";
-import { generateOtp, hashToken, safeEqual } from "@shared/utils";
-
-console.log("🔥 AUTH SERVICE LOADED FROM:", __filename);
-
-type ServiceResult<T = unknown> =
-  | { success: true; status: number; data: T }
-  | { success: false; status: number; message: string; data?: T };
+import { hashToken } from "@shared/utils";
+import { OtpService } from "@/modules/otp/otp.service";
 
 export class AuthService {
-  constructor(private server: IServer) {}
+  private otpService: OtpService;
+
+  constructor(private server: IServer) {
+    this.otpService = new OtpService(server);
+    this.registerAdmin({
+      email: process.env.ADMIN_EMAIL || "",
+      password: process.env.ADMIN_PASSWORD || "",
+      username: process.env.ADMIN_USERNAME || "admin",
+    });
+  }
 
   async register(body: unknown): Promise<ServiceResult> {
     const parsed = registerSchema.safeParse(body);
@@ -168,31 +171,7 @@ export class AuthService {
     }
   }
 
-  async sendOtp(user: PublicUser): Promise<ServiceResult> {
-    try {
-      const otp = generateOtp();
-      const expiresAt = new Date(Date.now() + this.server.time);
-      const db = await this.server.getDb();
-      await db
-        .collection("users")
-        .updateOne(
-          { _id: user._id },
-          { $set: { otp: { code: otp, expiresAt } } },
-        );
-      await this.server.getTransporter().sendMail({
-        from: process.env.SMTP_USER,
-        to: user.email,
-        subject: "Your OTP Code",
-        text: `Your OTP code is: ${otp}. Valid for 15 minutes.`,
-      });
-      return { success: true, status: 200, data: {} };
-    } catch (error) {
-      console.error("Send OTP error:", error);
-      return { success: false, status: 500, message: "Server error." };
-    }
-  }
-
-  async verifyOtp(user: PublicUser, body: unknown): Promise<ServiceResult> {
+  async verifyEmailOtp(user: User, body: unknown): Promise<ServiceResult> {
     const parsed = otpVerifySchema.safeParse(body);
     if (!parsed.success)
       return {
@@ -201,65 +180,31 @@ export class AuthService {
         message: parsed.error.issues[0].message,
       };
 
+    const check = await this.otpService.consume(
+      user._id,
+      "verify-email",
+      parsed.data.otp,
+    );
+    if (!check.ok)
+      return { success: false, status: check.status, message: check.message };
+
     try {
       const db = await this.server.getDb();
-      const fresh = (await db
-        .collection("users")
-        .findOne({ _id: user._id })) as User | null;
-      if (!fresh?.otp)
-        return { success: false, status: 400, message: "No OTP requested." };
-      if (new Date() > new Date(fresh.otp.expiresAt))
-        return { success: false, status: 400, message: "OTP expired." };
-      if (!safeEqual(fresh.otp.code, parsed.data.otp))
-        return { success: false, status: 400, message: "Invalid OTP." };
-
       await db
         .collection("users")
         .updateOne(
           { _id: user._id },
-          { $unset: { otp: "" }, $set: { "acceptance.emailVerified": true } },
+          { $set: { "acceptance.emailVerified": true } },
         );
-        
-      return { success: true, status: 200, data: {} };
+      const updated = this.server.getUserPublic(user._id);
+      return { success: true, status: 200, data: { user: updated } };
     } catch (error) {
       console.error("Verify OTP error:", error);
       return { success: false, status: 500, message: "Server error." };
     }
   }
 
-  async sendResetOtp(body: unknown): Promise<ServiceResult> {
-    const parsed = sendResetOtpSchema.safeParse(body);
-    if (!parsed.success)
-      return {
-        success: false,
-        status: 400,
-        message: parsed.error.issues[0].message,
-      };
-
-    try {
-      const { phone } = parsed.data;
-      const db = await this.server.getDb();
-      const user = await db
-        .collection("users")
-        .findOne({ "profile.fullPhone": phone });
-      if (!user) return { success: true, status: 200, data: {} }; // silent
-
-      const otp = generateOtp();
-      const expiresAt = new Date(Date.now() + this.server.time);
-      await db
-        .collection("users")
-        .updateOne(
-          { _id: user._id },
-          { $set: { resetOtp: { code: otp, phone, expiresAt } } },
-        );
-      return { success: true, status: 200, data: {} };
-    } catch (error) {
-      console.error("Send reset OTP error:", error);
-      return { success: false, status: 500, message: "Server error." };
-    }
-  }
-
-  async verifyResetOtp(body: unknown): Promise<ServiceResult> {
+  async verifyPasswordResetOtp(body: unknown): Promise<ServiceResult> {
     const parsed = verifyResetOtpSchema.safeParse(body);
     if (!parsed.success)
       return {
@@ -273,26 +218,29 @@ export class AuthService {
       const db = await this.server.getDb();
       const user = await db
         .collection("users")
-        .findOne({ "resetOtp.phone": phone });
-      if (!user?.resetOtp)
+        .findOne({ "profile.fullPhone": phone });
+      if (!user)
         return { success: false, status: 400, message: "No OTP requested." };
-      if (new Date() > new Date(user.resetOtp.expiresAt))
-        return { success: false, status: 400, message: "OTP expired." };
-      if (!safeEqual(user.resetOtp.code, otp))
-        return { success: false, status: 400, message: "Invalid code." };
+
+      const check = await this.otpService.consume(
+        user._id,
+        "reset-password",
+        otp,
+      );
+      if (!check.ok)
+        return { success: false, status: check.status, message: check.message };
 
       const resetToken = jwt.sign(
         { id: user._id.toString() },
         process.env.JWT_SECRET || "",
         { expiresIn: "15m" },
       );
-      await db.collection("users").updateOne(
-        { _id: user._id },
-        {
-          $unset: { resetOtp: "" },
-          $set: { resetTokenHash: hashToken(resetToken) },
-        },
-      );
+      await db
+        .collection("users")
+        .updateOne(
+          { _id: user._id },
+          { $set: { resetTokenHash: hashToken(resetToken) } },
+        );
       return { success: true, status: 200, data: { resetToken } };
     } catch (error) {
       console.error("Verify reset OTP error:", error);
@@ -300,7 +248,7 @@ export class AuthService {
     }
   }
 
-  async forgotPassword(body: unknown): Promise<ServiceResult> {
+  async sendPasswordResetLink(body: unknown): Promise<ServiceResult> {
     const parsed = forgotPasswordEmailSchema.safeParse(body);
     if (!parsed.success)
       return {
@@ -387,7 +335,7 @@ export class AuthService {
     }
   }
 
-  async verifyResetToken(token: unknown): Promise<ServiceResult> {
+  async verifyPasswordResetToken(token: unknown): Promise<ServiceResult> {
     if (!token || typeof token !== "string")
       return { success: false, status: 400, message: "Token is required." };
 

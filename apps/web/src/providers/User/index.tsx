@@ -11,9 +11,11 @@ import {
   LoginForm,
   AuthResponse,
   RegisterForm,
+  Payout,
 } from "@shared/types";
-import { axiosApi } from "@/api";
+import { axiosApi } from "api/index";
 import { AutoLogoutPopup } from "@/shared/components/AutoLogoutPopup";
+import { redirect } from "next/navigation";
 
 interface UserContextType {
   user: PublicUser | null;
@@ -22,26 +24,32 @@ interface UserContextType {
   login: (payload: LoginForm) => Promise<AuthResponse>;
   register: (payload: RegisterForm) => Promise<AuthResponse>;
   logout: () => Promise<void>;
-  sendResetOtp: (phone: string) => Promise<void>;
-  verifyResetOtp: (phone: string, otp: string) => Promise<string>;
+
+  sendEmailOtp: () => Promise<void>;
+  verifyEmailOtp: (otp: string) => Promise<void>;
+
+  sendPhoneOtp: () => Promise<void>;
+  verifyPhoneOtp: (otp: string) => Promise<void>;
+
+  sendPasswordResetOtp: (phone: string) => Promise<void>;
+  verifyPasswordResetOtp: (phone: string, otp: string) => Promise<string>;
+
+  sendPasswordResetLink: (email: string) => Promise<void>;
   resetPassword: (token: string, password: string) => Promise<void>;
-  sendResetEmail: (email: string) => Promise<void>;
+
   updateProfile: (
     payload: Partial<{
       fullName: string;
       username: string;
       phone: string;
       email: string;
-      payout: { iban: string; bankName: string };
+      payout: Payout;
     }>,
   ) => Promise<void>;
+
   requestEmailChange: (newEmail: string) => Promise<void>;
   confirmEmailChange: (token: string) => Promise<void>;
   deactivateAccount: () => Promise<void>;
-  sendPhoneOtp: () => Promise<void>;
-  verifyPhoneOtp: (otp: string) => Promise<void>;
-  sendOtp: () => Promise<void>;
-  verifyOtp: (otp: string) => Promise<void>;
 }
 
 interface UserProviderProps {
@@ -87,6 +95,7 @@ export const UserProvider = ({
       setIsLoading(true);
       await axiosApi.logout();
       setUser(null);
+      redirect("/login");
     } catch (error) {
       throw error;
     } finally {
@@ -94,10 +103,10 @@ export const UserProvider = ({
     }
   }, []);
 
-  const sendResetOtp = useCallback(async (phone: string) => {
+  const sendEmailOtp = useCallback(async () => {
     try {
       setIsLoading(true);
-      await axiosApi.sendResetOtp(phone);
+      await axiosApi.sendOtp("verify-email");
     } catch (error) {
       throw error;
     } finally {
@@ -105,12 +114,72 @@ export const UserProvider = ({
     }
   }, []);
 
-  const verifyResetOtp = useCallback(async (phone: string, otp: string) => {
+  const verifyEmailOtp = useCallback(async (otp: string) => {
     try {
       setIsLoading(true);
-      const { data } = await axiosApi.verifyResetOtp(phone, otp);
-      if (!data.resetToken) throw new Error("No reset token received");
-      return data.resetToken;
+      const { data } = await axiosApi.verifyEmailOtp(otp);
+      if (data.user) setUser(data.user);
+    } catch (error) {
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const sendPhoneOtp = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      await axiosApi.sendOtp("verify-phone");
+    } catch (error) {
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const verifyPhoneOtp = useCallback(async (otp: string) => {
+    try {
+      setIsLoading(true);
+      const { data } = await axiosApi.verifyPhoneOtp(otp);
+      if (data.user) setUser(data.user);
+    } catch (error) {
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const sendPasswordResetOtp = useCallback(async (phone: string) => {
+    try {
+      setIsLoading(true);
+      await axiosApi.sendOtp("reset-password", phone);
+    } catch (error) {
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const verifyPasswordResetOtp = useCallback(
+    async (phone: string, otp: string) => {
+      try {
+        setIsLoading(true);
+        const { data } = await axiosApi.verifyPasswordResetOtp(phone, otp);
+        if (!data.resetToken) throw new Error("No reset token received");
+        return data.resetToken;
+      } catch (error) {
+        throw error;
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [],
+  );
+
+  const sendPasswordResetLink = useCallback(async (email: string) => {
+    try {
+      setIsLoading(true);
+      await axiosApi.sendPasswordResetLink(email);
     } catch (error) {
       throw error;
     } finally {
@@ -129,20 +198,15 @@ export const UserProvider = ({
     }
   }, []);
 
-  const sendResetEmail = useCallback(async (email: string) => {
-    try {
-      setIsLoading(true);
-      await axiosApi.sendResetEmail(email);
-    } catch (error) {
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
   const updateProfile = useCallback(
     async (
-      payload: Partial<{ fullName: string; username: string; phone: string }>,
+      payload: Partial<{
+        fullName: string;
+        username: string;
+        phone: string;
+        email: string;
+        payout: { iban: string; bankName: string };
+      }>,
     ) => {
       try {
         setIsLoading(true);
@@ -191,51 +255,6 @@ export const UserProvider = ({
     }
   }, []);
 
-  const sendPhoneOtp = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      await axiosApi.sendPhoneOtp();
-    } catch (error) {
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  const verifyPhoneOtp = useCallback(async (otp: string) => {
-    try {
-      setIsLoading(true);
-      const { data } = await axiosApi.verifyPhoneOtp(otp);
-      if (data.user) setUser(data.user);
-    } catch (error) {
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  const sendOtp = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      await axiosApi.sendOtp();
-    } catch (error) {
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  const verifyOtp = useCallback(async (otp: string) => {
-    try {
-      setIsLoading(true);
-      await axiosApi.verifyOtp(otp);
-    } catch (error) {
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
   return (
     <UserContext.Provider
       value={{
@@ -245,18 +264,18 @@ export const UserProvider = ({
         login,
         register,
         logout,
-        sendResetOtp,
-        verifyResetOtp,
+        sendEmailOtp,
+        verifyEmailOtp,
+        sendPhoneOtp,
+        verifyPhoneOtp,
+        sendPasswordResetOtp,
+        verifyPasswordResetOtp,
+        sendPasswordResetLink,
         resetPassword,
-        sendResetEmail,
         updateProfile,
         requestEmailChange,
         confirmEmailChange,
         deactivateAccount,
-        sendPhoneOtp,
-        verifyPhoneOtp,
-        sendOtp,
-        verifyOtp,
       }}
     >
       {user && <AutoLogoutPopup />}

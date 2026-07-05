@@ -16,10 +16,10 @@ uploads
 # next.js
 /.next/
 /out/
-
+dist
 # production
 /build
-
+logs
 # misc
 .DS_Store
 *.pem

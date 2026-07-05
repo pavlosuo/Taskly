@@ -39,14 +39,7 @@ export interface User {
     personVerified: boolean;
     agreementAccepted: boolean;
   };
-  otp?: {
-    code: string;
-    expiresAt: Date;
-  };
-  phoneOtp?: {
-    code: string;
-    expiresAt: Date;
-  };
+  otps?: Partial<Record<OtpPurpose, OtpRecord>>;
   payout: Payout;
   profile: {
     fullName: string;
@@ -70,6 +63,7 @@ export interface IServer {
   issueToken(res: Response, user: User): string;
   requireAuth(): (req: Request, res: Response, next: any) => void;
   requireAdmin(): (req: Request, res: Response, next: any) => void;
+  getUserPublic(id: ObjectId): Promise<PublicUser | null>;
 }
 
 export type Step =
@@ -136,3 +130,22 @@ export type ZodErrors<T> = {
 export interface AuthRequest extends Request {
   user: User;
 }
+
+export type OtpPurpose =
+  "verify-email" | "verify-phone" | "reset-password" | "verify-phone";
+
+export type OtpChannel = "email" | "phone";
+
+export interface OtpRecord {
+  code: string;
+  channel: OtpChannel;
+  destination: string;
+  expiresAt: Date;
+}
+
+export type ServiceResult<T = any> = {
+  success: boolean;
+  status: number;
+  message?: string;
+  data?: T;
+};

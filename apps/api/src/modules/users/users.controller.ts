@@ -57,15 +57,6 @@ export class UsersController {
     });
   };
 
-  sendPhoneOtp = async (req: AuthRequest, res: Response) => {
-    const result = await this.service.sendPhoneOtp(req.user);
-    if (!result.success)
-      return res
-        .status(result.status)
-        .json({ success: false, message: result.message });
-    return res.json({ success: true, message: "Code sent." });
-  };
-
   verifyPhoneOtp = async (req: AuthRequest, res: Response) => {
     const result = await this.service.verifyPhoneOtp(req.user, req.body);
     if (!result.success)
