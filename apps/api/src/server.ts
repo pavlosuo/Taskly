@@ -120,6 +120,14 @@ export class Server {
     };
   }
 
+  optionalAuth() {
+    return async (req: Request, _: Response, next: NextFunction) => {
+      const user = await this.getUserFromCookie(req);
+      if (user) (req as AuthRequest).user = user;
+      next();
+    };
+  }
+
   requireAdmin() {
     return (_req: Request, res: Response, next: NextFunction) => {
       if (_req?.user?.role !== "admin")

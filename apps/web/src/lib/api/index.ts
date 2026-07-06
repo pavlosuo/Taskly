@@ -27,18 +27,6 @@ export const axiosApi = {
 
   logout: () => api.post("/api/auth/logout"),
 
-  sendOtp: (purpose: OtpPurpose, phone?: string) =>
-    api.post<{ success: boolean; message: string }>("/api/otp/send", {
-      purpose,
-      ...(phone ? { phone } : {}),
-    }),
-
-  verifyEmailOtp: (otp: string) =>
-    api.post<{ success: boolean; user: PublicUser }>(
-      "/api/auth/otp/verify-email",
-      { otp },
-    ),
-
   verifyPasswordResetOtp: (phone: string, otp: string) =>
     api.post<{ success: boolean; resetToken: string }>(
       "/api/auth/otp/verify-password-reset",
@@ -69,18 +57,21 @@ export const axiosApi = {
     payload: Partial<{ fullName: string; username: string; phone: string }>,
   ) => api.put<AuthResponse>("/api/profile", payload),
 
-  requestEmailChange: (newEmail: string) =>
-    api.post<{ success: boolean; message: string }>(
-      "/api/profile/email/request",
-      { newEmail },
-    ),
-
-  confirmEmailChange: (token: string) =>
-    api.post<AuthResponse>("/api/profile/email/confirm", { token }),
-
   deactivateAccount: () =>
     api.delete<{ success: boolean; message: string }>("/api/profile"),
 
   verifyPhoneOtp: (otp: string) =>
     api.post<AuthResponse>("/api/profile/phone/verify-otp", { otp }),
+
+  sendOtp: (purpose: OtpPurpose, data?: { phone?: string }) =>
+    api.post<{ success: boolean; message: string }>("/api/otp/send", {
+      purpose,
+      ...(data ? data : {}),
+    }),
+
+  verifyEmailOtp: (otp: string) =>
+    api.post<{ success: boolean; user: PublicUser }>(
+      "/api/profile/email/verify-otp",
+      { otp },
+    ),
 };

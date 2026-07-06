@@ -38,33 +38,29 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
-import { PublicUser, UpdateProfileForm } from "@shared/types";
+import { OtpChannel } from "@shared/types";
 import { useModal } from "@/providers/Modal";
+import { useUser } from "@/providers/User";
 import { IbanInput, formatIban } from "@/shared/components/IbanInput";
+import { getAxiosError } from "@/utils/getAxiosError";
 
 type PersonalStep = "form" | "verify-email" | "verify-phone";
 
-export type VerifyTarget = "email" | "phone" | null;
-
 export function PersonalInfoCard({
-  user,
-  isLoading,
-  updateProfile,
-  sendOtp,
-  verifyOtp,
-  sendPhoneOtp,
-  verifyPhoneOtp,
   onVerify,
 }: {
-  user: PublicUser;
-  isLoading: boolean;
-  updateProfile: (data: UpdateProfileForm) => Promise<void>;
-  sendOtp: () => Promise<void>;
-  verifyOtp: (code: string) => Promise<void>;
-  sendPhoneOtp: () => Promise<void>;
-  verifyPhoneOtp: (code: string) => Promise<void>;
-  onVerify: (target: VerifyTarget) => void;
+  onVerify: (target: OtpChannel | null) => void;
 }) {
+  const {
+    user,
+    isLoading,
+    updateProfile,
+    sendEmailOtp,
+    verifyEmailOtp,
+    sendPhoneOtp,
+    verifyPhoneOtp,
+  } = useUser();
+
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<PersonalStep>("form");
   const [error, setError] = useState("");
@@ -77,7 +73,7 @@ export function PersonalInfoCard({
       email: user?.email ?? "",
       fullPhone: user?.profile?.fullPhone ?? "",
       phone: user?.profile?.phone ?? "",
-      code: user?.profile?.code ?? "",
+      code: user?.profile?.code,
     }),
     [user],
   );
@@ -116,11 +112,11 @@ export function PersonalInfoCard({
       await updateProfile({
         fullName: form.fullName,
         username: form.username,
-        email: emailChanged ? form.email : undefined,
-        phone: phoneChanged ? form.fullPhone : undefined,
+        newPhone: phoneChanged ? form.fullPhone : undefined,
+        newEmail: emailChanged ? form.email : undefined,
       });
       if (emailChanged) {
-        await sendOtp();
+        await sendEmailOtp();
         setStep("verify-email");
         return;
       }
@@ -130,19 +126,19 @@ export function PersonalInfoCard({
         return;
       }
       setOpen(false);
-    } catch {
-      setError("Something went wrong. Please try again.");
+    } catch (e) {
+      setError(getAxiosError(e));
     }
   };
 
   const handleConfirmEmail = async (code: string) => {
     setOtpError("");
     try {
-      await verifyOtp(code);
+      await verifyEmailOtp(code);
       setOpen(false);
       setStep("form");
-    } catch {
-      setOtpError("Invalid code. Please try again.");
+    } catch (e) {
+      setError(getAxiosError(e));
     }
   };
 
@@ -152,8 +148,8 @@ export function PersonalInfoCard({
       await verifyPhoneOtp(code);
       setOpen(false);
       setStep("form");
-    } catch {
-      setOtpError("Invalid code. Please try again.");
+    } catch (e) {
+      setError(getAxiosError(e));
     }
   };
 
@@ -283,7 +279,7 @@ export function PersonalInfoCard({
           {step === "verify-email" && (
             <OtpInput
               onConfirm={handleConfirmEmail}
-              onResend={sendOtp}
+              onResend={() => sendEmailOtp()}
               isLoading={isLoading}
               error={otpError}
             />
@@ -302,15 +298,9 @@ export function PersonalInfoCard({
   );
 }
 
-export function PayoutCard({
-  user,
-  isLoading,
-  updateProfile,
-}: {
-  user: PublicUser;
-  isLoading: boolean;
-  updateProfile: (data: UpdateProfileForm) => Promise<void>;
-}) {
+export function PayoutCard() {
+  const { user, isLoading, updateProfile } = useUser();
+
   const [open, setOpen] = useState(false);
   const [error, setError] = useState("");
   const [form, setForm] = useState({
@@ -332,8 +322,8 @@ export function PayoutCard({
     try {
       await updateProfile({ payout: form });
       setOpen(false);
-    } catch {
-      setError("Something went wrong. Please try again.");
+    } catch (e) {
+      setError(getAxiosError(e));
     }
   };
 
@@ -447,14 +437,15 @@ export function PayoutCard({
   );
 }
 
-export function SecurityCard({ onDeactivate }: { onDeactivate: () => void }) {
+export function SecurityCard() {
+  const { deactivateAccount } = useUser();
   const { confirm } = useModal();
 
   const handleDeactivateClick = () => {
     confirm(
       "Are you sure you want to deactivate your account? This cannot be undone.",
     ).then((confirmed) => {
-      if (confirmed) onDeactivate();
+      if (confirmed) deactivateAccount();
     });
   };
 
@@ -486,23 +477,27 @@ export function SecurityCard({ onDeactivate }: { onDeactivate: () => void }) {
 
 export function VerifyDialog({
   target,
-  email,
-  phone,
-  isLoading,
-  error,
   onOpenChange,
   onConfirm,
   onResend,
 }: {
-  target: VerifyTarget;
-  email: string;
-  phone: string;
-  isLoading: boolean;
-  error: string;
+  target: OtpChannel | null;
   onOpenChange: (open: boolean) => void;
-  onConfirm: (code: string) => void;
+  onConfirm: (code: string) => Promise<void>;
   onResend: () => void;
 }) {
+  const { user, isLoading } = useUser();
+  const [error, setError] = useState("");
+
+  const handleConfirm = async (code: string) => {
+    setError("");
+    try {
+      await onConfirm(code);
+    } catch (e) {
+      setError(getAxiosError(e));
+    }
+  };
+
   return (
     <Dialog open={!!target} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-100 border-border">
@@ -514,12 +509,12 @@ export function VerifyDialog({
           </DialogTitle>
           <DialogDescription>
             {target === "email"
-              ? `We sent a code to ${email}.`
-              : `We sent a code to ${phone}.`}
+              ? `We sent a code to ${user?.email}.`
+              : `We sent a code to ${user?.profile?.fullPhone}.`}
           </DialogDescription>
         </DialogHeader>
         <OtpInput
-          onConfirm={onConfirm}
+          onConfirm={handleConfirm}
           onResend={onResend}
           isLoading={isLoading}
           error={error}

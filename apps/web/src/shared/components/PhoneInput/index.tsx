@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 import { useState, useRef, useEffect, useMemo, useCallback, memo } from "react";
 import { countryList, type Country } from "@shared/index";
@@ -184,9 +183,22 @@ export const PhoneInput = memo(function PhoneInput({
   error?: string;
   code?: string;
 }) {
-  const [selected, setSelected] = useState<Country>(
-    () => countryList.find((c: Country) => c.code === "FI") ?? countryList[0],
-  );
+  const [selected, setSelected] = useState<Country>(() => {
+    const initial = code
+      ? countryList.find((c: Country) => c.dial === code)
+      : undefined;
+    if (initial && initial.code === "AX") {
+      return (
+        countryList.find((c: Country) => c.code === "FI") ?? countryList[0]
+      );
+    }
+    return (
+      initial ??
+      countryList.find((c: Country) => c.code === "FI") ??
+      countryList[0]
+    );
+  });
+  console.log(selected);
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
 
@@ -288,11 +300,6 @@ export const PhoneInput = memo(function PhoneInput({
     (e: React.ChangeEvent<HTMLInputElement>) => setQuery(e.target.value),
     [],
   );
-
-  useEffect(() => {
-    if (code === selected.dial) return;
-    setCode(selected.dial);
-  }, [setCode, code]);
 
   return (
     <div className="flex gap-2">

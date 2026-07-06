@@ -1,44 +1,4 @@
-import { createHash, randomInt, timingSafeEqual } from "crypto";
-import type { Request } from "express";
-
-export function getClientIp(req: Request): string {
-  return (
-    (req.headers["x-forwarded-for"] as string)?.split(",")[0] ||
-    req.socket.remoteAddress ||
-    "unknown"
-  );
-}
-
-export function getDeviceInfo(req: Request): string {
-  return req.headers["user-agent"] || "unknown";
-}
-
-export const hashToken = (t: string): string =>
-  createHash("sha256").update(t).digest("hex");
-
-export const safeEqual = (a: string, b: string): boolean => {
-  if (a.length !== b.length) return false;
-  return timingSafeEqual(Buffer.from(a), Buffer.from(b));
-};
-
-export const generateOtp = (): string => randomInt(100000, 1000000).toString();
-
-export function validateIban(raw: string) {
-  const cleaned = raw.replace(/\s/g, "").toUpperCase();
-  if (!/^FI\d{16}$/.test(cleaned)) return false;
-  const rearranged = cleaned.slice(4) + cleaned.slice(0, 4);
-  const numeric = rearranged
-    .split("")
-    .map((c) =>
-      isNaN(c as unknown as number) ? String(c.charCodeAt(0) - 55) : c,
-    )
-    .join("");
-  let remainder = 0;
-  for (const chunk of numeric.match(/.{1,9}/g) ?? []) {
-    remainder = Number(String(remainder) + chunk) % 97;
-  }
-  return remainder === 1;
-}
+import { PasswordStrength } from "@shared/types";
 
 const CHECKS = [
   {
@@ -75,11 +35,22 @@ const CHECKS = [
 
 type CheckKey = (typeof CHECKS)[number]["key"];
 
-export type PasswordStrength = {
-  label: string;
-  color: string;
-  tips: string[];
-} | null;
+export function validateIban(raw: string) {
+  const cleaned = raw.replace(/\s/g, "").toUpperCase();
+  if (!/^FI\d{16}$/.test(cleaned)) return false;
+  const rearranged = cleaned.slice(4) + cleaned.slice(0, 4);
+  const numeric = rearranged
+    .split("")
+    .map((c) =>
+      isNaN(c as unknown as number) ? String(c.charCodeAt(0) - 55) : c,
+    )
+    .join("");
+  let remainder = 0;
+  for (const chunk of numeric.match(/.{1,9}/g) ?? []) {
+    remainder = Number(String(remainder) + chunk) % 97;
+  }
+  return remainder === 1;
+}
 
 export function getPasswordStrength(password: string): PasswordStrength {
   if (!password) return null;

@@ -54,7 +54,7 @@ export interface User {
   };
 }
 
-export type PublicUser = Omit<User, "passwordHash" | "otp" | "phoneOtp">;
+export type PublicUser = Omit<User, "passwordHash" | "otps">;
 
 export interface IServer {
   time: number;
@@ -62,6 +62,7 @@ export interface IServer {
   getTransporter(): nodemailer.Transporter;
   issueToken(res: Response, user: User): string;
   requireAuth(): (req: Request, res: Response, next: any) => void;
+  optionalAuth(): (req: Request, res: Response, next: any) => void;
   requireAdmin(): (req: Request, res: Response, next: any) => void;
   getUserPublic(id: ObjectId): Promise<PublicUser | null>;
 }
@@ -149,3 +150,9 @@ export type ServiceResult<T = any> = {
   message?: string;
   data?: T;
 };
+
+export type PasswordStrength = {
+  label: string;
+  color: string;
+  tips: string[];
+} | null;

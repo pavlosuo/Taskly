@@ -3,7 +3,6 @@ import {
   loginSchema,
   adminRegisterSchema,
   registerSchema,
-  otpVerifySchema,
   verifyResetOtpSchema,
   forgotPasswordEmailSchema,
   resetPasswordSchema,
@@ -11,7 +10,7 @@ import {
 import { IServer, User, ServiceResult } from "@shared/types";
 import jwt from "jsonwebtoken";
 import { ObjectId } from "mongodb";
-import { hashToken } from "@shared/utils";
+import { hashToken } from "@/utils";
 import { OtpService } from "@/modules/otp/otp.service";
 
 export class AuthService {
@@ -51,12 +50,13 @@ export class AuthService {
       const existing = await users.findOne({
         $or: [{ email }, { username }, { "profile.fullPhone": fullPhone }],
       });
+      console.log(existing);
       if (existing)
         return {
           success: false,
           status: 400,
           message: "User already exists.",
-          data: { existing },
+          data: {},
         };
       const passwordHash = await bcrypt.hash(password, 10);
       const doc = {
@@ -122,11 +122,11 @@ export class AuthService {
         createdAt: new Date(),
       };
       const result = await users.insertOne(doc);
-      const user = { _id: result.insertedId, ...doc };
+      const user = this.server.getUserPublic(result.insertedId);
       return {
         success: true,
         status: 200,
-        data: { user: { username: user.username, role: user.role } },
+        data: { user },
       };
     } catch (error) {
       console.error("Register admin error:", error);
@@ -167,39 +167,6 @@ export class AuthService {
       };
     } catch (error) {
       console.error("Login error:", error);
-      return { success: false, status: 500, message: "Server error." };
-    }
-  }
-
-  async verifyEmailOtp(user: User, body: unknown): Promise<ServiceResult> {
-    const parsed = otpVerifySchema.safeParse(body);
-    if (!parsed.success)
-      return {
-        success: false,
-        status: 400,
-        message: parsed.error.issues[0].message,
-      };
-
-    const check = await this.otpService.consume(
-      user._id,
-      "verify-email",
-      parsed.data.otp,
-    );
-    if (!check.ok)
-      return { success: false, status: check.status, message: check.message };
-
-    try {
-      const db = await this.server.getDb();
-      await db
-        .collection("users")
-        .updateOne(
-          { _id: user._id },
-          { $set: { "acceptance.emailVerified": true } },
-        );
-      const updated = this.server.getUserPublic(user._id);
-      return { success: true, status: 200, data: { user: updated } };
-    } catch (error) {
-      console.error("Verify OTP error:", error);
       return { success: false, status: 500, message: "Server error." };
     }
   }

@@ -41,14 +41,12 @@ interface UserContextType {
     payload: Partial<{
       fullName: string;
       username: string;
-      phone: string;
-      email: string;
+      newPhone: string;
+      newEmail: string;
       payout: Payout;
     }>,
   ) => Promise<void>;
 
-  requestEmailChange: (newEmail: string) => Promise<void>;
-  confirmEmailChange: (token: string) => Promise<void>;
   deactivateAccount: () => Promise<void>;
 }
 
@@ -149,10 +147,10 @@ export const UserProvider = ({
     }
   }, []);
 
-  const sendPasswordResetOtp = useCallback(async (phone: string) => {
+  const sendPasswordResetOtp = useCallback(async () => {
     try {
       setIsLoading(true);
-      await axiosApi.sendOtp("reset-password", phone);
+      await axiosApi.sendOtp("reset-password");
     } catch (error) {
       throw error;
     } finally {
@@ -203,12 +201,13 @@ export const UserProvider = ({
       payload: Partial<{
         fullName: string;
         username: string;
-        phone: string;
-        email: string;
+        newPhone: string;
+        newEmail: string;
         payout: { iban: string; bankName: string };
       }>,
     ) => {
       try {
+        console.log(payload);
         setIsLoading(true);
         const { data } = await axiosApi.updateProfile(payload);
         if (data.user) setUser(data.user);
@@ -221,33 +220,12 @@ export const UserProvider = ({
     [],
   );
 
-  const requestEmailChange = useCallback(async (newEmail: string) => {
-    try {
-      setIsLoading(true);
-      await axiosApi.requestEmailChange(newEmail);
-    } catch (error) {
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  const confirmEmailChange = useCallback(async (token: string) => {
-    try {
-      setIsLoading(true);
-      await axiosApi.confirmEmailChange(token);
-    } catch (error) {
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
   const deactivateAccount = useCallback(async () => {
     try {
       setIsLoading(true);
       await axiosApi.deactivateAccount();
       setUser(null);
+      redirect("/login");
     } catch (error) {
       throw error;
     } finally {
@@ -273,8 +251,6 @@ export const UserProvider = ({
         sendPasswordResetLink,
         resetPassword,
         updateProfile,
-        requestEmailChange,
-        confirmEmailChange,
         deactivateAccount,
       }}
     >

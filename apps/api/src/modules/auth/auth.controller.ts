@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
-import { IServer, User, PublicUser, AuthRequest } from "@shared/types";
+import { IServer, User, PublicUser } from "@shared/types";
 import { AuthService } from "@/modules/auth/auth.service";
+import { toPublicUser } from "@/utils";
 
 export class AuthController {
   private service: AuthService;
@@ -25,7 +26,7 @@ export class AuthController {
     return res.json({
       success: true,
       message: "User registered successfully.",
-      user,
+      user: toPublicUser(user),
     });
   };
 
@@ -44,7 +45,7 @@ export class AuthController {
     return res.json({
       success: true,
       message: "Login successful.",
-      user,
+      user: toPublicUser(user),
     });
   };
 
@@ -54,20 +55,7 @@ export class AuthController {
   };
 
   me = (req: Request, res: Response) => {
-    return res.json({ success: true, user: req.user });
-  };
-
-  verifyEmailOtp = async (req: AuthRequest, res: Response) => {
-    const result = await this.service.verifyEmailOtp(req.user, req.body);
-    if (!result.success)
-      return res
-        .status(result.status)
-        .json({ success: false, message: result.message });
-    return res.json({
-      success: true,
-      message: "OTP verified.",
-      ...(result.data ?? {}),
-    });
+    return res.json({ success: true, user: toPublicUser(req.user) });
   };
 
   verifyPasswordResetOtp = async (req: Request, res: Response) => {

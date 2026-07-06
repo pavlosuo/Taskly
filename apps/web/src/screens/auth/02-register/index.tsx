@@ -54,7 +54,6 @@ export function Register() {
     fullPhone: "",
   });
   const strength = getPasswordStrength(form.password);
-
   const roles = [
     {
       id: "client" as Role,
@@ -116,40 +115,62 @@ export function Register() {
     [],
   );
 
+  const buildFullPhone = useCallback(
+    (code: string, phone: string) =>
+      `${code ?? ""}${(phone ?? "").replace(/\s/g, "")}`,
+    [],
+  );
+
   const handleLocalPhone = useCallback(
     (phone: string) => {
-      setErrors((p) => ({ ...p, phone: undefined, general: undefined }));
+      setErrors((p) => ({
+        ...p,
+        phone: undefined,
+        fullPhone: undefined,
+        general: undefined,
+      }));
       setForm((p) => ({
         ...p,
         phone,
-        fullPhone: form.code + phone.replace(/\s/g, ""),
+        fullPhone: buildFullPhone(p.code, phone),
       }));
     },
-    [form.code],
+    [buildFullPhone],
+  );
+
+  const handleCodeChange = useCallback(
+    (code: string) => {
+      setErrors((p) => ({ ...p, fullPhone: undefined, general: undefined }));
+      setForm((p) => ({
+        ...p,
+        code,
+        fullPhone: buildFullPhone(code, p.phone),
+      }));
+    },
+    [buildFullPhone],
   );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     const result = registerSchema.safeParse(form);
     if (!result.success) {
-      const fmt = result.error.format() as Record<
-        string,
-        { _errors: string[] }
-      > & { _errors: string[] };
+      const { fieldErrors, formErrors } = result.error.flatten();
       setErrors({
-        fullName: fmt.fullName?._errors[0],
-        email: fmt.email?._errors[0],
-        username: fmt.username?._errors[0],
-        fullPhone: fmt.fullPhone?._errors[0],
-        password: fmt.password?._errors[0],
-        confirm: fmt.confirm?._errors[0],
-        general: fmt._errors[0],
+        fullName: fieldErrors.fullName?.[0],
+        email: fieldErrors.email?.[0],
+        username: fieldErrors.username?.[0],
+        fullPhone: fieldErrors.fullPhone?.[0],
+        password: fieldErrors.password?.[0],
+        confirm: fieldErrors.confirm?.[0],
+        general: formErrors[0],
       });
       return;
     }
+
     try {
       await register({ ...form, role: form.role! });
-      router.push("/dashboard");
+      router.push("/profile");
     } catch (err) {
       setErrors({ general: getAxiosError(err) });
     }
@@ -271,7 +292,7 @@ export function Register() {
                   <PhoneInput
                     error={error}
                     code={form.code}
-                    setCode={(code) => setForm((p) => ({ ...p, code }))}
+                    setCode={handleCodeChange}
                     id="phone"
                     value={form.phone}
                     onChange={handleLocalPhone}

@@ -57,7 +57,7 @@ const PhoneStep = memo(function PhoneStep() {
   const [phone, setLocalPhone] = useState("");
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
-  const { sendResetOtp, isLoading } = useUser();
+  const { sendPasswordResetOtp, isLoading } = useUser();
   const router = useRouter();
 
   const handleSubmit = useCallback(
@@ -72,14 +72,14 @@ const PhoneStep = memo(function PhoneStep() {
       }
       try {
         const fullPhone = code + phone.replace(/\s/g, "");
-        await sendResetOtp(fullPhone);
+        await sendPasswordResetOtp(fullPhone);
         setPhone(fullPhone);
         setStep("otp");
       } catch (err) {
         setError(getAxiosError(err));
       }
     },
-    [phone, code, setStep, setPhone, sendResetOtp],
+    [phone, code, setStep, setPhone, sendPasswordResetOtp],
   );
 
   return (
@@ -127,7 +127,7 @@ const EmailStep = memo(function EmailStep() {
   const { setStep, goToEntry } = useForgotPassword();
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
-  const { sendResetEmail, isLoading } = useUser();
+  const { sendPasswordResetLink, isLoading } = useUser();
   const router = useRouter();
 
   const handleSubmit = useCallback(
@@ -139,13 +139,13 @@ const EmailStep = memo(function EmailStep() {
         return;
       }
       try {
-        await sendResetEmail(email);
+        await sendPasswordResetLink(email);
         setStep("email-sent");
       } catch (err) {
         setError(getAxiosError(err));
       }
     },
-    [email, setStep, sendResetEmail],
+    [email, setStep, sendPasswordResetLink],
   );
 
   return (
@@ -202,7 +202,7 @@ const OtpStep = memo(function OtpStep() {
   const { phone, setStep, setResetToken } = useForgotPassword();
   const [digits, setDigits] = useState("");
   const [error, setError] = useState("");
-  const { sendResetOtp, verifyResetOtp, isLoading } = useUser();
+  const { sendPasswordResetOtp, verifyPasswordResetOtp, isLoading } = useUser();
   const router = useRouter();
 
   const handleSubmit = useCallback(
@@ -214,25 +214,25 @@ const OtpStep = memo(function OtpStep() {
         return;
       }
       try {
-        const resetToken = await verifyResetOtp(phone, digits);
+        const resetToken = await verifyPasswordResetOtp(phone, digits);
         setResetToken(resetToken);
         setStep("new-password");
       } catch (err) {
         setError(getAxiosError(err));
       }
     },
-    [digits, phone, setStep, setResetToken, verifyResetOtp],
+    [digits, phone, setStep, setResetToken, verifyPasswordResetOtp],
   );
 
   const handleResend = useCallback(async () => {
     setDigits("");
     setError("");
     try {
-      await sendResetOtp(phone);
+      await sendPasswordResetOtp(phone);
     } catch (err) {
       setError(getAxiosError(err));
     }
-  }, [phone, sendResetOtp]);
+  }, [phone, sendPasswordResetOtp]);
 
   return (
     <>
@@ -475,12 +475,12 @@ const TokenErrorStep = memo(function TokenErrorStep() {
   );
 });
 
-const STEPS: Partial<Record<Step, () => React.ReactNode>> = {
-  otp: () => <OtpStep />,
-  "new-password": () => <NewPasswordStep />,
-  success: () => <SuccessStep />,
-  "email-sent": () => <EmailSentStep />,
-  "token-error": () => <TokenErrorStep />,
+const STEPS: Partial<Record<Step, React.ReactNode>> = {
+  otp: <OtpStep />,
+  "new-password": <NewPasswordStep />,
+  success: <SuccessStep />,
+  "email-sent": <EmailSentStep />,
+  "token-error": <TokenErrorStep />,
 };
 
 export function ForgotPassword({
@@ -510,11 +510,10 @@ export function ForgotPassword({
   const [method, setMethod] = useState<Method>("phone");
   const [phone, setPhone] = useState("");
   const [resetToken, setResetToken] = useState(initialToken ?? "");
-  const [tokenError] = useState(
-    error
-      ? { title: errorTitles[error], message: errorMessages[error] }
-      : { title: errorTitles["error"], message: errorMessages["error"] },
-  );
+
+  const tokenError = error
+    ? { title: errorTitles[error], message: errorMessages[error] }
+    : { title: errorTitles["error"], message: errorMessages["error"] };
 
   const goToEntry = useCallback((m: Method = "phone") => {
     setMethod(m);
@@ -522,7 +521,6 @@ export function ForgotPassword({
   }, []);
 
   const entryStep = method === "phone" ? <PhoneStep /> : <EmailStep />;
-  const CurrentStep = step !== "entry" ? STEPS[step] : undefined;
 
   return (
     <ForgotPasswordContext.Provider
@@ -539,7 +537,7 @@ export function ForgotPassword({
         goToEntry,
       }}
     >
-      <AuthLayout>{step === "entry" ? entryStep : CurrentStep?.()}</AuthLayout>
+      <AuthLayout>{step === "entry" ? entryStep : STEPS[step]}</AuthLayout>
     </ForgotPasswordContext.Provider>
   );
 }

@@ -1,5 +1,5 @@
 import { ObjectId } from "mongodb";
-import { generateOtp, safeEqual } from "@shared/utils";
+import { generateOtp, safeEqual } from "@/utils";
 import {
   IServer,
   OtpChannel,
@@ -17,7 +17,8 @@ interface SendOtpParams {
 }
 
 type ConsumeResult =
-  { ok: true } | { ok: false; status: number; message: string };
+  | { ok: true; record: SendOtpParams }
+  | { ok: false; status: number; message: string };
 
 export class OtpService {
   constructor(private server: IServer) {}
@@ -27,6 +28,7 @@ export class OtpService {
     body: unknown,
   ): Promise<ServiceResult> {
     const parsed = sendOtpSchema.safeParse(body);
+
     if (!parsed.success)
       return {
         success: false,
@@ -39,6 +41,7 @@ export class OtpService {
     if (data.purpose === "verify-email") {
       if (!user)
         return { success: false, status: 401, message: "Unauthorized." };
+      console.log(user);
       return this.send({
         userId: user._id,
         purpose: "verify-email",
@@ -132,6 +135,6 @@ export class OtpService {
     await db
       .collection("users")
       .updateOne({ _id: userId }, { $unset: { [`otps.${purpose}`]: "" } });
-    return { ok: true };
+    return { ok: true, record };
   }
 }

@@ -6,70 +6,37 @@ import {
   PayoutCard,
   SecurityCard,
   VerifyDialog,
-  type VerifyTarget,
 } from "@/screens/profile/ui";
+import { OtpChannel } from "@shared/types";
 
 export function Main() {
-  const {
-    user,
-    updateProfile,
-    sendOtp,
-    verifyOtp,
-    sendPhoneOtp,
-    verifyPhoneOtp,
-    isLoading,
-    deactivateAccount,
-  } = useUser();
-
-  const [verifyTarget, setVerifyTarget] = useState<VerifyTarget>(null);
-  const [otpError, setOtpError] = useState("");
+  const { user, sendEmailOtp, verifyEmailOtp, sendPhoneOtp, verifyPhoneOtp } =
+    useUser();
+  const [verifyTarget, setVerifyTarget] = useState<OtpChannel | null>(null);
 
   if (!user) return null;
 
-  const openVerify = async (target: VerifyTarget) => {
-    setOtpError("");
+  const openVerify = async (target: OtpChannel | null) => {
     setVerifyTarget(target);
-    if (target === "email") await sendOtp();
+    if (target === "email") await sendEmailOtp();
     if (target === "phone") await sendPhoneOtp();
   };
 
   const handleConfirmVerify = async (code: string) => {
-    setOtpError("");
-    try {
-      if (verifyTarget === "email") await verifyOtp(code);
-      if (verifyTarget === "phone") await verifyPhoneOtp(code);
-      setVerifyTarget(null);
-    } catch {
-      setOtpError("Invalid code. Please try again.");
-    }
+    if (verifyTarget === "email") await verifyEmailOtp(code);
+    if (verifyTarget === "phone") await verifyPhoneOtp(code);
+    setVerifyTarget(null);
   };
 
   return (
     <section className="w-full px-4">
       <div className="flex flex-col gap-4">
-        <PersonalInfoCard
-          user={user}
-          isLoading={isLoading}
-          updateProfile={updateProfile}
-          sendOtp={sendOtp}
-          verifyOtp={verifyOtp}
-          sendPhoneOtp={sendPhoneOtp}
-          verifyPhoneOtp={verifyPhoneOtp}
-          onVerify={openVerify}
-        />
-        <PayoutCard
-          user={user}
-          isLoading={isLoading}
-          updateProfile={updateProfile}
-        />
-        <SecurityCard onDeactivate={deactivateAccount} />
+        <PersonalInfoCard onVerify={openVerify} />
+        <PayoutCard />
+        <SecurityCard />
       </div>
       <VerifyDialog
         target={verifyTarget}
-        email={user.email}
-        phone={user.profile?.fullPhone ?? ""}
-        isLoading={isLoading}
-        error={otpError}
         onOpenChange={(o) => !o && setVerifyTarget(null)}
         onConfirm={handleConfirmVerify}
         onResend={() => openVerify(verifyTarget)}
