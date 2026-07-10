@@ -1,0 +1,40 @@
+import { Request } from "express";
+import { PublicUser, Role, Payout, User } from "./user";
+
+export type LoginForm = {
+  email: string;
+  password: string;
+};
+
+export type RegisterForm = {
+  email: string;
+  password: string;
+  confirm: string;
+  username: string;
+  fullName: string;
+  phone: string;
+  role: Role | "";
+  code: string;
+  fullPhone: string;
+};
+
+export interface AuthResponse {
+  success: boolean;
+  message: string;
+  user: PublicUser;
+}
+
+export interface AuthRequest extends Request {
+  user: User;
+}
+
+export type UpdateProfileForm = Partial<{
+  fullName: string;
+  username: string;
+  phone: string;
+  email: string;
+  payout: Payout;
+  fullPhone: string;
+  code: string;
+  avatar: string;
+}>;

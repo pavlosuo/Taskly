@@ -4,7 +4,7 @@ import {
   IServer,
   OtpChannel,
   OtpPurpose,
-  PublicUser,
+  User,
   ServiceResult,
 } from "@shared/types";
 import { sendOtpSchema } from "@shared/schemas";
@@ -24,7 +24,7 @@ export class OtpService {
   constructor(private server: IServer) {}
 
   async dispatch(
-    user: PublicUser | undefined,
+    user: User | undefined,
     body: unknown,
   ): Promise<ServiceResult> {
     const parsed = sendOtpSchema.safeParse(body);
@@ -41,26 +41,26 @@ export class OtpService {
     if (data.purpose === "verify-email") {
       if (!user)
         return { success: false, status: 401, message: "Unauthorized." };
-      console.log(user);
+      const destination = user.newEmail ?? user.email;
       return this.send({
         userId: user._id,
         purpose: "verify-email",
         channel: "email",
-        destination: user.email,
+        destination,
       });
     }
 
     if (data.purpose === "verify-phone") {
       if (!user)
         return { success: false, status: 401, message: "Unauthorized." };
-      const phone = user.profile?.fullPhone;
-      if (!phone)
+      const destination = user.profile?.newFullPhone ?? user.profile?.fullPhone;
+      if (!destination)
         return { success: false, status: 400, message: "No phone number set." };
       return this.send({
         userId: user._id,
         purpose: "verify-phone",
         channel: "phone",
-        destination: phone,
+        destination,
       });
     }
 
@@ -99,14 +99,13 @@ export class OtpService {
       );
 
       if (channel === "email") {
-        await this.server.getTransporter().sendMail({
-          from: process.env.SMTP_USER,
+        await this.server.mailer?.sendMail({
           to: destination,
           subject: "Your OTP Code",
           text: `Your OTP code is: ${code}. Valid for 15 minutes.`,
         });
       } else {
-        // await this.server.smsSender.sendOtp(destination, code);
+        await this.server.sendSms(destination, code);
       }
 
       return { success: true, status: 200, data: {} };

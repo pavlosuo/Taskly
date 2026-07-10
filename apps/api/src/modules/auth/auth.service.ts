@@ -50,7 +50,7 @@ export class AuthService {
       const existing = await users.findOne({
         $or: [{ email }, { username }, { "profile.fullPhone": fullPhone }],
       });
-      console.log(existing);
+
       if (existing)
         return {
           success: false,
@@ -242,8 +242,7 @@ export class AuthService {
           { $set: { resetTokenHash: hashToken(resetToken) } },
         );
       const resetUrl = `${process.env.CLIENT_URL}/forgot-password?token=${resetToken}`;
-      await this.server.getTransporter().sendMail({
-        from: process.env.SMTP_USER,
+      await this.server.mailer?.sendMail({
         to: email,
         subject: "Password Reset",
         text: `Reset your password: ${resetUrl}\n\nLink expires in 1 hour.`,

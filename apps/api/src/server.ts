@@ -5,17 +5,17 @@ import { MongoClient, ServerApiVersion, ObjectId, Db } from "mongodb";
 import { Response, Request, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import nodemailer, { Transporter } from "nodemailer";
-import { User, AuthRequest, PublicUser } from "@shared/types";
+import { User, AuthRequest, PublicUser, IServer } from "@shared/types";
 import { createApp } from "@/app";
 import dns from "node:dns/promises";
 dns.setServers(["1.1.1.1", "1.0.0.1"]);
 
-export class Server {
+export class Server implements IServer {
   readonly time = 15 * 60 * 1000;
   readonly port: number;
   private _client: MongoClient | null = null;
   private _dbPromise: Promise<Db> | null = null;
-  private _mailer: Transporter | null = null;
+  public mailer: Transporter | null = null;
 
   constructor(port = 5050) {
     this.port = port;
@@ -43,17 +43,40 @@ export class Server {
     return this._dbPromise;
   }
 
-  getTransporter(): Transporter {
-    if (this._mailer) return this._mailer;
-    const t = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: Number(process.env.SMTP_PORT),
-      secure: process.env.SMTP_SECURE === "true",
-      auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
-    });
-    t.verify().catch((err) => console.error("SMTP error:", err));
-    this._mailer = t;
-    return this._mailer;
+  async sendEmail({
+    to,
+    subject,
+    text,
+  }: {
+    to: string;
+    subject: string;
+    text: string;
+  }): Promise<void> {
+    if (!this.mailer) {
+      const t = nodemailer.createTransport({
+        host: process.env.SMTP_HOST,
+        port: Number(process.env.SMTP_PORT),
+        secure: process.env.SMTP_SECURE === "true",
+        auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+      });
+      t.verify().catch((err) => console.error("SMTP error:", err));
+      this.mailer = t;
+    }
+    try {
+      await this.mailer.sendMail({
+        from: process.env.SMTP_USER,
+        to,
+        subject,
+        text,
+      });
+    } catch (err) {
+      console.error("SMTP error:", err);
+    }
+  }
+
+  async sendSms(phone: string, text: string): Promise<void> {
+    console.log(`SMS to ${phone}: ${text}`);
+    return Promise.resolve();
   }
 
   issueToken(res: Response, user: User): string {

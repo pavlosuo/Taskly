@@ -1,8 +1,4 @@
-import {
-  updateProfileSchema,
-  verifyPhoneOtpSchema,
-  otpVerifySchema,
-} from "@shared/schemas";
+import { updateProfileSchema, otpSchema } from "@shared/schemas";
 import { IServer, PublicUser, ServiceResult } from "@shared/types";
 import { OtpService } from "@/modules/otp/otp.service";
 import { toPublicUser } from "@/utils";
@@ -32,7 +28,7 @@ export class UsersService {
         code,
         avatar,
         payout,
-        newEmail,
+        email,
       } = parsed.data;
       const db = await this.server.getDb();
       const users = db.collection("users");
@@ -51,25 +47,27 @@ export class UsersService {
           };
         updates.username = username;
       }
-      console.log(newEmail);
-      if (newEmail !== undefined && newEmail !== user.email) {
+      if (email !== undefined && email !== user.email) {
         const exists = await users.findOne({
-          email: newEmail,
+          $or: [{ email: email }, { newEmail: email }],
+          _id: { $ne: user._id },
         });
-        console.log(exists);
         if (exists)
           return {
             success: false,
             status: 400,
             message: "Email already in use.",
           };
-        updates.newEmail = newEmail;
+        updates.newEmail = email;
       }
       if (fullName !== undefined) updates["profile.fullName"] = fullName;
       if (avatar !== undefined) updates["profile.avatar"] = avatar;
       if (fullPhone !== undefined && fullPhone !== user.profile?.fullPhone) {
         const phoneTaken = await users.findOne({
-          "profile.fullPhone": fullPhone,
+          $or: [
+            { "profile.fullPhone": fullPhone },
+            { "profile.newFullPhone": fullPhone },
+          ],
           _id: { $ne: user._id },
         });
         if (phoneTaken)
@@ -78,10 +76,9 @@ export class UsersService {
             status: 400,
             message: "Phone already in use.",
           };
-        updates["profile.fullPhone"] = fullPhone;
-        updates["profile.phone"] = phone;
-        updates["profile.code"] = code;
-        updates["acceptance.phoneVerified"] = false;
+        updates["profile.newFullPhone"] = fullPhone;
+        updates["profile.newPhone"] = phone;
+        updates["profile.newCode"] = code;
       }
 
       if (payout !== undefined) {
@@ -126,7 +123,7 @@ export class UsersService {
     user: PublicUser,
     body: unknown,
   ): Promise<ServiceResult> {
-    const parsed = verifyPhoneOtpSchema.safeParse(body);
+    const parsed = otpSchema.safeParse(body);
     if (!parsed.success)
       return {
         success: false,
@@ -144,12 +141,27 @@ export class UsersService {
 
     try {
       const db = await this.server.getDb();
-      await db
-        .collection("users")
-        .updateOne(
-          { _id: user._id },
-          { $set: { "acceptance.phoneVerified": true } },
-        );
+      const fullPhone = user.profile?.newFullPhone ?? user.profile?.fullPhone;
+      const phone = user.profile?.newPhone ?? user.profile?.phone;
+      const code = user.profile?.newCode ?? user.profile?.code;
+
+      await db.collection("users").updateOne(
+        { _id: user._id },
+        {
+          $set: {
+            "profile.fullPhone": fullPhone,
+            "profile.phone": phone,
+            "profile.code": code,
+            "acceptance.phoneVerified": true,
+          },
+          $unset: {
+            "profile.newFullPhone": "",
+            "profile.newPhone": "",
+            "profile.newCode": "",
+          },
+        },
+      );
+
       const updated = await this.server.getUserPublic(user._id);
       return {
         success: true,
@@ -166,7 +178,7 @@ export class UsersService {
     user: PublicUser,
     body: unknown,
   ): Promise<ServiceResult> {
-    const parsed = otpVerifySchema.safeParse(body);
+    const parsed = otpSchema.safeParse(body);
     if (!parsed.success)
       return {
         success: false,
@@ -185,15 +197,18 @@ export class UsersService {
     try {
       const db = await this.server.getDb();
       const confirmedEmail = check.record.destination;
-      const updates: Record<string, unknown> = {
-        "acceptance.emailVerified": true,
-      };
-      if (confirmedEmail !== user.email) {
-        updates.email = confirmedEmail;
-      }
-      await db
-        .collection("users")
-        .updateOne({ _id: user._id }, { $set: updates });
+
+      await db.collection("users").updateOne(
+        { _id: user._id },
+        {
+          $set: {
+            email: confirmedEmail,
+            "acceptance.emailVerified": true,
+          },
+          $unset: { newEmail: "" },
+        },
+      );
+
       const updated = await this.server.getUserPublic(user._id);
       return {
         success: true,

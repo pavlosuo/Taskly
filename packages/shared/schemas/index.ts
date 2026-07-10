@@ -101,10 +101,6 @@ export const otpSchema = z.object({
   otp: otpField,
 });
 
-export const otpVerifySchema = z.object({
-  otp: otpField,
-});
-
 export const newPasswordSchema = z
   .object({
     password: passwordField,
@@ -142,21 +138,17 @@ export const adminRegisterSchema = z.object({
   password: passwordField,
 });
 
+export const fullNameSchema = z
+  .string()
+  .min(1, "errors.fullName.required")
+  .min(2, "errors.fullName.tooShort")
+  .max(100, "errors.fullName.tooLong")
+  .refine((val) => /^[a-zA-Z\s'-]+$/.test(val), "errors.fullName.invalidChars")
+  .refine((val) => val.trim().includes(" "), "errors.fullName.missingLastName");
+
 export const registerSchema = z
   .object({
-    fullName: z
-      .string()
-      .min(1, "errors.fullName.required")
-      .min(2, "errors.fullName.tooShort")
-      .max(100, "errors.fullName.tooLong")
-      .refine(
-        (val) => /^[a-zA-Z\s'-]+$/.test(val),
-        "errors.fullName.invalidChars",
-      )
-      .refine(
-        (val) => val.trim().includes(" "),
-        "errors.fullName.missingLastName",
-      ),
+    fullName: fullNameSchema,
     username: usernameField,
     fullPhone: phoneField,
     phone: z.string().min(1, "errors.phone.required"),
@@ -173,11 +165,7 @@ export const registerSchema = z
 
 export const updateProfileSchema = z.object({
   username: usernameField.optional(),
-  fullName: z
-    .string()
-    .min(2, "errors.fullName.tooShort")
-    .max(100, "errors.fullName.tooLong")
-    .optional(),
+  fullName: fullNameSchema,
   fullPhone: phoneField.optional(),
   phone: z.string().min(1, "errors.phone.required").optional(),
   code: z.string().min(1, "errors.code.required").optional(),
@@ -186,16 +174,8 @@ export const updateProfileSchema = z.object({
   payout: payoutField,
 });
 
-export const updateEmailRequestSchema = z.object({
-  newEmail: emailField,
-});
-
-export const verifyPhoneOtpSchema = z.object({
-  otp: otpField,
-});
-
 export const sendOtpSchema = z.discriminatedUnion("purpose", [
   z.object({ purpose: z.literal("verify-email") }),
   z.object({ purpose: z.literal("verify-phone") }),
-  z.object({ purpose: z.literal("reset-password"), phone: z.string().min(1) }),
+  z.object({ purpose: z.literal("reset-password"), phone: phoneField }),
 ]);

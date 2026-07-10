@@ -1,6 +1,6 @@
 import { memo } from "react";
 import { Eye, EyeOff } from "lucide-react";
-import { Method } from "@shared/types";
+import { OtpChannel } from "@shared/types";
 import Image from "next/image";
 import { useTranslation } from "react-i18next";
 
@@ -100,8 +100,8 @@ export const MethodToggle = memo(function MethodToggle({
   method,
   onChange,
 }: {
-  method: Method;
-  onChange: (m: Method) => void;
+  method: OtpChannel;
+  onChange: (m: OtpChannel) => void;
 }) {
   return (
     <div className="flex gap-1 rounded-lg mb-6">

@@ -112,8 +112,10 @@ export function PersonalInfoCard({
       await updateProfile({
         fullName: form.fullName,
         username: form.username,
-        newPhone: phoneChanged ? form.fullPhone : undefined,
-        newEmail: emailChanged ? form.email : undefined,
+        email: emailChanged ? form.email : undefined,
+        fullPhone: phoneChanged ? form.fullPhone : undefined,
+        phone: phoneChanged ? form.phone : undefined,
+        code: phoneChanged ? form.code : undefined,
       });
       if (emailChanged) {
         await sendEmailOtp();

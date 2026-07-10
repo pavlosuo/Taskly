@@ -198,10 +198,8 @@ export const PhoneInput = memo(function PhoneInput({
       countryList[0]
     );
   });
-  console.log(selected);
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
-
   const dropdownRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);

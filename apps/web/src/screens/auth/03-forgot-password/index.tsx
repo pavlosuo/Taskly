@@ -20,7 +20,7 @@ import {
 } from "@shared/index";
 import {
   NewPasswordForm,
-  Method,
+  OtpChannel,
   Step,
   ForgotPasswordContextValue,
   NewPasswordErrors,
@@ -507,7 +507,7 @@ export function ForgotPassword({
   const [step, setStep] = useState<Step>(
     initialToken ? "new-password" : error ? "token-error" : "entry",
   );
-  const [method, setMethod] = useState<Method>("phone");
+  const [method, setMethod] = useState<OtpChannel>("phone");
   const [phone, setPhone] = useState("");
   const [resetToken, setResetToken] = useState(initialToken ?? "");
 
@@ -515,7 +515,7 @@ export function ForgotPassword({
     ? { title: errorTitles[error], message: errorMessages[error] }
     : { title: errorTitles["error"], message: errorMessages["error"] };
 
-  const goToEntry = useCallback((m: Method = "phone") => {
+  const goToEntry = useCallback((m: OtpChannel = "phone") => {
     setMethod(m);
     setStep("entry");
   }, []);

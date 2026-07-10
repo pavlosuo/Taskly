@@ -11,7 +11,7 @@ import {
   LoginForm,
   AuthResponse,
   RegisterForm,
-  Payout,
+  UpdateProfileForm,
 } from "@shared/types";
 import { axiosApi } from "api/index";
 import { AutoLogoutPopup } from "@/shared/components/AutoLogoutPopup";
@@ -24,29 +24,15 @@ interface UserContextType {
   login: (payload: LoginForm) => Promise<AuthResponse>;
   register: (payload: RegisterForm) => Promise<AuthResponse>;
   logout: () => Promise<void>;
-
   sendEmailOtp: () => Promise<void>;
   verifyEmailOtp: (otp: string) => Promise<void>;
-
   sendPhoneOtp: () => Promise<void>;
   verifyPhoneOtp: (otp: string) => Promise<void>;
-
   sendPasswordResetOtp: (phone: string) => Promise<void>;
   verifyPasswordResetOtp: (phone: string, otp: string) => Promise<string>;
-
   sendPasswordResetLink: (email: string) => Promise<void>;
   resetPassword: (token: string, password: string) => Promise<void>;
-
-  updateProfile: (
-    payload: Partial<{
-      fullName: string;
-      username: string;
-      newPhone: string;
-      newEmail: string;
-      payout: Payout;
-    }>,
-  ) => Promise<void>;
-
+  updateProfile: (payload: UpdateProfileForm) => Promise<void>;
   deactivateAccount: () => Promise<void>;
 }
 
@@ -163,7 +149,6 @@ export const UserProvider = ({
       try {
         setIsLoading(true);
         const { data } = await axiosApi.verifyPasswordResetOtp(phone, otp);
-        if (!data.resetToken) throw new Error("No reset token received");
         return data.resetToken;
       } catch (error) {
         throw error;
@@ -196,29 +181,17 @@ export const UserProvider = ({
     }
   }, []);
 
-  const updateProfile = useCallback(
-    async (
-      payload: Partial<{
-        fullName: string;
-        username: string;
-        newPhone: string;
-        newEmail: string;
-        payout: { iban: string; bankName: string };
-      }>,
-    ) => {
-      try {
-        console.log(payload);
-        setIsLoading(true);
-        const { data } = await axiosApi.updateProfile(payload);
-        if (data.user) setUser(data.user);
-      } catch (error) {
-        throw error;
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    [],
-  );
+  const updateProfile = useCallback(async (payload: UpdateProfileForm) => {
+    try {
+      setIsLoading(true);
+      const { data } = await axiosApi.updateProfile(payload);
+      if (data.user) setUser(data.user);
+    } catch (error) {
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
   const deactivateAccount = useCallback(async () => {
     try {
