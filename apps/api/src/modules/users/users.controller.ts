@@ -57,4 +57,17 @@ export class UsersController {
       ...(result.data ?? {}),
     });
   };
+
+  changePassword = async (req: AuthRequest, res: Response) => {
+    const result = await this.service.changePassword(req.user, req.body);
+    if (!result.success)
+      return res
+        .status(result.status)
+        .json({ success: false, message: result.message });
+    return res.json({
+      success: true,
+      message: "Password changed.",
+      ...(result.data ?? {}),
+    });
+  };
 }

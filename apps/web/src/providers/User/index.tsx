@@ -34,6 +34,10 @@ interface UserContextType {
   resetPassword: (token: string, password: string) => Promise<void>;
   updateProfile: (payload: UpdateProfileForm) => Promise<void>;
   deactivateAccount: () => Promise<void>;
+  changePassword: (payload: {
+    oldPassword: string;
+    newPassword: string;
+  }) => Promise<void>;
 }
 
 interface UserProviderProps {
@@ -206,6 +210,20 @@ export const UserProvider = ({
     }
   }, []);
 
+  const changePassword = useCallback(async (payload: {
+    oldPassword: string;
+    newPassword: string;
+  }) => {
+    try {
+      setIsLoading(true);
+      await axiosApi.changePassword(payload);
+    } catch (error) {
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
   return (
     <UserContext.Provider
       value={{
@@ -225,6 +243,7 @@ export const UserProvider = ({
         resetPassword,
         updateProfile,
         deactivateAccount,
+        changePassword
       }}
     >
       {user && <AutoLogoutPopup />}

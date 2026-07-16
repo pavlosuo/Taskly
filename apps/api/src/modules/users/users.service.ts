@@ -1,7 +1,8 @@
-import { updateProfileSchema, otpSchema } from "@shared/schemas";
-import { IServer, PublicUser, ServiceResult } from "@shared/types";
+import { updateProfileSchema, otpSchema, changePasswordSchema } from "@shared/schemas";
+import { IServer, ServiceResult, User } from "@shared/types";
 import { OtpService } from "@/modules/otp/otp.service";
 import { toPublicUser } from "@/utils";
+import bcrypt from "bcrypt";
 
 export class UsersService {
   private otpService: OtpService;
@@ -10,7 +11,7 @@ export class UsersService {
     this.otpService = new OtpService(server);
   }
 
-  async updateProfile(user: PublicUser, body: unknown): Promise<ServiceResult> {
+  async updateProfile(user: User, body: unknown): Promise<ServiceResult> {
     const parsed = updateProfileSchema.safeParse(body);
     if (!parsed.success)
       return {
@@ -108,7 +109,7 @@ export class UsersService {
     }
   }
 
-  async deactivateAccount(user: PublicUser): Promise<ServiceResult> {
+  async deactivateAccount(user: User): Promise<ServiceResult> {
     try {
       const db = await this.server.getDb();
       await db.collection("users").deleteOne({ _id: user._id });
@@ -120,7 +121,7 @@ export class UsersService {
   }
 
   async verifyPhoneOtp(
-    user: PublicUser,
+    user: User,
     body: unknown,
   ): Promise<ServiceResult> {
     const parsed = otpSchema.safeParse(body);
@@ -175,7 +176,7 @@ export class UsersService {
   }
 
   async verifyEmailOtp(
-    user: PublicUser,
+    user: User,
     body: unknown,
   ): Promise<ServiceResult> {
     const parsed = otpSchema.safeParse(body);
@@ -217,6 +218,63 @@ export class UsersService {
       };
     } catch (error) {
       console.error("Verify email OTP error:", error);
+      return { success: false, status: 500, message: "Server error." };
+    }
+  }
+
+  async changePassword(
+    user: User,
+    body: unknown,
+  ): Promise<ServiceResult> {
+    const parsed = changePasswordSchema.safeParse(body);
+    if (!parsed.success)
+      return {
+        success: false,
+        status: 400,
+        message: parsed.error.issues[0].message,
+      };
+
+    const { oldPassword, newPassword } = parsed.data;
+
+    try {
+      const db = await this.server.getDb();
+      const dbUser = await db
+        .collection("users")
+        .findOne<{ passwordHash: string }>({ _id: user._id });
+
+      if (!dbUser)
+        return { success: false, status: 404, message: "User not found." };
+
+      const isValid = await bcrypt.compare(oldPassword, dbUser.passwordHash);
+      if (!isValid)
+        return {
+          success: false,
+          status: 401,
+          message: "Current password is incorrect.",
+        };
+
+      const sameAsOld = await bcrypt.compare(newPassword, dbUser.passwordHash);
+      if (sameAsOld)
+        return {
+          success: false,
+          status: 400,
+          message: "New password must differ from the current password.",
+        };
+
+      const passwordHash = await bcrypt.hash(newPassword, 10);
+
+      await db
+        .collection("users")
+        .updateOne({ _id: user._id }, { $set: { passwordHash } });
+
+      const updated = await this.server.getUserPublic(user._id);
+      return {
+        success: true,
+        status: 200,
+        data: { user: toPublicUser(updated) },
+      };
+    } catch (error) {
+      console.error("Change password error:", error);
       return { success: false, status: 500, message: "Server error." };
     }
   }

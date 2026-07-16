@@ -179,3 +179,10 @@ export const sendOtpSchema = z.discriminatedUnion("purpose", [
   z.object({ purpose: z.literal("verify-phone") }),
   z.object({ purpose: z.literal("reset-password"), phone: phoneField }),
 ]);
+
+export const changePasswordSchema = z
+  .object({
+    oldPassword: z.string().min(1, "Current password is required."),
+    newPassword: z.string().min(8, "New password must be at least 8 characters long."),
+  })
+  .strict();

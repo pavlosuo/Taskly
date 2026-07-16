@@ -440,8 +440,27 @@ export function PayoutCard() {
 }
 
 export function SecurityCard() {
-  const { deactivateAccount } = useUser();
+  const { deactivateAccount, changePassword, isLoading } = useUser();
   const { confirm } = useModal();
+
+  const [open, setOpen] = useState(false);
+  const [form, setForm] = useState({
+    oldPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
+  const [error, setError] = useState("");
+
+  const handlePasswordClick = () => {
+    setForm({ oldPassword: "", newPassword: "", confirmPassword: "" });
+    setError("");
+    setOpen(true);
+  };
+
+  const handleChange =
+    (field: keyof typeof form) =>
+    (e: React.ChangeEvent<HTMLInputElement>) =>
+      setForm((p) => ({ ...p, [field]: e.target.value }));
 
   const handleDeactivateClick = () => {
     confirm(
@@ -449,6 +468,29 @@ export function SecurityCard() {
     ).then((confirmed) => {
       if (confirmed) deactivateAccount();
     });
+  };
+
+  const handleSavePassword = async () => {
+    setError("");
+
+    if (form.newPassword.length < 8) {
+      setError("New password must be at least 8 characters long.");
+      return;
+    }
+    if (form.newPassword !== form.confirmPassword) {
+      setError("New passwords do not match.");
+      return;
+    }
+
+    try {
+      await changePassword({
+        oldPassword: form.oldPassword,
+        newPassword: form.newPassword,
+      });
+      setOpen(false);
+    } catch (e) {
+      setError(getAxiosError(e));
+    }
   };
 
   return (
@@ -459,7 +501,10 @@ export function SecurityCard() {
         desc="Update your password and control account access."
       />
       <div className="flex flex-col gap-2">
-        <button className="w-full grid gap-3 grid-cols-[auto_1fr_auto] items-center py-3 px-4 rounded-lg border border-border text-sm text-foreground hover:bg-foreground/5 transition-colors">
+        <button
+          onClick={handlePasswordClick}
+          className="w-full grid gap-3 grid-cols-[auto_1fr_auto] items-center py-3 px-4 rounded-lg border border-border text-sm text-foreground hover:bg-foreground/5 transition-colors"
+        >
           <FileLock className="w-4 h-4 text-grey" />
           <span className="text-left">Change password</span>
           <ArrowRight className="w-4 h-4 text-grey" />
@@ -473,6 +518,62 @@ export function SecurityCard() {
           <ArrowRight className="w-4 h-4" />
         </button>
       </div>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="sm:max-w-xl border-border">
+          <DialogHeader>
+            <DialogTitle>Change password</DialogTitle>
+            <DialogDescription>
+              Your new password must be at least 8 characters long.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-4 py-2">
+            <FormField label="Current password">
+              <Input
+                type="password"
+                autoComplete="current-password"
+                value={form.oldPassword}
+                onChange={handleChange("oldPassword")}
+                className="h-10 rounded-lg text-sm placeholder:text-grey"
+              />
+            </FormField>
+            <FormField label="New password">
+              <Input
+                type="password"
+                autoComplete="new-password"
+                value={form.newPassword}
+                onChange={handleChange("newPassword")}
+                className="h-10 rounded-lg text-sm placeholder:text-grey"
+              />
+            </FormField>
+            <FormField label="Confirm new password">
+              <Input
+                type="password"
+                autoComplete="new-password"
+                value={form.confirmPassword}
+                onChange={handleChange("confirmPassword")}
+                className="h-10 rounded-lg text-sm placeholder:text-grey"
+              />
+            </FormField>
+          </div>
+          {error && <p className="text-xs text-red">{error}</p>}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSavePassword}
+              disabled={
+                isLoading ||
+                !form.oldPassword ||
+                !form.newPassword ||
+                !form.confirmPassword
+              }
+            >
+              {isLoading ? "Saving..." : "Save changes"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -74,4 +74,9 @@ export const axiosApi = {
       "/api/profile/email/verify-otp",
       { otp },
     ),
+
+  changePassword: (payload: { oldPassword: string; newPassword: string }) =>
+    api.put<{ success: boolean; message: string }>("/api/profile/password", {
+      ...payload,
+    }),
 };
