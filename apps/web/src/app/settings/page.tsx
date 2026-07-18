@@ -1,19 +1,19 @@
 import { Screens } from "@/screens";
 import { getMetaData } from "@/utils/Metadata";
 import { SidebarWrapper } from "@/shared/components/AppSidebar";
-import { authRedirect } from "@/utils/authRedirect";
+import { authGuard } from "@/utils/authGuard";
 
 export const metadata = getMetaData({
-  title: "Profile",
-  description: "Profile page",
+  title: "Settings",
+  description: "Settings page",
 });
 
-export default async function Profile() {
-  await authRedirect("/profile");
+export default async function Settings() {
+  await authGuard(["tasker", "client", "admin"]);
   return (
-    <SidebarWrapper title="Profile">
+    <SidebarWrapper title="Settings">
       <main className="page">
-        <Screens.Profile.Main />
+        <Screens.User.Settings />
       </main>
     </SidebarWrapper>
   );

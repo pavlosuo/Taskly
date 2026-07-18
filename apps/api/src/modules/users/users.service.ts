@@ -1,4 +1,8 @@
-import { updateProfileSchema, otpSchema, changePasswordSchema } from "@shared/schemas";
+import {
+  updateProfileSchema,
+  otpSchema,
+  changePasswordSchema,
+} from "@shared/schemas";
 import { IServer, ServiceResult, User } from "@shared/types";
 import { OtpService } from "@/modules/otp/otp.service";
 import { toPublicUser } from "@/utils";
@@ -120,10 +124,7 @@ export class UsersService {
     }
   }
 
-  async verifyPhoneOtp(
-    user: User,
-    body: unknown,
-  ): Promise<ServiceResult> {
+  async verifyPhoneOtp(user: User, body: unknown): Promise<ServiceResult> {
     const parsed = otpSchema.safeParse(body);
     if (!parsed.success)
       return {
@@ -175,10 +176,7 @@ export class UsersService {
     }
   }
 
-  async verifyEmailOtp(
-    user: User,
-    body: unknown,
-  ): Promise<ServiceResult> {
+  async verifyEmailOtp(user: User, body: unknown): Promise<ServiceResult> {
     const parsed = otpSchema.safeParse(body);
     if (!parsed.success)
       return {
@@ -222,10 +220,7 @@ export class UsersService {
     }
   }
 
-  async changePassword(
-    user: User,
-    body: unknown,
-  ): Promise<ServiceResult> {
+  async changePassword(user: User, body: unknown): Promise<ServiceResult> {
     const parsed = changePasswordSchema.safeParse(body);
     if (!parsed.success)
       return {

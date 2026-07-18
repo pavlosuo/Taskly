@@ -1,15 +1,14 @@
 import { Screens } from "@/screens";
 import { getMetaData } from "@/utils/Metadata";
 import { SidebarWrapper } from "@/shared/components/AppSidebar";
-import { authRedirect } from "@/utils/authRedirect";
-
+import { authGuard } from "@/utils/authGuard";
 export const metadata = getMetaData({
   title: "Admin",
   description: "Administration page",
 });
 
 export default async function Admin() {
-  await authRedirect("/admin");
+  await authGuard(["admin"]);
   return (
     <SidebarWrapper title="Admin">
       <main className="page">

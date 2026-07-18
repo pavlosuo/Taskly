@@ -190,25 +190,25 @@ export function Register() {
               type="button"
               onClick={() => setForm((p) => ({ ...p, role: r.id }))}
               className={clsx(
-                "flex flex-col items-start gap-3 p-5 rounded-xl border-[1.5px] text-left relative",
+                "flex flex-col items-start gap-3 p-5 rounded-xl border-0.5 text-left relative",
                 "transition-all duration-150 hover:-translate-y-0.5 active:scale-[0.98] group",
-                r.id === "client" ? "bg-primary/5" : "bg-accent/5",
+                r.id === "client" ? "bg-success/15" : "bg-primary/15",
                 form.role === r.id
                   ? r.id === "client"
-                    ? "border-primary bg-primary/25"
-                    : "border-accent bg-accent/25"
+                    ? "border-success bg-success/25"
+                    : "border-primary bg-primary/25"
                   : "border-border hover:border-ring",
               )}
             >
               <FlyingParticles
                 className="opacity-0 transition-opacity group-hover:opacity-100 absolute top-0 left-0 w-full h-full"
-                color={r.id === "client" ? "#1447e6" : "#00813a"}
+                color={r.id === "client" ? "#22c55e" : "#432dd7"}
               />
               <div
                 className={clsx(
                   "w-10 h-10 bg-background rounded-md border border-border flex items-center justify-content-center text-2xl",
                   "transition-colors duration-150 flex items-center justify-center",
-                  r.id === "client" ? "text-primary" : "text-accent",
+                  r.id === "client" ? "text-success" : "text-primary",
                 )}
               >
                 <r.Icon className="w-5 h-5" />
@@ -223,7 +223,7 @@ export function Register() {
                     key={tag}
                     className={clsx(
                       "text-[11px] px-2 py-0.5 rounded-full bg-background",
-                      r.id === "client" ? "text-primary" : "text-accent",
+                      r.id === "client" ? "text-success" : "text-primary",
                     )}
                   >
                     {tag}

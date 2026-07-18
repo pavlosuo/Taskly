@@ -210,19 +210,19 @@ export const UserProvider = ({
     }
   }, []);
 
-  const changePassword = useCallback(async (payload: {
-    oldPassword: string;
-    newPassword: string;
-  }) => {
-    try {
-      setIsLoading(true);
-      await axiosApi.changePassword(payload);
-    } catch (error) {
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+  const changePassword = useCallback(
+    async (payload: { oldPassword: string; newPassword: string }) => {
+      try {
+        setIsLoading(true);
+        await axiosApi.changePassword(payload);
+      } catch (error) {
+        throw error;
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [],
+  );
 
   return (
     <UserContext.Provider
@@ -243,7 +243,7 @@ export const UserProvider = ({
         resetPassword,
         updateProfile,
         deactivateAccount,
-        changePassword
+        changePassword,
       }}
     >
       {user && <AutoLogoutPopup />}

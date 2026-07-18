@@ -458,8 +458,7 @@ export function SecurityCard() {
   };
 
   const handleChange =
-    (field: keyof typeof form) =>
-    (e: React.ChangeEvent<HTMLInputElement>) =>
+    (field: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) =>
       setForm((p) => ({ ...p, [field]: e.target.value }));
 
   const handleDeactivateClick = () => {

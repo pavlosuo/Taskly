@@ -18,10 +18,6 @@ export function usersRoutes(server: IServer): Router {
     server.requireAuth(),
     asAuth(ctrl.verifyEmailOtp),
   );
-  router.put(
-    "/password",
-    server.requireAuth(),
-    asAuth(ctrl.changePassword),
-  );
+  router.put("/password", server.requireAuth(), asAuth(ctrl.changePassword));
   return router;
 }

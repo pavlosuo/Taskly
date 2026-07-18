@@ -1,8 +1,8 @@
 import { Screens } from "@/screens";
 import { getMetaData } from "@/utils/Metadata";
 import { redirect } from "next/navigation";
-import { isTokenValid } from "api/verify-reset-token.ts";
-
+import { isTokenValid } from "api/verify-reset-token";
+import { authGuard } from "@/utils/authGuard";
 export const metadata = getMetaData({
   title: "Forgot Password",
   description: "Forgot Password page",
@@ -13,6 +13,7 @@ export default async function ForgotPassword({
 }: {
   searchParams: Promise<{ token?: string; error?: string }>;
 }) {
+  await authGuard(["guest"]);
   const { token, error } = await searchParams;
   if (!token) {
     return (

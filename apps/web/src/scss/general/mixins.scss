@@ -1,4 +1,14 @@
 $font-family: var(--var-open-sans);
+$font-family-titles: var(--var-arvo);
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: $font-family-titles;
+}
 
 @mixin respond($breakpoint) {
   @if $breakpoint == xs {

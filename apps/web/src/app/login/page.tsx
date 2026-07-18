@@ -1,13 +1,13 @@
 import { Screens } from "@/screens";
 import { getMetaData } from "@/utils/Metadata";
-import { authRedirect } from "@/utils/authRedirect";
+import { authGuard } from "@/utils/authGuard";
 export const metadata = getMetaData({
   title: "Login",
   description: "Login page",
 });
 
 export default async function Login() {
-  await authRedirect("/login");
+  await authGuard(["guest"]);
   return (
     <main className="page">
       <Screens.Auth.Login />
