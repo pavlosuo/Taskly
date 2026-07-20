@@ -1,8 +1,15 @@
 import { Db, ObjectId } from "mongodb";
 import { Response, Request, NextFunction } from "express";
-import { User } from "./user";
-import { PublicUser } from "./user";
+import { PublicUser } from "@shared/types/user";
 import { Transporter } from "nodemailer";
+import { OtpPurpose, OtpRecord } from "@shared/types/otp";
+
+export interface User extends Omit<PublicUser, "_id" | "createdAt"> {
+  _id: ObjectId;
+  createdAt: Date;
+  otps?: Partial<Record<OtpPurpose, OtpRecord>>;
+  passwordHash: string;
+}
 
 export interface IServer {
   readonly time: number;
@@ -28,4 +35,8 @@ export interface IServer {
     res: Response,
     next: NextFunction,
   ) => void | Response;
+}
+
+export interface AuthRequest extends Request {
+  user: User;
 }

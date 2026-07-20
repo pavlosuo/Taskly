@@ -1,4 +1,4 @@
-import { OtpChannel } from "./otp";
+import { OtpChannel } from "@shared/types/otp";
 
 export type Step =
   "entry" | "otp" | "new-password" | "success" | "email-sent" | "token-error";

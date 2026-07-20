@@ -1,13 +1,12 @@
 import { ObjectId } from "mongodb";
 import { generateOtp, safeEqual } from "@/utils";
 import {
-  IServer,
   OtpChannel,
   OtpPurpose,
-  User,
   ServiceResult,
 } from "@shared/types";
 import { sendOtpSchema } from "@shared/schemas";
+import { IServer, User } from "@/types";
 
 interface SendOtpParams {
   userId: ObjectId;

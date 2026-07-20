@@ -1,7 +1,8 @@
 import { Request, Response } from "express";
-import { IServer, User, PublicUser } from "@shared/types";
+import { PublicUser } from "@shared/types";
 import { AuthService } from "@/modules/auth/auth.service";
 import { toPublicUser } from "@/utils";
+import { IServer, User } from "@/types";
 
 export class AuthController {
   private service: AuthService;

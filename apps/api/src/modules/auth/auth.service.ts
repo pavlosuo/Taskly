@@ -7,7 +7,8 @@ import {
   forgotPasswordEmailSchema,
   resetPasswordSchema,
 } from "@shared/index";
-import { IServer, User, ServiceResult } from "@shared/types";
+import { IServer, User } from "@/types";
+import { ServiceResult } from "@shared/types";
 import jwt from "jsonwebtoken";
 import { ObjectId } from "mongodb";
 import { hashToken } from "@/utils";
@@ -70,12 +71,16 @@ export class AuthService {
           personVerified: false,
           agreementAccepted: false,
         },
+        payout: {
+          iban: "",
+          bankName: "",
+        },
         profile: {
           fullName,
           phone,
           code,
           fullPhone,
-          avatar: null,
+          avatar: "",
         },
         settings: {
           lang: "en",
@@ -85,20 +90,19 @@ export class AuthService {
           },
         },
         publicProfile: {
-          bio: null,
+          bio: "",
           skills: [],
           certificates: [],
           languages: [],
         },
         passwordHash,
-      };
+      } as Omit<User, "_id">;
       const result = await users.insertOne(doc);
       const fullUser = { _id: result.insertedId, ...doc };
-      const { passwordHash: _, ...userSecure } = fullUser;
       return {
         success: true,
         status: 200,
-        data: { user: userSecure, fullUser },
+        data: { user: fullUser, fullUser },
       };
     } catch (error) {
       console.error("Register error:", error);

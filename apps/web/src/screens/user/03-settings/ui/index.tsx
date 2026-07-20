@@ -123,7 +123,9 @@ export function NotificationsCard() {
                 <p className="text-xs text-grey">{row.desc}</p>
               </div>
               <Switch
-                checked={notifications?.[row.key as keyof typeof notifications] ?? true}
+                checked={
+                  notifications?.[row.key as keyof typeof notifications] ?? true
+                }
                 onCheckedChange={(v) => toggle(row.key, v)}
               />
             </div>

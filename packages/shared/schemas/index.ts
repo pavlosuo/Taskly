@@ -181,7 +181,8 @@ export const updateProfileSchema = z.object({
   publicProfile: z
     .object({
       bio: z.string().optional(),
-    }).optional()
+    })
+    .optional(),
 });
 
 export const sendOtpSchema = z.discriminatedUnion("purpose", [

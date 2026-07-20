@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { IServer } from "@shared/types";
+import { IServer } from "@/types";
 import { OtpController } from "@/modules/otp/otp.controller";
 import { otpLimiter } from "@/utils/limiters";
 

@@ -34,7 +34,6 @@
     "@types/multer": "^2.1.0",
     "@types/node": "^20",
     "@types/nodemailer": "^6.4.17",
-    "nodemon": "^3.1.14",
     "tsconfig-paths": "^4.2.0",
     "tsx": "^4.19.4",
     "typescript": "^5"

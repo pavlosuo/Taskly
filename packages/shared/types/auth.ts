@@ -1,5 +1,10 @@
-import { Request } from "express";
-import { PublicUser, Role, Payout, User, UserSettings, PublicProfile } from "./user";
+import {
+  PublicUser,
+  Role,
+  Payout,
+  UserSettings,
+  PublicProfile,
+} from "@shared/types/user";
 
 export type LoginForm = {
   email: string;
@@ -22,10 +27,6 @@ export interface AuthResponse {
   success: boolean;
   message: string;
   user: PublicUser;
-}
-
-export interface AuthRequest extends Request {
-  user: User;
 }
 
 export type UpdateProfileForm = Partial<{

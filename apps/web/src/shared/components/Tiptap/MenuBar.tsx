@@ -15,11 +15,7 @@ const BUTTONS = [
 ];
 
 const sep = (key: string) => (
-  <Separator
-    key={key}
-    orientation="vertical"
-    className="h-4 bg-gray mx-0.5"
-  />
+  <Separator key={key} orientation="vertical" className="h-4 bg-gray mx-0.5" />
 );
 
 const btn = (
@@ -34,9 +30,7 @@ const btn = (
     disabled={disabled}
     className={clsx(
       "h-7 min-w-7 px-2 rounded-md text-sm font-medium transition-colors",
-      active
-        ? "bg-primary text-white"
-        : "text-foreground hover:bg-muted",
+      active ? "bg-primary text-white" : "text-foreground hover:bg-muted",
     )}
   >
     {label}

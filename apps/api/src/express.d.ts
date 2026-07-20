@@ -1,4 +1,4 @@
-import { PublicUser } from "@shared/types";
+import { User } from "@/types";
 
 declare global {
   namespace Express {

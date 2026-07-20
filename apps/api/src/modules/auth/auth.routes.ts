@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { IServer } from "@shared/types";
+import { IServer } from "@/types";
 import { AuthController } from "@/modules/auth/auth.controller";
 import { asAuth } from "@/utils";
 import { authLimiter, otpLimiter } from "@/utils/limiters";

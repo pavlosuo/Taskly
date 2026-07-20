@@ -3,10 +3,11 @@ import {
   otpSchema,
   changePasswordSchema,
 } from "@shared/schemas";
-import { IServer, ServiceResult, User } from "@shared/types";
+import { ServiceResult } from "@shared/types";
 import { OtpService } from "@/modules/otp/otp.service";
 import { toPublicUser } from "@/utils";
 import bcrypt from "bcrypt";
+import { IServer, User } from "@/types";
 
 export class UsersService {
   private otpService: OtpService;

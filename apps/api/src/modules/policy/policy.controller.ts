@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { IServer } from "@shared/types";
+import { IServer } from "@/types";
 
 export class PolicyController {
   constructor(private server: IServer) {}

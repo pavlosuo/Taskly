@@ -1,5 +1,5 @@
 import { ObjectId } from "mongodb";
-import { OtpPurpose, OtpRecord } from "./otp";
+import { OtpPurpose, OtpRecord } from "@shared/types/otp";
 
 export type Role = "tasker" | "client";
 
@@ -70,20 +70,16 @@ export interface UserSettings {
   };
 }
 
-export interface User {
-  _id: ObjectId;
-  passwordHash: string;
+export interface PublicUser {
+  _id: string;
   username: string;
   email: string;
   newEmail?: string;
   role: "admin" | Role;
-  createdAt: Date;
+  createdAt: string;
   acceptance: UserAcceptance;
-  otps?: Partial<Record<OtpPurpose, OtpRecord>>;
   payout: Payout;
   profile: UserProfile;
   settings: UserSettings;
   publicProfile: PublicProfile;
 }
-
-export type PublicUser = Omit<User, "passwordHash" | "otps">;

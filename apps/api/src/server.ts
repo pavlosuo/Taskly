@@ -5,8 +5,9 @@ import { MongoClient, ServerApiVersion, ObjectId, Db } from "mongodb";
 import { Response, Request, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import nodemailer, { Transporter } from "nodemailer";
-import { User, AuthRequest, PublicUser, IServer } from "@shared/types";
+import { PublicUser } from "@shared/types";
 import { createApp } from "@/app";
+import { IServer, User, AuthRequest } from "@/types";
 import dns from "node:dns/promises";
 dns.setServers(["1.1.1.1", "1.0.0.1"]);
 

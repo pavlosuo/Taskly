@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { IServer } from "@shared/types";
+import { IServer } from "@/types";
 import { PolicyController } from "@/modules/policy/policy.controller";
 
 export function policyRoutes(server: IServer): Router {

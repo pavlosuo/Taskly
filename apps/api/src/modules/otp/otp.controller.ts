@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { IServer, AuthRequest } from "@shared/types";
+import { IServer, AuthRequest } from "@/types";
 import { OtpService } from "@/modules/otp/otp.service";
 
 export class OtpController {

@@ -1,5 +1,5 @@
 import { Response } from "express";
-import { IServer, AuthRequest } from "@shared/types";
+import { IServer, AuthRequest } from "@/types";
 import { UsersService } from "@/modules/users/users.service";
 
 export class UsersController {
