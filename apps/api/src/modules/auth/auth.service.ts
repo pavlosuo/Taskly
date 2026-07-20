@@ -80,6 +80,15 @@ export class AuthService {
         settings: {
           lang: "en",
           theme: "light",
+          notifications: {
+            email: true,
+          },
+        },
+        publicProfile: {
+          bio: null,
+          skills: [],
+          certificates: [],
+          languages: [],
         },
         passwordHash,
       };

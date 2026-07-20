@@ -1,13 +1,14 @@
 import { createContext, useContext, useState, ReactNode } from "react";
-import { useUser } from "@/providers/User";
-import { Lang, Theme } from "@shared/types";
+import { Lang, Theme, PublicUser } from "@shared/types";
+import i18n from "i18next";
 import "@/i18n";
+import { axiosApi } from "@/lib/api";
 
 interface ThemeContextType {
   lang: Lang;
-  setLang: React.Dispatch<React.SetStateAction<Lang>>;
+  changeTheme: (theme: Theme) => void;
   theme: Theme;
-  setTheme: React.Dispatch<React.SetStateAction<Theme>>;
+  changeLang: (lang: Lang) => void;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
@@ -19,13 +20,35 @@ export const useTheme = () => {
 };
 
 export const ThemeProvider: React.FC<{
+  initialUser?: PublicUser | null;
   children: ReactNode;
-}> = ({ children }) => {
-  const { user } = useUser();
-  const [lang, setLang] = useState<Lang>(user?.settings?.lang || "en");
-  const [theme, setTheme] = useState<Theme>(user?.settings?.theme || "light");
+}> = ({ children, initialUser }) => {
+  const [lang, setLang] = useState<Lang>(initialUser?.settings?.lang ?? "en");
+  const [theme, setTheme] = useState<Theme>(
+    initialUser?.settings?.theme ?? "light",
+  );
+
+  const changeTheme = (newTheme: Theme) => {
+    document.documentElement.dataset.theme = newTheme;
+    setTheme(newTheme);
+    axiosApi
+      .updateProfile({ settings: { lang, theme: newTheme } })
+      .catch(console.error);
+  };
+
+  const changeLang = (newLang: Lang) => {
+    i18n.changeLanguage(newLang, (err) => {
+      if (err) return;
+      document.documentElement.lang = newLang;
+      setLang(newLang);
+      axiosApi
+        .updateProfile({ settings: { lang: newLang, theme } })
+        .catch(console.error);
+    });
+  };
+
   return (
-    <ThemeContext.Provider value={{ lang, setLang, theme, setTheme }}>
+    <ThemeContext.Provider value={{ lang, theme, changeTheme, changeLang }}>
       {children}
     </ThemeContext.Provider>
   );

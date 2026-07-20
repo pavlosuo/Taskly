@@ -17,11 +17,9 @@ export default async function LocaleLayout({
   const theme = user?.settings?.theme || "light";
   return (
     <html
-      className={clsx(
-        theme,
-        fonts.map((f) => f.variable),
-      )}
+      className={clsx(fonts.map((f) => f.variable))}
       lang={lang}
+      data-theme={theme}
       suppressHydrationWarning
     >
       <body>

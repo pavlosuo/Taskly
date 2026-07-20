@@ -7,6 +7,29 @@ export type Lang = "en" | "fi" | "sv";
 
 export type Theme = "light" | "dark";
 
+export type publicProfileLang = {
+  value: string;
+  label: string;
+  level: "A1" | "A2" | "B1" | "B2" | "C1" | "C2";
+  certificate?: {
+    src: string;
+    label: string;
+  };
+};
+
+export type publicProfileSkill = {
+  value: string;
+  label: string;
+  description?: string;
+};
+
+export type publicProfileCertificate = {
+  value: string;
+  label: string;
+  src: string;
+  description?: string;
+};
+
 export type Payout = {
   iban: string;
   bankName: string;
@@ -25,6 +48,13 @@ export interface UserProfile {
   newCode?: string;
 }
 
+export interface PublicProfile {
+  bio?: string;
+  skills?: publicProfileSkill[];
+  certificates?: publicProfileCertificate[];
+  languages?: publicProfileLang[];
+}
+
 export interface UserAcceptance {
   phoneVerified: boolean;
   emailVerified: boolean;
@@ -35,6 +65,9 @@ export interface UserAcceptance {
 export interface UserSettings {
   lang: Lang;
   theme: Theme;
+  notifications: {
+    email?: boolean;
+  };
 }
 
 export interface User {
@@ -50,6 +83,7 @@ export interface User {
   payout: Payout;
   profile: UserProfile;
   settings: UserSettings;
+  publicProfile: PublicProfile;
 }
 
 export type PublicUser = Omit<User, "passwordHash" | "otps">;

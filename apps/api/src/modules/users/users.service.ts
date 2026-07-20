@@ -93,6 +93,17 @@ export class UsersService {
         };
       }
 
+      if (parsed.data.settings !== undefined) {
+        const { lang, theme } = parsed.data.settings;
+        if (lang !== undefined) updates["settings.lang"] = lang;
+        if (theme !== undefined) updates["settings.theme"] = theme;
+      }
+
+      if (parsed.data.publicProfile !== undefined) {
+        const { bio } = parsed.data.publicProfile;
+        if (bio !== undefined) updates["publicProfile.bio"] = bio;
+      }
+
       if (Object.keys(updates).length === 0)
         return {
           success: true,

@@ -1,32 +1,26 @@
 "use client";
 import { useMemo } from "react";
 import { TextStyleKit } from "@tiptap/extension-text-style";
-import { EditorContent, useEditor } from "@tiptap/react";
+import { EditorContent, useEditor, EditorEvents } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { MenuBar, MenuBarSkeleton } from "./MenuBar";
 import parse from "html-react-parser";
-import { useData } from "@/providers/Data";
-
 const EXTENSIONS = [TextStyleKit, StarterKit];
 
-export const Tiptap = () => {
-  const { data, setData } = useData();
-  const content = data?.policyContent;
+export const Tiptap = ({
+  value,
+  onUpdate,
+}: {
+  value: string;
+  onUpdate: (props: EditorEvents["update"]) => void;
+}) => {
   const editor = useEditor({
     extensions: EXTENSIONS,
-    content,
+    content: value,
     immediatelyRender: false,
-    onUpdate: ({ editor }) => {
-      setData((prev) => ({
-        ...prev,
-        policyContent: editor.getHTML(),
-      }));
-    },
+    onUpdate,
   });
-  const parsedContent = useMemo(
-    () => (content ? parse(content) : null),
-    [content],
-  );
+  const parsedContent = useMemo(() => (value ? parse(value) : null), [value]);
   return (
     <div className="tiptap-wrapper">
       {editor ? (

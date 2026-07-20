@@ -39,7 +39,7 @@ export function AppSidebar() {
                 <li key={href}>
                   <Link
                     href={href}
-                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors group"
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-foreground hover:bg-primary hover:text-white transition-colors group"
                   >
                     <Icon className="shrink-0 w-4 h-4" />
                     <span>{label}</span>
@@ -66,7 +66,7 @@ export const SidebarWrapper = ({
       <AppSidebar />
       <div className="flex-1 gap-2 flex flex-col p-2">
         <header className="py-5 px-4 rounded-xl bg-background flex items-center gap-3">
-          <SidebarTrigger />
+          <SidebarTrigger className="text-foreground hover:bg-primary hover:text-white" />
           <span className="text-sm font-medium">{title}</span>
         </header>
         <div className="flex-1 overflow-hidden bg-background rounded-xl">

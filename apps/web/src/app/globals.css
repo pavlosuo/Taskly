@@ -52,6 +52,7 @@
   --color-black: #201e1f;
   --font-heading: var(--font-sans);
   --font-sans: var(--font-sans);
+  --color-white: oklch(0.988 0.003 106.5);
 }
 
 @layer base {
@@ -113,7 +114,7 @@
   --chart-5: oklch(0.473 0.137 46.201);
 }
 
-.dark {
+html[data-theme="dark"] {
   --background: oklch(0.153 0.006 107.1);
   --foreground: oklch(0.988 0.003 106.5);
   --grey: rgba(252, 252, 252, 0.75);

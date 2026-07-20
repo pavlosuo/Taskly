@@ -1,5 +1,5 @@
 import { Request } from "express";
-import { PublicUser, Role, Payout, User } from "./user";
+import { PublicUser, Role, Payout, User, UserSettings, PublicProfile } from "./user";
 
 export type LoginForm = {
   email: string;
@@ -37,4 +37,6 @@ export type UpdateProfileForm = Partial<{
   fullPhone: string;
   code: string;
   avatar: string;
+  settings: Partial<UserSettings>;
+  publicProfile: Partial<PublicProfile>;
 }>;

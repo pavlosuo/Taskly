@@ -8,7 +8,7 @@ export const metadata = getMetaData({
 });
 
 export default async function Profile() {
-  await authGuard(["tasker", "client", "admin"]);
+  await authGuard(["tasker", "client"]);
   return (
     <SidebarWrapper title="Profile">
       <main className="page">

@@ -22,7 +22,7 @@ export const RootLayout: FC<PropsWithChildren<IRootLayout>> = ({
     <ModalProvider>
       <DataProvider initialData={initialData}>
         <UserProvider initialUser={user}>
-          <ThemeProvider>
+          <ThemeProvider initialUser={user}>
             <ClickwrapProvider>{children}</ClickwrapProvider>
           </ThemeProvider>
         </UserProvider>

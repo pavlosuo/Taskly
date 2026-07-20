@@ -151,7 +151,7 @@ export function AutoLogoutPopup() {
                 strokeDasharray={circumference}
                 strokeDashoffset={strokeDashoffset}
                 className={clsx(
-                  "transition-colors duration-300",
+                  "transition-colors",
                   isDanger ? "stroke-destructive" : "stroke-primary",
                 )}
                 style={{
@@ -161,7 +161,7 @@ export function AutoLogoutPopup() {
             </svg>
             <span
               className={clsx(
-                "absolute inset-0 flex items-center justify-center text-xl font-bold tabular-nums transition-colors duration-300",
+                "absolute inset-0 flex items-center justify-center text-xl font-bold tabular-nums transition-colors",
                 isDanger ? "text-destructive" : "text-foreground",
               )}
             >
@@ -172,7 +172,7 @@ export function AutoLogoutPopup() {
             <div className="flex items-center gap-1.5">
               <AlertTriangle
                 className={clsx(
-                  "w-4 h-4 transition-colors duration-300 text-muted-foreground",
+                  "w-4 h-4 transition-colors text-muted-foreground",
                 )}
               />
               <DialogTitle className="text-base">
@@ -183,7 +183,7 @@ export function AutoLogoutPopup() {
               You will be logged out in{" "}
               <span
                 className={clsx(
-                  "font-semibold transition-colors duration-300",
+                  "font-semibold transition-colors",
                   isDanger ? "text-destructive" : "text-foreground",
                 )}
               >

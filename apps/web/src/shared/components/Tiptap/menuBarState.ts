@@ -1,4 +1,4 @@
-import type { Editor } from "@tiptap/core";
+import { Editor } from "@tiptap/react";
 import type { EditorStateSnapshot } from "@tiptap/react";
 
 export function menuBarStateSelector(ctx: EditorStateSnapshot<Editor>) {

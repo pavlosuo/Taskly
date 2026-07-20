@@ -1,10 +1,6 @@
 .tiptap-separator {
   flex-shrink: 0;
-  background-color: var(--tt-link-border-color);
-  --tt-link-border-color: var(--tt-gray-light-a-200);
-  .dark & {
-    --tt-link-border-color: var(--tt-gray-dark-a-200);
-  }
+  background-color: var(--muted);
   &[data-orientation="horizontal"] {
     height: 1px;
     width: 100%;
@@ -18,8 +14,7 @@
 
 .tiptap {
   padding: 1.5rem !important;
-  border: 1px solid rgb(229, 229, 229) !important;
-  border-radius: calc(0.625rem - 2px) !important;
+  border: 1px solid var(--border) !important;
   h1,
   h2,
   h3,
@@ -32,7 +27,6 @@
     line-height: 1.2;
     text-wrap: pretty;
   }
-
   h1 {
     font-size: 1.4rem !important;
     font-weight: 700 !important;

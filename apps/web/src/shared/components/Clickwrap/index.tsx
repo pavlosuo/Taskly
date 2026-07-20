@@ -61,7 +61,15 @@ export const ClickwrapAdmin = () => {
       </div>
       <div className="flex flex-col gap-2">
         <span className="text-md">Agreement Content</span>
-        <Tiptap />
+        <Tiptap
+          value={data?.policyContent || ""}
+          onUpdate={({ editor }) => {
+            setData((prev) => ({
+              ...prev,
+              policyContent: editor.getHTML(),
+            }));
+          }}
+        />
       </div>
     </div>
   );

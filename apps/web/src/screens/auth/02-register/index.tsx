@@ -191,7 +191,7 @@ export function Register() {
               onClick={() => setForm((p) => ({ ...p, role: r.id }))}
               className={clsx(
                 "flex flex-col items-start gap-3 p-5 rounded-xl border-0.5 text-left relative",
-                "transition-all duration-150 hover:-translate-y-0.5 active:scale-[0.98] group",
+                "transition-all hover:-translate-y-0.5 active:scale-[0.98] group",
                 r.id === "client" ? "bg-success/15" : "bg-primary/15",
                 form.role === r.id
                   ? r.id === "client"
@@ -207,7 +207,7 @@ export function Register() {
               <div
                 className={clsx(
                   "w-10 h-10 bg-background rounded-md border border-border flex items-center justify-content-center text-2xl",
-                  "transition-colors duration-150 flex items-center justify-center",
+                  "transition-colors flex items-center justify-center",
                   r.id === "client" ? "text-success" : "text-primary",
                 )}
               >

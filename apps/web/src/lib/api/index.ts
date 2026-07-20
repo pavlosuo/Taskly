@@ -6,6 +6,7 @@ import {
   Data,
   RegisterForm,
   OtpPurpose,
+  UpdateProfileForm,
 } from "@shared/types";
 
 export const BASE_URL =
@@ -53,9 +54,8 @@ export const axiosApi = {
   saveDataPolicy: (payload: Data) =>
     api.put<{ success: boolean; message: string }>("/api/policy", payload),
 
-  updateProfile: (
-    payload: Partial<{ fullName: string; username: string; phone: string }>,
-  ) => api.put<AuthResponse>("/api/profile", payload),
+  updateProfile: (payload: UpdateProfileForm) =>
+    api.put<AuthResponse>("/api/profile", payload),
 
   deactivateAccount: () =>
     api.delete<{ success: boolean; message: string }>("/api/profile"),

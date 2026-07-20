@@ -1,6 +1,5 @@
 "use client";
-import type { Editor } from "@tiptap/core";
-import { useEditorState } from "@tiptap/react";
+import { useEditorState, Editor } from "@tiptap/react";
 import { menuBarStateSelector } from "./menuBarState";
 import { Fragment } from "react";
 import { Separator } from "@/components/tiptap-ui-primitive/separator";
@@ -19,7 +18,7 @@ const sep = (key: string) => (
   <Separator
     key={key}
     orientation="vertical"
-    className="h-4 bg-gray-200 mx-0.5"
+    className="h-4 bg-gray mx-0.5"
   />
 );
 
@@ -36,8 +35,8 @@ const btn = (
     className={clsx(
       "h-7 min-w-7 px-2 rounded-md text-sm font-medium transition-colors",
       active
-        ? "bg-gray-900 text-white"
-        : "text-gray-600 hover:bg-gray-100 hover:text-foreground",
+        ? "bg-primary text-white"
+        : "text-foreground hover:bg-muted",
     )}
   >
     {label}
@@ -51,7 +50,7 @@ export const MenuBar = ({ editor }: { editor: Editor }) => {
   });
   if (!editor) return null;
   return (
-    <div className="flex items-center flex-wrap gap-0.5 px-2 py-1.5 rounded-lg border border-border bg-background shadow-sm">
+    <div className="flex items-center flex-wrap gap-0.5 px-2 py-1.5 border border-border bg-background">
       {btn(
         "B",
         () => editor.chain().focus().toggleBold().run(),
@@ -136,7 +135,7 @@ export const MenuBar = ({ editor }: { editor: Editor }) => {
 };
 
 export const MenuBarSkeleton = () => (
-  <div className="flex items-center flex-wrap gap-0.5 px-2 py-1.5 rounded-lg border border-border bg-background shadow-sm">
+  <div className="flex items-center flex-wrap gap-0.5 px-2 py-1.5 border border-border bg-background">
     {BUTTONS.map((group, gi) => (
       <Fragment key={gi}>
         {group.map((label) => (

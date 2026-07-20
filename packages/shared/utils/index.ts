@@ -87,11 +87,11 @@ export function getPasswordStrength(password: string): PasswordStrength {
 }
 
 export function validatePassword(val: string): true | string {
-  if (!val) return "errors.password.required";
+  if (!val) return "password.required";
 
   for (const check of CHECKS) {
     if (!check.test(val))
-      return `errors.${check.tip.replace("password.tips.", "password.")}`;
+      return `${check.tip.replace("password.tips.", "password.")}`;
   }
 
   return true;

@@ -165,13 +165,23 @@ export const registerSchema = z
 
 export const updateProfileSchema = z.object({
   username: usernameField.optional(),
-  fullName: fullNameSchema,
+  fullName: fullNameSchema.optional(),
   fullPhone: phoneField.optional(),
   phone: z.string().min(1, "errors.phone.required").optional(),
   code: z.string().min(1, "errors.code.required").optional(),
   email: emailField.optional(),
   avatar: z.string().optional(),
-  payout: payoutField,
+  payout: payoutField.optional(),
+  settings: z
+    .object({
+      lang: z.enum(["en", "fi", "sv"]).optional(),
+      theme: z.enum(["light", "dark"]).optional(),
+    })
+    .optional(),
+  publicProfile: z
+    .object({
+      bio: z.string().optional(),
+    }).optional()
 });
 
 export const sendOtpSchema = z.discriminatedUnion("purpose", [

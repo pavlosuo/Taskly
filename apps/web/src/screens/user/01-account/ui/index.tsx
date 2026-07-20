@@ -43,6 +43,9 @@ import { useModal } from "@/providers/Modal";
 import { useUser } from "@/providers/User";
 import { IbanInput, formatIban } from "@/shared/components/IbanInput";
 import { getAxiosError } from "@/utils/getAxiosError";
+import { validatePassword } from "@shared/utils";
+import { useTranslation } from "react-i18next";
+import i18n from "i18next";
 
 type PersonalStep = "form" | "verify-email" | "verify-phone";
 
@@ -442,7 +445,7 @@ export function PayoutCard() {
 export function SecurityCard() {
   const { deactivateAccount, changePassword, isLoading } = useUser();
   const { confirm } = useModal();
-
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({
     oldPassword: "",
@@ -471,16 +474,11 @@ export function SecurityCard() {
 
   const handleSavePassword = async () => {
     setError("");
-
-    if (form.newPassword.length < 8) {
-      setError("New password must be at least 8 characters long.");
+    const result = validatePassword(form.newPassword);
+    if (result !== true) {
+      setError(result);
       return;
     }
-    if (form.newPassword !== form.confirmPassword) {
-      setError("New passwords do not match.");
-      return;
-    }
-
     try {
       await changePassword({
         oldPassword: form.oldPassword,
@@ -554,7 +552,9 @@ export function SecurityCard() {
               />
             </FormField>
           </div>
-          {error && <p className="text-xs text-red">{error}</p>}
+          {error && (
+            <p className="text-xs text-red">{t(error, { ns: "errors" })}</p>
+          )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setOpen(false)}>
               Cancel

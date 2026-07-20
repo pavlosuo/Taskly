@@ -1,6 +1,7 @@
 import { countries } from "country-codes-flags-phone-codes";
 import * as flags from "country-flag-icons/react/3x2";
 import { BankItem } from "@shared/types";
+import { Lang } from "@shared/types";
 
 export const countryList = countries.map((c) => ({
   name: c.name,
@@ -34,3 +35,9 @@ export const finnishBanks = [
     src: "/banks/fi-alandsbanken.svg",
   },
 ] as BankItem[];
+
+export const langs: { value: Lang; label: string }[] = [
+  { value: "en", label: "English" },
+  { value: "fi", label: "Suomi" },
+  { value: "sv", label: "Svenska" },
+];

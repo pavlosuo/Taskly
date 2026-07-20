@@ -2,7 +2,14 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useUser } from "@/providers/User";
-import { ChevronDown, User, Settings, HelpCircle, LogOut } from "lucide-react";
+import {
+  ChevronDown,
+  SquareUserRound,
+  Settings,
+  HelpCircle,
+  LogOut,
+  ShieldUser,
+} from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,6 +28,29 @@ export const UserDropdown = () => {
     .split(" ")
     .map((n) => n[0])
     .join("");
+
+  const menuItems = [
+    {
+      label: "Account",
+      icon: ShieldUser,
+      href: `/account/`,
+    },
+    {
+      label: "Profile",
+      icon: SquareUserRound,
+      href: `/profile/`,
+    },
+    {
+      label: "Settings",
+      icon: Settings,
+      href: "/settings",
+    },
+    {
+      label: "Help",
+      icon: HelpCircle,
+      href: "/help",
+    },
+  ];
 
   return (
     <DropdownMenu>
@@ -54,7 +84,7 @@ export const UserDropdown = () => {
         side="top"
         align="start"
         sideOffset={8}
-        className="w-58 bg-background border border-muted shadow-md"
+        className="w-58"
       >
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col gap-0.5">
@@ -68,41 +98,25 @@ export const UserDropdown = () => {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuItem asChild>
-            <Link
-              href="/profile"
-              className="flex items-center gap-2 cursor-pointer hover:text-foreground hover:bg-muted"
-            >
-              <User className="text-[currentColor]" size={15} />
-              Profile
-            </Link>
-          </DropdownMenuItem>
-          <DropdownMenuItem asChild>
-            <Link
-              href="/settings"
-              className="flex items-center gap-2 cursor-pointer hover:text-foreground hover:bg-muted"
-            >
-              <Settings className="text-[currentColor]" size={15} />
-              Settings
-            </Link>
-          </DropdownMenuItem>
-          <DropdownMenuItem asChild>
-            <Link
-              href="/help"
-              className="flex items-center gap-2 cursor-pointer hover:text-foreground hover:bg-muted"
-            >
-              <HelpCircle className="text-[currentColor]" size={15} />
-              Help
-            </Link>
-          </DropdownMenuItem>
+          {menuItems.map((item) => (
+            <DropdownMenuItem asChild key={item.label}>
+              <Link
+                href={item.href}
+                className="flex items-center gap-2 cursor-pointer"
+              >
+                <item.icon size={15} />
+                <span>{item.label}</span>
+              </Link>
+            </DropdownMenuItem>
+          ))}
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem
           onClick={logout}
-          className="flex items-center gap-2 text-destructive focus:text-destructive cursor-pointer hover:text-foreground hover:bg-muted"
+          className="flex items-center gap-2 cursor-pointer text-red focus:text-red focus:bg-red/10 hover:bg-red hover:text-red"
         >
-          <LogOut className="text-[currentColor]" size={15} />
-          Log out
+          <LogOut size={15} />
+          <span>Log out</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

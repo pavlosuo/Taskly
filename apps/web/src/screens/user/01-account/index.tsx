@@ -6,10 +6,10 @@ import {
   PayoutCard,
   SecurityCard,
   VerifyDialog,
-} from "@/screens/user/01-profile/ui";
+} from "@/screens/user/01-account/ui";
 import { OtpChannel } from "@shared/types";
 
-export function Profile() {
+export function Account() {
   const { user, sendEmailOtp, verifyEmailOtp, sendPhoneOtp, verifyPhoneOtp } =
     useUser();
   const [verifyTarget, setVerifyTarget] = useState<OtpChannel | null>(null);
