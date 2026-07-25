@@ -16,6 +16,13 @@ import { useUser } from "@/providers/User";
 import { getAxiosError } from "@/utils/getAxiosError";
 import clsx from "clsx";
 import Image from "next/image";
+import parse from "html-react-parser";
+import { LanguagesEditor } from "@/shared/components/LanguagesEditor";
+import {
+  PublicProfileSkill,
+  PublicProfileCertificate,
+  PublicProfileLang,
+} from "@shared/types";
 
 const SKILL_SUGGESTIONS = [
   "Cleaning",
@@ -56,25 +63,16 @@ const CERTIFICATES = [
   },
 ];
 
-const LANGUAGES = [
-  { value: "fi", label: "Finnish" },
-  { value: "sv", label: "Swedish" },
-  { value: "en", label: "English" },
-  { value: "ru", label: "Russian" },
-  { value: "et", label: "Estonian" },
-  { value: "ar", label: "Arabic" },
-  { value: "so", label: "Somali" },
-];
-
 export function PublicProfileCard() {
   const { user, updateProfile, isLoading } = useUser();
   const [open, setOpen] = useState(false);
   const [error, setError] = useState("");
   const [form, setForm] = useState({
     bio: user?.publicProfile?.bio ?? "",
-    skills: user?.publicProfile?.skills ?? [],
-    certificates: user?.publicProfile?.certificates ?? [],
-    languages: user?.publicProfile?.languages ?? [],
+    skills: user?.publicProfile?.skills ?? ([] as PublicProfileSkill[]),
+    certificates:
+      user?.publicProfile?.certificates ?? ([] as PublicProfileCertificate[]),
+    languages: user?.publicProfile?.languages ?? ([] as PublicProfileLang[]),
   });
 
   const openDialog = () => {
@@ -103,11 +101,7 @@ export function PublicProfileCard() {
   const handleSave = async () => {
     setError("");
     try {
-      await updateProfile({
-        publicProfile: {
-          bio: form.bio,
-        },
-      });
+      await updateProfile({ publicProfile: form });
       setOpen(false);
     } catch (e) {
       setError(getAxiosError(e));
@@ -138,9 +132,9 @@ export function PublicProfileCard() {
         <div className="flex flex-col gap-5">
           <div>
             <p className="text-xs text-grey mb-1">About me</p>
-            <p className="text-sm text-foreground leading-relaxed">
-              {p?.bio || "—"}
-            </p>
+            <div className="tiptap tiptap-none">
+              {p?.bio ? parse(p?.bio) : "—"}
+            </div>
           </div>
           <div className="h-px bg-border" />
           <div>
@@ -187,17 +181,17 @@ export function PublicProfileCard() {
             <p className="text-xs text-grey mb-2">Languages</p>
             {p?.languages?.length ? (
               <div className="flex flex-wrap gap-1.5">
-                {p.languages.map((l) => {
-                  const lang = LANGUAGES.find((x) => x.value === l);
-                  return (
-                    <span
-                      key={l}
-                      className="text-xs px-2.5 py-1 rounded-full bg-muted text-foreground font-medium"
-                    >
-                      {lang?.label ?? l}
+                {p.languages.map((l) => (
+                  <span
+                    key={l.value}
+                    className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full bg-muted text-foreground font-medium"
+                  >
+                    {l.label}
+                    <span className="text-[10px] text-grey font-normal">
+                      {l.level}
                     </span>
-                  );
-                })}
+                  </span>
+                ))}
               </div>
             ) : (
               <p className="text-sm text-grey">No languages added yet.</p>
@@ -225,7 +219,7 @@ export function PublicProfileCard() {
                 }}
               />
               <p className="text-xs text-grey text-right mt-1">
-                {form.bio.length}/400
+                {form.bio.length}/1000
               </p>
             </FormField>
             <div className="h-px bg-border" />
@@ -288,23 +282,12 @@ export function PublicProfileCard() {
               <p className="text-sm font-medium text-foreground mb-2">
                 Languages
               </p>
-              <div className="flex flex-wrap gap-1.5">
-                {LANGUAGES.map((l) => (
-                  <button
-                    key={l.value}
-                    type="button"
-                    onClick={() => toggleItem("languages", l.value)}
-                    className={clsx(
-                      "text-xs px-2.5 py-1 rounded-full border transition-colors",
-                      form.languages.includes(l.value)
-                        ? "bg-primary text-white border-primary"
-                        : "bg-background text-foreground border-border hover:border-primary/50",
-                    )}
-                  >
-                    {l.label}
-                  </button>
-                ))}
-              </div>
+              <LanguagesEditor
+                value={form.languages}
+                onChange={(langs) =>
+                  setForm((p) => ({ ...p, languages: langs }))
+                }
+              />
             </div>
           </div>
           {error && <p className="text-xs text-red">{error}</p>}

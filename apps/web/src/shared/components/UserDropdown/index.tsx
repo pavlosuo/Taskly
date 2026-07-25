@@ -2,6 +2,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useUser } from "@/providers/User";
+import { useMemo } from "react";
 import {
   ChevronDown,
   SquareUserRound,
@@ -22,35 +23,42 @@ import {
 
 export const UserDropdown = () => {
   const { user, logout } = useUser();
+
+  const menuItems = useMemo(() => {
+    if (!user) return null;
+    if (user.role === "tasker") {
+      return [
+        {
+          label: "Account",
+          icon: ShieldUser,
+          href: `/account/`,
+        },
+        {
+          label: "Profile",
+          icon: SquareUserRound,
+          href: `/profile/`,
+        },
+        {
+          label: "Settings",
+          icon: Settings,
+          href: "/settings",
+        },
+        {
+          label: "Help",
+          icon: HelpCircle,
+          href: "/help",
+        },
+      ];
+    }
+  }, [user]);
+
   if (!user) return null;
 
   const initials = user.profile?.fullName
     .split(" ")
     .map((n) => n[0])
-    .join("");
-
-  const menuItems = [
-    {
-      label: "Account",
-      icon: ShieldUser,
-      href: `/account/`,
-    },
-    {
-      label: "Profile",
-      icon: SquareUserRound,
-      href: `/profile/`,
-    },
-    {
-      label: "Settings",
-      icon: Settings,
-      href: "/settings",
-    },
-    {
-      label: "Help",
-      icon: HelpCircle,
-      href: "/help",
-    },
-  ];
+    .join("")
+    .toUpperCase();
 
   return (
     <DropdownMenu>
@@ -98,17 +106,18 @@ export const UserDropdown = () => {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          {menuItems.map((item) => (
-            <DropdownMenuItem asChild key={item.label}>
-              <Link
-                href={item.href}
-                className="flex items-center gap-2 cursor-pointer"
-              >
-                <item.icon size={15} />
-                <span>{item.label}</span>
-              </Link>
-            </DropdownMenuItem>
-          ))}
+          {menuItems?.length &&
+            menuItems?.map((item) => (
+              <DropdownMenuItem asChild key={item.label}>
+                <Link
+                  href={item.href}
+                  className="flex items-center gap-2 cursor-pointer"
+                >
+                  <item.icon size={15} />
+                  <span>{item.label}</span>
+                </Link>
+              </DropdownMenuItem>
+            ))}
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem

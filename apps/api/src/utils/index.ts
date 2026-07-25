@@ -1,9 +1,9 @@
 import fs from "fs";
 import path from "path";
 import { createHash, randomInt, timingSafeEqual } from "crypto";
-import { User, PublicUser } from "@shared/types";
+import { PublicUser } from "@shared/types";
 import { RequestHandler, Response, Request } from "express";
-import { AuthRequest } from "@shared/types";
+import { AuthRequest, User } from "@/types";
 
 export function asAuth(
   handler: (req: AuthRequest, res: Response) => unknown,
@@ -16,15 +16,16 @@ export function toPublicUser(
 ): PublicUser | null {
   if (!user) return null;
   return {
-    _id: user._id,
+    _id: user._id as string,
     username: user.username,
     email: user.email,
     role: user.role,
-    createdAt: user.createdAt,
+    createdAt: user.createdAt as string,
     acceptance: user.acceptance,
     payout: user.payout,
     profile: user.profile,
     settings: user.settings,
+    publicProfile: user.publicProfile,
   };
 }
 

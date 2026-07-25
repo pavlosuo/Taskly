@@ -1,13 +1,10 @@
-import { ObjectId } from "mongodb";
-import { OtpPurpose, OtpRecord } from "@shared/types/otp";
-
 export type Role = "tasker" | "client";
 
 export type Lang = "en" | "fi" | "sv";
 
 export type Theme = "light" | "dark";
 
-export type publicProfileLang = {
+export type PublicProfileLang = {
   value: string;
   label: string;
   level: "A1" | "A2" | "B1" | "B2" | "C1" | "C2";
@@ -17,13 +14,13 @@ export type publicProfileLang = {
   };
 };
 
-export type publicProfileSkill = {
+export type PublicProfileSkill = {
   value: string;
   label: string;
   description?: string;
 };
 
-export type publicProfileCertificate = {
+export type PublicProfileCertificate = {
   value: string;
   label: string;
   src: string;
@@ -50,9 +47,9 @@ export interface UserProfile {
 
 export interface PublicProfile {
   bio?: string;
-  skills?: publicProfileSkill[];
-  certificates?: publicProfileCertificate[];
-  languages?: publicProfileLang[];
+  skills?: PublicProfileSkill[];
+  certificates?: PublicProfileCertificate[];
+  languages?: PublicProfileLang[];
 }
 
 export interface UserAcceptance {

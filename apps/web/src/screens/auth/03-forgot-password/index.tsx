@@ -22,7 +22,6 @@ import {
   NewPasswordForm,
   OtpChannel,
   Step,
-  ForgotPasswordContextValue,
   NewPasswordErrors,
 } from "@shared/types";
 import {
@@ -37,6 +36,19 @@ import { getAxiosError } from "@/utils/getAxiosError";
 import { PhoneInput } from "@/shared/components/PhoneInput";
 import clsx from "clsx";
 import { useTranslation } from "react-i18next";
+
+export interface ForgotPasswordContextValue {
+  step: Step;
+  method: OtpChannel;
+  phone: string;
+  resetToken: string;
+  tokenError: { title: string; message: string };
+  setStep: (step: Step) => void;
+  setMethod: (method: OtpChannel) => void;
+  setPhone: (phone: string) => void;
+  setResetToken: (token: string) => void;
+  goToEntry: (m?: OtpChannel) => void;
+}
 
 const ForgotPasswordContext = createContext<ForgotPasswordContextValue | null>(
   null,

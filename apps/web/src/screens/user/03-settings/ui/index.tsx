@@ -14,14 +14,7 @@ import { getAxiosError } from "@/utils/getAxiosError";
 import { useState } from "react";
 import { langs } from "@shared/data";
 import { useTheme } from "@/providers/Theme";
-
-const rows = [
-  {
-    key: "email",
-    label: "Email notifications",
-    desc: "Receive updates via email.",
-  },
-];
+import { notificationsList } from "@shared/data";
 
 export function AppearanceCard() {
   const { user } = useUser();
@@ -83,26 +76,25 @@ export function AppearanceCard() {
 export function NotificationsCard() {
   const { user, updateProfile } = useUser();
   const [error, setError] = useState("");
+  const [local, setLocal] = useState(() => user?.settings?.notifications ?? {});
 
   const toggle = async (key: string, value: boolean) => {
+    const updated = { ...local, [key]: value };
+    setLocal(updated);
     try {
       await updateProfile({
         settings: {
           ...user?.settings,
-          notifications: {
-            ...user?.settings?.notifications,
-            [key]: value,
-          },
+          notifications: updated,
         },
       });
     } catch (e) {
+      setLocal(local);
       setError(getAxiosError(e));
     }
   };
 
   if (!user) return null;
-
-  const notifications = user.settings?.notifications;
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-4 lg:gap-6 items-start">
@@ -112,7 +104,7 @@ export function NotificationsCard() {
         desc="Choose what you want to be notified about."
       />
       <div className="rounded-xl border border-border bg-background p-4 flex flex-col gap-4">
-        {rows.map((row, i) => (
+        {notificationsList.map((row, i) => (
           <div key={row.key}>
             {i > 0 && <div className="h-px bg-border mb-4" />}
             <div className="flex items-center justify-between gap-4">
@@ -123,9 +115,7 @@ export function NotificationsCard() {
                 <p className="text-xs text-grey">{row.desc}</p>
               </div>
               <Switch
-                checked={
-                  notifications?.[row.key as keyof typeof notifications] ?? true
-                }
+                checked={local[row.key as keyof typeof local] ?? true}
                 onCheckedChange={(v) => toggle(row.key, v)}
               />
             </div>

@@ -4,7 +4,7 @@ import {
   Payout,
   UserSettings,
   PublicProfile,
-} from "@shared/types/user";
+} from "@shared/types";
 
 export type LoginForm = {
   email: string;

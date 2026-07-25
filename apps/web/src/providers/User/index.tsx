@@ -224,8 +224,6 @@ export const UserProvider = ({
     [],
   );
 
-  console.log(user);
-
   return (
     <UserContext.Provider
       value={{

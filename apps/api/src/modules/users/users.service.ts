@@ -101,8 +101,10 @@ export class UsersService {
       }
 
       if (parsed.data.publicProfile !== undefined) {
-        const { bio } = parsed.data.publicProfile;
+        const { bio, languages } = parsed.data.publicProfile;
         if (bio !== undefined) updates["publicProfile.bio"] = bio;
+        if (languages !== undefined)
+          updates["publicProfile.languages"] = languages;
       }
 
       if (Object.keys(updates).length === 0)
