@@ -190,7 +190,7 @@ const EmailStep = memo(function EmailStep() {
               setError("");
             }}
             className={clsx(
-              "h-10 rounded-lg text-sm placeholder:text-grey",
+              "h-10 text-sm placeholder:text-grey",
               error ? "border-red focus-visible:ring-red-75" : "border-border",
             )}
           />
@@ -307,7 +307,7 @@ const EmailSentStep = memo(function EmailSentStep() {
           {t("emailSent.subtitle")}
         </p>
       </div>
-      <div className="rounded-lg bg-primary/5 px-4 py-3 flex gap-1 flex-col">
+      <div className="bg-primary/5 px-4 py-3 flex gap-1 flex-col">
         <div className="flex items-center gap-1 color">
           <Info className="w-4 h-4 text-foreground mt-0.5 shrink-0" />
           <span className="text-sm text-foreground font-semibold">
@@ -396,7 +396,7 @@ const NewPasswordStep = memo(function NewPasswordStep() {
                 value={form[field]}
                 onChange={handleChange(field)}
                 className={clsx(
-                  "h-10 rounded-lg text-sm placeholder:text-grey pr-10",
+                  "h-10 text-sm placeholder:text-grey pr-10",
                   errors[field]
                     ? "border-red focus-visible:ring-red-75"
                     : "border-border",
@@ -415,7 +415,7 @@ const NewPasswordStep = memo(function NewPasswordStep() {
             <FieldError message={errors[field]} />
           </div>
         ))}
-        <div className="rounded-lg bg-primary/5 px-4 py-3 flex gap-1 flex-col">
+        <div className="bg-primary/5 px-4 py-3 flex gap-1 flex-col">
           <div className="flex items-center gap-1 color">
             <Info className="w-4 h-4 text-foreground mt-0.5 shrink-0" />
             <span className="text-sm text-foreground font-semibold">

@@ -306,7 +306,7 @@ export const PhoneInput = memo(function PhoneInput({
           type="button"
           onClick={handleToggle}
           className={clsx(
-            "w-25 flex items-center gap-1.5 h-10 px-3 bg-transparent dark:bg-input/30 rounded-lg border text-sm text-grey",
+            "w-25 flex items-center gap-1.5 h-10 px-3 bg-transparent dark:bg-input/30 border text-sm text-grey",
             error ? "border-red" : "border-border",
           )}
         >
@@ -346,7 +346,7 @@ export const PhoneInput = memo(function PhoneInput({
               placeholder="Search..."
               value={query}
               onChange={handleQuery}
-              className="w-full h-8 px-3 rounded-lg bg-input/30 border border-border text-sm"
+              className="w-full h-8 px-3 bg-input/30 border border-border text-sm"
             />
           </div>
           {filtered.length === 0 ? (
@@ -372,7 +372,7 @@ export const PhoneInput = memo(function PhoneInput({
         onChange={handlePhone}
         onPaste={handlePaste}
         className={clsx(
-          "h-10 rounded-lg text-sm placeholder:text-grey",
+          "h-10 text-sm placeholder:text-grey",
           error ? "border-red focus-visible:ring-red-75" : "border-border",
         )}
       />

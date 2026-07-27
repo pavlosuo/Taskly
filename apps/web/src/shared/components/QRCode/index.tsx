@@ -59,13 +59,13 @@ export function QRCode({ url }: { url: string }) {
       <div className="flex gap-2">
         <button
           onClick={handleCopy}
-          className="rounded-lg bg-black px-0 py-2 text-sm font-medium w-[12ch] text-white transition hover:bg-gray-800 active:scale-95"
+          className="bg-black px-0 py-2 text-sm font-medium w-[12ch] text-white transition hover:bg-gray-800 active:scale-95"
         >
           {copied ? "Copied!" : "Copy link"}
         </button>
         <button
           onClick={handleDownloadPng}
-          className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-grey transition hover:bg-gray-50 active:scale-95"
+          className="border border-gray-300 px-4 py-2 text-sm font-medium text-grey transition hover:bg-gray-50 active:scale-95"
         >
           Download Code
         </button>

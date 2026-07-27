@@ -307,7 +307,7 @@ export function Register() {
                     value={form[name]}
                     onChange={handleChange(name)}
                     className={clsx(
-                      "h-10 rounded-lg text-sm placeholder:text-grey",
+                      "h-10 text-sm placeholder:text-grey",
                       error
                         ? "border-red focus-visible:ring-red-75"
                         : "border-border",
@@ -342,7 +342,7 @@ export function Register() {
                   value={form[field]}
                   onChange={handleChange(field)}
                   className={clsx(
-                    "h-10 rounded-lg text-sm placeholder:text-grey pr-10",
+                    "h-10 text-sm placeholder:text-grey pr-10",
                     error
                       ? "border-red focus-visible:ring-red-75"
                       : "border-border",

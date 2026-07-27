@@ -126,14 +126,12 @@ export const ModalProvider: React.FC<{ children: ReactNode }> = ({
             {modalState.type === "confirm" && (
               <Button
                 variant="outline"
-                className="flex-1 h-10 rounded-lg text-sm font-medium"
                 onClick={handleCancel}
               >
                 {modalState.cancelText}
               </Button>
             )}
             <Button
-              className="flex-1 h-10 rounded-lg text-sm font-medium"
               onClick={handleConfirm}
             >
               {modalState.confirmText}

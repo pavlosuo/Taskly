@@ -4,6 +4,9 @@ import { createHash, randomInt, timingSafeEqual } from "crypto";
 import { PublicUser } from "@shared/types";
 import { RequestHandler, Response, Request } from "express";
 import { AuthRequest, User } from "@/types";
+import sharp from "sharp";
+export * from "./limiters";
+export * from "./upload";
 
 export function asAuth(
   handler: (req: AuthRequest, res: Response) => unknown,
@@ -86,3 +89,13 @@ export function log(...args: unknown[]) {
     }
   });
 }
+
+export const filePath = (filename: string, user: User) => {
+  const filePath = path.resolve(
+    process.cwd(),
+    "../../uploads",
+    user._id.toString(),
+    filename,
+  );
+  return filePath;
+};

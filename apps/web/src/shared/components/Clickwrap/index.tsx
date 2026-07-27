@@ -158,7 +158,7 @@ export const ClickwrapProvider = ({ children }: { children: ReactNode }) => {
               </div>
               <div
                 className={clsx(
-                  "relative rounded-lg border-2 border-dashed bg-gray-50 overflow-hidden transition-colors",
+                  "relative border-2 border-dashed bg-gray-50 overflow-hidden transition-colors",
                   error
                     ? "border-red hover:border-red-500"
                     : "border-gray-300 hover:border-gray-400",
@@ -213,14 +213,14 @@ export const ClickwrapProvider = ({ children }: { children: ReactNode }) => {
                 <Button
                   type="button"
                   variant="outline"
-                  className="h-10 rounded-lg border-border text-sm font-medium text-grey hover:bg-gray-50"
+                  className="h-10 border-border text-sm font-medium text-grey hover:bg-gray-50"
                   onClick={handleClose}
                 >
                   Cancel
                 </Button>
                 <Button
                   type="button"
-                  className="h-10 rounded-lg bg-[#5a6478] hover:bg-[#4a5468] text-white text-sm font-medium"
+                  className="h-10 bg-[#5a6478] hover:bg-[#4a5468] text-white text-sm font-medium"
                   onClick={handleConfirm}
                 >
                   Confirm

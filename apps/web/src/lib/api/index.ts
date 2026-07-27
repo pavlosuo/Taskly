@@ -7,6 +7,7 @@ import {
   RegisterForm,
   OtpPurpose,
   UpdateProfileForm,
+  MediaItem,
 } from "@shared/types";
 
 export const BASE_URL =
@@ -79,4 +80,14 @@ export const axiosApi = {
     api.put<{ success: boolean; message: string }>("/api/profile/password", {
       ...payload,
     }),
+
+  uploadMedia: (file: File) => {
+    const form = new FormData();
+    form.append("file", file);
+    return api.post<{ data: { media: MediaItem } }>("/api/media", form, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+  },
+  getMedia: () => api.get<{ data: { items: MediaItem[] } }>("/api/media"),
+  deleteMedia: (id: string) => api.delete(`/api/media/${id}`),
 };

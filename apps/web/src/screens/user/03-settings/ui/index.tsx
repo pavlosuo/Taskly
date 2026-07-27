@@ -39,7 +39,7 @@ export function AppearanceCard() {
             </p>
           </div>
           <Select value={lang} onValueChange={changeLang}>
-            <SelectTrigger className="w-36 h-9 rounded-lg text-sm relative">
+            <SelectTrigger className="w-36 h-9 text-sm relative">
               <SelectValue />
             </SelectTrigger>
             <SelectContent className="bg-background">

@@ -76,7 +76,7 @@ export function Login() {
             placeholder={t("email.placeholder")}
             value={form.email}
             onChange={handleChange("email")}
-            className={`h-10 rounded-lg text-sm placeholder:text-grey ${errors.email ? "border-red focus-visible:ring-red-75" : "border-border"}`}
+            className={`h-10 text-sm placeholder:text-grey ${errors.email ? "border-red focus-visible:ring-red-75" : "border-border"}`}
           />
           <FieldError message={errors.email} />
         </div>
@@ -95,7 +95,7 @@ export function Login() {
               placeholder={t("password.placeholder")}
               value={form.password}
               onChange={handleChange("password")}
-              className={`h-10 rounded-lg text-sm placeholder:text-grey pr-10 ${errors.password ? "border-red focus-visible:ring-red-75" : "border-border"}`}
+              className={`h-10 text-sm placeholder:text-grey pr-10 ${errors.password ? "border-red focus-visible:ring-red-75" : "border-border"}`}
             />
             <PasswordToggle
               show={showPassword}

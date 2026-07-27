@@ -8,6 +8,7 @@ import { authRoutes } from "@/modules/auth/auth.routes";
 import { policyRoutes } from "@/modules/policy/policy.routes";
 import { usersRoutes } from "@/modules/users/users.routes";
 import { otpRoutes } from "@/modules/otp/otp.routes";
+import { mediaRoutes } from "@/modules/media/media.routes";
 
 export function createApp(server: Server): Application {
   const app = express();
@@ -25,5 +26,6 @@ export function createApp(server: Server): Application {
   app.use("/api/otp", otpRoutes(server));
   app.use("/api/profile", usersRoutes(server));
   app.use("/api/policy", policyRoutes(server));
+  app.use("/api/media", mediaRoutes(server));
   return app;
 }

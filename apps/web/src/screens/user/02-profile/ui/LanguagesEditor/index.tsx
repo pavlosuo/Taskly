@@ -5,6 +5,9 @@ import { Input } from "@/components/ui/input";
 import { WORLD_LANGUAGES, CEFR_LEVELS } from "@shared/data";
 import { PublicProfileLang } from "@shared/types";
 import clsx from "clsx";
+import { MediaPicker } from "@/shared/components/MediaPicker";
+import { ImageDisplay } from "@/shared/components/MediaPicker";
+import { Button } from "@/components/ui/button";
 
 export function LanguagesEditor({
   value,
@@ -14,14 +17,13 @@ export function LanguagesEditor({
   onChange: (langs: PublicProfileLang[]) => void;
 }) {
   const [search, setSearch] = useState("");
-
+  const [pickerOpen, setPickerOpen] = useState<string | null>(null);
   const filtered = useMemo(() => {
     if (!search.trim()) return WORLD_LANGUAGES.slice(0, 8);
     return WORLD_LANGUAGES.filter((l) =>
       l.label.toLowerCase().includes(search.toLowerCase()),
     ).slice(0, 8);
   }, [search]);
-
   const selectedValues = value.map((l) => l.value);
 
   const addLang = (lang: (typeof WORLD_LANGUAGES)[number]) => {
@@ -45,7 +47,7 @@ export function LanguagesEditor({
           {value.map((lang) => (
             <div
               key={lang.value}
-              className="flex flex-col gap-2 p-3 rounded-lg border border-border bg-muted/30"
+              className="flex flex-col gap-2 p-3 border border-border bg-muted/30"
             >
               <div className="flex items-center justify-between">
                 <p className="text-sm font-medium text-foreground">
@@ -81,6 +83,39 @@ export function LanguagesEditor({
                   </button>
                 ))}
               </div>
+              <div className="flex items-center gap-2 mt-1">
+                {lang.certificate ? (
+                  <div className="flex items-center gap-2 relative">
+                    <ImageDisplay
+                      src={lang.certificate.src}
+                      alt={lang.certificate.label}
+                    />
+                    <Button
+                      type="button"
+                      onClick={() => {
+                        onChange(
+                          value.map((l) =>
+                            l.value === lang.value
+                              ? { ...l, certificate: undefined }
+                              : l,
+                          ),
+                        )
+                      }}
+                      className="text-xs absolute top-2.5 left-2.5"
+                    >
+                      Remove
+                    </Button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setPickerOpen(lang.value)}
+                    className="text-xs text-primary hover:underline"
+                  >
+                    + Add certificate
+                  </button>
+                )}
+              </div>
             </div>
           ))}
         </div>
@@ -89,7 +124,7 @@ export function LanguagesEditor({
         placeholder="Search language..."
         value={search}
         onChange={(e) => setSearch(e.target.value)}
-        className="h-9 rounded-lg text-sm"
+        className="h-9 text-sm"
       />
       <div className="flex flex-wrap gap-1.5">
         {filtered.map((lang) => {
@@ -112,6 +147,24 @@ export function LanguagesEditor({
           );
         })}
       </div>
+      <MediaPicker
+        open={!!pickerOpen}
+        onOpenChange={(o) => !o && setPickerOpen(null)}
+        onSelect={(item) => {
+          if (!pickerOpen) return;
+          onChange(
+            value.map((l) =>
+              l.value === pickerOpen
+                ? {
+                    ...l,
+                    certificate: { src: item.url, label: item.originalName },
+                  }
+                : l,
+            ),
+          );
+          setPickerOpen(null);
+        }}
+      />
     </div>
   );
 }

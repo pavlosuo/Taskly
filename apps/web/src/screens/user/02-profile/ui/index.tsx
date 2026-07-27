@@ -17,7 +17,7 @@ import { getAxiosError } from "@/utils/getAxiosError";
 import clsx from "clsx";
 import Image from "next/image";
 import parse from "html-react-parser";
-import { LanguagesEditor } from "@/shared/components/LanguagesEditor";
+import { LanguagesEditor } from "@/screens/user/02-profile/ui/LanguagesEditor";
 import {
   PublicProfileSkill,
   PublicProfileCertificate,
@@ -160,14 +160,14 @@ export function PublicProfileCard() {
             {p?.certificates?.length ? (
               <div className="flex flex-wrap gap-1.5">
                 {p.certificates.map((c) => {
-                  const cert = CERTIFICATES.find((x) => x.value === c);
+                  const cert = CERTIFICATES.find((x) => x.value === c.value);
                   return (
                     <span
-                      key={c}
+                      key={c.value}
                       className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300 font-medium"
                     >
                       <BadgeCheck className="w-3.5 h-3.5" />
-                      {cert?.label ?? c}
+                      {cert?.label}
                     </span>
                   );
                 })}
@@ -258,7 +258,7 @@ export function PublicProfileCard() {
                     type="button"
                     onClick={() => toggleItem("certificates", c.value)}
                     className={clsx(
-                      "flex items-center justify-between px-3 py-2.5 rounded-lg border text-left transition-colors",
+                      "flex items-center justify-between px-3 py-2.5 border text-left transition-colors",
                       form.certificates.includes(c.value)
                         ? "border-accent bg-accent/5"
                         : "border-border hover:border-accent/40",

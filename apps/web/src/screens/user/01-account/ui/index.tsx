@@ -45,7 +45,6 @@ import { IbanInput, formatIban } from "@/shared/components/IbanInput";
 import { getAxiosError } from "@/utils/getAxiosError";
 import { validatePassword } from "@shared/utils";
 import { useTranslation } from "react-i18next";
-import i18n from "i18next";
 
 type PersonalStep = "form" | "verify-email" | "verify-phone";
 
@@ -228,14 +227,14 @@ export function PersonalInfoCard({
                   <Input
                     value={form.fullName}
                     onChange={handleChange("fullName")}
-                    className="h-10 rounded-lg text-sm placeholder:text-grey"
+                    className="h-10 text-sm placeholder:text-grey"
                   />
                 </FormField>
                 <FormField label="Username">
                   <Input
                     value={form.username}
                     onChange={handleChange("username")}
-                    className="h-10 rounded-lg text-sm placeholder:text-grey"
+                    className="h-10 text-sm placeholder:text-grey"
                   />
                 </FormField>
                 <FormField
@@ -250,7 +249,7 @@ export function PersonalInfoCard({
                     type="email"
                     value={form.email}
                     onChange={handleChange("email")}
-                    className="h-10 rounded-lg text-sm placeholder:text-grey"
+                    className="h-10 text-sm placeholder:text-grey"
                   />
                 </FormField>
                 <FormField
@@ -370,7 +369,7 @@ export function PayoutCard() {
             {bankLabel && <Field label="Bank" value={bankLabel} />}
           </div>
         ) : (
-          <div className="flex items-center justify-between rounded-lg border border-dashed border-border px-4 py-3">
+          <div className="flex items-center justify-between border border-dashed border-border px-4 py-3">
             <p className="text-xs text-grey">
               No payout method added yet — add one to get paid out.
             </p>
@@ -400,7 +399,7 @@ export function PayoutCard() {
                   setForm((p) => ({ ...p, bankName: value }))
                 }
               >
-                <SelectTrigger className="h-10 rounded-lg text-sm w-full">
+                <SelectTrigger className="h-10 text-sm w-full">
                   <SelectValue placeholder="Select your bank" />
                 </SelectTrigger>
                 <SelectContent className="w-full bg-background">
@@ -423,7 +422,7 @@ export function PayoutCard() {
               <IbanInput
                 value={form.iban}
                 onChange={(value) => setForm((p) => ({ ...p, iban: value }))}
-                className="h-10 rounded-lg text-sm font-mono"
+                className="h-10 text-sm font-mono"
               />
             </FormField>
           </div>
@@ -500,7 +499,7 @@ export function SecurityCard() {
       <div className="flex flex-col gap-2">
         <button
           onClick={handlePasswordClick}
-          className="w-full grid gap-3 grid-cols-[auto_1fr_auto] items-center py-3 px-4 rounded-lg border border-border text-sm text-foreground hover:bg-foreground/5 transition-colors"
+          className="w-full grid gap-3 grid-cols-[auto_1fr_auto] items-center py-3 px-4 border border-border text-sm text-foreground hover:bg-foreground/5 transition-colors"
         >
           <FileLock className="w-4 h-4 text-grey" />
           <span className="text-left">Change password</span>
@@ -508,7 +507,7 @@ export function SecurityCard() {
         </button>
         <button
           onClick={handleDeactivateClick}
-          className="w-full grid gap-3 grid-cols-[auto_1fr_auto] items-center py-3 px-4 rounded-lg border border-border text-sm text-red hover:bg-red/5 transition-colors"
+          className="w-full grid gap-3 grid-cols-[auto_1fr_auto] items-center py-3 px-4 border border-border text-sm text-red hover:bg-red/5 transition-colors"
         >
           <Trash2 className="w-4 h-4" />
           <span className="text-left">Deactivate account</span>
@@ -530,7 +529,7 @@ export function SecurityCard() {
                 autoComplete="current-password"
                 value={form.oldPassword}
                 onChange={handleChange("oldPassword")}
-                className="h-10 rounded-lg text-sm placeholder:text-grey"
+                className="h-10 text-sm placeholder:text-grey"
               />
             </FormField>
             <FormField label="New password">
@@ -539,7 +538,7 @@ export function SecurityCard() {
                 autoComplete="new-password"
                 value={form.newPassword}
                 onChange={handleChange("newPassword")}
-                className="h-10 rounded-lg text-sm placeholder:text-grey"
+                className="h-10 text-sm placeholder:text-grey"
               />
             </FormField>
             <FormField label="Confirm new password">
@@ -548,7 +547,7 @@ export function SecurityCard() {
                 autoComplete="new-password"
                 value={form.confirmPassword}
                 onChange={handleChange("confirmPassword")}
-                className="h-10 rounded-lg text-sm placeholder:text-grey"
+                className="h-10 text-sm placeholder:text-grey"
               />
             </FormField>
           </div>
@@ -705,7 +704,7 @@ export function SectionCard({
 }) {
   return (
     <div className="rounded-xl border border-border bg-background p-4 transition-shadow hover:shadow-sm">
-      <div className="w-12 h-12 rounded-lg bg-foreground flex items-center justify-center mb-3">
+      <div className="w-12 h-12 bg-foreground flex items-center justify-center mb-3">
         {icon}
       </div>
       <p className="text-sm font-medium text-foreground mb-1">{title}</p>

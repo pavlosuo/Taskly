@@ -104,7 +104,7 @@ export const MethodToggle = memo(function MethodToggle({
   onChange: (m: OtpChannel) => void;
 }) {
   return (
-    <div className="flex gap-1 rounded-lg mb-6">
+    <div className="flex gap-1 mb-6">
       {(["phone", "email"] as const).map((m) => (
         <button
           key={m}
