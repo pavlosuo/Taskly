@@ -16,6 +16,7 @@ type MediaPickerOptions = {
 
 interface MediaPickerContextType {
   openPicker: (options: MediaPickerOptions) => void;
+  isOpen?: boolean;
 }
 
 const MediaPickerContext = createContext<MediaPickerContextType | null>(null);
@@ -38,15 +39,23 @@ export const MediaPickerProvider = ({ children }: { children: ReactNode }) => {
 
   const handleSelect = (item: MediaItem) => {
     options?.onSelect(item);
-    setOpen(false);
+    setTimeout(() => setOpen(false), 50);
+  };
+
+  const handleOpenChange = (o: boolean) => {
+    if (!o) {
+      setTimeout(() => setOpen(false), 50);
+      return;
+    }
+    setOpen(o);
   };
 
   return (
-    <MediaPickerContext.Provider value={{ openPicker }}>
+    <MediaPickerContext.Provider value={{ openPicker, isOpen: open }}>
       {children}
       <MediaPicker
         open={open}
-        onOpenChange={setOpen}
+        onOpenChange={handleOpenChange}
         accept={options?.accept ?? "image"}
         onSelect={handleSelect}
       />

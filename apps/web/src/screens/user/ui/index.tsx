@@ -24,7 +24,6 @@ import {
   SquarePen,
   Star,
   BadgeCheck,
-  X,
   Globe,
   Bell,
 } from "lucide-react";
@@ -948,6 +947,7 @@ export function NotificationsCard() {
 }
 
 export function PublicProfileCard() {
+  const { isOpen } = useMediaPicker();
   const { user, updateProfile, isLoading } = useUser();
   const [open, setOpen] = useState(false);
   const [error, setError] = useState("");
@@ -1083,7 +1083,13 @@ export function PublicProfileCard() {
           </div>
         </div>
       </div>
-      <Dialog open={open} onOpenChange={setOpen}>
+      <Dialog
+        open={open}
+        onOpenChange={(o) => {
+          if (isOpen) return;
+          setOpen(o);
+        }}
+      >
         <DialogContent className="sm:max-w-xl border-border max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit public profile</DialogTitle>
@@ -1222,7 +1228,7 @@ export function AvatarCard() {
                 onClick={() => updateProfile({ avatar: "" })}
                 className="absolute bottom-0 right-0 w-6 h-6 bg-foreground rounded-full flex items-center justify-center"
               >
-                <X className="w-4 h-4 text-red"></X>
+                <Trash2 className="w-4 h-4 text-red"></Trash2>
               </button>
             </div>
           ) : (

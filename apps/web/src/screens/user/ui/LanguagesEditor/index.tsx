@@ -109,6 +109,8 @@ export function LanguagesEditor({
                   </div>
                 ) : (
                   <button
+                    type="button"
+                    className="text-xs text-primary hover:text-primary/90 hover:underline"
                     onClick={() =>
                       openPicker({
                         onSelect: (item) =>

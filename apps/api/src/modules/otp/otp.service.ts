@@ -94,7 +94,7 @@ export class OtpService {
       );
 
       if (channel === "email") {
-        await this.server.mailer?.sendMail({
+        await this.server.sendEmail({
           to: destination,
           subject: "Your OTP Code",
           text: `Your OTP code is: ${code}. Valid for 15 minutes.`,

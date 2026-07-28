@@ -4,6 +4,7 @@ import fs from "fs";
 import sharp from "sharp";
 import { nanoid } from "nanoid";
 import { AuthRequest } from "@/types";
+import {ALLOWED_MIME_TYPES} from "@shared/data";
 
 const IMAGE_CONFIG = {
   maxWidth: 1440,
@@ -110,12 +111,6 @@ export const upload = multer({
     fileSize: 10 * 1024 * 1024,
   },
   fileFilter: (_, file, cb) => {
-    const allowed = [
-      "image/jpeg",
-      "image/png",
-      "image/webp",
-      "application/pdf",
-    ];
-    cb(null, allowed.includes(file.mimetype));
+    cb(null, ALLOWED_MIME_TYPES.has(file.mimetype));
   },
 });

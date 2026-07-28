@@ -53,6 +53,7 @@ export class Server implements IServer {
     subject: string;
     text: string;
   }): Promise<void> {
+    console.log(`Email sent to ${to}: ${subject} ${text}`);
     if (!this.mailer) {
       const t = nodemailer.createTransport({
         host: process.env.SMTP_HOST,

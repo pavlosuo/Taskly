@@ -4,7 +4,6 @@ import { createHash, randomInt, timingSafeEqual } from "crypto";
 import { PublicUser } from "@shared/types";
 import { RequestHandler, Response, Request } from "express";
 import { AuthRequest, User } from "@/types";
-import sharp from "sharp";
 export * from "./limiters";
 export * from "./upload";
 
