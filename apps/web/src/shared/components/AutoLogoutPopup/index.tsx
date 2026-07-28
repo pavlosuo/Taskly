@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useState, useCallback, useRef, useEffect } from "react";
-import { useUser } from "@/providers/User";
+import { useUser } from "@/providers/UserProvider";
 import clsx from "clsx";
 
 const INACTIVITY_TIMEOUT_MS = 2 * 60 * 1000;
@@ -179,7 +179,7 @@ export function AutoLogoutPopup() {
                 Are you still there?
               </DialogTitle>
             </div>
-            <DialogDescription className="text-sm leading-relaxed">
+            <DialogDescription className="text-sm">
               You will be logged out in{" "}
               <span
                 className={clsx(

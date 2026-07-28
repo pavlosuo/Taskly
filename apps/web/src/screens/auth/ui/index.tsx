@@ -3,6 +3,8 @@ import { Eye, EyeOff } from "lucide-react";
 import { OtpChannel } from "@shared/types";
 import Image from "next/image";
 import { useTranslation } from "react-i18next";
+import { Label as LabelPrimitive } from "@/components/ui/label";
+import clsx from "clsx";
 
 export function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -20,6 +22,28 @@ export function Title({ children }: { children: React.ReactNode }) {
     <h1 className="text-[24px] md:text-[42px] font-bold text-foreground mb-4 tracking-tight leading-6.5 md:leading-10">
       {children}
     </h1>
+  );
+}
+
+export function Label({
+  children,
+  error,
+  htmlFor,
+}: {
+  children: React.ReactNode;
+  error?: boolean;
+  htmlFor?: string;
+}) {
+  return (
+    <LabelPrimitive
+      htmlFor={htmlFor}
+      className={clsx(
+        "text-sm font-medium mb-1.5 block",
+        error ? "text-red" : "text-grey",
+      )}
+    >
+      {children}
+    </LabelPrimitive>
   );
 }
 

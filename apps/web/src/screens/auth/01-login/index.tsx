@@ -1,21 +1,21 @@
 "use client";
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { useUser } from "@/providers/User";
+import { useUser } from "@/providers/UserProvider";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { loginSchema } from "@shared/index";
-import { LoginForm, ZodErrors } from "@shared/types";
+import { Input } from "@/shared/components/Input";
+import { loginSchema, LoginForm, ZodErrors } from "@shared/index";
 import {
   FieldError,
   PasswordToggle,
   BottomLink,
   AuthLayout,
   Title,
+  Label,
 } from "@/screens/auth/ui";
 import { getAxiosError } from "@/utils/getAxiosError";
 import { useTranslation } from "react-i18next";
+import clsx from "clsx";
 
 export function Login() {
   const { t } = useTranslation("login");
@@ -59,43 +59,34 @@ export function Login() {
   return (
     <AuthLayout>
       <Title>{t("title")}</Title>
-      <p className="text-sm text-grey mb-8 leading-relaxed">{t("subtitle")}</p>
+      <p className="text-sm text-grey mb-8">{t("subtitle")}</p>
       <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-5">
         <div className="form-group">
-          <Label
-            htmlFor="email"
-            className={`text-sm font-medium mb-1.5 block ${errors.email ? "text-red" : "text-grey"}`}
-          >
+          <Label htmlFor="email" error={!!errors.email}>
             {t("email.label")}
           </Label>
           <Input
             name="email"
-            id="email"
             autoComplete="email"
             type="text"
             placeholder={t("email.placeholder")}
             value={form.email}
             onChange={handleChange("email")}
-            className={`h-10 text-sm placeholder:text-grey ${errors.email ? "border-red focus-visible:ring-red-75" : "border-border"}`}
           />
           <FieldError message={errors.email} />
         </div>
         <div className="form-group">
-          <Label
-            htmlFor="password"
-            className={`text-sm font-medium mb-1.5 block ${errors.password ? "text-red" : "text-grey"}`}
-          >
+          <Label htmlFor="password" error={!!errors.password}>
             {t("password.label")}
           </Label>
           <div className="relative">
             <Input
               name="password"
-              id="password"
               type={showPassword ? "text" : "password"}
               placeholder={t("password.placeholder")}
               value={form.password}
               onChange={handleChange("password")}
-              className={`h-10 text-sm placeholder:text-grey pr-10 ${errors.password ? "border-red focus-visible:ring-red-75" : "border-border"}`}
+              className={clsx("pr-10")}
             />
             <PasswordToggle
               show={showPassword}

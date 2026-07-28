@@ -1,8 +1,5 @@
 "use client";
-import {
-  AppearanceCard,
-  NotificationsCard,
-} from "@/screens/user/03-settings/ui";
+import { AppearanceCard, NotificationsCard } from "@/screens/user/ui";
 
 export function Settings() {
   return (

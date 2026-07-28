@@ -1,12 +1,12 @@
 "use client";
 import { useState } from "react";
-import { useUser } from "@/providers/User";
+import { useUser } from "@/providers/UserProvider";
 import {
   PersonalInfoCard,
   PayoutCard,
   SecurityCard,
   VerifyDialog,
-} from "@/screens/user/01-account/ui";
+} from "@/screens/user/ui";
 import { OtpChannel } from "@shared/types";
 
 export function Account() {

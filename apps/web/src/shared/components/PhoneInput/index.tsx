@@ -373,7 +373,7 @@ export const PhoneInput = memo(function PhoneInput({
         onPaste={handlePaste}
         className={clsx(
           "h-10 text-sm placeholder:text-grey",
-          error ? "border-red focus-visible:ring-red-75" : "border-border",
+          error ? "border-red focus-visible:ring-red/75" : "border-border",
         )}
       />
     </div>

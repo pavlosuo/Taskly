@@ -1,6 +1,6 @@
 import { z } from "zod";
 import libphonenumber from "google-libphonenumber";
-import { finnishBanks } from "@shared/data";
+import { FINNISH_BANKS } from "@shared/data";
 import { validateIban, validatePassword } from "@shared/utils";
 import type {
   LoginForm,
@@ -20,9 +20,9 @@ import type {
 
 const phoneUtil = libphonenumber.PhoneNumberUtil.getInstance();
 
-export const finnishBankValues = finnishBanks.map((b) => b.value) as [
-  (typeof finnishBanks)[number]["value"],
-  ...(typeof finnishBanks)[number]["value"][],
+export const finnishBankValues = FINNISH_BANKS.map((b) => b.value) as [
+  (typeof FINNISH_BANKS)[number]["value"],
+  ...(typeof FINNISH_BANKS)[number]["value"][],
 ];
 
 const phoneField = z.string().superRefine((value, ctx) => {

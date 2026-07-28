@@ -1,7 +1,6 @@
 "use client";
-import Image from "next/image";
 import Link from "next/link";
-import { useUser } from "@/providers/User";
+import { useUser } from "@/providers/UserProvider";
 import { useMemo } from "react";
 import {
   ChevronDown,
@@ -20,6 +19,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { ImageDisplay } from "@/shared/components/MediaPicker";
 
 export const UserDropdown = () => {
   const { user, logout } = useUser();
@@ -66,11 +66,9 @@ export const UserDropdown = () => {
         <div className="cursor-pointer flex items-center gap-3 p-3 rounded-xl border border-border bg-muted/50 hover:bg-muted transition-colors group mt-4 outline-none">
           <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0 text-primary text-sm font-semibold">
             {user.profile?.avatar ? (
-              <Image
+              <ImageDisplay
                 src={user.profile.avatar}
-                alt={user.username}
-                width={36}
-                height={36}
+                alt={user.profile.fullName}
                 className="rounded-full object-cover"
               />
             ) : (

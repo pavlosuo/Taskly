@@ -52,7 +52,7 @@ export function validateIban(raw: string) {
   return remainder === 1;
 }
 
-export function getPasswordStrength(password: string): PasswordStrength {
+export function getPasswordStrength(password?: string): PasswordStrength {
   if (!password) return null;
 
   const results = Object.fromEntries(

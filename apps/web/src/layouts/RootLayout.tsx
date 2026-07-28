@@ -1,10 +1,10 @@
 "use client";
 import { FC, PropsWithChildren } from "react";
-import { UserProvider } from "@/providers/User";
-import { DataProvider } from "@/providers/Data";
-import { ClickwrapProvider } from "@/shared/components/Clickwrap";
-import { ThemeProvider } from "@/providers/Theme";
-import { ModalProvider } from "@/providers/Modal";
+import { UserProvider } from "@/providers/UserProvider";
+import { DataProvider } from "@/providers/PolicyDataProvider";
+import { ThemeProvider } from "@/providers/ThemeProvider";
+import { ModalProvider } from "@/providers/ModalProvider";
+import { MediaPickerProvider } from "@/providers/MediaPickerProvider";
 
 type IRootLayout = {
   userJson: string | null;
@@ -20,13 +20,13 @@ export const RootLayout: FC<PropsWithChildren<IRootLayout>> = ({
   const initialData = initialDataJson ? JSON.parse(initialDataJson) : null;
   return (
     <ModalProvider>
-      <DataProvider initialData={initialData}>
-        <UserProvider initialUser={user}>
-          <ThemeProvider initialUser={user}>
-            <ClickwrapProvider>{children}</ClickwrapProvider>
-          </ThemeProvider>
-        </UserProvider>
-      </DataProvider>
+      <MediaPickerProvider>
+        <DataProvider initialData={initialData}>
+          <UserProvider initialUser={user}>
+            <ThemeProvider initialUser={user}>{children}</ThemeProvider>
+          </UserProvider>
+        </DataProvider>
+      </MediaPickerProvider>
     </ModalProvider>
   );
 };

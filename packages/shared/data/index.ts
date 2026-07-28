@@ -12,7 +12,7 @@ export const countryList = countries.map((c) => ({
 
 export type Country = (typeof countryList)[number];
 
-export const finnishBanks = [
+export const FINNISH_BANKS: BankItem[] = [
   { value: "op", label: "OP", src: "/banks/fi-op.svg" },
   { value: "nordea", label: "Nordea", src: "/banks/fi-nordea.svg" },
   { value: "s-pankki", label: "S-Pankki", src: "/banks/fi-spankki.svg" },
@@ -34,20 +34,12 @@ export const finnishBanks = [
     label: "Ålandsbanken",
     src: "/banks/fi-alandsbanken.svg",
   },
-] as BankItem[];
+];
 
-export const langs: { value: Lang; label: string }[] = [
+export const LANGS: { value: Lang; label: string }[] = [
   { value: "en", label: "English" },
   { value: "fi", label: "Suomi" },
   { value: "sv", label: "Svenska" },
-];
-
-export const notificationsList = [
-  {
-    key: "email",
-    label: "Email notifications",
-    desc: "Receive updates via email.",
-  },
 ];
 
 export const WORLD_LANGUAGES = [
@@ -101,7 +93,7 @@ export const WORLD_LANGUAGES = [
   { value: "mn", label: "Mongolian" },
   { value: "kk", label: "Kazakh" },
   { value: "uz", label: "Uzbek" },
-] as const;
+];
 
 export const CEFR_LEVELS = [
   { value: "A1", label: "A1 — Beginner" },
@@ -110,4 +102,4 @@ export const CEFR_LEVELS = [
   { value: "B2", label: "B2 — Upper Intermediate" },
   { value: "C1", label: "C1 — Advanced" },
   { value: "C2", label: "C2 — Mastery" },
-] as const;
+];

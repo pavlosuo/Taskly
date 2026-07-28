@@ -25,7 +25,7 @@ export const ImageDisplay = ({
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
-      className={clsx(className, "w-full h-full object-cover")}
+      className={clsx("w-full h-full object-cover", className)}
       src={src}
       alt={alt}
     />

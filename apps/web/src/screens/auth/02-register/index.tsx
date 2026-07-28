@@ -1,18 +1,17 @@
 "use client";
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { useUser } from "@/providers/User";
+import { useUser } from "@/providers/UserProvider";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { registerSchema } from "@shared/index";
-import { RegisterForm, Role } from "@shared/types";
+import { Input } from "@/shared/components/Input";
+import { registerSchema, RegisterForm, Role, ZodErrors } from "@shared/index";
 import {
   AuthLayout,
   FieldError,
   PasswordToggle,
   BottomLink,
   Title,
+  Label,
 } from "@/screens/auth/ui";
 import { getAxiosError } from "@/utils/getAxiosError";
 import { getPasswordStrength } from "@shared/utils";
@@ -22,26 +21,13 @@ import { CalendarCheck, UserPlus, ArrowLeftToLine } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { FlyingParticles } from "@/shared/components/FlyingParticles";
 
-type RegisterErrors = {
-  fullName?: string;
-  email?: string;
-  username?: string;
-  phone?: string;
-  password?: string;
-  confirm?: string;
-  general?: string;
-  role?: string;
-  code?: string;
-  fullPhone?: string;
-};
-
 export function Register() {
   const { t } = useTranslation("register");
   const { register, isLoading } = useUser();
   const router = useRouter();
   const [step, setStep] = useState<"role" | "form">("role");
   const [show, setShow] = useState({ password: false, confirm: false });
-  const [errors, setErrors] = useState<RegisterErrors>({});
+  const [errors, setErrors] = useState<ZodErrors<RegisterForm>>({});
   const [form, setForm] = useState<RegisterForm>({
     email: "",
     password: "",
@@ -72,7 +58,6 @@ export function Register() {
       hint: t("roles.tasker.hint"),
     },
   ];
-
   const fields: {
     name: keyof RegisterForm;
     label: string;
@@ -180,9 +165,7 @@ export function Register() {
     return (
       <AuthLayout>
         <Title>{t("roleStep.title")}</Title>
-        <p className="text-sm text-grey mb-8 leading-relaxed">
-          {t("roleStep.subtitle")}
-        </p>
+        <p className="text-sm text-grey mb-8">{t("roleStep.subtitle")}</p>
         <div className="grid grid-cols-2 gap-3 mb-6">
           {roles.map((r) => (
             <button
@@ -215,7 +198,7 @@ export function Register() {
               </div>
               <div className="space-y-1">
                 <p className="text-sm font-medium text-foreground">{r.title}</p>
-                <p className="text-xs text-grey leading-relaxed">{r.desc}</p>
+                <p className="text-xs text-grey">{r.desc}</p>
               </div>
               <div className="flex flex-wrap gap-1.5">
                 {r.tags.map((tag) => (
@@ -256,7 +239,7 @@ export function Register() {
         <span>{t("formStep.back")}</span>
       </button>
       <Title>{t("formStep.title")}</Title>
-      <p className="text-sm text-grey mb-6 leading-relaxed">
+      <p className="text-sm text-grey mb-6">
         {form.role === "client"
           ? t("roles.client.hint")
           : t("roles.tasker.hint")}
@@ -279,13 +262,7 @@ export function Register() {
                     : "col-span-2",
                 )}
               >
-                <Label
-                  htmlFor={name}
-                  className={clsx(
-                    "text-sm font-medium mb-1.5 block",
-                    error ? "text-red" : "text-foreground",
-                  )}
-                >
+                <Label htmlFor={name} error={!!error}>
                   {label}
                 </Label>
                 {name === "fullPhone" ? (
@@ -299,19 +276,12 @@ export function Register() {
                   />
                 ) : (
                   <Input
-                    id={name}
                     type={type}
                     name={name}
                     autoComplete={autoComplete}
                     placeholder={placeholder}
                     value={form[name]}
                     onChange={handleChange(name)}
-                    className={clsx(
-                      "h-10 text-sm placeholder:text-grey",
-                      error
-                        ? "border-red focus-visible:ring-red-75"
-                        : "border-border",
-                    )}
                   />
                 )}
                 <FieldError message={error} />
@@ -323,30 +293,18 @@ export function Register() {
           const error = errors[field] as string;
           return (
             <div key={field} className="form-group col-span-1">
-              <Label
-                htmlFor={field}
-                className={clsx(
-                  "text-sm font-medium mb-1.5 block",
-                  error ? "text-red" : "text-foreground",
-                )}
-              >
+              <Label htmlFor={field} error={!!error}>
                 {t(`fields.${field}.label`)}
               </Label>
               <div className="relative">
                 <Input
-                  id={field}
                   name={field}
                   autoComplete="off"
                   type={show[field] ? "text" : "password"}
                   placeholder={t(`fields.${field}.placeholder`)}
                   value={form[field]}
                   onChange={handleChange(field)}
-                  className={clsx(
-                    "h-10 text-sm placeholder:text-grey pr-10",
-                    error
-                      ? "border-red focus-visible:ring-red-75"
-                      : "border-border",
-                  )}
+                  className={clsx("pr-10")}
                 />
                 <PasswordToggle
                   show={show[field]}

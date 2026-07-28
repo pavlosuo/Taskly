@@ -124,18 +124,11 @@ export const ModalProvider: React.FC<{ children: ReactNode }> = ({
           </DialogHeader>
           <DialogFooter>
             {modalState.type === "confirm" && (
-              <Button
-                variant="outline"
-                onClick={handleCancel}
-              >
+              <Button variant="outline" onClick={handleCancel}>
                 {modalState.cancelText}
               </Button>
             )}
-            <Button
-              onClick={handleConfirm}
-            >
-              {modalState.confirmText}
-            </Button>
+            <Button onClick={handleConfirm}>{modalState.confirmText}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

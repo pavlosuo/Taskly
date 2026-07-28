@@ -5,9 +5,9 @@ import { Input } from "@/components/ui/input";
 import { WORLD_LANGUAGES, CEFR_LEVELS } from "@shared/data";
 import { PublicProfileLang } from "@shared/types";
 import clsx from "clsx";
-import { MediaPicker } from "@/shared/components/MediaPicker";
 import { ImageDisplay } from "@/shared/components/MediaPicker";
 import { Button } from "@/components/ui/button";
+import { useMediaPicker } from "@/providers/MediaPickerProvider";
 
 export function LanguagesEditor({
   value,
@@ -17,7 +17,8 @@ export function LanguagesEditor({
   onChange: (langs: PublicProfileLang[]) => void;
 }) {
   const [search, setSearch] = useState("");
-  const [pickerOpen, setPickerOpen] = useState<string | null>(null);
+  const { openPicker } = useMediaPicker();
+
   const filtered = useMemo(() => {
     if (!search.trim()) return WORLD_LANGUAGES.slice(0, 8);
     return WORLD_LANGUAGES.filter((l) =>
@@ -99,7 +100,7 @@ export function LanguagesEditor({
                               ? { ...l, certificate: undefined }
                               : l,
                           ),
-                        )
+                        );
                       }}
                       className="text-xs absolute top-2.5 left-2.5"
                     >
@@ -108,9 +109,24 @@ export function LanguagesEditor({
                   </div>
                 ) : (
                   <button
-                    type="button"
-                    onClick={() => setPickerOpen(lang.value)}
-                    className="text-xs text-primary hover:underline"
+                    onClick={() =>
+                      openPicker({
+                        onSelect: (item) =>
+                          onChange(
+                            value.map((l) =>
+                              l.value === lang.value
+                                ? {
+                                    ...l,
+                                    certificate: {
+                                      src: item.url,
+                                      label: item.originalName,
+                                    },
+                                  }
+                                : l,
+                            ),
+                          ),
+                      })
+                    }
                   >
                     + Add certificate
                   </button>
@@ -147,24 +163,6 @@ export function LanguagesEditor({
           );
         })}
       </div>
-      <MediaPicker
-        open={!!pickerOpen}
-        onOpenChange={(o) => !o && setPickerOpen(null)}
-        onSelect={(item) => {
-          if (!pickerOpen) return;
-          onChange(
-            value.map((l) =>
-              l.value === pickerOpen
-                ? {
-                    ...l,
-                    certificate: { src: item.url, label: item.originalName },
-                  }
-                : l,
-            ),
-          );
-          setPickerOpen(null);
-        }}
-      />
     </div>
   );
 }

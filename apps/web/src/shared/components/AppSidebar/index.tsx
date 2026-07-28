@@ -9,7 +9,7 @@ import {
   MessageCircle,
 } from "lucide-react";
 import { UserDropdown } from "@/shared/components/UserDropdown";
-import { useUser } from "@/providers/User";
+import { useUser } from "@/providers/UserProvider";
 import { useMemo } from "react";
 
 export function AppSidebar() {

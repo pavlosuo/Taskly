@@ -1,5 +1,5 @@
 "use client";
-import { AvatarCard, PublicProfileCard } from "./ui";
+import { AvatarCard, PublicProfileCard } from "@/screens/user/ui";
 
 export function Profile() {
   return (
