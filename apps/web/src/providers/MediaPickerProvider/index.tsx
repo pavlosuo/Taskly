@@ -11,7 +11,8 @@ import { MediaItem } from "@shared/types";
 
 type MediaPickerOptions = {
   accept?: "image" | "all";
-  onSelect: (item: MediaItem) => void;
+  onSelect?: (item: MediaItem) => void;
+  IsWait?: boolean;
 };
 
 interface MediaPickerContextType {
@@ -38,12 +39,20 @@ export const MediaPickerProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const handleSelect = (item: MediaItem) => {
-    options?.onSelect(item);
+    options?.onSelect?.(item);
+    if (options?.IsWait) {
+      setOpen(false);
+      return;
+    }
     setTimeout(() => setOpen(false), 50);
   };
 
   const handleOpenChange = (o: boolean) => {
     if (!o) {
+      if (options?.IsWait) {
+        setOpen(false);
+        return;
+      }
       setTimeout(() => setOpen(false), 50);
       return;
     }
@@ -57,7 +66,7 @@ export const MediaPickerProvider = ({ children }: { children: ReactNode }) => {
         open={open}
         onOpenChange={handleOpenChange}
         accept={options?.accept ?? "image"}
-        onSelect={handleSelect}
+        onSelect={options?.onSelect ? handleSelect : undefined}
       />
     </MediaPickerContext.Provider>
   );

@@ -7,13 +7,16 @@ import {
   PlusCircle,
   ClipboardList,
   MessageCircle,
+  ImagePlus,
 } from "lucide-react";
 import { UserDropdown } from "@/shared/components/UserDropdown";
 import { useUser } from "@/providers/UserProvider";
 import { useMemo } from "react";
+import { useMediaPicker } from "@/providers/MediaPickerProvider";
 
 export function AppSidebar() {
   const { user } = useUser();
+  const { openPicker } = useMediaPicker();
 
   const navItems = useMemo(() => {
     if (user?.role === "tasker") {
@@ -22,9 +25,16 @@ export function AppSidebar() {
         { label: "Post a Task", href: "/post-task", icon: PlusCircle },
         { label: "My Tasks", href: "/tasks", icon: ClipboardList },
         { label: "Chats", href: "/chats", icon: MessageCircle },
+        {
+          label: "Media Library",
+          icon: ImagePlus,
+          onClick: () => {
+            openPicker({});
+          },
+        },
       ];
     }
-  }, [user]);
+  }, [user, openPicker]);
 
   return (
     <Sidebar className="pt-2 pb-2 pl-2 border-none">
@@ -35,15 +45,27 @@ export function AppSidebar() {
         <nav>
           <ul className="flex flex-col gap-1">
             {navItems &&
-              navItems.map(({ label, href, icon: Icon }) => (
+              navItems.map(({ label, href, icon: Icon, onClick }) => (
                 <li key={href}>
-                  <Link
-                    href={href}
-                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-foreground hover:bg-primary hover:text-white transition-colors group"
-                  >
-                    <Icon className="shrink-0 w-4 h-4" />
-                    <span>{label}</span>
-                  </Link>
+                  {href ? (
+                    <Link
+                      href={href}
+                      className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-foreground hover:bg-primary hover:text-white transition-colors group"
+                    >
+                      <Icon className="shrink-0 w-4 h-4" />
+                      <span>{label}</span>
+                    </Link>
+                  ) : (
+                    <button
+                      key={label}
+                      type="button"
+                      onClick={onClick}
+                      className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-foreground hover:bg-primary hover:text-white transition-colors group"
+                    >
+                      <Icon className="shrink-0 w-4 h-4" />
+                      <span>{label}</span>
+                    </button>
+                  )}
                 </li>
               ))}
           </ul>

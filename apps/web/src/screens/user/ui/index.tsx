@@ -1196,17 +1196,10 @@ export function PublicProfileCard() {
 }
 
 export function AvatarCard() {
-  const { user, updateProfile } = useUser();
+  const { user, updateProfile, initials } = useUser();
   const { openPicker } = useMediaPicker();
 
   if (!user) return null;
-
-  const initials = (user.profile?.fullName ?? user.username)
-    .split(" ")
-    .map((w) => w[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-4 lg:gap-6 items-start">
@@ -1226,9 +1219,9 @@ export function AvatarCard() {
               />
               <button
                 onClick={() => updateProfile({ avatar: "" })}
-                className="absolute bottom-0 right-0 w-6 h-6 bg-foreground rounded-full flex items-center justify-center"
+                className="absolute bottom-0 right-0 w-6 h-6 bg-primary rounded-full flex items-center justify-center"
               >
-                <Trash2 className="w-4 h-4 text-red"></Trash2>
+                <Trash2 className="w-3.5 h-3.5 text-white"></Trash2>
               </button>
             </div>
           ) : (

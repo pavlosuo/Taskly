@@ -4,7 +4,7 @@ import fs from "fs";
 import sharp from "sharp";
 import { nanoid } from "nanoid";
 import { AuthRequest } from "@/types";
-import {ALLOWED_MIME_TYPES} from "@shared/data";
+import { ALLOWED_MIME_TYPES } from "@shared/data";
 
 const IMAGE_CONFIG = {
   maxWidth: 1440,

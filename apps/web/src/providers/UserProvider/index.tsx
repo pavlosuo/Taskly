@@ -19,6 +19,7 @@ import { redirect } from "next/navigation";
 
 interface UserContextType {
   user: PublicUser | null;
+  initials: string | null;
   isLoading: boolean;
   setUser: (user: PublicUser | null) => void;
   login: (payload: LoginForm) => Promise<AuthResponse>;
@@ -224,10 +225,18 @@ export const UserProvider = ({
     [],
   );
 
+  const initials = ((user?.profile?.fullName ?? user?.username) as string)
+    .split(" ")
+    .map((w) => w[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+
   return (
     <UserContext.Provider
       value={{
         user,
+        initials,
         isLoading,
         setUser,
         login,

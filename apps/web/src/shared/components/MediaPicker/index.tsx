@@ -20,54 +20,11 @@ import { axiosApi } from "@/lib/api";
 import { MediaItem } from "@shared/types";
 import { getAxiosError } from "@/utils/getAxiosError";
 import clsx from "clsx";
-import {ALLOWED_MIME_TYPES} from "@shared/data";
-
+import { ALLOWED_MIME_TYPES } from "@shared/data";
+import { getFileType, FilterType, FILTERS } from "@/utils/getFileType";
+import { formatSize } from "@/utils/formatSize";
+import { formatDate } from "@/utils/formatDate";
 const ACCEPT_STRING = [...ALLOWED_MIME_TYPES].join(",");
-
-type FilterType = "all" | "image" | "video" | "audio" | "document" | "other";
-
-const FILTERS: { value: FilterType; label: string }[] = [
-  { value: "all", label: "All" },
-  { value: "image", label: "Images" },
-  { value: "video", label: "Video" },
-  { value: "audio", label: "Audio" },
-  { value: "document", label: "Documents" },
-  { value: "other", label: "Other" },
-];
-
-function getFileType(mimeType?: string): FilterType {
-  if (!mimeType) return "other";
-  if (mimeType.startsWith("image/")) return "image";
-  if (mimeType.startsWith("video/")) return "video";
-  if (mimeType.startsWith("audio/")) return "audio";
-  if (
-    mimeType === "application/pdf" ||
-    mimeType.includes("word") ||
-    mimeType.includes("excel") ||
-    mimeType.includes("spreadsheet") ||
-    mimeType.includes("powerpoint") ||
-    mimeType.includes("presentation") ||
-    mimeType.includes("document") ||
-    mimeType === "text/plain" ||
-    mimeType === "text/csv"
-  )
-    return "document";
-  return "other";
-}
-
-function formatSize(bytes: number) {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
-}
-
-function formatDate(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString("en-GB", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
-}
 
 export const ImageDisplay = ({
   src,
@@ -80,6 +37,8 @@ export const ImageDisplay = ({
 }) => (
   // eslint-disable-next-line @next/next/no-img-element
   <img
+    draggable={false}
+    decoding="async"
     className={clsx("w-full h-full object-cover", className)}
     src={src}
     alt={alt}
@@ -123,7 +82,7 @@ export function MediaPicker({
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSelect: (item: MediaItem) => void;
+  onSelect?: (item: MediaItem) => void;
   accept?: FilterType;
 }) {
   const [items, setItems] = useState<MediaItem[]>([]);
@@ -178,6 +137,26 @@ export function MediaPicker({
     if (file) uploadFile(file);
   };
 
+  const handleDragEnter = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    if (e.dataTransfer.types.includes("Files")) {
+      setDragOver(true);
+    }
+  }, []);
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+  };
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    const related = e.relatedTarget as Node | null;
+    if (related && e.currentTarget.contains(related)) {
+      return;
+    }
+    setDragOver(false);
+  }, []);
+
   const handleDrop = useCallback(
     (e: React.DragEvent) => {
       e.preventDefault();
@@ -187,13 +166,6 @@ export function MediaPicker({
     },
     [uploadFile],
   );
-
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    setDragOver(true);
-  };
-
-  const handleDragLeave = () => setDragOver(false);
 
   const handleDelete = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -208,7 +180,7 @@ export function MediaPicker({
 
   const handleConfirm = () => {
     if (!selectedItem) return;
-    onSelect(selectedItem);
+    onSelect?.(selectedItem);
     onOpenChange(false);
     setSelected(null);
   };
@@ -216,16 +188,24 @@ export function MediaPicker({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="sm:max-w-5xl border-border p-0 gap-0 overflow-hidden"
+        className={clsx(
+          "sm:max-w-5xl w-[calc(100%-2rem)] border-border p-0 gap-0 overflow-hidden",
+          dragOver && "bg-primary/25 outline-dashed outline-primary outline-5",
+        )}
         onPointerDownOutside={(e) => e.preventDefault()}
         onInteractOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.stopPropagation()}
+        onDrop={handleDrop}
+        onDragEnter={handleDragEnter}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        draggable={false}
       >
         <DialogHeader className="px-5 pt-5 pb-0">
           <DialogTitle>Media library</DialogTitle>
         </DialogHeader>
         <div className="flex items-center justify-between gap-4 px-5 py-3 border-b border-border">
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 flex-wrap">
             {FILTERS.map((f) => (
               <button
                 key={f.value}
@@ -244,11 +224,11 @@ export function MediaPicker({
           <label
             className={clsx(
               "flex items-center gap-1.5 text-xs font-medium text-primary",
-              "hover:underline underline-offset-2 cursor-pointer transition-opacity",
+              "hover:underline underline-offset-2 cursor-pointer transition-opacity whitespace-nowrap",
               uploading && "opacity-50 pointer-events-none",
             )}
           >
-            <Upload className="w-3.5 h-3.5" />
+            <Upload className="w-3.5 h-3.5 min-w-3.5 min-h-3.5" />
             {uploading ? "Uploading..." : "Upload file"}
             <input
               ref={inputRef}
@@ -259,17 +239,13 @@ export function MediaPicker({
             />
           </label>
         </div>
-        <div className="flex h-130">
+        <div className="grid grid-cols-1 grid-rows-[1fr_max-content] h-130 w-full md:grid-rows-1 md:grid-cols-[1fr_max-content]">
           <div
             className={clsx(
-              "flex-1 overflow-y-auto p-4 transition-colors relative",
-              dragOver && "bg-primary/25",
+              "overflow-y-auto p-4 transition-colors relative w-full",
             )}
-            onDrop={handleDrop}
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
           >
-            {filtered.length === 0 ? (
+            {dragOver || filtered.length === 0 ? (
               <div className="h-full flex flex-col items-center justify-center gap-3 text-grey">
                 <Upload
                   className={clsx(
@@ -286,7 +262,7 @@ export function MediaPicker({
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-5 gap-2">
+              <div className="grid gap-2 grid-cols-2 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 w-full">
                 {filtered.map((item) => (
                   <div
                     key={item._id}
@@ -309,10 +285,10 @@ export function MediaPicker({
               </div>
             )}
           </div>
-          <div className="w-64 border-l border-border flex flex-col shrink-0">
-            {selectedItem ? (
+          <div className="h-auto md:h-full overflow-auto md:overflow-hidden w-full md:w-60 md:border-l md:border-border flex flex-col">
+            {!dragOver && selectedItem ? (
               <>
-                <div className="h-48 bg-muted flex items-center justify-center shrink-0 overflow-hidden">
+                <div className="hidden h-33.75 bg-muted md:flex items-center justify-center shrink-0 overflow-hidden">
                   {selectedItem.mimeType.startsWith("image/") ? (
                     <ImageDisplay
                       src={selectedItem.url}
@@ -326,7 +302,7 @@ export function MediaPicker({
                     />
                   )}
                 </div>
-                <div className="flex flex-col gap-3 p-4 overflow-y-auto flex-1">
+                <div className="grid grid-cols-2 md:grid-cols-1 gap-3 p-4 overflow-y-auto flex-1">
                   <div>
                     <p className="text-xs text-grey mb-0.5">Name</p>
                     <p className="text-sm text-foreground break-all">
@@ -377,14 +353,16 @@ export function MediaPicker({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button
-            onClick={handleConfirm}
-            disabled={
-              !selected || getFileType(selectedItem?.mimeType) !== accept
-            }
-          >
-            Select
-          </Button>
+          {onSelect && (
+            <Button
+              onClick={handleConfirm}
+              disabled={
+                !selected || getFileType(selectedItem?.mimeType) !== accept
+              }
+            >
+              Select
+            </Button>
+          )}
         </div>
       </DialogContent>
     </Dialog>

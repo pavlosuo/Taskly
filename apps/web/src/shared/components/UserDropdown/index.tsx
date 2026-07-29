@@ -22,7 +22,7 @@ import {
 import { ImageDisplay } from "@/shared/components/MediaPicker";
 
 export const UserDropdown = () => {
-  const { user, logout } = useUser();
+  const { user, logout, initials } = useUser();
 
   const menuItems = useMemo(() => {
     if (!user) return null;
@@ -53,12 +53,6 @@ export const UserDropdown = () => {
   }, [user]);
 
   if (!user) return null;
-
-  const initials = user.profile?.fullName
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase();
 
   return (
     <DropdownMenu>
@@ -112,7 +106,7 @@ export const UserDropdown = () => {
                   className="flex items-center gap-2 cursor-pointer"
                 >
                   <item.icon size={15} />
-                  <span>{item.label}</span>
+                  <span className="truncate font-normal">{item.label}</span>
                 </Link>
               </DropdownMenuItem>
             ))}
@@ -120,10 +114,10 @@ export const UserDropdown = () => {
         <DropdownMenuSeparator />
         <DropdownMenuItem
           onClick={logout}
-          className="flex items-center gap-2 cursor-pointer text-red focus:text-red focus:bg-red/10 hover:bg-red hover:text-red"
+          className="flex items-center gap-2 cursor-pointer text-red focus:text-red focus:bg-red hover:bg-red hover:text-red"
         >
           <LogOut size={15} />
-          <span>Log out</span>
+          <span className="truncate font-normal">Log out</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
