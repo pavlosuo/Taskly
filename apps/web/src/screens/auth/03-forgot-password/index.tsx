@@ -63,25 +63,64 @@ function useForgotPassword() {
 
 const PhoneStep = memo(function PhoneStep() {
   const { t } = useTranslation("forgotPassword");
+  const { t: tErrors } = useTranslation("errors");
   const { setStep, setPhone, goToEntry } = useForgotPassword();
-  const [phone, setLocalPhone] = useState("");
-  const [code, setCode] = useState("");
   const [error, setError] = useState("");
   const { sendPasswordResetOtp, isLoading } = useUser();
   const router = useRouter();
+  const [form, setForm] = useState<{
+    phone: string;
+    code: string;
+    fullPhone: string;
+  }>({
+    phone: "",
+    code: "",
+    fullPhone: "",
+  });
+
+  const buildFullPhone = useCallback(
+    (code: string, phone: string) =>
+      `${code ?? ""}${(phone ?? "").replace(/\s/g, "")}`,
+    [],
+  );
+
+  const handleLocalPhone = useCallback(
+    (phone: string) => {
+      setError("");
+      setForm((p) => ({
+        ...p,
+        phone,
+        fullPhone: buildFullPhone(p.code, phone),
+      }));
+    },
+    [buildFullPhone],
+  );
+
+  const handleCodeChange = useCallback(
+    (code: string) => {
+      setError("");
+      setForm((p) => ({
+        ...p,
+        code,
+        fullPhone: buildFullPhone(code, p.phone),
+      }));
+    },
+    [buildFullPhone],
+  );
 
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
       e.preventDefault();
+      const fullPhone = form.fullPhone;
       const result = sendResetOtpSchema.safeParse({
-        phone: code + phone.replace(/\s/g, ""),
+        fullPhone,
       });
       if (!result.success) {
-        setError(result.error.format().phone?._errors[0] ?? "");
+        const { fieldErrors, formErrors } = result.error.flatten();
+        setError(fieldErrors.fullPhone?.[0] ?? formErrors[0]);
         return;
       }
       try {
-        const fullPhone = code + phone.replace(/\s/g, "");
         await sendPasswordResetOtp(fullPhone);
         setPhone(fullPhone);
         setStep("otp");
@@ -89,7 +128,7 @@ const PhoneStep = memo(function PhoneStep() {
         setError(getAxiosError(err));
       }
     },
-    [phone, code, setStep, setPhone, sendPasswordResetOtp],
+    [form, setStep, setPhone, sendPasswordResetOtp],
   );
 
   return (
@@ -104,12 +143,12 @@ const PhoneStep = memo(function PhoneStep() {
           </Label>
           <PhoneInput
             error={error}
-            value={phone}
-            onChange={setLocalPhone}
-            setCode={setCode}
+            value={form.phone}
+            onChange={handleLocalPhone}
+            setCode={handleCodeChange}
             id="phone"
           />
-          <FieldError message={error} />
+          <FieldError message={error ? tErrors(error) : ""} />
         </div>
         <Button type="submit" disabled={isLoading}>
           {isLoading ? t("phone.submit.loading") : t("phone.submit.idle")}
@@ -125,6 +164,7 @@ const PhoneStep = memo(function PhoneStep() {
 });
 
 const EmailStep = memo(function EmailStep() {
+  const { t: tErrors } = useTranslation("errors");
   const { t } = useTranslation("forgotPassword");
   const { setStep, goToEntry } = useForgotPassword();
   const [email, setEmail] = useState("");
@@ -137,7 +177,8 @@ const EmailStep = memo(function EmailStep() {
       e.preventDefault();
       const result = forgotPasswordEmailSchema.safeParse({ email });
       if (!result.success) {
-        setError(result.error.format().email?._errors[0] ?? "");
+        const { fieldErrors, formErrors } = result.error.flatten();
+        setError(fieldErrors.email?.[0] ?? formErrors[0]);
         return;
       }
       try {
@@ -161,6 +202,7 @@ const EmailStep = memo(function EmailStep() {
             {t("email.label")}
           </Label>
           <Input
+            error={error}
             name="email"
             autoComplete="email"
             type="email"
@@ -171,7 +213,7 @@ const EmailStep = memo(function EmailStep() {
               setError("");
             }}
           />
-          <FieldError message={error} />
+          <FieldError message={error ? tErrors(error) : ""} />
         </div>
         <Button type="submit" disabled={isLoading}>
           {isLoading ? t("email.submit.loading") : t("email.submit.idle")}
@@ -191,6 +233,7 @@ const OtpStep = memo(function OtpStep() {
   const { phone, setStep, setResetToken } = useForgotPassword();
   const [digits, setDigits] = useState("");
   const [error, setError] = useState("");
+  const { t: tErrors } = useTranslation("errors");
   const { sendPasswordResetOtp, verifyPasswordResetOtp, isLoading } = useUser();
   const router = useRouter();
 
@@ -199,7 +242,8 @@ const OtpStep = memo(function OtpStep() {
       e.preventDefault();
       const result = otpSchema.safeParse({ otp: digits });
       if (!result.success) {
-        setError(result.error.format().otp?._errors[0] ?? "");
+        const { fieldErrors, formErrors } = result.error.flatten();
+        setError(fieldErrors.otp?.[0] ?? formErrors[0]);
         return;
       }
       try {
@@ -243,7 +287,7 @@ const OtpStep = memo(function OtpStep() {
               ))}
             </InputOTPGroup>
           </InputOTP>
-          <FieldError message={error} />
+          <FieldError message={error ? tErrors(error) : ""} />
         </div>
         <p className="text-sm text-gray">
           {t("otp.resendText")}{" "}
@@ -299,6 +343,7 @@ const EmailSentStep = memo(function EmailSentStep() {
 const NewPasswordStep = memo(function NewPasswordStep() {
   const { t } = useTranslation("forgotPassword");
   const { resetToken, setStep } = useForgotPassword();
+  const { t: tErrors } = useTranslation("errors");
   const [form, setForm] = useState<NewPasswordForm>({
     password: "",
     confirm: "",
@@ -323,10 +368,11 @@ const NewPasswordStep = memo(function NewPasswordStep() {
       e.preventDefault();
       const result = newPasswordSchema.safeParse(form);
       if (!result.success) {
-        const fmt = result.error.format();
+        const { fieldErrors, formErrors } = result.error.flatten();
         setErrors({
-          password: fmt.password?._errors[0],
-          confirm: fmt.confirm?._errors[0] ?? fmt._errors[0],
+          password: fieldErrors.password?.[0],
+          confirm: fieldErrors.confirm?.[0],
+          general: formErrors[0],
         });
         return;
       }
@@ -345,13 +391,14 @@ const NewPasswordStep = memo(function NewPasswordStep() {
       <Title>{t("newPassword.title")}</Title>
       <p className="text-sm text-gray mb-8">{t("newPassword.subtitle")}</p>
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        {(["password", "confirm"] as const).map((field) => (
+        {(["password", "confirm"] as const).map((field, i) => (
           <div key={field} className="form-group">
             <Label htmlFor={field} error={!!errors[field]}>
               {t(`newPassword.fields.${field}`)}
             </Label>
             <div className="relative">
               <Input
+                error={errors[field]}
                 name={field}
                 type={show[field] ? "text" : "password"}
                 placeholder={t(`newPassword.fields.${field}`)}
@@ -366,10 +413,20 @@ const NewPasswordStep = memo(function NewPasswordStep() {
             </div>
             {field === "password" && strength && form.password && (
               <p className={clsx("text-xs mt-1 font-medium", strength.color)}>
-                {strength.tips[0] ?? strength.label}
+                {tErrors(strength.tips[0] ?? strength.label)}
               </p>
             )}
-            <FieldError message={errors[field]} />
+            {errors["confirm"] && i === 0 && (
+              <FieldError
+                message={errors["confirm"] ? tErrors(errors["confirm"]) : ""}
+              />
+            )}
+            {!errors["confirm"] && (
+              <FieldError
+                message={errors[field] ? tErrors(errors[field]) : ""}
+              />
+            )}
+            <FieldError message={errors[field] ? tErrors(errors[field]) : ""} />
           </div>
         ))}
         <div className="bg-primary/5 px-4 py-3 flex gap-1 flex-col">

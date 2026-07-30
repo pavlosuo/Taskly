@@ -23,6 +23,7 @@ import { FlyingParticles } from "@/shared/components/FlyingParticles";
 
 export function Register() {
   const { t } = useTranslation("register");
+  const { t: tErrors } = useTranslation("errors");
   const { register, isLoading } = useUser();
   const router = useRouter();
   const [step, setStep] = useState<"role" | "form">("role");
@@ -276,6 +277,7 @@ export function Register() {
                   />
                 ) : (
                   <Input
+                    error={error}
                     type={type}
                     name={name}
                     autoComplete={autoComplete}
@@ -284,13 +286,14 @@ export function Register() {
                     onChange={handleChange(name)}
                   />
                 )}
-                <FieldError message={error} />
+                <FieldError message={error ? tErrors(error) : ""} />
               </div>
             );
           },
         )}
-        {(["password", "confirm"] as const).map((field) => {
+        {(["password", "confirm"] as const).map((field, i) => {
           const error = errors[field] as string;
+          const confirmError = errors.confirm as string;
           return (
             <div key={field} className="form-group col-span-1">
               <Label htmlFor={field} error={!!error}>
@@ -298,6 +301,7 @@ export function Register() {
               </Label>
               <div className="relative">
                 <Input
+                  error={error}
                   name={field}
                   autoComplete="off"
                   type={show[field] ? "text" : "password"}
@@ -313,12 +317,19 @@ export function Register() {
                   }
                 />
               </div>
-              {field === "password" && strength && (
+              {field === "password" && strength && !confirmError && (
                 <p className={clsx("text-xs mt-1 font-medium", strength.color)}>
-                  {t(strength.tips[0]) ?? t(strength.label)}
+                  {tErrors(strength.tips[0] ?? strength.label)}
                 </p>
               )}
-              <FieldError message={t(error)} />
+              {confirmError && i === 0 && (
+                <FieldError
+                  message={confirmError ? tErrors(confirmError) : ""}
+                />
+              )}
+              {!confirmError && (
+                <FieldError message={error ? tErrors(error) : ""} />
+              )}
             </div>
           );
         })}

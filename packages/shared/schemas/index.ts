@@ -29,7 +29,7 @@ const phoneField = z.string().superRefine((value, ctx) => {
   if (!value.trim()) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
-      message: "errors.phone.required",
+      message: "phone.required",
     });
     return;
   }
@@ -38,7 +38,7 @@ const phoneField = z.string().superRefine((value, ctx) => {
     if (!phoneUtil.isValidNumber(phone)) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: "errors.phone.invalid",
+        message: "phone.invalid",
       });
     }
   } catch (e) {
@@ -47,22 +47,19 @@ const phoneField = z.string().superRefine((value, ctx) => {
       code: z.ZodIssueCode.custom,
       message:
         err.message === "The string supplied is too short to be a phone number"
-          ? "errors.phone.required"
-          : "errors.phone.invalid",
+          ? "phone.required"
+          : "phone.invalid",
     });
   }
 });
 
 const emailField = z
   .string()
-  .min(1, "errors.email.required")
-  .max(254, "errors.email.tooLong")
-  .refine((val) => !val.includes(" "), "errors.email.noSpaces")
-  .refine(
-    (val) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val),
-    "errors.email.noDomain",
-  )
-  .email("errors.email.invalid");
+  .min(1, "email.required")
+  .max(254, "email.tooLong")
+  .refine((val) => !val.includes(" "), "email.noSpaces")
+  .refine((val) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val), "email.noDomain")
+  .email("email.invalid");
 
 const passwordField = z.string().superRefine((val, ctx) => {
   const result = validatePassword(val);
@@ -71,40 +68,37 @@ const passwordField = z.string().superRefine((val, ctx) => {
   }
 });
 
-const confirmPasswordField = z.string().min(1, "errors.confirm.required");
+const confirmPasswordField = z.string().min(1, "confirm.required");
 
 const usernameField = z
   .string()
-  .min(1, "errors.username.required")
-  .min(3, "errors.username.tooShort")
-  .max(30, "errors.username.tooLong")
-  .refine(
-    (val) => /^[a-zA-Z0-9_.-]+$/.test(val),
-    "errors.username.invalidChars",
-  )
-  .refine((val) => /^[a-zA-Z0-9]/.test(val), "errors.username.invalidStart")
-  .refine((val) => /[a-zA-Z0-9]$/.test(val), "errors.username.invalidEnd");
+  .min(1, "username.required")
+  .min(3, "username.tooShort")
+  .max(30, "username.tooLong")
+  .refine((val) => /^[a-zA-Z0-9_.-]+$/.test(val), "username.invalidChars")
+  .refine((val) => /^[a-zA-Z0-9]/.test(val), "username.invalidStart")
+  .refine((val) => /[a-zA-Z0-9]$/.test(val), "username.invalidEnd");
 
 const otpField = z
   .string()
-  .min(1, "errors.otp.required")
-  .length(6, "errors.otp.invalidLength")
-  .refine((val) => /^\d+$/.test(val), "errors.otp.digitsOnly");
+  .min(1, "otp.required")
+  .length(6, "otp.invalidLength")
+  .refine((val) => /^\d+$/.test(val), "otp.digitsOnly");
 
 export const fullNameSchema = z
   .string()
-  .min(1, "errors.fullName.required")
-  .min(2, "errors.fullName.tooShort")
-  .max(100, "errors.fullName.tooLong")
-  .refine((val) => /^[a-zA-Z\s'-]+$/.test(val), "errors.fullName.invalidChars")
-  .refine((val) => val.trim().includes(" "), "errors.fullName.missingLastName");
+  .min(1, "fullName.required")
+  .min(2, "fullName.tooShort")
+  .max(100, "fullName.tooLong")
+  .refine((val) => /^[a-zA-Z\s'-]+$/.test(val), "fullName.invalidChars")
+  .refine((val) => val.trim().includes(" "), "fullName.missingLastName");
 
 const payoutSchema: z.ZodType<Payout> = z.object({
   iban: z
     .string()
-    .regex(/^FI\d{16}$/, "errors.iban.invalidFormat")
-    .refine(validateIban, { message: "errors.iban.invalid" }),
-  bankName: z.enum(finnishBankValues, { message: "errors.bankName.invalid" }),
+    .regex(/^FI\d{16}$/, "iban.invalidFormat")
+    .refine(validateIban, { message: "iban.invalid" }),
+  bankName: z.enum(finnishBankValues, { message: "bankName.invalid" }),
 });
 
 const publicProfileLangSchema: z.ZodType<PublicProfileLang> = z.object({
@@ -160,8 +154,8 @@ export const registerSchema: z.ZodType<RegisterForm> = z
     fullName: fullNameSchema,
     username: usernameField,
     fullPhone: phoneField,
-    phone: z.string().min(1, "errors.phone.required"),
-    code: z.string().min(1, "errors.code.required"),
+    phone: z.string().min(1, "phone.required"),
+    code: z.string().min(1, "code.required"),
     email: emailField,
     password: passwordField,
     confirm: confirmPasswordField,
@@ -171,7 +165,7 @@ export const registerSchema: z.ZodType<RegisterForm> = z
     ]),
   })
   .refine((data) => data.password === data.confirm, {
-    message: "errors.confirm.mismatch",
+    message: "confirm.mismatch",
     path: ["confirm"],
   }) as z.ZodType<RegisterForm>;
 
@@ -181,7 +175,7 @@ export const newPasswordSchema: z.ZodType<NewPasswordForm> = z
     confirm: confirmPasswordField,
   })
   .refine((data) => data.password === data.confirm, {
-    message: "errors.confirm.mismatch",
+    message: "confirm.mismatch",
     path: ["confirm"],
   }) as z.ZodType<NewPasswordForm>;
 
@@ -189,8 +183,8 @@ export const updateProfileSchema: z.ZodType<UpdateProfileForm> = z.object({
   username: usernameField.optional(),
   fullName: fullNameSchema.optional(),
   fullPhone: phoneField.optional(),
-  phone: z.string().min(1, "errors.phone.required").optional(),
-  code: z.string().min(1, "errors.code.required").optional(),
+  phone: z.string().min(1, "phone.required").optional(),
+  code: z.string().min(1, "code.required").optional(),
   email: emailField.optional(),
   avatar: z.string().optional(),
   payout: payoutSchema.optional(),
@@ -203,10 +197,7 @@ export const otpSchema = z.object({
 });
 
 export const resetPasswordSchema = z.object({
-  token: z
-    .string()
-    .min(1, "errors.token.required")
-    .min(10, "errors.token.invalid"),
+  token: z.string().min(1, "token.required").min(10, "token.invalid"),
   password: passwordField,
 });
 
@@ -215,11 +206,11 @@ export const forgotPasswordEmailSchema = z.object({
 });
 
 export const sendResetOtpSchema = z.object({
-  phone: phoneField,
+  fullPhone: phoneField,
 });
 
 export const verifyResetOtpSchema = z.object({
-  phone: phoneField,
+  fullPhone: phoneField,
   otp: otpField,
 });
 
@@ -232,7 +223,7 @@ export const adminRegisterSchema = z.object({
 export const sendOtpSchema = z.discriminatedUnion("purpose", [
   z.object({ purpose: z.literal("verify-email") }),
   z.object({ purpose: z.literal("verify-phone") }),
-  z.object({ purpose: z.literal("reset-password"), phone: phoneField }),
+  z.object({ purpose: z.literal("reset-password"), fullPhone: phoneField }),
 ]);
 
 export const changePasswordSchema = z

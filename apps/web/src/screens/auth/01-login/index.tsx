@@ -19,6 +19,7 @@ import clsx from "clsx";
 
 export function Login() {
   const { t } = useTranslation("login");
+  const { t: tErrors } = useTranslation("errors");
   const { login, isLoading } = useUser();
   const router = useRouter();
   const [form, setForm] = useState<LoginForm>({ email: "", password: "" });
@@ -66,6 +67,7 @@ export function Login() {
             {t("email.label")}
           </Label>
           <Input
+            error={errors.email}
             name="email"
             autoComplete="email"
             type="text"
@@ -73,7 +75,7 @@ export function Login() {
             value={form.email}
             onChange={handleChange("email")}
           />
-          <FieldError message={errors.email} />
+          <FieldError message={errors.email ? tErrors(errors.email) : ""} />
         </div>
         <div className="form-group">
           <Label htmlFor="password" error={!!errors.password}>
@@ -81,6 +83,7 @@ export function Login() {
           </Label>
           <div className="relative">
             <Input
+              error={errors.email}
               name="password"
               type={showPassword ? "text" : "password"}
               placeholder={t("password.placeholder")}
@@ -93,7 +96,9 @@ export function Login() {
               onToggle={() => setShowPassword((v) => !v)}
             />
           </div>
-          <FieldError message={errors.password} />
+          <FieldError
+            message={errors.password ? tErrors(errors.password) : ""}
+          />
           <div className="flex justify-end mt-1.5">
             <button
               type="button"

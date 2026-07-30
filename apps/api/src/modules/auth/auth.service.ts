@@ -60,6 +60,14 @@ export class AuthService {
           data: {},
         };
       const passwordHash = await bcrypt.hash(password, 10);
+
+      const initials = (fullName ?? username ?? "")
+        .split(" ")
+        .map((w) => w[0])
+        .join("")
+        .toUpperCase()
+        .slice(0, 2);
+
       const doc = {
         username,
         email,
@@ -81,6 +89,7 @@ export class AuthService {
           code,
           fullPhone,
           avatar: "",
+          initials: initials,
         },
         settings: {
           lang: "en",
@@ -194,11 +203,11 @@ export class AuthService {
       };
 
     try {
-      const { phone, otp } = parsed.data;
+      const { fullPhone, otp } = parsed.data;
       const db = await this.server.getDb();
       const user = await db
         .collection("users")
-        .findOne({ "profile.fullPhone": phone });
+        .findOne({ "profile.fullPhone": fullPhone });
       if (!user)
         return { success: false, status: 400, message: "No OTP requested." };
 

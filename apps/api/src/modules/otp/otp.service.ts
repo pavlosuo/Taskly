@@ -22,6 +22,7 @@ export class OtpService {
     user: User | undefined,
     body: unknown,
   ): Promise<ServiceResult> {
+    console.log(body);
     const parsed = sendOtpSchema.safeParse(body);
 
     if (!parsed.success)
@@ -62,14 +63,14 @@ export class OtpService {
     const db = await this.server.getDb();
     const found = await db
       .collection("users")
-      .findOne({ "profile.fullPhone": data.phone });
+      .findOne({ "profile.fullPhone": data.fullPhone });
     if (!found) return { success: true, status: 200, data: {} };
 
     return this.send({
       userId: found._id,
       purpose: "reset-password",
       channel: "phone",
-      destination: data.phone,
+      destination: data.fullPhone,
     });
   }
 

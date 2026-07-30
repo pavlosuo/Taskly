@@ -28,6 +28,7 @@ export function AppSidebar() {
         {
           label: "Media Library",
           icon: ImagePlus,
+          href: "/media-library",
           onClick: () => {
             openPicker({});
           },
@@ -47,20 +48,20 @@ export function AppSidebar() {
             {navItems &&
               navItems.map(({ label, href, icon: Icon, onClick }) => (
                 <li key={href}>
-                  {href ? (
+                  {!onClick ? (
                     <Link
                       href={href}
-                      className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-foreground hover:bg-primary hover:text-white transition-colors group"
+                      className="flex w-full items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-foreground hover:bg-primary hover:text-white transition-colors group"
                     >
                       <Icon className="shrink-0 w-4 h-4" />
                       <span>{label}</span>
                     </Link>
                   ) : (
                     <button
-                      key={label}
+                      key={href}
                       type="button"
                       onClick={onClick}
-                      className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-foreground hover:bg-primary hover:text-white transition-colors group"
+                      className="flex w-full items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-foreground hover:bg-primary hover:text-white transition-colors group"
                     >
                       <Icon className="shrink-0 w-4 h-4" />
                       <span>{label}</span>

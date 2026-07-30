@@ -19,7 +19,6 @@ import { redirect } from "next/navigation";
 
 interface UserContextType {
   user: PublicUser | null;
-  initials: string | null;
   isLoading: boolean;
   setUser: (user: PublicUser | null) => void;
   login: (payload: LoginForm) => Promise<AuthResponse>;
@@ -138,10 +137,10 @@ export const UserProvider = ({
     }
   }, []);
 
-  const sendPasswordResetOtp = useCallback(async () => {
+  const sendPasswordResetOtp = useCallback(async (fullPhone: string) => {
     try {
       setIsLoading(true);
-      await axiosApi.sendOtp("reset-password");
+      await axiosApi.sendOtp("reset-password", { fullPhone });
     } catch (error) {
       throw error;
     } finally {
@@ -150,10 +149,10 @@ export const UserProvider = ({
   }, []);
 
   const verifyPasswordResetOtp = useCallback(
-    async (phone: string, otp: string) => {
+    async (fullPhone: string, otp: string) => {
       try {
         setIsLoading(true);
-        const { data } = await axiosApi.verifyPasswordResetOtp(phone, otp);
+        const { data } = await axiosApi.verifyPasswordResetOtp(fullPhone, otp);
         return data.resetToken;
       } catch (error) {
         throw error;
@@ -225,18 +224,10 @@ export const UserProvider = ({
     [],
   );
 
-  const initials = ((user?.profile?.fullName ?? user?.username) as string)
-    .split(" ")
-    .map((w) => w[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2);
-
   return (
     <UserContext.Provider
       value={{
         user,
-        initials,
         isLoading,
         setUser,
         login,

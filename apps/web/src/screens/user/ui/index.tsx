@@ -313,13 +313,6 @@ export function PersonalInfoCard({
     (e: React.ChangeEvent<HTMLInputElement>) =>
       setForm((p) => ({ ...p, [field]: e.target.value }));
 
-  const handleLocalPhone = (phone: string) =>
-    setForm((p) => ({
-      ...p,
-      phone,
-      fullPhone: p.code + phone.replace(/\s/g, ""),
-    }));
-
   const openDialog = () => {
     setForm(buildForm());
     setError("");
@@ -380,6 +373,36 @@ export function PersonalInfoCard({
       setError(getAxiosError(e));
     }
   };
+
+  const buildFullPhone = useCallback(
+    (code: string, phone: string) =>
+      `${code ?? ""}${(phone ?? "").replace(/\s/g, "")}`,
+    [],
+  );
+
+  const handleLocalPhone = useCallback(
+    (phone: string) => {
+      setError("");
+      setForm((p) => ({
+        ...p,
+        phone,
+        fullPhone: buildFullPhone(p.code ?? "", phone),
+      }));
+    },
+    [buildFullPhone],
+  );
+
+  const handleCodeChange = useCallback(
+    (code: string) => {
+      setError("");
+      setForm((p) => ({
+        ...p,
+        code,
+        fullPhone: buildFullPhone(code, p.phone),
+      }));
+    },
+    [buildFullPhone],
+  );
 
   if (!user) return null;
 
@@ -493,7 +516,7 @@ export function PersonalInfoCard({
                 >
                   <PhoneInput
                     code={form.code}
-                    setCode={(code: string) => setForm((p) => ({ ...p, code }))}
+                    setCode={handleCodeChange}
                     value={form.phone}
                     onChange={handleLocalPhone}
                     id="phone"
@@ -1196,7 +1219,7 @@ export function PublicProfileCard() {
 }
 
 export function AvatarCard() {
-  const { user, updateProfile, initials } = useUser();
+  const { user, updateProfile } = useUser();
   const { openPicker } = useMediaPicker();
 
   if (!user) return null;
@@ -1226,7 +1249,7 @@ export function AvatarCard() {
             </div>
           ) : (
             <div className="w-16 h-16 rounded-full bg-primary flex items-center justify-center text-white text-lg font-medium shrink-0">
-              {initials}
+              {user.profile?.initials}
             </div>
           )}
           <div>

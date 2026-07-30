@@ -29,10 +29,10 @@ export const axiosApi = {
 
   logout: () => api.post("/api/auth/logout"),
 
-  verifyPasswordResetOtp: (phone: string, otp: string) =>
+  verifyPasswordResetOtp: (fullPhone: string, otp: string) =>
     api.post<{ success: boolean; resetToken: string }>(
       "/api/auth/otp/verify-password-reset",
-      { phone, otp },
+      { fullPhone, otp },
     ),
 
   sendPasswordResetLink: (email: string) =>
@@ -64,7 +64,7 @@ export const axiosApi = {
   verifyPhoneOtp: (otp: string) =>
     api.post<AuthResponse>("/api/profile/phone/verify-otp", { otp }),
 
-  sendOtp: (purpose: OtpPurpose, data?: { phone?: string }) =>
+  sendOtp: (purpose: OtpPurpose, data?: { fullPhone?: string }) =>
     api.post<{ success: boolean; message: string }>("/api/otp/send", {
       purpose,
       ...(data ? data : {}),

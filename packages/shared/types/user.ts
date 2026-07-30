@@ -43,6 +43,7 @@ export interface UserProfile {
   newPhone?: string;
   newFullPhone?: string;
   newCode?: string;
+  initials: string;
 }
 
 export interface PublicProfile {

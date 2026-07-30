@@ -74,9 +74,8 @@ export function ImagePanel() {
 }
 
 export function FieldError({ message }: { message?: string }) {
-  const { t } = useTranslation("errors");
   if (!message) return null;
-  return <p className="text-xs text-red mt-1">{message ? t(message) : ""}</p>;
+  return <p className="text-xs text-red mt-1">{message}</p>;
 }
 
 export const PasswordToggle = memo(function PasswordToggle({

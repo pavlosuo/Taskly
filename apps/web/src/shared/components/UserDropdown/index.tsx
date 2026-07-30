@@ -22,7 +22,7 @@ import {
 import { ImageDisplay } from "@/shared/components/MediaPicker";
 
 export const UserDropdown = () => {
-  const { user, logout, initials } = useUser();
+  const { user, logout } = useUser();
 
   const menuItems = useMemo(() => {
     if (!user) return null;
@@ -66,7 +66,7 @@ export const UserDropdown = () => {
                 className="rounded-full object-cover"
               />
             ) : (
-              initials
+              user.profile?.initials
             )}
           </div>
           <div className="flex-1 min-w-0">

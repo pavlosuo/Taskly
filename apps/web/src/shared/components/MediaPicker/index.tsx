@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useHotkeys } from "react-hotkeys-hook";
 import {
   Upload,
   Trash2,
@@ -87,12 +88,19 @@ export function MediaPicker({
 }) {
   const [items, setItems] = useState<MediaItem[]>([]);
   const [filter, setFilter] = useState<FilterType>(accept);
-  const [selected, setSelected] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [anchorIndex, setAnchorIndex] = useState<number | null>(null);
+  const [focusIndex, setFocusIndex] = useState<number>(0);
   const [uploading, setUploading] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const [error, setError] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
-  const selectedItem = items.find((i) => i._id === selected) ?? null;
+  const gridRef = useRef<HTMLDivElement>(null);
+
+  const selectedItem =
+    selectedIds.size === 1
+      ? (items.find((i) => i._id === [...selectedIds][0]) ?? null)
+      : null;
 
   useEffect(() => {
     if (!open) return;
@@ -100,16 +108,34 @@ export function MediaPicker({
   }, [open]);
 
   useEffect(() => {
-    if (open) {
-      requestAnimationFrame(() => {
-        setFilter(accept === "image" ? "image" : "all");
-      });
-    }
+    requestAnimationFrame(() => {
+      if (open) {
+        setFilter(accept);
+      } else {
+        setSelectedIds(new Set());
+        setAnchorIndex(null);
+        setFocusIndex(0);
+      }
+    });
   }, [open, accept]);
 
   const filtered = items.filter((item) =>
     filter === "all" ? true : getFileType(item.mimeType) === filter,
   );
+
+  const handleFilterChange = (next: FilterType) => {
+    setFilter(next);
+    const nextFiltered = items.filter((item) =>
+      next === "all" ? true : getFileType(item.mimeType) === next,
+    );
+    setSelectedIds((prev) => {
+      const kept = new Set(
+        [...prev].filter((id) => nextFiltered.some((f) => f._id === id)),
+      );
+      return kept.size === prev.size ? prev : kept;
+    });
+    setFocusIndex((i) => Math.min(i, Math.max(nextFiltered.length - 1, 0)));
+  };
 
   const uploadFile = useCallback(async (file: File) => {
     if (!ALLOWED_MIME_TYPES.has(file.type)) {
@@ -123,7 +149,7 @@ export function MediaPicker({
       const { data } = await axiosApi.uploadMedia(file);
       const newItem = data.data.media;
       setItems((p) => [newItem, ...p]);
-      setSelected(newItem._id);
+      setSelectedIds(new Set([newItem._id]));
     } catch (e) {
       setError(getAxiosError(e));
     } finally {
@@ -167,23 +193,189 @@ export function MediaPicker({
     [uploadFile],
   );
 
-  const handleDelete = async (id: string, e: React.MouseEvent) => {
-    e.stopPropagation();
+  useEffect(() => {
+    const reset = () => setDragOver(false);
+    document.addEventListener("dragend", reset);
+    document.addEventListener("drop", reset);
+    return () => {
+      document.removeEventListener("dragend", reset);
+      document.removeEventListener("drop", reset);
+    };
+  }, []);
+
+  const deleteIds = useCallback(async (ids: string[]) => {
+    if (ids.length === 0) return;
     try {
-      await axiosApi.deleteMedia(id);
-      setItems((p) => p.filter((i) => i._id !== id));
-      if (selected === id) setSelected(null);
+      await Promise.all(ids.map((id) => axiosApi.deleteMedia(id)));
+      setItems((p) => p.filter((i) => !ids.includes(i._id)));
+      setSelectedIds((prev) => {
+        const next = new Set(prev);
+        ids.forEach((id) => next.delete(id));
+        return next;
+      });
     } catch (e) {
       setError(getAxiosError(e));
     }
-  };
+  }, []);
 
-  const handleConfirm = () => {
+  const handleDeleteSelected = useCallback(
+    (e?: React.MouseEvent) => {
+      e?.stopPropagation();
+      deleteIds([...selectedIds]);
+    },
+    [selectedIds, deleteIds],
+  );
+
+  const handleConfirm = useCallback(() => {
     if (!selectedItem) return;
     onSelect?.(selectedItem);
     onOpenChange(false);
-    setSelected(null);
+    setSelectedIds(new Set());
+  }, [selectedItem, onSelect, onOpenChange]);
+
+  const selectRange = (fromIndex: number, toIndex: number) => {
+    const start = Math.min(fromIndex, toIndex);
+    const end = Math.max(fromIndex, toIndex);
+    setSelectedIds(new Set(filtered.slice(start, end + 1).map((i) => i._id)));
   };
+
+  const handleItemClick = (id: string, index: number, e: React.MouseEvent) => {
+    if (e.shiftKey && anchorIndex !== null) {
+      selectRange(anchorIndex, index);
+    } else if (e.metaKey || e.ctrlKey) {
+      setSelectedIds((prev) => {
+        const next = new Set(prev);
+        if (next.has(id)) next.delete(id);
+        else next.add(id);
+        return next;
+      });
+      setAnchorIndex(index);
+    } else {
+      setSelectedIds(new Set([id]));
+      setAnchorIndex(index);
+    }
+    setFocusIndex(index);
+  };
+
+  const handleBackgroundClick = (e: React.MouseEvent) => {
+    if (e.target === e.currentTarget) {
+      setSelectedIds(new Set());
+    }
+  };
+
+  const getColumnCount = () => {
+    if (!gridRef.current) return 1;
+    const cols = window
+      .getComputedStyle(gridRef.current)
+      .gridTemplateColumns.split(" ").length;
+    return cols || 1;
+  };
+
+  const moveFocus = (nextIndex: number, extend: boolean) => {
+    if (filtered.length === 0) return;
+    const clamped = Math.max(0, Math.min(nextIndex, filtered.length - 1));
+    setFocusIndex(clamped);
+    const id = filtered[clamped]._id;
+    if (extend) {
+      selectRange(anchorIndex ?? clamped, clamped);
+    } else {
+      setSelectedIds(new Set([id]));
+      setAnchorIndex(clamped);
+    }
+  };
+
+  const hotkeyOpts = { enabled: open, enableOnFormTags: false };
+
+  useHotkeys(
+    "mod+a",
+    (e) => {
+      e.preventDefault();
+      setSelectedIds(new Set(filtered.map((i) => i._id)));
+    },
+    hotkeyOpts,
+    [filtered],
+  );
+
+  useHotkeys("escape", () => setSelectedIds(new Set()), hotkeyOpts);
+
+  useHotkeys(
+    "delete, backspace",
+    (e) => {
+      e.preventDefault();
+      if (selectedIds.size > 0) handleDeleteSelected();
+    },
+    hotkeyOpts,
+    [selectedIds, handleDeleteSelected],
+  );
+
+  useHotkeys(
+    "enter",
+    () => {
+      if (selectedIds.size === 1) handleConfirm();
+    },
+    hotkeyOpts,
+    [selectedIds, handleConfirm],
+  );
+
+  useHotkeys(
+    "right",
+    (e) => {
+      e.preventDefault();
+      moveFocus(focusIndex + 1, e.shiftKey);
+    },
+    hotkeyOpts,
+    [focusIndex, filtered, anchorIndex],
+  );
+
+  useHotkeys(
+    "left",
+    (e) => {
+      e.preventDefault();
+      moveFocus(focusIndex - 1, e.shiftKey);
+    },
+    hotkeyOpts,
+    [focusIndex, filtered, anchorIndex],
+  );
+
+  useHotkeys(
+    "down",
+    (e) => {
+      e.preventDefault();
+      moveFocus(focusIndex + getColumnCount(), e.shiftKey);
+    },
+    hotkeyOpts,
+    [focusIndex, filtered, anchorIndex],
+  );
+
+  useHotkeys(
+    "up",
+    (e) => {
+      e.preventDefault();
+      moveFocus(focusIndex - getColumnCount(), e.shiftKey);
+    },
+    hotkeyOpts,
+    [focusIndex, filtered, anchorIndex],
+  );
+
+  useHotkeys(
+    "home",
+    (e) => {
+      e.preventDefault();
+      moveFocus(0, e.shiftKey);
+    },
+    hotkeyOpts,
+    [filtered, anchorIndex],
+  );
+
+  useHotkeys(
+    "end",
+    (e) => {
+      e.preventDefault();
+      moveFocus(filtered.length - 1, e.shiftKey);
+    },
+    hotkeyOpts,
+    [filtered, anchorIndex],
+  );
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -209,7 +401,7 @@ export function MediaPicker({
             {FILTERS.map((f) => (
               <button
                 key={f.value}
-                onClick={() => setFilter(f.value)}
+                onClick={() => handleFilterChange(f.value)}
                 className={clsx(
                   "text-xs px-3 py-1.5 rounded-lg transition-colors",
                   filter === f.value
@@ -234,16 +426,16 @@ export function MediaPicker({
               ref={inputRef}
               type="file"
               className="hidden"
-              accept={accept === "image" ? "image/*" : ACCEPT_STRING}
+              multiple
+              accept={ACCEPT_STRING}
               onChange={handleUpload}
             />
           </label>
         </div>
         <div className="grid grid-cols-1 grid-rows-[1fr_max-content] h-130 w-full md:grid-rows-1 md:grid-cols-[1fr_max-content]">
           <div
-            className={clsx(
-              "overflow-y-auto p-4 transition-colors relative w-full",
-            )}
+            className="overflow-y-auto p-4 transition-colors relative w-full"
+            onClick={handleBackgroundClick}
           >
             {dragOver || filtered.length === 0 ? (
               <div className="h-full flex flex-col items-center justify-center gap-3 text-grey">
@@ -262,31 +454,48 @@ export function MediaPicker({
                 </p>
               </div>
             ) : (
-              <div className="grid gap-2 grid-cols-2 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 w-full">
-                {filtered.map((item) => (
-                  <div
-                    key={item._id}
-                    onClick={() => setSelected(item._id)}
-                    className={clsx(
-                      "relative aspect-square border-2 rounded-lg cursor-pointer overflow-hidden group transition-all",
-                      selected === item._id
-                        ? "border-primary"
-                        : "border-transparent hover:border-border",
-                    )}
-                  >
-                    <FileThumbnail item={item} />
-                    {selected === item._id && (
-                      <div className="absolute top-1.5 left-1.5 w-5 h-5 rounded-full bg-primary flex items-center justify-center">
-                        <Check className="w-3 h-3 text-white" />
-                      </div>
-                    )}
-                  </div>
-                ))}
+              <div
+                ref={gridRef}
+                className="grid gap-2 grid-cols-2 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 w-full"
+              >
+                {filtered.map((item, index) => {
+                  const isSelected = selectedIds.has(item._id);
+                  const isFocused = index === focusIndex;
+                  return (
+                    <div
+                      key={item._id}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleItemClick(item._id, index, e);
+                      }}
+                      onDoubleClick={() => {
+                        setSelectedIds(new Set([item._id]));
+                        handleConfirm();
+                      }}
+                      className={clsx(
+                        "relative aspect-square border-2 rounded-lg cursor-pointer overflow-hidden group transition-all",
+                        isSelected
+                          ? "border-primary"
+                          : "border-transparent hover:border-border",
+                        isFocused &&
+                          !isSelected &&
+                          "outline-2 outline-offset-1 outline-primary/40",
+                      )}
+                    >
+                      <FileThumbnail item={item} />
+                      {isSelected && (
+                        <div className="absolute top-1.5 left-1.5 w-5 h-5 rounded-full bg-primary flex items-center justify-center">
+                          <Check className="w-3 h-3 text-white" />
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
           <div className="h-auto md:h-full overflow-auto md:overflow-hidden w-full md:w-60 md:border-l md:border-border flex flex-col">
-            {!dragOver && selectedItem ? (
+            {!dragOver && selectedIds.size === 1 && selectedItem ? (
               <>
                 <div className="hidden h-33.75 bg-muted md:flex items-center justify-center shrink-0 overflow-hidden">
                   {selectedItem.mimeType.startsWith("image/") ? (
@@ -328,7 +537,7 @@ export function MediaPicker({
                     </p>
                   </div>
                   <button
-                    onClick={(e) => handleDelete(selectedItem._id, e)}
+                    onClick={handleDeleteSelected}
                     className="flex items-center gap-1.5 text-xs text-red hover:underline mt-auto pt-2"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
@@ -336,6 +545,20 @@ export function MediaPicker({
                   </button>
                 </div>
               </>
+            ) : !dragOver && selectedIds.size > 1 ? (
+              <div className="flex-1 flex flex-col items-center justify-center p-6 gap-3 text-center">
+                <Check className="w-10 h-10 text-primary" />
+                <p className="text-sm text-foreground">
+                  {selectedIds.size} files selected
+                </p>
+                <button
+                  onClick={handleDeleteSelected}
+                  className="flex items-center gap-1.5 text-xs text-red hover:underline"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  Delete all selected
+                </button>
+              </div>
             ) : (
               <div className="flex-1 flex flex-col items-center justify-center p-6 gap-3 text-center">
                 <File className="w-10 h-10 text-grey opacity-30" />
@@ -357,7 +580,8 @@ export function MediaPicker({
             <Button
               onClick={handleConfirm}
               disabled={
-                !selected || getFileType(selectedItem?.mimeType) !== accept
+                selectedIds.size !== 1 ||
+                getFileType(selectedItem?.mimeType) !== accept
               }
             >
               Select
