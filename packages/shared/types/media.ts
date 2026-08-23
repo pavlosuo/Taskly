@@ -1,14 +1,12 @@
-export type MediaVisibility = "public" | "chat";
-
 export type MediaItem = {
   _id: string;
-  userId: string;
+  ownerId: string;
   url: string;
   filename: string;
   originalName: string;
   size: number;
   mimeType: string;
   uploadedAt: string;
-  visibility: MediaVisibility;
-  chatId?: string;
+  publicSources: string[];
+  chatIds: string[];
 };

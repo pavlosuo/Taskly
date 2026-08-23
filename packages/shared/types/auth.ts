@@ -4,6 +4,7 @@ import {
   Payout,
   UserSettings,
   PublicProfile,
+  MediaItem,
 } from "@shared/types";
 
 export type LoginForm = {
@@ -37,7 +38,7 @@ export type UpdateProfileForm = Partial<{
   payout: Payout;
   fullPhone: string;
   code: string;
-  avatar: string;
+  avatar: MediaItem | undefined | null;
   settings: Partial<UserSettings>;
   publicProfile: Partial<PublicProfile>;
 }>;

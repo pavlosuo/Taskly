@@ -1,3 +1,5 @@
+import { MediaItem } from "./media";
+
 export type Role = "tasker" | "client";
 
 export type Lang = "en" | "fi" | "sv";
@@ -9,8 +11,8 @@ export type PublicProfileLang = {
   label: string;
   level: "A1" | "A2" | "B1" | "B2" | "C1" | "C2";
   certificate?: {
-    src: string;
-    label: string;
+    media: MediaItem | undefined | null;
+    description: string;
   };
 };
 
@@ -23,7 +25,7 @@ export type PublicProfileSkill = {
 export type PublicProfileCertificate = {
   value: string;
   label: string;
-  src: string;
+  media: MediaItem | undefined | null;
   description?: string;
 };
 
@@ -39,7 +41,7 @@ export interface UserProfile {
   phone: string;
   code: string;
   fullPhone: string;
-  avatar: string;
+  avatar: MediaItem | undefined | null;
   newPhone?: string;
   newFullPhone?: string;
   newCode?: string;

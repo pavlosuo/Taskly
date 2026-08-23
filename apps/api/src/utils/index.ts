@@ -4,6 +4,7 @@ import { createHash, randomInt, timingSafeEqual } from "crypto";
 import { PublicUser } from "@shared/types";
 import { RequestHandler, Response, Request } from "express";
 import { AuthRequest, User } from "@/types";
+import { ObjectId, WithId, Document } from "mongodb";
 export * from "./limiters";
 export * from "./upload";
 
@@ -14,7 +15,7 @@ export function asAuth(
 }
 
 export function toPublicUser(
-  user?: User | PublicUser | null,
+  user?: User | PublicUser | null | WithId<Document>,
 ): PublicUser | null {
   if (!user) return null;
   return {
@@ -89,12 +90,20 @@ export function log(...args: unknown[]) {
   });
 }
 
-export const filePath = (filename: string, user: User) => {
-  const filePath = path.resolve(
+export const filePath = (
+  filename: string,
+  userId: string | ObjectId,
+): string => {
+  return path.resolve(
     process.cwd(),
     "../../uploads",
-    user._id.toString(),
+    userId.toString(),
     filename,
   );
-  return filePath;
 };
+
+export function extractMediaId(url: string): string | null {
+  if (!url) return null;
+  const match = url.match(/\/api\/media\/([a-f0-9]+)\/file/);
+  return match?.[1] ?? null;
+}

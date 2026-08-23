@@ -35,16 +35,17 @@ export const ImageDisplay = ({
   src: string;
   alt: string;
   className?: string;
-}) => (
+}) =>
   // eslint-disable-next-line @next/next/no-img-element
-  <img
-    draggable={false}
-    decoding="async"
-    className={clsx("w-full h-full object-cover", className)}
-    src={src}
-    alt={alt}
-  />
-);
+  src && (
+    <img
+      draggable={false}
+      decoding="async"
+      className={clsx("w-full h-full object-cover", className)}
+      src={src}
+      alt={alt}
+    />
+  );
 
 function FileIcon({
   mimeType,
@@ -96,6 +97,12 @@ export function MediaPicker({
   const [error, setError] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
+  const [uploadProgress, setUploadProgress] = useState<{
+    total: number;
+    done: number;
+  } | null>(null);
+
+  const MAX_FILES_PER_UPLOAD = 25;
 
   const selectedItem =
     selectedIds.size === 1
@@ -137,30 +144,63 @@ export function MediaPicker({
     setFocusIndex((i) => Math.min(i, Math.max(nextFiltered.length - 1, 0)));
   };
 
-  const uploadFile = useCallback(async (file: File) => {
-    if (!ALLOWED_MIME_TYPES.has(file.type)) {
-      setError(`File type "${file.type}" is not allowed.`);
+  const uploadFiles = useCallback(async (fileList: FileList | File[]) => {
+    const files = Array.from(fileList);
+    if (files.length === 0) return;
+
+    if (files.length > MAX_FILES_PER_UPLOAD) {
+      setError(
+        `You can upload up to ${MAX_FILES_PER_UPLOAD} files at once (selected ${files.length}).`,
+      );
       return;
     }
-    setFilter(getFileType(file.type));
-    setUploading(true);
-    setError("");
-    try {
-      const { data } = await axiosApi.uploadMedia(file);
-      const newItem = data.data.media;
-      setItems((p) => [newItem, ...p]);
-      setSelectedIds(new Set([newItem._id]));
-    } catch (e) {
-      setError(getAxiosError(e));
-    } finally {
-      setUploading(false);
-      if (inputRef.current) inputRef.current.value = "";
+
+    const invalid = files.filter((f) => !ALLOWED_MIME_TYPES.has(f.type));
+    if (invalid.length > 0) {
+      setError(
+        invalid.length === 1
+          ? `File type "${invalid[0].type}" is not allowed.`
+          : `${invalid.length} files have an unsupported type and were skipped.`,
+      );
     }
+
+    const valid = files.filter((f) => ALLOWED_MIME_TYPES.has(f.type));
+    if (valid.length === 0) return;
+    setFilter(getFileType(valid[0].type));
+    setUploading(true);
+    setUploadProgress({ total: valid.length, done: 0 });
+    if (invalid.length === 0) setError("");
+    const uploadedIds: string[] = [];
+    const failed: string[] = [];
+    for (const file of valid) {
+      try {
+        const { data } = await axiosApi.uploadMedia(file);
+        const newItem = data.data.media;
+        setItems((p) => [newItem, ...p]);
+        uploadedIds.push(newItem._id);
+      } catch (e) {
+        failed.push(file.name);
+      } finally {
+        setUploadProgress((p) => (p ? { ...p, done: p.done + 1 } : p));
+      }
+    }
+
+    if (failed.length > 0) {
+      setError(
+        failed.length === 1
+          ? `Failed to upload "${failed[0]}".`
+          : `Failed to upload ${failed.length} files.`,
+      );
+    }
+
+    setSelectedIds(new Set(uploadedIds));
+    setUploading(false);
+    setUploadProgress(null);
+    if (inputRef.current) inputRef.current.value = "";
   }, []);
 
   const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) uploadFile(file);
+    if (e.target.files) uploadFiles(e.target.files);
   };
 
   const handleDragEnter = useCallback((e: React.DragEvent) => {
@@ -187,10 +227,9 @@ export function MediaPicker({
     (e: React.DragEvent) => {
       e.preventDefault();
       setDragOver(false);
-      const file = e.dataTransfer.files?.[0];
-      if (file) uploadFile(file);
+      if (e.dataTransfer.files?.length) uploadFiles(e.dataTransfer.files);
     },
-    [uploadFile],
+    [uploadFiles],
   );
 
   useEffect(() => {
@@ -421,7 +460,11 @@ export function MediaPicker({
             )}
           >
             <Upload className="w-3.5 h-3.5 min-w-3.5 min-h-3.5" />
-            {uploading ? "Uploading..." : "Upload file"}
+            {uploading
+              ? uploadProgress
+                ? `Uploading ${uploadProgress.done}/${uploadProgress.total}...`
+                : "Uploading..."
+              : "Upload files"}
             <input
               ref={inputRef}
               type="file"
@@ -442,10 +485,10 @@ export function MediaPicker({
                 <Upload
                   className={clsx(
                     "w-10 h-10 opacity-30",
-                    dragOver && "opacity-100 text-foreground",
+                    dragOver && "opacity-100 text-white",
                   )}
                 />
-                <p className={clsx("text-sm", dragOver && "text-foreground")}>
+                <p className={clsx("text-sm", dragOver && "text-white")}>
                   {dragOver
                     ? "Drop to upload"
                     : items.length === 0

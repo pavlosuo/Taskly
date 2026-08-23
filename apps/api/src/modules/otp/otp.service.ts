@@ -22,7 +22,6 @@ export class OtpService {
     user: User | undefined,
     body: unknown,
   ): Promise<ServiceResult> {
-    console.log(body);
     const parsed = sendOtpSchema.safeParse(body);
 
     if (!parsed.success)

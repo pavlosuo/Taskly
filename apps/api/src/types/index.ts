@@ -1,14 +1,18 @@
 import { Db, ObjectId } from "mongodb";
 import { Response, Request, NextFunction } from "express";
-import { PublicUser } from "@shared/types/user";
 import { Transporter } from "nodemailer";
-import { OtpPurpose, OtpRecord } from "@shared/types/otp";
+import { OtpPurpose, OtpRecord, MediaItem, PublicUser } from "@shared/types";
 
 export interface User extends Omit<PublicUser, "_id" | "createdAt"> {
   _id: ObjectId;
   createdAt: Date;
   otps?: Partial<Record<OtpPurpose, OtpRecord>>;
   passwordHash: string;
+}
+
+export interface MediaItemBack extends Omit<MediaItem, "_id" | "ownerId"> {
+  _id: ObjectId;
+  ownerId: ObjectId;
 }
 
 export interface IServer {
@@ -19,7 +23,6 @@ export interface IServer {
   sendSms(phone: string, text: string): Promise<void>;
   issueToken(res: Response, user: User): string;
   getUserFromCookie(req: Request): Promise<User | null>;
-  getUserPublic(id: ObjectId): Promise<PublicUser | null>;
   requireAuth(): (
     req: Request,
     res: Response,

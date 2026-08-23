@@ -88,7 +88,7 @@ export class AuthService {
           phone,
           code,
           fullPhone,
-          avatar: "",
+          avatar: undefined,
           initials: initials,
         },
         settings: {
@@ -127,7 +127,6 @@ export class AuthService {
         status: 400,
         message: parsed.error.issues[0].message,
       };
-
     try {
       const { email, password, username } = parsed.data;
       const db = await this.server.getDb();
@@ -144,11 +143,10 @@ export class AuthService {
         createdAt: new Date(),
       };
       const result = await users.insertOne(doc);
-      const user = this.server.getUserPublic(result.insertedId);
       return {
         success: true,
         status: 200,
-        data: { user },
+        data: { user: result },
       };
     } catch (error) {
       console.error("Register admin error:", error);

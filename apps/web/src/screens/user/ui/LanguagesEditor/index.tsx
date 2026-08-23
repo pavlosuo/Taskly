@@ -1,7 +1,7 @@
 "use client";
 import { useState, useMemo } from "react";
 import { X } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { Input } from "@/shared/components/Input";
 import { WORLD_LANGUAGES, CEFR_LEVELS } from "@shared/data";
 import { PublicProfileLang } from "@shared/types";
 import clsx from "clsx";
@@ -88,8 +88,8 @@ export function LanguagesEditor({
                 {lang.certificate ? (
                   <div className="flex items-center gap-2 relative">
                     <ImageDisplay
-                      src={lang.certificate.src}
-                      alt={lang.certificate.label}
+                      src={lang.certificate.media?.url || ""}
+                      alt={lang.certificate.description}
                     />
                     <Button
                       type="button"
@@ -120,8 +120,8 @@ export function LanguagesEditor({
                                 ? {
                                     ...l,
                                     certificate: {
-                                      src: item.url,
-                                      label: item.originalName,
+                                      media: item,
+                                      description: "",
                                     },
                                   }
                                 : l,
@@ -134,6 +134,31 @@ export function LanguagesEditor({
                   </button>
                 )}
               </div>
+              <div className="flex flex-col gap-2">
+                <label htmlFor={lang.value} className="text-xs text-grey">
+                  Description (optional)
+                </label>
+                <Input
+                  placeholder="Describe a language certificate..."
+                  value={lang.certificate?.description || ""}
+                  onChange={(e) => {
+                    onChange(
+                      value.map((l) =>
+                        l.value === lang.value
+                          ? {
+                              ...l,
+                              certificate: {
+                                media: l.certificate?.media,
+                                description: e.target.value,
+                              },
+                            }
+                          : l,
+                      ),
+                    );
+                  }}
+                  name={lang.value}
+                />
+              </div>
             </div>
           ))}
         </div>
@@ -142,7 +167,7 @@ export function LanguagesEditor({
         placeholder="Search language..."
         value={search}
         onChange={(e) => setSearch(e.target.value)}
-        className="h-9 text-sm"
+        name="search"
       />
       <div className="flex flex-wrap gap-1.5">
         {filtered.map((lang) => {

@@ -1236,12 +1236,12 @@ export function AvatarCard() {
           {user.profile?.avatar ? (
             <div className="w-16 h-16 rounded-full object-cover relative">
               <ImageDisplay
-                src={user.profile.avatar}
+                src={user.profile.avatar.url}
                 alt={user.profile.fullName}
                 className="rounded-full object-cover"
               />
               <button
-                onClick={() => updateProfile({ avatar: "" })}
+                onClick={() => updateProfile({ avatar: undefined })}
                 className="absolute bottom-0 right-0 w-6 h-6 bg-primary rounded-full flex items-center justify-center"
               >
                 <Trash2 className="w-3.5 h-3.5 text-white"></Trash2>
@@ -1258,7 +1258,7 @@ export function AvatarCard() {
                 openPicker({
                   accept: "image",
                   onSelect: (item) => {
-                    updateProfile({ avatar: item.url });
+                    updateProfile({ avatar: item });
                   },
                 })
               }

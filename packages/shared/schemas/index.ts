@@ -16,6 +16,7 @@ import type {
   PublicProfileSkill,
   PublicProfileCertificate,
   UserSettings,
+  MediaItem,
 } from "@shared/types";
 
 const phoneUtil = libphonenumber.PhoneNumberUtil.getInstance();
@@ -101,14 +102,27 @@ const payoutSchema: z.ZodType<Payout> = z.object({
   bankName: z.enum(finnishBankValues, { message: "bankName.invalid" }),
 });
 
+const mediaItemField = z.object({
+  _id: z.string(),
+  ownerId: z.string(),
+  url: z.string(),
+  filename: z.string(),
+  originalName: z.string(),
+  size: z.number(),
+  mimeType: z.string(),
+  uploadedAt: z.string(),
+  publicSources: z.array(z.string()),
+  chatIds: z.array(z.string()),
+}) satisfies z.ZodType<MediaItem>;
+
 const publicProfileLangSchema: z.ZodType<PublicProfileLang> = z.object({
   value: z.string(),
   label: z.string(),
   level: z.enum(["A1", "A2", "B1", "B2", "C1", "C2"]),
   certificate: z
     .object({
-      src: z.string(),
-      label: z.string(),
+      media: mediaItemField,
+      description: z.string(),
     })
     .optional(),
 });
@@ -123,7 +137,7 @@ const publicProfileCertificateSchema: z.ZodType<PublicProfileCertificate> =
   z.object({
     value: z.string(),
     label: z.string(),
-    src: z.string(),
+    media: mediaItemField,
     description: z.string().optional(),
   });
 
@@ -186,7 +200,7 @@ export const updateProfileSchema: z.ZodType<UpdateProfileForm> = z.object({
   phone: z.string().min(1, "phone.required").optional(),
   code: z.string().min(1, "code.required").optional(),
   email: emailField.optional(),
-  avatar: z.string().optional(),
+  avatar: mediaItemField.optional(),
   payout: payoutSchema.optional(),
   settings: settingsSchema.optional(),
   publicProfile: publicProfileSchema.optional(),

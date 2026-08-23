@@ -5,15 +5,18 @@ import {
 } from "@shared/schemas";
 import { ServiceResult } from "@shared/types";
 import { OtpService } from "@/modules/otp/otp.service";
-import { toPublicUser } from "@/utils";
+import { toPublicUser, extractMediaId } from "@/utils";
 import bcrypt from "bcrypt";
 import { IServer, User } from "@/types";
+import { MediaService } from "@/modules/media/media.service";
 
 export class UsersService {
   private otpService: OtpService;
+  private mediaService: MediaService;
 
   constructor(private server: IServer) {
     this.otpService = new OtpService(server);
+    this.mediaService = new MediaService(server);
   }
 
   async updateProfile(user: User, body: unknown): Promise<ServiceResult> {
@@ -24,7 +27,6 @@ export class UsersService {
         status: 400,
         message: parsed.error.issues[0].message,
       };
-
     try {
       const {
         username,
@@ -39,7 +41,6 @@ export class UsersService {
       const db = await this.server.getDb();
       const users = db.collection("users");
       const updates: Record<string, unknown> = {};
-
       if (username !== undefined && username !== user.username) {
         const exists = await users.findOne({
           username,
@@ -67,7 +68,29 @@ export class UsersService {
         updates.newEmail = email;
       }
       if (fullName !== undefined) updates["profile.fullName"] = fullName;
-      if (avatar !== undefined) updates["profile.avatar"] = avatar;
+      if (avatar) {
+        await this.mediaService.addPublicSource(avatar._id, user._id, "avatar");
+        updates["profile.avatar"] = avatar;
+        if (
+          user.profile?.avatar?.url &&
+          user.profile?.avatar?.url !== avatar?.url
+        ) {
+          const oldId = extractMediaId(user.profile.avatar.url);
+          if (oldId) {
+            await this.mediaService.removePublicSource(
+              oldId,
+              user._id,
+              "avatar",
+            );
+          }
+        }
+      } else {
+        const oldId = extractMediaId(user.profile?.avatar?.url ?? "");
+        if (oldId) {
+          await this.mediaService.removePublicSource(oldId, user._id, "avatar");
+        }
+        updates["profile.avatar"] = undefined;
+      }
       if (fullPhone !== undefined && fullPhone !== user.profile?.fullPhone) {
         const phoneTaken = await users.findOne({
           $or: [
@@ -86,36 +109,66 @@ export class UsersService {
         updates["profile.newPhone"] = phone;
         updates["profile.newCode"] = code;
       }
-
       if (payout !== undefined) {
         updates.payout = {
           iban: payout.iban.replace(/\s/g, "").toUpperCase(),
           bankName: payout.bankName,
         };
       }
-
       if (parsed.data.settings !== undefined) {
         const { lang, theme } = parsed.data.settings;
         if (lang !== undefined) updates["settings.lang"] = lang;
         if (theme !== undefined) updates["settings.theme"] = theme;
       }
-
       if (parsed.data.publicProfile !== undefined) {
         const { bio, languages } = parsed.data.publicProfile;
         if (bio !== undefined) updates["publicProfile.bio"] = bio;
-        if (languages !== undefined)
+        if (languages !== undefined) {
           updates["publicProfile.languages"] = languages;
+          const oldLangs = user.publicProfile?.languages ?? [];
+          const newLangs = languages;
+          const toRemove = oldLangs.filter((old) => {
+            if (!old.certificate?.media) return false;
+            const newLang = newLangs.find((n) => n.value === old.value);
+            return (
+              !newLang ||
+              newLang.certificate?.media?._id !== old.certificate.media._id
+            );
+          });
+          const toAdd = newLangs.filter((n) => {
+            if (!n.certificate?.media) return false;
+            const oldLang = oldLangs.find((o) => o.value === n.value);
+            return (
+              !oldLang ||
+              oldLang.certificate?.media?._id !== n.certificate.media._id
+            );
+          });
+          await Promise.all([
+            ...toRemove.map((lang) =>
+              this.mediaService.removePublicSource(
+                lang.certificate!.media!._id,
+                user._id,
+                `language-certificate:${lang.value}`,
+              ),
+            ),
+            ...toAdd.map((lang) =>
+              this.mediaService.addPublicSource(
+                lang.certificate!.media!._id,
+                user._id,
+                `language-certificate:${lang.value}`,
+              ),
+            ),
+          ]);
+        }
       }
-
       if (Object.keys(updates).length === 0)
         return {
           success: true,
           status: 200,
           data: { message: "Nothing to update." },
         };
-
       await users.updateOne({ _id: user._id }, { $set: updates });
-      const updated = await this.server.getUserPublic(user._id);
+      const updated = await users.findOne({ _id: user._id });
       return {
         success: true,
         status: 200,
@@ -178,7 +231,7 @@ export class UsersService {
         },
       );
 
-      const updated = await this.server.getUserPublic(user._id);
+      const updated = await db.collection("users").findOne({ _id: user._id });
       return {
         success: true,
         status: 200,
@@ -222,7 +275,7 @@ export class UsersService {
         },
       );
 
-      const updated = await this.server.getUserPublic(user._id);
+      const updated = await db.collection("users").findOne({ _id: user._id });
       return {
         success: true,
         status: 200,
@@ -276,7 +329,7 @@ export class UsersService {
         .collection("users")
         .updateOne({ _id: user._id }, { $set: { passwordHash } });
 
-      const updated = await this.server.getUserPublic(user._id);
+      const updated = await db.collection("users").findOne({ _id: user._id });
       return {
         success: true,
         status: 200,

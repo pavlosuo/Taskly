@@ -122,17 +122,6 @@ export class Server implements IServer {
     }
   }
 
-  async getUserPublic(id: ObjectId): Promise<PublicUser | null> {
-    const db = await this.getDb();
-    const user = (await db
-      .collection("users")
-      .findOne(
-        { _id: id },
-        { projection: { passwordHash: 0, otps: 0 } },
-      )) as PublicUser | null;
-    return user;
-  }
-
   requireAuth() {
     return async (req: Request, res: Response, next: NextFunction) => {
       const user = await this.getUserFromCookie(req);
