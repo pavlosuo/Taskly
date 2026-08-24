@@ -89,7 +89,7 @@ export function LanguagesEditor({
                   <div className="flex items-center gap-2 relative">
                     <ImageDisplay
                       src={lang.certificate.media?.url || ""}
-                      alt={lang.certificate.description}
+                      alt={lang.certificate.description || lang.value}
                     />
                     <Button
                       type="button"
@@ -134,31 +134,33 @@ export function LanguagesEditor({
                   </button>
                 )}
               </div>
-              <div className="flex flex-col gap-2">
-                <label htmlFor={lang.value} className="text-xs text-grey">
-                  Description (optional)
-                </label>
-                <Input
-                  placeholder="Describe a language certificate..."
-                  value={lang.certificate?.description || ""}
-                  onChange={(e) => {
-                    onChange(
-                      value.map((l) =>
-                        l.value === lang.value
-                          ? {
-                              ...l,
-                              certificate: {
-                                media: l.certificate?.media,
-                                description: e.target.value,
-                              },
-                            }
-                          : l,
-                      ),
-                    );
-                  }}
-                  name={lang.value}
-                />
-              </div>
+              {lang.certificate ? (
+                <div className="flex flex-col gap-2">
+                  <label htmlFor={lang.value} className="text-xs text-grey">
+                    Description (optional)
+                  </label>
+                  <Input
+                    placeholder="Describe a language certificate..."
+                    value={lang.certificate?.description || ""}
+                    onChange={(e) => {
+                      onChange(
+                        value.map((l) =>
+                          l.value === lang.value
+                            ? {
+                                ...l,
+                                certificate: {
+                                  media: l.certificate?.media,
+                                  description: e.target.value,
+                                },
+                              }
+                            : l,
+                        ),
+                      );
+                    }}
+                    name={lang.value}
+                  />
+                </div>
+              ) : null}
             </div>
           ))}
         </div>

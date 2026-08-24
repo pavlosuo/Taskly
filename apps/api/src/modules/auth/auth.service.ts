@@ -88,7 +88,7 @@ export class AuthService {
           phone,
           code,
           fullPhone,
-          avatar: undefined,
+          avatar: null,
           initials: initials,
         },
         settings: {
@@ -103,6 +103,7 @@ export class AuthService {
           skills: [],
           certificates: [],
           languages: [],
+          header: null,
         },
         passwordHash,
       } as Omit<User, "_id">;

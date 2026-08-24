@@ -19,6 +19,7 @@ export interface IServer {
   readonly time: number;
   mailer: Transporter | null;
   getDb(): Promise<Db>;
+  indexesConfig(): Promise<void>;
   sendEmail(args: { to: string; subject: string; text: string }): Promise<void>;
   sendSms(phone: string, text: string): Promise<void>;
   issueToken(res: Response, user: User): string;

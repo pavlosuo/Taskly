@@ -10,6 +10,7 @@ interface Props {
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   error?: string;
   className?: string;
+  onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
 }
 
 export const Input = ({
@@ -21,6 +22,7 @@ export const Input = ({
   onChange,
   error,
   className,
+  onKeyDown,
 }: Props) => {
   return (
     <InputInitial
@@ -31,6 +33,7 @@ export const Input = ({
       placeholder={placeholder}
       value={value}
       onChange={onChange}
+      onKeyDown={onKeyDown}
       className={clsx(
         "h-10 text-sm placeholder:text-grey",
         className,

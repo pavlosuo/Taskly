@@ -94,3 +94,7 @@ export function validatePassword(val: string): true | string {
   }
   return true;
 }
+
+export function bigFirstLetter(normalized: string) {
+  return normalized[0].toUpperCase() + normalized.slice(1);
+}

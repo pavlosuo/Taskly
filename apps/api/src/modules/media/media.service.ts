@@ -4,6 +4,7 @@ import { IServer, User } from "@/types";
 import { ServiceResult } from "@shared/types";
 import { filePath } from "@/utils";
 import { MediaItemBack } from "@/types";
+import path from "path";
 
 export class MediaService {
   constructor(private server: IServer) {}
@@ -150,7 +151,12 @@ export class MediaService {
         .collection("media")
         .findOne({ _id: new ObjectId(id) });
 
-      if (!item) return { success: false, status: 404, message: "Not found." };
+      if (!item)
+        return {
+          success: false,
+          status: 404,
+          message: "Not found.",
+        };
 
       const fp = filePath(item.filename, item.ownerId);
 

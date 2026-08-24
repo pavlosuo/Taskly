@@ -25,7 +25,12 @@ import { ALLOWED_MIME_TYPES } from "@shared/data";
 import { getFileType, FilterType, FILTERS } from "@/utils/getFileType";
 import { formatSize } from "@/utils/formatSize";
 import { formatDate } from "@/utils/formatDate";
+
 const ACCEPT_STRING = [...ALLOWED_MIME_TYPES].join(",");
+
+export const VideoDisplay = ({ src }: { src: string; className?: string }) => {
+  return <video muted playsInline src={src} className="w-full h-full object-cover"></video>;
+};
 
 export const ImageDisplay = ({
   src,
@@ -36,8 +41,8 @@ export const ImageDisplay = ({
   alt: string;
   className?: string;
 }) =>
-  // eslint-disable-next-line @next/next/no-img-element
   src && (
+    // eslint-disable-next-line @next/next/no-img-element
     <img
       draggable={false}
       decoding="async"
@@ -65,6 +70,11 @@ function FileIcon({
 function FileThumbnail({ item }: { item: MediaItem }) {
   if (item.mimeType.startsWith("image/")) {
     return <ImageDisplay src={item.url} alt={item.originalName} />;
+  }
+  if (item.mimeType.startsWith("video/")) {
+    return <div className="w-full h-full">
+      <VideoDisplay src={item.url} />
+    </div>;
   }
   return (
     <div className="w-full h-full bg-muted flex flex-col items-center justify-center gap-2 p-2">
@@ -545,6 +555,11 @@ export function MediaPicker({
                     <ImageDisplay
                       src={selectedItem.url}
                       alt={selectedItem.originalName}
+                      className="object-contain"
+                    />
+                  ) : selectedItem.mimeType.startsWith("video/") ? (
+                    <VideoDisplay
+                      src={selectedItem.url}
                       className="object-contain"
                     />
                   ) : (

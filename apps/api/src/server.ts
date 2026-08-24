@@ -5,7 +5,6 @@ import { MongoClient, ServerApiVersion, ObjectId, Db } from "mongodb";
 import { Response, Request, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import nodemailer, { Transporter } from "nodemailer";
-import { PublicUser } from "@shared/types";
 import { createApp } from "@/app";
 import { IServer, User, AuthRequest } from "@/types";
 import dns from "node:dns/promises";
@@ -150,8 +149,18 @@ export class Server implements IServer {
     };
   }
 
+  async indexesConfig() {
+    const db = await this.getDb();
+    db.collection("skills").createIndex({ label: "text" });
+    db.collection("skills").createIndex({ count: -1 });
+    db.collection("certificates").createIndex({ label: "text" });
+    db.collection("certificates").createIndex({ count: -1 });
+    return Promise.resolve();
+  }
+
   async start() {
     await this.getDb();
+    // await this.indexesConfig();
     const app = createApp(this);
     app.listen(this.port, () => {
       console.log(`Server running on port ${this.port}`);

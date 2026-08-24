@@ -34,6 +34,9 @@ importers:
       express-rate-limit:
         specifier: ^8.3.0
         version: 8.5.2(express@5.2.1)
+      ffmpeg-static:
+        specifier: ^5.3.0
+        version: 5.3.0
       google-libphonenumber:
         specifier: ^3.2.44
         version: 3.2.44
@@ -1175,6 +1178,13 @@ packages:
     engines: { node: ">=20.19.0" }
     peerDependencies:
       postcss: ^8.4
+
+  "@derhuerst/http-basic@8.2.4":
+    resolution:
+      {
+        integrity: sha512-F9rL9k9Xjf5blCz8HsJRO4diy111cayL2vkY2XE4r4t3n0yPXVYy3KD3nJ1qbrSn9743UWSXH4IwuCa/HWlGFw==,
+      }
+    engines: { node: ">=6.0.0" }
 
   "@dotenvx/dotenvx@1.75.1":
     resolution:
@@ -3808,6 +3818,12 @@ packages:
         integrity: sha512-zYZb0+nJhOHtPpGDb3vqPjwpdeGlGC157VpkqNQL+UU2qwoacoQ7MpsAmUptI/0Oa127X32JzWDqQVEXp2RcIA==,
       }
 
+  "@types/node@10.17.60":
+    resolution:
+      {
+        integrity: sha512-F0KIgDJfy2nA3zMLmWGKxcH2ZVEtCZXHHdOQs2gSaQ27+lNeEfGxzkIw90aXswATX7AZ33tahPbzy6KAfUreVw==,
+      }
+
   "@types/node@20.19.43":
     resolution:
       {
@@ -4583,6 +4599,12 @@ packages:
         integrity: sha512-5ON+q7jCTgMp9cjpu4Jo6XbvfYwSB2Ow3kzHKfIyJfaCAOHLbdKPQqGKgfED/R5B+3TFFfe8pegYA+b423SRyA==,
       }
     engines: { node: ">=10.0.0" }
+
+  caseless@0.12.0:
+    resolution:
+      {
+        integrity: sha512-4tYFyifaFfGacoiObjJegolkwSU4xQNGbVgUiNYVUxbQ2x2lUsFvY4hVgVzGiIe6WLOPqycWXA40l+PWsxthUw==,
+      }
 
   chalk@4.1.2:
     resolution:
@@ -5707,6 +5729,13 @@ packages:
         integrity: sha512-tbZNuJrLwGUp3zshBtdy4W+ORxZuIh8a5ilyIEQDC5rY1f3U20JMry0Ll3WBzU58EZKsEuJFXhb5gwv8CsPvgA==,
       }
 
+  ffmpeg-static@5.3.0:
+    resolution:
+      {
+        integrity: sha512-H+K6sW6TiIX6VGend0KQwthe+kaceeH/luE8dIZyOP35ik7ahYojDuqlTV1bOrtEwl01sy2HFNGQfi5IDJvotg==,
+      }
+    engines: { node: ">=16" }
+
   figures@6.1.0:
     resolution:
       {
@@ -6096,6 +6125,12 @@ packages:
         integrity: sha512-4FbRdAX+bSdmo4AUFuS0WNiPz8NgFt+r8ThgNWmlrjQjt1Q7ZR9+zTlce2859x4KSXrwIsaeTqDoKQmtP8pLmQ==,
       }
     engines: { node: ">= 0.8" }
+
+  http-response-object@3.0.2:
+    resolution:
+      {
+        integrity: sha512-bqX0XTF6fnXSQcEJ2Iuyr75yVakyjIDCqroJQ/aHfSdlM743Cwqoi2nDYMzLGWUcuTWGWy8AAvOKXTfiv6q9RA==,
+      }
 
   https-proxy-agent@5.0.1:
     resolution:
@@ -7452,6 +7487,12 @@ packages:
       }
     engines: { node: ">=6" }
 
+  parse-cache-control@1.0.1:
+    resolution:
+      {
+        integrity: sha512-60zvsJReQPX5/QP0Kzfd/VrpjScIQ7SHBW6bFCYfEP+fp0Eppr1SHhIO5nd1PjZtvclzSzES9D/p5nFJurwfWg==,
+      }
+
   parse-json@5.2.0:
     resolution:
       {
@@ -8145,6 +8186,13 @@ packages:
         integrity: sha512-gjVS5hOP+M3wMm5nmNOucbIrqudzs9v/57bWRHQWLYklXqoXKrVfYW2W9+glfGsqtPgpiz5WwyEEB+ksXIx3gQ==,
       }
     engines: { node: ">=18" }
+
+  progress@2.0.3:
+    resolution:
+      {
+        integrity: sha512-7PiHtLll5LdnKIMw100I+8xJXR5gW2QwWYkT6iJva0bXitZKa/XMrSbdmg3r2Xnaidz9Qumd0VPaMrZlF9V9sA==,
+      }
+    engines: { node: ">=0.4.0" }
 
   prompts@2.4.2:
     resolution:
@@ -10270,6 +10318,13 @@ snapshots:
     dependencies:
       postcss: 8.5.16
 
+  "@derhuerst/http-basic@8.2.4":
+    dependencies:
+      caseless: 0.12.0
+      concat-stream: 2.0.0
+      http-response-object: 3.0.2
+      parse-cache-control: 1.0.1
+
   "@dotenvx/dotenvx@1.75.1":
     dependencies:
       "@dotenvx/primitives": 0.8.0
@@ -11970,6 +12025,8 @@ snapshots:
     dependencies:
       "@types/express": 5.0.6
 
+  "@types/node@10.17.60": {}
+
   "@types/node@20.19.43":
     dependencies:
       undici-types: 6.21.0
@@ -12452,6 +12509,8 @@ snapshots:
       stackblur-canvas: 2.7.0
       svg-pathdata: 6.0.3
     optional: true
+
+  caseless@0.12.0: {}
 
   chalk@4.1.2:
     dependencies:
@@ -13319,6 +13378,15 @@ snapshots:
 
   fflate@0.8.3: {}
 
+  ffmpeg-static@5.3.0:
+    dependencies:
+      "@derhuerst/http-basic": 8.2.4
+      env-paths: 2.2.1
+      https-proxy-agent: 5.0.1
+      progress: 2.0.3
+    transitivePeerDependencies:
+      - supports-color
+
   figures@6.1.0:
     dependencies:
       is-unicode-supported: 2.1.0
@@ -13543,6 +13611,10 @@ snapshots:
       setprototypeof: 1.2.0
       statuses: 2.0.2
       toidentifier: 1.0.1
+
+  http-response-object@3.0.2:
+    dependencies:
+      "@types/node": 10.17.60
 
   https-proxy-agent@5.0.1:
     dependencies:
@@ -14241,6 +14313,8 @@ snapshots:
     dependencies:
       callsites: 3.1.0
 
+  parse-cache-control@1.0.1: {}
+
   parse-json@5.2.0:
     dependencies:
       "@babel/code-frame": 7.29.7
@@ -14716,6 +14790,8 @@ snapshots:
   pretty-ms@9.3.0:
     dependencies:
       parse-ms: 4.0.0
+
+  progress@2.0.3: {}
 
   prompts@2.4.2:
     dependencies:

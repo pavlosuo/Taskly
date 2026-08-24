@@ -26,6 +26,8 @@ import {
   BadgeCheck,
   Globe,
   Bell,
+  ImageIcon,
+  Video
 } from "lucide-react";
 import Image from "next/image";
 import { FINNISH_BANKS, LANGS } from "@shared/data";
@@ -60,49 +62,11 @@ import {
   PublicProfileLang,
 } from "@shared/types";
 import { useMediaPicker } from "@/providers/MediaPickerProvider";
-import { ImageDisplay } from "@/shared/components/MediaPicker";
+import { ImageDisplay, VideoDisplay } from "@/shared/components/MediaPicker";
 import { Tiptap } from "@/shared/components/Tiptap";
-
-const SKILL_SUGGESTIONS = [
-  "Cleaning",
-  "Dog walking",
-  "Furniture assembly",
-  "Minor repairs",
-  "Gardening",
-  "Moving help",
-  "Delivery",
-  "Elderly care",
-  "Childcare",
-  "Snow removal",
-  "Window cleaning",
-  "Painting",
-  "IT help",
-];
-
-const CERTIFICATES = [
-  {
-    value: "hygieniapassi",
-    label: "Hygieniapassi",
-    desc: "Required for food/cleaning work",
-  },
-  {
-    value: "tulityokortti",
-    label: "Tulityökortti",
-    desc: "Fire safety for construction",
-  },
-  {
-    value: "ensiapukortti",
-    label: "Ensiapukortti",
-    desc: "First aid certificate",
-  },
-  {
-    value: "ajokortti",
-    label: "Ajokortti (B)",
-    desc: "Driver's license category B",
-  },
-];
-
-type PersonalStep = "form" | "verify-email" | "verify-phone";
+import { SkillsEditor } from "@/screens/user/ui/SkillsEditor";
+import { CertificatesEditor } from "@/screens/user/ui/CertificatesEditor";
+import { updateProfileSchema } from "@shared/schemas";
 
 export function Field({
   label,
@@ -288,7 +252,9 @@ export function PersonalInfoCard({
   } = useUser();
 
   const [open, setOpen] = useState(false);
-  const [step, setStep] = useState<PersonalStep>("form");
+  const [step, setStep] = useState<"form" | "verify-email" | "verify-phone">(
+    "form",
+  );
   const [error, setError] = useState("");
   const [otpError, setOtpError] = useState("");
 
@@ -993,21 +959,17 @@ export function PublicProfileCard() {
     setOpen(true);
   };
 
-  const toggleItem = (
-    field: "skills" | "certificates" | "languages",
-    value: string,
-  ) => {
-    setForm((p) => ({
-      ...p,
-      [field]: p[field].includes(value)
-        ? p[field].filter((v) => v !== value)
-        : [...p[field], value],
-    }));
-  };
-
   const handleSave = async () => {
     setError("");
     try {
+      const parsed = updateProfileSchema.safeParse({
+        publicProfile: form,
+      });
+      if (!parsed.success) {
+        const { fieldErrors, formErrors } = parsed.error.flatten();
+        setError(fieldErrors.publicProfile?.[0] ?? formErrors[0]);
+        return;
+      }
       await updateProfile({ publicProfile: form });
       setOpen(false);
     } catch (e) {
@@ -1067,14 +1029,13 @@ export function PublicProfileCard() {
             {p?.certificates?.length ? (
               <div className="flex flex-wrap gap-1.5">
                 {p.certificates.map((c) => {
-                  const cert = CERTIFICATES.find((x) => x.value === c.value);
                   return (
                     <span
                       key={c.value}
                       className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300 font-medium"
                     >
                       <BadgeCheck className="w-3.5 h-3.5" />
-                      {cert?.label}
+                      {c?.label}
                     </span>
                   );
                 })}
@@ -1136,25 +1097,17 @@ export function PublicProfileCard() {
               </p>
             </FormField>
             <div className="h-px bg-border" />
-            <div>
-              <p className="text-sm font-medium text-foreground mb-2">Skills</p>
-              <div className="flex flex-wrap gap-1.5">
-                {SKILL_SUGGESTIONS.map((s) => (
-                  <button
-                    key={s}
-                    type="button"
-                    onClick={() => toggleItem("skills", s)}
-                    className={clsx(
-                      "text-xs px-2.5 py-1 rounded-full border transition-colors",
-                      form.skills.includes(s)
-                        ? "bg-primary text-white border-primary"
-                        : "bg-background text-foreground border-border hover:border-primary/50",
-                    )}
-                  >
-                    {s}
-                  </button>
-                ))}
-              </div>
+            <div className="flex flex-col">
+              <p className="text-sm font-medium text-foreground mb-1">Skills</p>
+              <p className="text-xs text-grey mb-2">
+                Add skills you have — increases trust with clients.
+              </p>
+              <SkillsEditor
+                value={form.skills}
+                onChange={(skills) => {
+                  setForm((p) => ({ ...p, skills: skills }));
+                }}
+              />
             </div>
             <div className="h-px bg-border" />
             <div>
@@ -1164,36 +1117,20 @@ export function PublicProfileCard() {
               <p className="text-xs text-grey mb-2">
                 Add certificates you hold — increases trust with clients.
               </p>
-              <div className="flex flex-col gap-2">
-                {CERTIFICATES.map((c) => (
-                  <button
-                    key={c.value}
-                    type="button"
-                    onClick={() => toggleItem("certificates", c.value)}
-                    className={clsx(
-                      "flex items-center justify-between px-3 py-2.5 border text-left transition-colors",
-                      form.certificates.includes(c.value)
-                        ? "border-accent bg-accent/5"
-                        : "border-border hover:border-accent/40",
-                    )}
-                  >
-                    <div>
-                      <p className="text-sm font-medium text-foreground">
-                        {c.label}
-                      </p>
-                      <p className="text-xs text-grey">{c.desc}</p>
-                    </div>
-                    {form.certificates.includes(c.value) && (
-                      <BadgeCheck className="w-4 h-4 text-accent shrink-0 ml-2" />
-                    )}
-                  </button>
-                ))}
-              </div>
+              <CertificatesEditor
+                value={form.certificates}
+                onChange={(certificates) => {
+                  setForm((p) => ({ ...p, certificates: certificates }));
+                }}
+              />
             </div>
             <div className="h-px bg-border" />
-            <div>
-              <p className="text-sm font-medium text-foreground mb-2">
+            <div className="flex flex-col">
+              <p className="text-sm font-medium text-foreground mb-1">
                 Languages
+              </p>
+              <p className="text-xs text-grey mb-2">
+                Add languages you speak — increases trust with clients.
               </p>
               <LanguagesEditor
                 value={form.languages}
@@ -1241,7 +1178,7 @@ export function AvatarCard() {
                 className="rounded-full object-cover"
               />
               <button
-                onClick={() => updateProfile({ avatar: undefined })}
+                onClick={() => updateProfile({ avatar: null })}
                 className="absolute bottom-0 right-0 w-6 h-6 bg-primary rounded-full flex items-center justify-center"
               >
                 <Trash2 className="w-3.5 h-3.5 text-white"></Trash2>
@@ -1268,6 +1205,131 @@ export function AvatarCard() {
             </button>
             <p className="text-xs text-grey mt-0.5">JPG, PNG — max 10MB</p>
           </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function HeaderCard() {
+  const { user, updateProfile } = useUser();
+  const { openPicker } = useMediaPicker();
+
+  if (!user) return null;
+
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-4 lg:gap-6 items-start">
+      <SectionCard
+        icon={<ImageIcon className="w-6 h-6 text-background" />}
+        title="Header of your profile"
+        desc="Your header shown to clients and on your public profile."
+      />
+      <div className="rounded-xl border border-border bg-background p-4 h-45">
+        <div className="flex items-center gap-4 h-full justify-center">
+          {user.publicProfile?.header ? (
+            <div className="w-full h-full object-cover relative">
+              <ImageDisplay
+                src={user.publicProfile?.header.url}
+                alt={user.profile.fullName}
+                className="w-full h-full object-cover"
+              />
+              <button
+                onClick={() =>
+                  updateProfile({
+                    publicProfile: {
+                      ...user.publicProfile,
+                      header: null,
+                    },
+                  })
+                }
+                className="absolute bottom-2 right-2 w-8 h-8 bg-primary rounded-full flex items-center justify-center"
+              >
+                <Trash2 className="w-4 h-4 text-white"></Trash2>
+              </button>
+            </div>
+          ) : (
+            <Button
+              type="button"
+              variant="default"
+              onClick={() =>
+                openPicker({
+                  accept: "image",
+                  onSelect: (item) => {
+                    updateProfile({
+                      publicProfile: {
+                        ...user.publicProfile,
+                        header: item,
+                      },
+                    });
+                  },
+                })
+              }
+            >
+              Add header image
+            </Button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function VideoCard() {
+  const { user, updateProfile } = useUser();
+  const { openPicker } = useMediaPicker();
+
+  if (!user) return null;
+
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-4 lg:gap-6 items-start">
+      <SectionCard
+        icon={<Video className="w-6 h-6 text-background" />}
+        title="Video Introduction"
+        desc="Your video shown to clients and on your public profile."
+      />
+      <div className="rounded-xl border border-border bg-background p-4 h-45">
+        <div className="flex items-center gap-4 h-full justify-center">
+          {user.publicProfile?.introduction ? (
+            <div className="w-full h-full object-cover relative">
+              <VideoDisplay
+                src={user.publicProfile?.introduction.url}
+                className="w-full h-full object-cover"
+              />
+              <button
+                onClick={() =>
+                  updateProfile({
+                    publicProfile: {
+                      ...user.publicProfile,
+                      introduction: null,
+                    },
+                  })
+                }
+                className="absolute bottom-2 right-2 w-8 h-8 bg-primary rounded-full flex items-center justify-center"
+              >
+                <Trash2 className="w-4 h-4 text-white"></Trash2>
+              </button>
+            </div>
+          ) : (
+            <Button
+              type="button"
+              variant="default"
+              onClick={() =>
+                openPicker({
+                  accept: "video",
+                  onSelect: (item) => {
+                    updateProfile({
+                      publicProfile: {
+                        ...user.publicProfile,
+                        introduction: item,
+                      },
+                    });
+                  },
+                })
+              }
+            >
+              Add introduction video
+            </Button>
+          )}
         </div>
       </div>
     </div>

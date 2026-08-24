@@ -12,7 +12,7 @@ export type PublicProfileLang = {
   level: "A1" | "A2" | "B1" | "B2" | "C1" | "C2";
   certificate?: {
     media: MediaItem | undefined | null;
-    description: string;
+    description?: string;
   };
 };
 
@@ -25,7 +25,7 @@ export type PublicProfileSkill = {
 export type PublicProfileCertificate = {
   value: string;
   label: string;
-  media: MediaItem | undefined | null;
+  media?: MediaItem | undefined | null;
   description?: string;
 };
 
@@ -53,6 +53,7 @@ export interface PublicProfile {
   skills?: PublicProfileSkill[];
   certificates?: PublicProfileCertificate[];
   languages?: PublicProfileLang[];
+  header?: MediaItem | undefined | null;
 }
 
 export interface UserAcceptance {

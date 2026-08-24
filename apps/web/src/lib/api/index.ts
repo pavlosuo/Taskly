@@ -88,6 +88,31 @@ export const axiosApi = {
       headers: { "Content-Type": "multipart/form-data" },
     });
   },
+
   getMedia: () => api.get<{ data: { items: MediaItem[] } }>("/api/media"),
+
   deleteMedia: (id: string) => api.delete(`/api/media/${id}`),
+
+  searchSkills: (q: string) =>
+    api.get<{ data: { items: { _id: string; label: string }[] } }>(
+      `/api/skills?q=${q}`,
+    ),
+
+  upsertSkill: (label: string) =>
+    api.post<{ data: { skill: { _id: string; label: string } } }>(
+      `/api/skills`,
+      { label },
+    ),
+
+  searchCertificates: (q: string) =>
+    api.get<{
+      data: { items: { _id: string; label: string; description?: string }[] };
+    }>(`/api/certificates?q=${q}`),
+
+  upsertCertificate: (label: string, description?: string) =>
+    api.post<{
+      data: {
+        certificate: { _id: string; label: string; description?: string };
+      };
+    }>(`/api/certificates`, { label, description }),
 };

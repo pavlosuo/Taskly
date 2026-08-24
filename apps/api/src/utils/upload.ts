@@ -108,7 +108,7 @@ class OptimizedDiskStorage implements multer.StorageEngine {
 export const upload = multer({
   storage: new OptimizedDiskStorage(),
   limits: {
-    fileSize: 10 * 1024 * 1024,
+    fileSize: 50 * 1024 * 1024,
   },
   fileFilter: (_, file, cb) => {
     cb(null, ALLOWED_MIME_TYPES.has(file.mimetype));

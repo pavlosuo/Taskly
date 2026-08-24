@@ -115,29 +115,31 @@ const mediaItemField = z.object({
   chatIds: z.array(z.string()),
 }) satisfies z.ZodType<MediaItem>;
 
-const publicProfileLangSchema: z.ZodType<PublicProfileLang> = z.object({
+export const publicProfileLangSchema: z.ZodType<PublicProfileLang> = z.object({
   value: z.string(),
   label: z.string(),
   level: z.enum(["A1", "A2", "B1", "B2", "C1", "C2"]),
   certificate: z
     .object({
       media: mediaItemField,
-      description: z.string(),
+      description: z.string().optional(),
     })
     .optional(),
 });
 
-const publicProfileSkillSchema: z.ZodType<PublicProfileSkill> = z.object({
-  value: z.string(),
-  label: z.string(),
-  description: z.string().optional(),
-});
+export const publicProfileSkillSchema: z.ZodType<PublicProfileSkill> = z.object(
+  {
+    value: z.string(),
+    label: z.string(),
+    description: z.string().optional(),
+  },
+);
 
-const publicProfileCertificateSchema: z.ZodType<PublicProfileCertificate> =
+export const publicProfileCertificateSchema: z.ZodType<PublicProfileCertificate> =
   z.object({
     value: z.string(),
     label: z.string(),
-    media: mediaItemField,
+    media: mediaItemField.optional(),
     description: z.string().optional(),
   });
 
@@ -146,6 +148,7 @@ const publicProfileSchema: z.ZodType<PublicProfile> = z.object({
   skills: z.array(publicProfileSkillSchema).optional(),
   certificates: z.array(publicProfileCertificateSchema).optional(),
   languages: z.array(publicProfileLangSchema).optional(),
+  header: mediaItemField.nullable().optional(),
 });
 
 const settingsSchema: z.ZodType<Partial<UserSettings>> = z.object({
@@ -200,7 +203,7 @@ export const updateProfileSchema: z.ZodType<UpdateProfileForm> = z.object({
   phone: z.string().min(1, "phone.required").optional(),
   code: z.string().min(1, "code.required").optional(),
   email: emailField.optional(),
-  avatar: mediaItemField.optional(),
+  avatar: mediaItemField.nullable().optional(),
   payout: payoutSchema.optional(),
   settings: settingsSchema.optional(),
   publicProfile: publicProfileSchema.optional(),

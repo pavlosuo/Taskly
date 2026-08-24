@@ -2,6 +2,9 @@ import {
   updateProfileSchema,
   otpSchema,
   changePasswordSchema,
+  publicProfileLangSchema,
+  publicProfileSkillSchema,
+  publicProfileCertificateSchema,
 } from "@shared/schemas";
 import { ServiceResult } from "@shared/types";
 import { OtpService } from "@/modules/otp/otp.service";
@@ -84,13 +87,16 @@ export class UsersService {
             );
           }
         }
-      } else {
+      }
+
+      if (avatar === null) {
         const oldId = extractMediaId(user.profile?.avatar?.url ?? "");
         if (oldId) {
           await this.mediaService.removePublicSource(oldId, user._id, "avatar");
         }
-        updates["profile.avatar"] = undefined;
+        updates["profile.avatar"] = null;
       }
+
       if (fullPhone !== undefined && fullPhone !== user.profile?.fullPhone) {
         const phoneTaken = await users.findOne({
           $or: [
@@ -121,28 +127,85 @@ export class UsersService {
         if (theme !== undefined) updates["settings.theme"] = theme;
       }
       if (parsed.data.publicProfile !== undefined) {
-        const { bio, languages } = parsed.data.publicProfile;
-        if (bio !== undefined) updates["publicProfile.bio"] = bio;
+        const { bio, languages, skills, certificates, header } =
+          parsed.data.publicProfile;
+
+        if (bio !== undefined) {
+          updates["publicProfile.bio"] = bio;
+        }
+
+        if (certificates !== undefined) {
+          for (const cert of certificates) {
+            const certParsed = publicProfileCertificateSchema.safeParse(cert);
+
+            if (!certParsed.success) {
+              return {
+                success: false,
+                status: 400,
+                message: certParsed.error.issues[0].message,
+              };
+            }
+          }
+
+          updates["publicProfile.certificates"] = certificates;
+        }
+
+        if (skills !== undefined) {
+          for (const skill of skills) {
+            const skillParsed = publicProfileSkillSchema.safeParse(skill);
+
+            if (!skillParsed.success) {
+              return {
+                success: false,
+                status: 400,
+                message: skillParsed.error.issues[0].message,
+              };
+            }
+          }
+
+          updates["publicProfile.skills"] = skills;
+        }
+
         if (languages !== undefined) {
+          for (const lang of languages) {
+            const langParsed = publicProfileLangSchema.safeParse(lang);
+
+            if (!langParsed.success) {
+              return {
+                success: false,
+                status: 400,
+                message: langParsed.error.issues[0].message,
+              };
+            }
+          }
+
           updates["publicProfile.languages"] = languages;
+
           const oldLangs = user.publicProfile?.languages ?? [];
           const newLangs = languages;
+
           const toRemove = oldLangs.filter((old) => {
             if (!old.certificate?.media) return false;
+
             const newLang = newLangs.find((n) => n.value === old.value);
+
             return (
               !newLang ||
               newLang.certificate?.media?._id !== old.certificate.media._id
             );
           });
+
           const toAdd = newLangs.filter((n) => {
             if (!n.certificate?.media) return false;
+
             const oldLang = oldLangs.find((o) => o.value === n.value);
+
             return (
               !oldLang ||
               oldLang.certificate?.media?._id !== n.certificate.media._id
             );
           });
+
           await Promise.all([
             ...toRemove.map((lang) =>
               this.mediaService.removePublicSource(
@@ -159,6 +222,35 @@ export class UsersService {
               ),
             ),
           ]);
+        }
+
+        if (header) {
+          const oldId = extractMediaId(user.publicProfile?.header?.url ?? "");
+          if (oldId) {
+            await this.mediaService.removePublicSource(
+              oldId,
+              user._id,
+              "header",
+            );
+          }
+          await this.mediaService.addPublicSource(
+            header._id,
+            user._id,
+            "header",
+          );
+          updates["publicProfile.header"] = header;
+        }
+
+        if (header === null) {
+          const oldId = extractMediaId(user.publicProfile?.header?.url ?? "");
+          if (oldId) {
+            await this.mediaService.removePublicSource(
+              oldId,
+              user._id,
+              "header",
+            );
+          }
+          updates["publicProfile.header"] = null;
         }
       }
       if (Object.keys(updates).length === 0)
