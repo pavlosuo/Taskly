@@ -27,7 +27,8 @@ import {
   Globe,
   Bell,
   ImageIcon,
-  Video
+  Video,
+  Upload,
 } from "lucide-react";
 import Image from "next/image";
 import { FINNISH_BANKS, LANGS } from "@shared/data";
@@ -62,11 +63,12 @@ import {
   PublicProfileLang,
 } from "@shared/types";
 import { useMediaPicker } from "@/providers/MediaPickerProvider";
-import { ImageDisplay, VideoDisplay } from "@/shared/components/MediaPicker";
+import { ImageDisplay } from "@/shared/components/MediaPicker";
 import { Tiptap } from "@/shared/components/Tiptap";
 import { SkillsEditor } from "@/screens/user/ui/SkillsEditor";
 import { CertificatesEditor } from "@/screens/user/ui/CertificatesEditor";
 import { updateProfileSchema } from "@shared/schemas";
+import { VideoPlayer } from "@/shared/components/Player";
 
 export function Field({
   label,
@@ -1032,7 +1034,7 @@ export function PublicProfileCard() {
                   return (
                     <span
                       key={c.value}
-                      className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300 font-medium"
+                      className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-primary/10 text-primary font-medium"
                     >
                       <BadgeCheck className="w-3.5 h-3.5" />
                       {c?.label}
@@ -1052,7 +1054,7 @@ export function PublicProfileCard() {
                 {p.languages.map((l) => (
                   <span
                     key={l.value}
-                    className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full bg-muted text-foreground font-medium"
+                    className="inline-flex items-baseline gap-1.5 text-xs px-2.5 py-1 rounded-full bg-muted text-foreground font-medium"
                   >
                     {l.label}
                     <span className="text-[10px] text-grey font-normal">
@@ -1178,10 +1180,16 @@ export function AvatarCard() {
                 className="rounded-full object-cover"
               />
               <button
-                onClick={() => updateProfile({ avatar: null })}
-                className="absolute bottom-0 right-0 w-6 h-6 bg-primary rounded-full flex items-center justify-center"
+                type="button"
+                onClick={() =>
+                  updateProfile({
+                    avatar: null,
+                  })
+                }
+                className="absolute right-0 bottom-0 z-20 flex h-6 w-6 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-sm transition-all duration-150 hover:bg-destructive group-hover:opacity-100"
+                aria-label="Remove introduction video"
               >
-                <Trash2 className="w-3.5 h-3.5 text-white"></Trash2>
+                <Trash2 className="h-3.5 w-3.5" />
               </button>
             </div>
           ) : (
@@ -1217,6 +1225,8 @@ export function HeaderCard() {
 
   if (!user) return null;
 
+  const hasHeader = Boolean(user.publicProfile?.header);
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-4 lg:gap-6 items-start">
       <SectionCard
@@ -1224,51 +1234,62 @@ export function HeaderCard() {
         title="Header of your profile"
         desc="Your header shown to clients and on your public profile."
       />
-      <div className="rounded-xl border border-border bg-background p-4 h-45">
-        <div className="flex items-center gap-4 h-full justify-center">
-          {user.publicProfile?.header ? (
-            <div className="w-full h-full object-cover relative">
-              <ImageDisplay
-                src={user.publicProfile?.header.url}
-                alt={user.profile.fullName}
-                className="w-full h-full object-cover"
-              />
-              <button
-                onClick={() =>
-                  updateProfile({
-                    publicProfile: {
-                      ...user.publicProfile,
-                      header: null,
-                    },
-                  })
-                }
-                className="absolute bottom-2 right-2 w-8 h-8 bg-primary rounded-full flex items-center justify-center"
-              >
-                <Trash2 className="w-4 h-4 text-white"></Trash2>
-              </button>
-            </div>
-          ) : (
-            <Button
+      <div
+        className={
+          "group relative h-45 overflow-hidden rounded-xl border transition-colors " +
+          (hasHeader
+            ? "border-border bg-background"
+            : "border-dashed border-border")
+        }
+      >
+        {hasHeader ? (
+          <>
+            <ImageDisplay
+              src={user.publicProfile!.header!.url}
+              alt={user.profile.fullName}
+              className="absolute inset-0 h-full w-full object-cover"
+            />
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-linear-to-t from-black/50 to-transparent" />
+            <button
               type="button"
-              variant="default"
               onClick={() =>
-                openPicker({
-                  accept: "image",
-                  onSelect: (item) => {
-                    updateProfile({
-                      publicProfile: {
-                        ...user.publicProfile,
-                        header: item,
-                      },
-                    });
+                updateProfile({
+                  publicProfile: {
+                    ...user.publicProfile,
+                    header: null,
                   },
                 })
               }
+              className="absolute bottom-3 right-3 flex h-8 w-8 items-center justify-center rounded-full bg-black/40 text-white opacity-0 backdrop-blur-sm transition-all duration-150 hover:bg-destructive group-hover:opacity-100"
+              aria-label="Remove header image"
             >
-              Add header image
-            </Button>
-          )}
-        </div>
+              <Trash2 className="h-4 w-4" />
+            </button>
+          </>
+        ) : (
+          <button
+            type="button"
+            onClick={() =>
+              openPicker({
+                accept: "image",
+                onSelect: (item) => {
+                  updateProfile({
+                    publicProfile: {
+                      ...user.publicProfile,
+                      header: item,
+                    },
+                  });
+                },
+              })
+            }
+            className="flex h-full w-full flex-col items-center justify-center gap-2 text-foreground"
+          >
+            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-muted">
+              <Upload className="h-5 w-5" />
+            </span>
+            <span className="text-sm font-medium">Add header image</span>
+          </button>
+        )}
       </div>
     </div>
   );
@@ -1280,6 +1301,8 @@ export function VideoCard() {
 
   if (!user) return null;
 
+  const hasIntroduction = Boolean(user.publicProfile?.introduction);
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-4 lg:gap-6 items-start">
       <SectionCard
@@ -1287,50 +1310,60 @@ export function VideoCard() {
         title="Video Introduction"
         desc="Your video shown to clients and on your public profile."
       />
-      <div className="rounded-xl border border-border bg-background p-4 h-45">
-        <div className="flex items-center gap-4 h-full justify-center">
-          {user.publicProfile?.introduction ? (
-            <div className="w-full h-full object-cover relative">
-              <VideoDisplay
-                src={user.publicProfile?.introduction.url}
-                className="w-full h-full object-cover"
-              />
-              <button
-                onClick={() =>
-                  updateProfile({
-                    publicProfile: {
-                      ...user.publicProfile,
-                      introduction: null,
-                    },
-                  })
-                }
-                className="absolute bottom-2 right-2 w-8 h-8 bg-primary rounded-full flex items-center justify-center"
-              >
-                <Trash2 className="w-4 h-4 text-white"></Trash2>
-              </button>
-            </div>
-          ) : (
-            <Button
+      <div
+        className={
+          "relative overflow-hidden rounded-xl border " +
+          (hasIntroduction
+            ? "border-border bg-background"
+            : "h-45 border-dashed border-border")
+        }
+      >
+        {hasIntroduction ? (
+          <div className="group relative aspect-video w-full">
+            <VideoPlayer
+              src={user.publicProfile!.introduction!.url}
+              className="h-full w-full"
+            />
+            <button
               type="button"
-              variant="default"
               onClick={() =>
-                openPicker({
-                  accept: "video",
-                  onSelect: (item) => {
-                    updateProfile({
-                      publicProfile: {
-                        ...user.publicProfile,
-                        introduction: item,
-                      },
-                    });
+                updateProfile({
+                  publicProfile: {
+                    ...user.publicProfile,
+                    introduction: null,
                   },
                 })
               }
+              className="absolute right-3 top-3 z-20 flex h-8 w-8 items-center justify-center rounded-full bg-black/40 text-white opacity-0 backdrop-blur-sm transition-all duration-150 hover:bg-destructive group-hover:opacity-100"
+              aria-label="Remove introduction video"
             >
-              Add introduction video
-            </Button>
-          )}
-        </div>
+              <Trash2 className="h-4 w-4" />
+            </button>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() =>
+              openPicker({
+                accept: "video",
+                onSelect: (item) => {
+                  updateProfile({
+                    publicProfile: {
+                      ...user.publicProfile,
+                      introduction: item,
+                    },
+                  });
+                },
+              })
+            }
+            className="flex h-full w-full flex-col items-center justify-center gap-2 text-foreground"
+          >
+            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-muted">
+              <Upload className="h-5 w-5" />
+            </span>
+            <span className="text-sm font-medium">Add introduction video</span>
+          </button>
+        )}
       </div>
     </div>
   );

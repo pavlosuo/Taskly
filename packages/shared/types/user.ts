@@ -54,6 +54,7 @@ export interface PublicProfile {
   certificates?: PublicProfileCertificate[];
   languages?: PublicProfileLang[];
   header?: MediaItem | undefined | null;
+  introduction?: MediaItem | undefined | null;
 }
 
 export interface UserAcceptance {

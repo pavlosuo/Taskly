@@ -1,7 +1,9 @@
+@layer theme, base, media-skin, components, utilities;
+
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
-
+@import "../css/player.css" layer(media-skin);
 @source "../../../../packages/shared/utils/index.ts";
 
 @custom-variant dark (&:is(.dark *));
@@ -65,11 +67,9 @@
   * {
     @apply border-border outline-ring/50;
   }
-
   body {
     @apply bg-background text-foreground;
   }
-
   [data-slot="checkbox"] {
     transition:
       background-color 0.25s,

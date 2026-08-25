@@ -29,7 +29,14 @@ import { formatDate } from "@/utils/formatDate";
 const ACCEPT_STRING = [...ALLOWED_MIME_TYPES].join(",");
 
 export const VideoDisplay = ({ src }: { src: string; className?: string }) => {
-  return <video muted playsInline src={src} className="w-full h-full object-cover"></video>;
+  return (
+    <video
+      muted
+      playsInline
+      src={src}
+      className="w-full h-full object-cover"
+    ></video>
+  );
 };
 
 export const ImageDisplay = ({
@@ -72,9 +79,11 @@ function FileThumbnail({ item }: { item: MediaItem }) {
     return <ImageDisplay src={item.url} alt={item.originalName} />;
   }
   if (item.mimeType.startsWith("video/")) {
-    return <div className="w-full h-full">
-      <VideoDisplay src={item.url} />
-    </div>;
+    return (
+      <div className="w-full h-full">
+        <VideoDisplay src={item.url} />
+      </div>
+    );
   }
   return (
     <div className="w-full h-full bg-muted flex flex-col items-center justify-center gap-2 p-2">

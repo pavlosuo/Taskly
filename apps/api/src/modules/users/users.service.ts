@@ -127,7 +127,7 @@ export class UsersService {
         if (theme !== undefined) updates["settings.theme"] = theme;
       }
       if (parsed.data.publicProfile !== undefined) {
-        const { bio, languages, skills, certificates, header } =
+        const { bio, languages, skills, certificates, header, introduction } =
           parsed.data.publicProfile;
 
         if (bio !== undefined) {
@@ -251,6 +251,39 @@ export class UsersService {
             );
           }
           updates["publicProfile.header"] = null;
+        }
+
+        if (introduction) {
+          const oldId = extractMediaId(
+            user.publicProfile?.introduction?.url ?? "",
+          );
+          if (oldId) {
+            await this.mediaService.removePublicSource(
+              oldId,
+              user._id,
+              "introduction",
+            );
+          }
+          await this.mediaService.addPublicSource(
+            introduction._id,
+            user._id,
+            "introduction",
+          );
+          updates["publicProfile.introduction"] = introduction;
+        }
+
+        if (introduction === null) {
+          const oldId = extractMediaId(
+            user.publicProfile?.introduction?.url ?? "",
+          );
+          if (oldId) {
+            await this.mediaService.removePublicSource(
+              oldId,
+              user._id,
+              "introduction",
+            );
+          }
+          updates["publicProfile.introduction"] = null;
         }
       }
       if (Object.keys(updates).length === 0)

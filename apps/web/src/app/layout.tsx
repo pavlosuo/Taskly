@@ -3,7 +3,6 @@ import clsx from "clsx";
 import { fonts } from "@/app/fonts";
 import { RootLayout } from "@/layouts/RootLayout";
 import { getUser } from "api/get-user";
-import { getPolicyData } from "api/policy";
 import "@/app/globals.css";
 import "@/scss/style.scss";
 
@@ -12,7 +11,7 @@ export default async function LocaleLayout({
 }: {
   children: ReactNode;
 }) {
-  const [user, data] = await Promise.all([getUser(), getPolicyData()]);
+  const [user] = await Promise.all([getUser()]);
   const lang = user?.settings?.lang || "en";
   const theme = user?.settings?.theme || "light";
   return (
@@ -23,10 +22,7 @@ export default async function LocaleLayout({
       suppressHydrationWarning
     >
       <body>
-        <RootLayout
-          initialDataJson={data ? JSON.stringify(data) : null}
-          userJson={user ? JSON.stringify(user) : null}
-        >
+        <RootLayout userJson={user ? JSON.stringify(user) : null}>
           {children}
         </RootLayout>
       </body>

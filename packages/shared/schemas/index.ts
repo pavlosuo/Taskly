@@ -149,6 +149,7 @@ const publicProfileSchema: z.ZodType<PublicProfile> = z.object({
   certificates: z.array(publicProfileCertificateSchema).optional(),
   languages: z.array(publicProfileLangSchema).optional(),
   header: mediaItemField.nullable().optional(),
+  introduction: mediaItemField.nullable().optional(),
 });
 
 const settingsSchema: z.ZodType<Partial<UserSettings>> = z.object({

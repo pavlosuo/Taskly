@@ -91,7 +91,7 @@ export function CertificatesEditor({
                   className={clsx(
                     "w-16 h-16 rounded-lg border-2 border-dashed flex items-center justify-center shrink-0 transition-colors overflow-hidden",
                     cert.media
-                      ? "border-transparent"
+                      ? "border-none"
                       : "border-border hover:border-primary/50",
                   )}
                 >
@@ -107,10 +107,12 @@ export function CertificatesEditor({
                 </button>
                 {cert.media ? (
                   <button
+                    type="button"
                     onClick={() => setMedia(cert.value, null)}
-                    className="absolute bottom-0 right-0 w-5 h-5 bg-primary rounded-full flex items-center justify-center"
+                    className="absolute -bottom-2 -right-2 w-6 h-6 z-20 flex items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-sm transition-all duration-150 hover:bg-destructive group-hover:opacity-100"
+                    aria-label="Remove introduction video"
                   >
-                    <Trash2 className="w-2 h-2 text-white"></Trash2>
+                    <Trash2 className="h-3.5 w-3.5" />
                   </button>
                 ) : null}
               </div>
