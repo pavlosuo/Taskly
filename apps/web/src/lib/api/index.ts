@@ -8,6 +8,8 @@ import {
   OtpPurpose,
   UpdateProfileForm,
   MediaItem,
+  Theme,
+  Lang,
 } from "@shared/types";
 
 export const BASE_URL =
@@ -19,6 +21,9 @@ export const api = axios.create({
 });
 
 export const axiosApi = {
+  preferences: (payload: { theme?: Theme; lang?: Lang }) =>
+    api.post<{ theme: Theme; lang: Lang }>("/api/preferences", payload),
+
   me: () => api.get<{ user: PublicUser }>("/api/auth/me"),
 
   login: (payload: LoginForm) =>

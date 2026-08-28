@@ -26,7 +26,7 @@ export class Server implements IServer {
       this._client = new MongoClient(process.env.MONGODB_URI || "", {
         serverApi: {
           version: ServerApiVersion.v1,
-          strict: true,
+          strict: false,
           deprecationErrors: true,
         },
       });
@@ -160,7 +160,7 @@ export class Server implements IServer {
 
   async start() {
     await this.getDb();
-    // await this.indexesConfig();
+    await this.indexesConfig();
     const app = createApp(this);
     app.listen(this.port, () => {
       console.log(`Server running on port ${this.port}`);

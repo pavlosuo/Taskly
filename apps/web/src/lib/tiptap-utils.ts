@@ -409,7 +409,6 @@ type ProtocolOptions = {
 type ProtocolConfig = Array<ProtocolOptions | string>;
 
 const ATTR_WHITESPACE =
-  // eslint-disable-next-line no-control-regex
   /[\u0000-\u0020\u00A0\u1680\u180E\u2000-\u2029\u205F\u3000]/g;
 
 export function isAllowedUri(
@@ -442,13 +441,14 @@ export function isAllowedUri(
 
   return (
     !uri ||
-    uri.replace(ATTR_WHITESPACE, "").match(
-      new RegExp(
-        // eslint-disable-next-line no-useless-escape
-        `^(?:(?:${allowedProtocols.join("|")}):|[^a-z]|[a-z0-9+.\-]+(?:[^a-z+.\-:]|$))`,
-        "i",
-      ),
-    )
+    uri
+      .replace(ATTR_WHITESPACE, "")
+      .match(
+        new RegExp(
+          `^(?:(?:${allowedProtocols.join("|")}):|[^a-z]|[a-z0-9+.\-]+(?:[^a-z+.\-:]|$))`,
+          "i",
+        ),
+      )
   );
 }
 
@@ -560,12 +560,6 @@ export function selectCurrentBlockContent(editor: Editor) {
   }
 }
 
-/**
- * Retrieves all nodes of specified types from the current selection.
- * @param selection The current editor selection
- * @param allowedNodeTypes An array of node type names to look for (e.g., ["image", "table"])
- * @returns An array of objects containing the node and its position
- */
 export function getSelectedNodesOfType(
   selection: Selection,
   allowedNodeTypes: string[],

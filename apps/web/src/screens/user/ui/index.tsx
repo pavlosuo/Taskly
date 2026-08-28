@@ -29,6 +29,8 @@ import {
   ImageIcon,
   Video,
   Upload,
+  QrCode,
+  ArrowUpRight,
 } from "lucide-react";
 import Image from "next/image";
 import { FINNISH_BANKS, LANGS } from "@shared/data";
@@ -69,6 +71,8 @@ import { SkillsEditor } from "@/screens/user/ui/SkillsEditor";
 import { CertificatesEditor } from "@/screens/user/ui/CertificatesEditor";
 import { updateProfileSchema } from "@shared/schemas";
 import { VideoPlayer } from "@/shared/components/Player";
+import { QRCode } from "@/shared/components/QRCode";
+import Link from "next/link";
 
 export function Field({
   label,
@@ -381,7 +385,7 @@ export function PersonalInfoCard({
         title="Personal information"
         desc="Manage your basic account details and contact information."
       />
-      <div className="rounded-xl border border-border bg-background p-4">
+      <div className="border border-border bg-background p-4">
         <div className="flex justify-end mb-4 -mt-1">
           <button
             onClick={openDialog}
@@ -566,7 +570,7 @@ export function PayoutCard() {
         title="Payout details"
         desc="Where we send your earnings for completed tasks."
       />
-      <div className="rounded-xl border border-border bg-background p-4">
+      <div className="border border-border bg-background p-4">
         <div className="flex justify-end mb-4 -mt-1">
           <button
             onClick={openDialog}
@@ -808,7 +812,7 @@ export function SectionCard({
   desc: string;
 }) {
   return (
-    <div className="rounded-xl border border-border bg-background p-4 transition-shadow hover:shadow-sm">
+    <div className="border border-border bg-background p-4 transition-shadow hover:shadow-sm">
       <div className="w-12 h-12 bg-foreground flex items-center justify-center mb-3">
         {icon}
       </div>
@@ -830,7 +834,7 @@ export function AppearanceCard() {
         title="Appearance"
         desc="Choose your language and display theme."
       />
-      <div className="rounded-xl border border-border bg-background p-4 flex flex-col gap-5">
+      <div className="border border-border bg-background p-4 flex flex-col gap-5">
         <div className="flex items-center justify-between gap-4">
           <div>
             <p className="text-sm font-medium text-foreground mb-0.5">
@@ -913,7 +917,7 @@ export function NotificationsCard() {
         title="Notifications"
         desc="Choose what you want to be notified about."
       />
-      <div className="rounded-xl border border-border bg-background p-4 flex flex-col gap-4">
+      <div className="border border-border bg-background p-4 flex flex-col gap-4">
         {USER_NOTIFICATIONS_LIST.map((row, i) => (
           <div key={row.key}>
             {i > 0 && <div className="h-px bg-border mb-4" />}
@@ -990,7 +994,7 @@ export function PublicProfileCard() {
         title="Public profile"
         desc="What clients see when they find you on Taskly."
       />
-      <div className="rounded-xl border border-border bg-background p-4">
+      <div className="border border-border bg-background p-4">
         <div className="flex justify-end mb-4 -mt-1">
           <button
             onClick={openDialog}
@@ -1170,7 +1174,7 @@ export function AvatarCard() {
         title="Profile photo"
         desc="Your avatar shown to clients and on your public profile."
       />
-      <div className="rounded-xl border border-border bg-background p-4">
+      <div className="border border-border bg-background p-4">
         <div className="flex items-center gap-4">
           {user.profile?.avatar ? (
             <div className="w-16 h-16 rounded-full object-cover relative">
@@ -1235,12 +1239,12 @@ export function HeaderCard() {
         desc="Your header shown to clients and on your public profile."
       />
       <div
-        className={
-          "group relative h-45 overflow-hidden rounded-xl border transition-colors " +
-          (hasHeader
+        className={clsx(
+          "group relative h-45 overflow-hidden border transition-colors",
+          hasHeader
             ? "border-border bg-background"
-            : "border-dashed border-border")
-        }
+            : "border-dashed border-border",
+        )}
       >
         {hasHeader ? (
           <>
@@ -1311,12 +1315,12 @@ export function VideoCard() {
         desc="Your video shown to clients and on your public profile."
       />
       <div
-        className={
-          "relative overflow-hidden rounded-xl border " +
-          (hasIntroduction
+        className={clsx(
+          "relative overflow-hidden border",
+          hasIntroduction
             ? "border-border bg-background"
-            : "h-45 border-dashed border-border")
-        }
+            : "h-45 border-dashed border-border",
+        )}
       >
         {hasIntroduction ? (
           <div className="group relative aspect-video w-full">
@@ -1364,6 +1368,30 @@ export function VideoCard() {
             <span className="text-sm font-medium">Add introduction video</span>
           </button>
         )}
+      </div>
+    </div>
+  );
+}
+
+export function QRCard() {
+  const { user } = useUser();
+  if (!user) return null;
+  const link = user.publicLink || "";
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-4 lg:gap-6 items-start">
+      <SectionCard
+        icon={<QrCode className="w-6 h-6 text-background" />}
+        title="QR Code"
+        desc="Your QR Code. Share it with your clients."
+      />
+      <div className="border border-border bg-background p-4 flex justify-between items-end">
+        <Button variant="link">
+          <Link href={link} target="_blank" className="flex items-center gap-1">
+            <span>View my profile</span>
+            <ArrowUpRight className="w-6 h-6" />
+          </Link>
+        </Button>
+        <QRCode url={link} name={`@${user.username}`} />
       </div>
     </div>
   );

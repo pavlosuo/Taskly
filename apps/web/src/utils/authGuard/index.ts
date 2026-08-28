@@ -12,7 +12,7 @@ const homePage: Record<RoleNested, string> = {
 };
 
 export async function authGuard(requiredRoles: RoleNested[]) {
-  const user = await getUser();
+  const { user } = await getUser();
   const currentRole: RoleNested = user?.role ?? "guest";
   if (!requiredRoles.includes(currentRole)) {
     redirect(homePage[currentRole]);

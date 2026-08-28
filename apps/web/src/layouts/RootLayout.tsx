@@ -4,23 +4,29 @@ import { UserProvider } from "@/providers/UserProvider";
 import { ThemeProvider } from "@/providers/ThemeProvider";
 import { ModalProvider } from "@/providers/ModalProvider";
 import { MediaPickerProvider } from "@/providers/MediaPickerProvider";
+import { Lang, Theme } from "@shared/types";
+import { FloatingSettings } from "@/shared/components/FloatingSettings";
 
 type IRootLayout = {
   userJson: string | null;
+  initialLang: Lang;
+  initialTheme: Theme;
 };
 
 export const RootLayout: FC<PropsWithChildren<IRootLayout>> = ({
   children,
   userJson,
+  initialLang,
+  initialTheme,
 }) => {
-  const user = userJson ? JSON.parse(userJson) : null;
   return (
     <ModalProvider>
-      <MediaPickerProvider>
-        <UserProvider initialUser={user}>
-          <ThemeProvider initialUser={user}>{children}</ThemeProvider>
-        </UserProvider>
-      </MediaPickerProvider>
+      <UserProvider initialUser={userJson ? JSON.parse(userJson) : null}>
+        <ThemeProvider initialLang={initialLang} initialTheme={initialTheme}>
+          <MediaPickerProvider>{children}</MediaPickerProvider>
+          <FloatingSettings />
+        </ThemeProvider>
+      </UserProvider>
     </ModalProvider>
   );
 };

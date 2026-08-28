@@ -11,9 +11,9 @@ export default async function LocaleLayout({
 }: {
   children: ReactNode;
 }) {
-  const [user] = await Promise.all([getUser()]);
-  const lang = user?.settings?.lang || "en";
-  const theme = user?.settings?.theme || "light";
+  const { user, settings } = await getUser();
+  const lang = user?.settings?.lang || settings?.lang || "en";
+  const theme = user?.settings?.theme || settings?.theme || "light";
   return (
     <html
       className={clsx(fonts.map((f) => f.variable))}
@@ -22,7 +22,11 @@ export default async function LocaleLayout({
       suppressHydrationWarning
     >
       <body>
-        <RootLayout userJson={user ? JSON.stringify(user) : null}>
+        <RootLayout
+          initialLang={lang}
+          initialTheme={theme}
+          userJson={user ? JSON.stringify(user) : null}
+        >
           {children}
         </RootLayout>
       </body>

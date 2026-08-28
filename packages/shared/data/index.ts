@@ -37,9 +37,9 @@ export const FINNISH_BANKS: BankItem[] = [
 ];
 
 export const LANGS: { value: Lang; label: string }[] = [
-  { value: "en", label: "English" },
-  { value: "fi", label: "Suomi" },
-  { value: "sv", label: "Svenska" },
+  { value: "en", label: "english" },
+  { value: "fi-FI", label: "finnish" },
+  { value: "sv-FI", label: "swedish" },
 ];
 
 export const WORLD_LANGUAGES = [

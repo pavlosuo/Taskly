@@ -18,6 +18,7 @@ import type {
   UserSettings,
   MediaItem,
 } from "@shared/types";
+import { LANGS } from "@shared/data";
 
 const phoneUtil = libphonenumber.PhoneNumberUtil.getInstance();
 
@@ -153,7 +154,7 @@ const publicProfileSchema: z.ZodType<PublicProfile> = z.object({
 });
 
 const settingsSchema: z.ZodType<Partial<UserSettings>> = z.object({
-  lang: z.enum(["en", "fi", "sv"] as [Lang, ...Lang[]]).optional(),
+  lang: z.enum(LANGS.map((lang) => lang.value) as [Lang, ...Lang[]]).optional(),
   theme: z.enum(["light", "dark"] as [Theme, ...Theme[]]).optional(),
   notifications: z
     .object({
@@ -199,6 +200,7 @@ export const newPasswordSchema: z.ZodType<NewPasswordForm> = z
 
 export const updateProfileSchema: z.ZodType<UpdateProfileForm> = z.object({
   username: usernameField.optional(),
+  publicLink: z.string().optional(),
   fullName: fullNameSchema.optional(),
   fullPhone: phoneField.optional(),
   phone: z.string().min(1, "phone.required").optional(),

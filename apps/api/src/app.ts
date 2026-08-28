@@ -31,5 +31,41 @@ export function createApp(server: Server): Application {
   app.use("/api/media", mediaRoutes(server));
   app.use("/api/skills", skillsRoutes(server));
   app.use("/api/certificates", certificatesRoutes(server));
+  app.post("/api/preferences", (req, res) => {
+    const { theme, lang } = req.body;
+    const cookieOptions = {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax" as const,
+      maxAge: 365 * 24 * 60 * 60 * 1000,
+      path: "/",
+    };
+    if (theme) {
+      res.cookie("theme", theme, cookieOptions);
+    }
+    if (lang) {
+      res.cookie("lang", lang, cookieOptions);
+    }
+    return res.json({
+      success: true,
+      theme,
+      lang,
+    });
+  });
+  app.use((req, res) => {
+    const data = {
+      method: req.method,
+      url: req.originalUrl,
+      ip: req.ip,
+      userAgent: req.get("user-agent"),
+      time: new Date().toISOString(),
+    };
+    console.log(data);
+    res.status(500).json({
+      success: false,
+      status: 500,
+      message: "Server error.",
+    });
+  });
   return app;
 }

@@ -70,6 +70,7 @@ export class AuthService {
 
       const doc = {
         username,
+        publicLink: `${process.env.CLIENT_URL}/@${username}`,
         email,
         role,
         createdAt: new Date(),

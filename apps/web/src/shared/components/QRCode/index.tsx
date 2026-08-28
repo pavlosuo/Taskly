@@ -2,9 +2,12 @@
 
 import { QRCodeSVG } from "qrcode.react";
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { useTheme } from "@/providers/ThemeProvider";
 
-export function QRCode({ url }: { url: string }) {
+export function QRCode({ url, name }: { url: string; name: string }) {
   const [copied, setCopied] = useState(false);
+  const { theme } = useTheme();
   if (!url) return null;
 
   const handleCopy = async () => {
@@ -41,34 +44,28 @@ export function QRCode({ url }: { url: string }) {
   };
 
   return (
-    <div className="flex flex-col items-center gap-4 rounded-2xl bg-background p-6 shadow-md w-fit">
-      <div className="rounded-xl border border-gray-100 p-3">
+    <div className="flex flex-col items-center gap-4 rounded-2xl bg-background p-6 w-fit">
+      <div className="rounded-xl border border-border p-3">
         <QRCodeSVG
           id="qr-svg"
           value={url}
           size={200}
-          bgColor="#ffffff"
-          fgColor="#000000"
+          bgColor={theme === "light" ? "#fff" : "#0c0c09"}
+          fgColor={theme === "light" ? "#0c0c09" : "#fff"}
           level="H"
           includeMargin={true}
         />
       </div>
-      <p className="max-w-55 truncate text-sm text-gray" title={url}>
-        {url}
+      <p className="max-w-55 truncate text-sm text-gray" title={name}>
+        {name}
       </p>
       <div className="flex gap-2">
-        <button
-          onClick={handleCopy}
-          className="bg-black px-0 py-2 text-sm font-medium w-[12ch] text-white transition hover:bg-gray-800 active:scale-95"
-        >
+        <Button onClick={handleCopy} variant="secondary" className="w-[12ch]">
           {copied ? "Copied!" : "Copy link"}
-        </button>
-        <button
-          onClick={handleDownloadPng}
-          className="border border-gray-300 px-4 py-2 text-sm font-medium text-grey transition hover:bg-gray-50 active:scale-95"
-        >
+        </Button>
+        <Button onClick={handleDownloadPng} variant="default">
           Download Code
-        </button>
+        </Button>
       </div>
     </div>
   );

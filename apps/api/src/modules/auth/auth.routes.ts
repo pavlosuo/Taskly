@@ -10,7 +10,7 @@ export function authRoutes(server: IServer): Router {
   router.post("/register", authLimiter, ctrl.register);
   router.post("/login", authLimiter, ctrl.login);
   router.post("/logout", server.requireAuth(), asAuth(ctrl.logout));
-  router.get("/me", server.requireAuth(), asAuth(ctrl.me));
+  router.get("/me", server.optionalAuth(), ctrl.me);
   router.post(
     "/otp/verify-password-reset",
     otpLimiter,

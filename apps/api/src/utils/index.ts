@@ -20,6 +20,7 @@ export function toPublicUser(
   if (!user) return null;
   return {
     _id: user._id as string,
+    publicLink: user.publicLink,
     username: user.username,
     email: user.email,
     role: user.role,

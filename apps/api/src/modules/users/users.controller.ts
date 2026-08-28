@@ -1,4 +1,4 @@
-import { Response } from "express";
+import { Response, Request } from "express";
 import { IServer, AuthRequest } from "@/types";
 import { UsersService } from "@/modules/users/users.service";
 
@@ -69,5 +69,11 @@ export class UsersController {
       message: "Password changed.",
       ...(result.data ?? {}),
     });
+  };
+
+  getUserByUsername = async (req: Request, res: Response) => {
+    const { username } = req.body;
+    const result = await this.service.getUserByUsername(username);
+    return res.status(result.status).json(result);
   };
 }

@@ -3,6 +3,7 @@ import { PublicUser } from "@shared/types";
 import { AuthService } from "@/modules/auth/auth.service";
 import { toPublicUser } from "@/utils";
 import { IServer, User } from "@/types";
+import { AuthRequest } from "@/types";
 
 export class AuthController {
   private service: AuthService;
@@ -55,7 +56,17 @@ export class AuthController {
     return res.json({ success: true });
   };
 
-  me = (req: Request, res: Response) => {
+  me = (req: Request | AuthRequest, res: Response) => {
+    if (!req.user) {
+      return res.json({
+        success: true,
+        user: null,
+        settings: {
+          lang: req.cookies.lang ?? "en",
+          theme: req.cookies.theme ?? "light",
+        },
+      });
+    }
     return res.json({ success: true, user: toPublicUser(req.user) });
   };
 

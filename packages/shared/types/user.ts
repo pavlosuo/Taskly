@@ -2,7 +2,7 @@ import { MediaItem } from "./media";
 
 export type Role = "tasker" | "client";
 
-export type Lang = "en" | "fi" | "sv";
+export type Lang = "en" | "fi-FI" | "sv-FI";
 
 export type Theme = "light" | "dark";
 
@@ -75,6 +75,7 @@ export interface UserSettings {
 export interface PublicUser {
   _id: string;
   username: string;
+  publicLink: string;
   email: string;
   newEmail?: string;
   role: "admin" | Role;

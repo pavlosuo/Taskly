@@ -56,6 +56,7 @@ export class UsersService {
             message: "Username already taken.",
           };
         updates.username = username;
+        updates.publicLink = `${process.env.CLIENT_URL}/@${username}`;
       }
       if (email !== undefined && email !== user.email) {
         const exists = await users.findOne({
@@ -462,6 +463,27 @@ export class UsersService {
       };
     } catch (error) {
       console.error("Change password error:", error);
+      return { success: false, status: 500, message: "Server error." };
+    }
+  }
+
+  async getUserByUsername(username: string): Promise<ServiceResult> {
+    try {
+      if (!username)
+        return { success: false, status: 400, message: "Bad request." };
+      const db = await this.server.getDb();
+      const user = await db
+        .collection("users")
+        .findOne<User>({ username: username });
+      if (!user)
+        return { success: false, status: 404, message: "Bad request." };
+      return {
+        success: true,
+        status: 200,
+        data: { user: user.publicProfile },
+      };
+    } catch (error) {
+      console.error("Get user by nick error:", error);
       return { success: false, status: 500, message: "Server error." };
     }
   }

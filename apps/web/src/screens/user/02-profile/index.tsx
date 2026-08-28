@@ -4,6 +4,7 @@ import {
   PublicProfileCard,
   HeaderCard,
   VideoCard,
+  QRCard,
 } from "@/screens/user/ui";
 
 export function Profile() {
@@ -14,6 +15,7 @@ export function Profile() {
         <HeaderCard />
         <VideoCard />
         <PublicProfileCard />
+        <QRCard />
       </div>
     </section>
   );

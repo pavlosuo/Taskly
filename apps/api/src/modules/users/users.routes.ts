@@ -19,5 +19,6 @@ export function usersRoutes(server: IServer): Router {
     asAuth(ctrl.verifyEmailOtp),
   );
   router.put("/password", server.requireAuth(), asAuth(ctrl.changePassword));
+  router.post("/get-user-by-username", ctrl.getUserByUsername);
   return router;
 }
