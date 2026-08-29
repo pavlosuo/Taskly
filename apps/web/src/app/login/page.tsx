@@ -1,6 +1,7 @@
 import { Screens } from "@/screens";
 import { getMetaData } from "@/utils/Metadata";
 import { authGuard } from "@/utils/authGuard";
+
 export const metadata = getMetaData({
   title: "Login",
   description: "Login page",

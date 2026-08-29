@@ -2,6 +2,7 @@ import { Router } from "express";
 import { MediaController } from "./media.controller";
 import { upload, asAuth } from "@/utils";
 import { IServer } from "@/types";
+import { asAuthOptional } from "@/utils";
 
 export function mediaRoutes(server: IServer): Router {
   const router = Router();
@@ -14,6 +15,10 @@ export function mediaRoutes(server: IServer): Router {
   );
   router.get("/", server.requireAuth(), asAuth(ctrl.getAll));
   router.delete("/:id", server.requireAuth(), asAuth(ctrl.delete));
-  router.get("/:id/file", server.optionalAuth(), ctrl.serveFile);
+  router.get(
+    "/:id/file",
+    server.optionalAuth(),
+    asAuthOptional(ctrl.serveFile),
+  );
   return router;
 }

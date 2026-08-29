@@ -2,6 +2,7 @@ import { Screens } from "@/screens";
 import { getMetaData } from "@/utils/Metadata";
 import { SidebarWrapper } from "@/shared/components/AppSidebar";
 import { authGuard } from "@/utils/authGuard";
+
 export const metadata = getMetaData({
   title: "Admin",
   description: "Administration page",

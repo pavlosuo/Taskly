@@ -3,6 +3,7 @@ import { getMetaData } from "@/utils/Metadata";
 import { redirect } from "next/navigation";
 import { isTokenValid } from "api/verify-reset-token";
 import { authGuard } from "@/utils/authGuard";
+
 export const metadata = getMetaData({
   title: "Forgot Password",
   description: "Forgot Password page",

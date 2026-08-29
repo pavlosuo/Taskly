@@ -1,5 +1,3 @@
-const isProd = process.env.NODE_ENV === "production";
-
 const config = {
   plugins: [
     "@tailwindcss/postcss",
@@ -15,7 +13,7 @@ const config = {
       },
     ],
     "postcss-sort-media-queries",
-    isProd && [
+    [
       "cssnano",
       {
         preset: [
@@ -38,7 +36,7 @@ const config = {
       },
     ],
     ["postcss-reporter", { clearReportedMessages: true }],
-  ].filter(Boolean),
+  ],
 };
 
 export default config;

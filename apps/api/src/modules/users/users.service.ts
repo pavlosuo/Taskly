@@ -6,6 +6,7 @@ import {
   publicProfileSkillSchema,
   publicProfileCertificateSchema,
 } from "@shared/schemas";
+import { CLIENT_URL } from "@/env";
 import { ServiceResult } from "@shared/types";
 import { OtpService } from "@/modules/otp/otp.service";
 import { toPublicUser, extractMediaId } from "@/utils";
@@ -56,7 +57,7 @@ export class UsersService {
             message: "Username already taken.",
           };
         updates.username = username;
-        updates.publicLink = `${process.env.CLIENT_URL}/@${username}`;
+        updates.publicLink = `${CLIENT_URL}/@${username}`;
       }
       if (email !== undefined && email !== user.email) {
         const exists = await users.findOne({

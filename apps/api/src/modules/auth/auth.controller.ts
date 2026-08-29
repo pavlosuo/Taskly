@@ -39,11 +39,8 @@ export class AuthController {
         success: false,
         message: result.message,
       });
-    const { user, fullUser } = result.data as {
-      user: PublicUser;
-      fullUser: User;
-    };
-    this.server.issueToken(res, fullUser);
+    const { user } = result.data as { user: User };
+    this.server.issueToken(res, user);
     return res.json({
       success: true,
       message: "Login successful.",
@@ -67,7 +64,11 @@ export class AuthController {
         },
       });
     }
-    return res.json({ success: true, user: toPublicUser(req.user) });
+    return res.json({
+      success: true,
+      user: toPublicUser(req.user),
+      settings: req.user.settings,
+    });
   };
 
   verifyPasswordResetOtp = async (req: Request, res: Response) => {

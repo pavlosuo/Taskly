@@ -1,14 +1,7 @@
 import { Router } from "express";
 import { CertificatesController } from "@/modules/certificates/certificates.controller";
 import { IServer } from "@/types";
-import rateLimit from "express-rate-limit";
-
-const searchLimiter = rateLimit({
-  windowMs: 60 * 1000,
-  max: 60,
-  standardHeaders: true,
-  legacyHeaders: false,
-});
+import { searchLimiter } from "@/utils/limiters";
 
 export function certificatesRoutes(server: IServer): Router {
   const router = Router();

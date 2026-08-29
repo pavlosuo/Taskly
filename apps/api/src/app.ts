@@ -1,3 +1,4 @@
+import { NODE_ENV, CLIENT_URL } from "@/env";
 import express, { Application } from "express";
 import cookieParser from "cookie-parser";
 import cors from "cors";
@@ -19,7 +20,7 @@ export function createApp(server: Server): Application {
   app.use(cookieParser());
   app.use(
     cors({
-      origin: process.env.CLIENT_URL || "http://localhost:3000",
+      origin: CLIENT_URL,
       credentials: true,
     }),
   );
@@ -35,7 +36,7 @@ export function createApp(server: Server): Application {
     const { theme, lang } = req.body;
     const cookieOptions = {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: NODE_ENV === "production",
       sameSite: "lax" as const,
       maxAge: 365 * 24 * 60 * 60 * 1000,
       path: "/",

@@ -14,6 +14,12 @@ export function asAuth(
   return (req, res) => handler(req as AuthRequest, res);
 }
 
+export function asAuthOptional(
+  handler: (req: AuthRequest | Request, res: Response) => unknown,
+): RequestHandler {
+  return (req, res) => handler(req as AuthRequest | Request, res);
+}
+
 export function toPublicUser(
   user?: User | PublicUser | null | WithId<Document>,
 ): PublicUser | null {

@@ -1,5 +1,12 @@
 import bcrypt from "bcrypt";
 import {
+  ADMIN_EMAIL,
+  ADMIN_PASSWORD,
+  ADMIN_USERNAME,
+  CLIENT_URL,
+  JWT_SECRET,
+} from "@/env";
+import {
   loginSchema,
   adminRegisterSchema,
   registerSchema,
@@ -20,9 +27,9 @@ export class AuthService {
   constructor(private server: IServer) {
     this.otpService = new OtpService(server);
     this.registerAdmin({
-      email: process.env.ADMIN_EMAIL || "",
-      password: process.env.ADMIN_PASSWORD || "",
-      username: process.env.ADMIN_USERNAME || "admin",
+      email: ADMIN_EMAIL,
+      password: ADMIN_PASSWORD,
+      username: ADMIN_USERNAME,
     });
   }
 
@@ -70,7 +77,7 @@ export class AuthService {
 
       const doc = {
         username,
-        publicLink: `${process.env.CLIENT_URL}/@${username}`,
+        publicLink: `${CLIENT_URL}/@${username}`,
         email,
         role,
         createdAt: new Date(),
@@ -180,12 +187,10 @@ export class AuthService {
           status: 401,
           message: "Invalid email or password.",
         };
-
-      const { passwordHash: _, ...loggedUser } = user;
       return {
         success: true,
         status: 200,
-        data: { user: loggedUser, fullUser: user },
+        data: { user },
       };
     } catch (error) {
       console.error("Login error:", error);
@@ -221,7 +226,7 @@ export class AuthService {
 
       const resetToken = jwt.sign(
         { id: user._id.toString() },
-        process.env.JWT_SECRET || "",
+        JWT_SECRET || "",
         { expiresIn: "15m" },
       );
       await db
@@ -254,7 +259,7 @@ export class AuthService {
 
       const resetToken = jwt.sign(
         { id: user._id.toString() },
-        process.env.JWT_SECRET || "",
+        JWT_SECRET || "",
         { expiresIn: "1h" },
       );
       await db
@@ -263,7 +268,7 @@ export class AuthService {
           { _id: user._id },
           { $set: { resetTokenHash: hashToken(resetToken) } },
         );
-      const resetUrl = `${process.env.CLIENT_URL}/forgot-password?token=${resetToken}`;
+      const resetUrl = `${CLIENT_URL}/forgot-password?token=${resetToken}`;
       await this.server.mailer?.sendMail({
         to: email,
         subject: "Password Reset",
@@ -289,7 +294,7 @@ export class AuthService {
       const { token, password } = parsed.data;
       let decoded: any;
       try {
-        decoded = jwt.verify(token, process.env.JWT_SECRET || "");
+        decoded = jwt.verify(token, JWT_SECRET || "");
       } catch {
         return {
           success: false,
@@ -330,7 +335,7 @@ export class AuthService {
     try {
       let decoded: any;
       try {
-        decoded = jwt.verify(token, process.env.JWT_SECRET || "");
+        decoded = jwt.verify(token, JWT_SECRET || "");
       } catch (e: any) {
         const reason = e.name === "TokenExpiredError" ? "expired" : "invalid";
         return {

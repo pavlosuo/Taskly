@@ -1,13 +1,21 @@
-import path from "node:path";
-import dotenv from "dotenv";
-dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
+import {
+  MONGODB_URI,
+  JWT_SECRET,
+  SMTP_HOST,
+  SMTP_PORT,
+  SMTP_SECURE,
+  SMTP_USER,
+  SMTP_PASS,
+  NODE_ENV,
+} from "@/env";
 import { MongoClient, ServerApiVersion, ObjectId, Db } from "mongodb";
 import { Response, Request, NextFunction } from "express";
-import jwt from "jsonwebtoken";
-import nodemailer, { Transporter } from "nodemailer";
 import { createApp } from "@/app";
 import { IServer, User, AuthRequest } from "@/types";
+import nodemailer, { Transporter } from "nodemailer";
+import jwt from "jsonwebtoken";
 import dns from "node:dns/promises";
+
 dns.setServers(["1.1.1.1", "1.0.0.1"]);
 
 export class Server implements IServer {
@@ -23,7 +31,7 @@ export class Server implements IServer {
 
   getDb(): Promise<Db> {
     if (!this._dbPromise) {
-      this._client = new MongoClient(process.env.MONGODB_URI || "", {
+      this._client = new MongoClient(MONGODB_URI || "", {
         serverApi: {
           version: ServerApiVersion.v1,
           strict: false,
@@ -55,17 +63,17 @@ export class Server implements IServer {
     console.log(`Email sent to ${to}: ${subject} ${text}`);
     if (!this.mailer) {
       const t = nodemailer.createTransport({
-        host: process.env.SMTP_HOST,
-        port: Number(process.env.SMTP_PORT),
-        secure: process.env.SMTP_SECURE === "true",
-        auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+        host: SMTP_HOST,
+        port: Number(SMTP_PORT),
+        secure: SMTP_SECURE === "true",
+        auth: { user: SMTP_USER, pass: SMTP_PASS },
       });
       t.verify().catch((err) => console.error("SMTP error:", err));
       this.mailer = t;
     }
     try {
       await this.mailer.sendMail({
-        from: process.env.SMTP_USER,
+        from: SMTP_USER,
         to,
         subject,
         text,
@@ -88,12 +96,12 @@ export class Server implements IServer {
         username: user.username,
         role: user.role,
       },
-      process.env.JWT_SECRET || "",
+      JWT_SECRET || "",
       { expiresIn: "7d" },
     );
     res.cookie("token", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: NODE_ENV === "production",
       sameSite: "lax",
       path: "/",
       maxAge: 60 * 60 * 24 * 7 * 1000,
@@ -103,20 +111,18 @@ export class Server implements IServer {
 
   async getUserFromCookie(req: Request): Promise<User | null> {
     const token = req.cookies?.token;
-    if (!token) return null;
+    if (!token) {
+      return null;
+    }
     try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET || "") as Record<
-        string,
-        string
-      >;
+      const decoded = jwt.verify(token, JWT_SECRET || "") as jwt.JwtPayload;
       const db = await this.getDb();
-      return (await db
-        .collection("users")
-        .findOne(
-          { _id: new ObjectId(decoded.id) },
-          { projection: { passwordHash: 0, otps: 0 } },
-        )) as User | null;
-    } catch {
+      const user = (await db.collection("users").findOne({
+        _id: new ObjectId(decoded.id),
+      })) as User | null;
+      return user;
+    } catch (error) {
+      console.error("VERIFY ERROR:", error);
       return null;
     }
   }
@@ -142,8 +148,8 @@ export class Server implements IServer {
   }
 
   requireAdmin() {
-    return (_req: Request, res: Response, next: NextFunction) => {
-      if (_req?.user?.role !== "admin")
+    return (req: AuthRequest, res: Response, next: NextFunction) => {
+      if (req?.user?.role !== "admin")
         return res.status(403).json({ success: false, message: "Forbidden." });
       next();
     };

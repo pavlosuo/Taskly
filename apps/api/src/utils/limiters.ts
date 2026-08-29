@@ -24,3 +24,14 @@ export const otpLimiter = rateLimit({
     message: "Too many OTP requests, try again later.",
   },
 });
+
+export const searchLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 60,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    message: "Too many search requests, try again later.",
+  },
+});
