@@ -19,10 +19,24 @@ export function AppSidebar() {
   const { openPicker } = useMediaPicker();
 
   const navItems = useMemo(() => {
-    if (user?.role === "tasker") {
+    if (user?.role === "client") {
       return [
         { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
         { label: "Post a Task", href: "/post-task", icon: PlusCircle },
+        { label: "My Tasks", href: "/tasks", icon: ClipboardList },
+        { label: "Chats", href: "/chats", icon: MessageCircle },
+        {
+          label: "Media Library",
+          icon: ImagePlus,
+          href: "/media-library",
+          onClick: () => {
+            openPicker({});
+          },
+        },
+      ];
+    } else {
+      return [
+        { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
         { label: "My Tasks", href: "/tasks", icon: ClipboardList },
         { label: "Chats", href: "/chats", icon: MessageCircle },
         {

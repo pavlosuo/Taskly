@@ -18,7 +18,7 @@ import type {
   UserSettings,
   MediaItem,
 } from "@shared/types";
-import { LANGS } from "@shared/data";
+import { LANGS, CERF } from "@shared/data";
 
 const phoneUtil = libphonenumber.PhoneNumberUtil.getInstance();
 
@@ -119,7 +119,7 @@ const mediaItemField = z.object({
 export const publicProfileLangSchema: z.ZodType<PublicProfileLang> = z.object({
   value: z.string(),
   label: z.string(),
-  level: z.enum(["A1", "A2", "B1", "B2", "C1", "C2"]),
+  level: z.enum(CERF),
   certificate: z
     .object({
       media: mediaItemField,
@@ -140,8 +140,7 @@ export const publicProfileCertificateSchema: z.ZodType<PublicProfileCertificate>
   z.object({
     value: z.string(),
     label: z.string(),
-    media: mediaItemField.optional(),
-    description: z.string().optional(),
+    media: mediaItemField.nullable().optional(),
   });
 
 const publicProfileSchema: z.ZodType<PublicProfile> = z.object({
@@ -156,9 +155,10 @@ const publicProfileSchema: z.ZodType<PublicProfile> = z.object({
 const settingsSchema: z.ZodType<Partial<UserSettings>> = z.object({
   lang: z.enum(LANGS.map((lang) => lang.value) as [Lang, ...Lang[]]).optional(),
   theme: z.enum(["light", "dark"] as [Theme, ...Theme[]]).optional(),
-  notifications: z
+  checkboxes: z
     .object({
       email: z.boolean().optional(),
+      privateProfile: z.boolean().optional(),
     })
     .optional(),
 });

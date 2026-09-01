@@ -1,9 +1,9 @@
 import { cache } from "react";
-import { PublicUser } from "@shared/types";
+import { PublicProfileUser } from "@shared/types";
 import { BASE_URL } from "api/index";
 
 export const getUserByUsername = cache(
-  async (username: string): Promise<PublicUser | null> => {
+  async (username: string): Promise<PublicProfileUser | null> => {
     try {
       const res = await fetch(`${BASE_URL}/api/profile/get-user-by-username`, {
         method: "POST",

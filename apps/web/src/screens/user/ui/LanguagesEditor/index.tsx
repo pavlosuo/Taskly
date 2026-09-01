@@ -2,7 +2,7 @@
 import { useState, useMemo } from "react";
 import { X } from "lucide-react";
 import { Input } from "@/shared/components/Input";
-import { WORLD_LANGUAGES, CEFR_LEVELS } from "@shared/data";
+import { WORLD_LANGUAGES, CERF_LEVELS } from "@shared/data";
 import { PublicProfileLang } from "@shared/types";
 import clsx from "clsx";
 import { ImageDisplay } from "@/shared/components/MediaPicker";
@@ -63,7 +63,7 @@ export function LanguagesEditor({
                 </button>
               </div>
               <div className="flex flex-wrap gap-1">
-                {CEFR_LEVELS.map((lvl) => (
+                {CERF_LEVELS.map((lvl) => (
                   <button
                     key={lvl.value}
                     type="button"
@@ -90,6 +90,7 @@ export function LanguagesEditor({
                     <ImageDisplay
                       src={lang.certificate.media?.url || ""}
                       alt={lang.certificate.description || lang.value}
+                      className="w-full h-full"
                     />
                     <Button
                       type="button"

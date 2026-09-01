@@ -7,12 +7,13 @@ import {
   publicProfileCertificateSchema,
 } from "@shared/schemas";
 import { CLIENT_URL } from "@/env";
-import { ServiceResult } from "@shared/types";
+import { ServiceResult, PublicProfileUser } from "@shared/types";
 import { OtpService } from "@/modules/otp/otp.service";
 import { toPublicUser, extractMediaId } from "@/utils";
 import bcrypt from "bcrypt";
 import { IServer, User } from "@/types";
 import { MediaService } from "@/modules/media/media.service";
+import { stripMediaFields } from "@/utils";
 
 export class UsersService {
   private otpService: OtpService;
@@ -124,9 +125,11 @@ export class UsersService {
         };
       }
       if (parsed.data.settings !== undefined) {
-        const { lang, theme } = parsed.data.settings;
+        const { lang, theme, checkboxes } = parsed.data.settings;
         if (lang !== undefined) updates["settings.lang"] = lang;
         if (theme !== undefined) updates["settings.theme"] = theme;
+        if (checkboxes !== undefined)
+          updates["settings.checkboxes"] = checkboxes;
       }
       if (parsed.data.publicProfile !== undefined) {
         const { bio, languages, skills, certificates, header, introduction } =
@@ -471,17 +474,40 @@ export class UsersService {
   async getUserByUsername(username: string): Promise<ServiceResult> {
     try {
       if (!username)
-        return { success: false, status: 400, message: "Bad request." };
+        return {
+          success: false,
+          status: 400,
+          message: "Username is required.",
+        };
       const db = await this.server.getDb();
       const user = await db
         .collection("users")
         .findOne<User>({ username: username });
       if (!user)
-        return { success: false, status: 404, message: "Bad request." };
+        return { success: false, status: 404, message: "User not found." };
+
+      const isPrivate = user?.settings?.checkboxes?.privateProfile;
+      if (isPrivate)
+        return { success: false, status: 403, message: "Forbidden" };
+
+      const doc = stripMediaFields({
+        username: user.username,
+        role: user.role,
+        createdAt: user.createdAt,
+        profile: {
+          fullName: user.profile.fullName,
+          avatar: user.profile.avatar,
+          initials: user.profile.initials,
+        },
+        publicProfile: user.publicProfile,
+      } as PublicProfileUser);
+
       return {
         success: true,
         status: 200,
-        data: { user: user.publicProfile },
+        data: {
+          user: doc,
+        },
       };
     } catch (error) {
       console.error("Get user by nick error:", error);

@@ -95,7 +95,10 @@ export const WORLD_LANGUAGES = [
   { value: "uz", label: "Uzbek" },
 ];
 
-export const CEFR_LEVELS = [
+export const CERF_LEVELS: {
+  value: "A1" | "A2" | "B1" | "B2" | "C1" | "C2";
+  label: string;
+}[] = [
   { value: "A1", label: "A1 — Beginner" },
   { value: "A2", label: "A2 — Elementary" },
   { value: "B1", label: "B1 — Intermediate" },
@@ -103,6 +106,8 @@ export const CEFR_LEVELS = [
   { value: "C1", label: "C1 — Advanced" },
   { value: "C2", label: "C2 — Mastery" },
 ];
+
+export const CERF = CERF_LEVELS.map((l) => l.value);
 
 export const ALLOWED_MIME_TYPES = new Set([
   "image/jpeg",

@@ -43,19 +43,25 @@ export const ImageDisplay = ({
   src,
   alt,
   className,
+  width,
+  height,
 }: {
   src: string;
   alt: string;
   className?: string;
+  width?: number;
+  height?: number;
 }) =>
   src && (
     // eslint-disable-next-line @next/next/no-img-element
     <img
       draggable={false}
       decoding="async"
-      className={clsx("w-full h-full object-cover", className)}
+      className={clsx("object-cover", className)}
       src={src}
       alt={alt}
+      width={width}
+      height={height}
     />
   );
 
@@ -76,7 +82,13 @@ function FileIcon({
 
 function FileThumbnail({ item }: { item: MediaItem }) {
   if (item.mimeType.startsWith("image/")) {
-    return <ImageDisplay src={item.url} alt={item.originalName} />;
+    return (
+      <ImageDisplay
+        src={item.url}
+        alt={item.originalName}
+        className="w-full h-full"
+      />
+    );
   }
   if (item.mimeType.startsWith("video/")) {
     return (

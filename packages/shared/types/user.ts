@@ -26,7 +26,6 @@ export type PublicProfileCertificate = {
   value: string;
   label: string;
   media?: MediaItem | undefined | null;
-  description?: string;
 };
 
 export type Payout = {
@@ -67,8 +66,9 @@ export interface UserAcceptance {
 export interface UserSettings {
   lang: Lang;
   theme: Theme;
-  notifications: {
+  checkboxes: {
     email?: boolean;
+    privateProfile?: boolean;
   };
 }
 
@@ -86,3 +86,15 @@ export interface PublicUser {
   settings: UserSettings;
   publicProfile: PublicProfile;
 }
+
+export type PublicProfileUser = {
+  username: string;
+  role: string;
+  createdAt: string | Date;
+  profile: {
+    fullName: string;
+    avatar: MediaItem | undefined | null;
+    initials: string;
+  };
+  publicProfile: PublicProfile;
+};

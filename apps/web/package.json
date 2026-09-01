@@ -36,6 +36,7 @@
     "react-hotkeys-hook": "^5.3.3",
     "react-i18next": "^17.0.8",
     "react-signature-canvas": "^1.1.0-alpha.2",
+    "swiper": "^14.2.0",
     "tailwind-merge": "^3.5.0",
     "three": "^0.185.1",
     "zod": "^4.3.6"

@@ -102,8 +102,9 @@ export class AuthService {
         settings: {
           lang: "en",
           theme: "light",
-          notifications: {
+          checkboxes: {
             email: true,
+            privateProfile: false,
           },
         },
         publicProfile: {

@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { createHash, randomInt, timingSafeEqual } from "crypto";
-import { PublicUser } from "@shared/types";
+import { PublicUser, MediaItemPublic } from "@shared/types";
 import { RequestHandler, Response, Request } from "express";
 import { AuthRequest, User } from "@/types";
 import { ObjectId, WithId, Document } from "mongodb";
@@ -113,4 +113,44 @@ export function extractMediaId(url: string): string | null {
   if (!url) return null;
   const match = url.match(/\/api\/media\/([a-f0-9]+)\/file/);
   return match?.[1] ?? null;
+}
+
+function isMediaObject(
+  value: unknown,
+): value is Record<string, unknown> & MediaItemPublic {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    !Array.isArray(value) &&
+    typeof (value as Record<string, unknown>).url === "string" &&
+    typeof (value as Record<string, unknown>).originalName === "string"
+  );
+}
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  if (typeof value !== "object" || value === null) return false;
+  if (Array.isArray(value)) return false;
+  if (value instanceof Date) return false;
+  const proto = Object.getPrototypeOf(value);
+  return proto === Object.prototype || proto === null;
+}
+
+export function stripMediaFields<T>(input: T): T {
+  if (Array.isArray(input)) {
+    return input.map((item) => stripMediaFields(item)) as unknown as T;
+  }
+  if (isMediaObject(input)) {
+    return {
+      originalName: input.originalName,
+      url: input.url,
+    } as unknown as T;
+  }
+  if (isPlainObject(input)) {
+    const result: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(input)) {
+      result[key] = stripMediaFields(value);
+    }
+    return result as T;
+  }
+  return input;
 }

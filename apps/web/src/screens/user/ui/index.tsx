@@ -25,7 +25,6 @@ import {
   Star,
   BadgeCheck,
   Globe,
-  Bell,
   ImageIcon,
   Video,
   Upload,
@@ -73,6 +72,31 @@ import { updateProfileSchema } from "@shared/schemas";
 import { VideoPlayer } from "@/shared/components/Player";
 import { QRCode } from "@/shared/components/QRCode";
 import Link from "next/link";
+
+export function SpanField({
+  text,
+  subtext,
+  icon,
+}: {
+  text: string;
+  subtext?: string;
+  icon?: React.ReactNode;
+}) {
+  if (!text) return null;
+  return (
+    <span className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full bg-muted text-foreground font-medium">
+      {icon}
+      <span>
+        {text}
+        {subtext && (
+          <span className="text-[10px] text-grey font-normal ml-1.5">
+            {subtext}
+          </span>
+        )}
+      </span>
+    </span>
+  );
+}
 
 export function Field({
   label,
@@ -879,10 +903,20 @@ export function AppearanceCard() {
   );
 }
 
-export function NotificationsCard() {
+export function CheckboxesCard({
+  list,
+  icon,
+  title,
+  desc,
+}: {
+  list: { key: string; label: string; desc: string }[];
+  icon: React.ReactNode;
+  title: string;
+  desc: string;
+}) {
   const { user, updateProfile } = useUser();
   const [error, setError] = useState("");
-  const [local, setLocal] = useState(() => user?.settings?.notifications ?? {});
+  const [local, setLocal] = useState(() => user?.settings?.checkboxes ?? {});
 
   const toggle = async (key: string, value: boolean) => {
     const updated = { ...local, [key]: value };
@@ -891,7 +925,7 @@ export function NotificationsCard() {
       await updateProfile({
         settings: {
           ...user?.settings,
-          notifications: updated,
+          checkboxes: updated,
         },
       });
     } catch (e) {
@@ -900,44 +934,34 @@ export function NotificationsCard() {
     }
   };
 
-  if (!user) return null;
-
-  const USER_NOTIFICATIONS_LIST = [
-    {
-      key: "email",
-      label: "Email notifications",
-      desc: "Receive updates via email.",
-    },
-  ];
+  if (!user || !list) return null;
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-4 lg:gap-6 items-start">
-      <SectionCard
-        icon={<Bell className="w-6 h-6 text-background" />}
-        title="Notifications"
-        desc="Choose what you want to be notified about."
-      />
-      <div className="border border-border bg-background p-4 flex flex-col gap-4">
-        {USER_NOTIFICATIONS_LIST.map((row, i) => (
-          <div key={row.key}>
-            {i > 0 && <div className="h-px bg-border mb-4" />}
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <p className="text-sm font-medium text-foreground mb-0.5">
-                  {row.label}
-                </p>
-                <p className="text-xs text-grey">{row.desc}</p>
+    <>
+      <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-4 lg:gap-6 items-start">
+        <SectionCard icon={icon} title={title} desc={desc} />
+        <div className="border border-border bg-background p-4 flex flex-col gap-4">
+          {list.map((row, i) => (
+            <div key={row.key}>
+              {i > 0 && <div className="h-px bg-border mb-4" />}
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-sm font-medium text-foreground mb-0.5">
+                    {row.label}
+                  </p>
+                  <p className="text-xs text-grey">{row.desc}</p>
+                </div>
+                <Switch
+                  checked={local[row.key as keyof typeof local] ?? true}
+                  onCheckedChange={(v) => toggle(row.key, v)}
+                />
               </div>
-              <Switch
-                checked={local[row.key as keyof typeof local] ?? true}
-                onCheckedChange={(v) => toggle(row.key, v)}
-              />
             </div>
-          </div>
-        ))}
-        {error && <p className="text-xs text-red mt-1">{error}</p>}
+          ))}
+          {error && <p className="text-xs text-red mt-1">{error}</p>}
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 
@@ -1017,12 +1041,7 @@ export function PublicProfileCard() {
             {p?.skills?.length ? (
               <div className="flex flex-wrap gap-1.5">
                 {p.skills.map((s) => (
-                  <span
-                    key={s.value}
-                    className="text-xs px-2.5 py-1 rounded-full bg-primary/10 text-primary font-medium"
-                  >
-                    {s.label}
-                  </span>
+                  <SpanField text={s.label} key={s.value} />
                 ))}
               </div>
             ) : (
@@ -1036,13 +1055,11 @@ export function PublicProfileCard() {
               <div className="flex flex-wrap gap-1.5">
                 {p.certificates.map((c) => {
                   return (
-                    <span
+                    <SpanField
+                      icon={<BadgeCheck className="w-3.5 h-3.5" />}
+                      text={c.label}
                       key={c.value}
-                      className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-primary/10 text-primary font-medium"
-                    >
-                      <BadgeCheck className="w-3.5 h-3.5" />
-                      {c?.label}
-                    </span>
+                    />
                   );
                 })}
               </div>
@@ -1056,15 +1073,7 @@ export function PublicProfileCard() {
             {p?.languages?.length ? (
               <div className="flex flex-wrap gap-1.5">
                 {p.languages.map((l) => (
-                  <span
-                    key={l.value}
-                    className="inline-flex items-baseline gap-1.5 text-xs px-2.5 py-1 rounded-full bg-muted text-foreground font-medium"
-                  >
-                    {l.label}
-                    <span className="text-[10px] text-grey font-normal">
-                      {l.level}
-                    </span>
-                  </span>
+                  <SpanField key={l.value} text={l.label} />
                 ))}
               </div>
             ) : (
@@ -1164,9 +1173,7 @@ export function PublicProfileCard() {
 export function AvatarCard() {
   const { user, updateProfile } = useUser();
   const { openPicker } = useMediaPicker();
-
   if (!user) return null;
-
   return (
     <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-4 lg:gap-6 items-start">
       <SectionCard
@@ -1181,7 +1188,7 @@ export function AvatarCard() {
               <ImageDisplay
                 src={user.profile.avatar.url}
                 alt={user.profile.fullName}
-                className="rounded-full object-cover"
+                className="rounded-full object-cover w-full h-full"
               />
               <button
                 type="button"
@@ -1302,11 +1309,8 @@ export function HeaderCard() {
 export function VideoCard() {
   const { user, updateProfile } = useUser();
   const { openPicker } = useMediaPicker();
-
   if (!user) return null;
-
   const hasIntroduction = Boolean(user.publicProfile?.introduction);
-
   return (
     <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-4 lg:gap-6 items-start">
       <SectionCard

@@ -185,6 +185,9 @@ importers:
       react-signature-canvas:
         specifier: ^1.1.0-alpha.2
         version: 1.1.0-alpha.2(@types/react@19.2.17)(prop-types@15.8.1)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      swiper:
+        specifier: ^14.2.0
+        version: 14.2.0
       tailwind-merge:
         specifier: ^3.5.0
         version: 3.6.0
@@ -9032,6 +9035,13 @@ packages:
     engines: { node: ">=16" }
     hasBin: true
 
+  swiper@14.2.0:
+    resolution:
+      {
+        integrity: sha512-GsL4M9Fq7Sg22OyL3SjdNj/0bxTfIxPJJHHW394Li0u5vYtExi0a09iBUc8CuLafJi5pAlH2AHUe1PocxHl45g==,
+      }
+    engines: { node: ">= 4.7.0" }
+
   systeminformation@5.31.11:
     resolution:
       {
@@ -15467,6 +15477,8 @@ snapshots:
       csso: 5.0.5
       picocolors: 1.1.1
       sax: 1.6.0
+
+  swiper@14.2.0: {}
 
   systeminformation@5.31.11: {}
 

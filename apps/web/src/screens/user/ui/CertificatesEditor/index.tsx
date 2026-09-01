@@ -99,7 +99,7 @@ export function CertificatesEditor({
                     <ImageDisplay
                       src={cert.media.url}
                       alt={cert.label}
-                      className="object-cover"
+                      className="object-cover w-full h-full"
                     />
                   ) : (
                     <ImageIcon className="w-7.5 h-7.5 text-grey" />

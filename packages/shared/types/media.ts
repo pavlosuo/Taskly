@@ -10,3 +10,8 @@ export type MediaItem = {
   publicSources: string[];
   chatIds: string[];
 };
+
+export type MediaItemPublic = {
+  url: string;
+  originalName: string;
+};

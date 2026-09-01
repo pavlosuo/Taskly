@@ -63,7 +63,7 @@ export const UserDropdown = () => {
               <ImageDisplay
                 src={user.profile.avatar.url}
                 alt={user.profile.fullName}
-                className="rounded-full object-cover"
+                className="rounded-full object-cover w-full h-full"
               />
             ) : (
               user.profile?.initials
