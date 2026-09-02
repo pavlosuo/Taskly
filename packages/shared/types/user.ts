@@ -68,7 +68,9 @@ export interface UserSettings {
   theme: Theme;
   checkboxes: {
     email?: boolean;
+    phone?: boolean;
     privateProfile?: boolean;
+    noOnlineStatus?: boolean;
   };
 }
 
@@ -85,9 +87,13 @@ export interface PublicUser {
   profile: UserProfile;
   settings: UserSettings;
   publicProfile: PublicProfile;
+  lastSeenAt?: string;
+  isOnline?: boolean;
 }
 
 export type PublicProfileUser = {
+  isOnline: boolean;
+  lastSeenAt: string;
   username: string;
   role: string;
   createdAt: string | Date;

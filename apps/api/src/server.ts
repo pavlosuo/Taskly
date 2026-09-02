@@ -117,9 +117,13 @@ export class Server implements IServer {
     try {
       const decoded = jwt.verify(token, JWT_SECRET || "") as jwt.JwtPayload;
       const db = await this.getDb();
-      const user = (await db.collection("users").findOne({
-        _id: new ObjectId(decoded.id),
-      })) as User | null;
+      const user = (await db
+        .collection("users")
+        .findOneAndUpdate(
+          { _id: new ObjectId(decoded.id) },
+          { $set: { lastSeenAt: new Date() } },
+          { returnDocument: "after" },
+        )) as User | null;
       return user;
     } catch (error) {
       console.error("VERIFY ERROR:", error);

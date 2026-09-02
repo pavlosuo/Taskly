@@ -490,16 +490,24 @@ export class UsersService {
       if (isPrivate)
         return { success: false, status: 403, message: "Forbidden" };
 
+      const userClean = toPublicUser(user);
+
+      if (!userClean) {
+        return { success: false, status: 404, message: "User not found." };
+      }
+
       const doc = stripMediaFields({
-        username: user.username,
-        role: user.role,
-        createdAt: user.createdAt,
+        lastSeenAt: userClean.lastSeenAt,
+        isOnline: userClean.isOnline,
+        username: userClean.username,
+        role: userClean.role,
+        createdAt: userClean.createdAt,
         profile: {
-          fullName: user.profile.fullName,
-          avatar: user.profile.avatar,
-          initials: user.profile.initials,
+          fullName: userClean.profile.fullName,
+          avatar: userClean.profile.avatar,
+          initials: userClean.profile.initials,
         },
-        publicProfile: user.publicProfile,
+        publicProfile: userClean.publicProfile,
       } as PublicProfileUser);
 
       return {

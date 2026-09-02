@@ -158,7 +158,9 @@ const settingsSchema: z.ZodType<Partial<UserSettings>> = z.object({
   checkboxes: z
     .object({
       email: z.boolean().optional(),
+      phone: z.boolean().optional(),
       privateProfile: z.boolean().optional(),
+      noOnlineStatus: z.boolean().optional(),
     })
     .optional(),
 });

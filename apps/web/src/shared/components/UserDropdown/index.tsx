@@ -20,6 +20,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ImageDisplay } from "@/shared/components/MediaPicker";
+import clsx from "clsx";
 
 export const UserDropdown = () => {
   const { user, logout } = useUser();
@@ -58,7 +59,7 @@ export const UserDropdown = () => {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <div className="cursor-pointer flex items-center gap-3 p-3 rounded-xl border border-border bg-muted/50 hover:bg-muted transition-colors group mt-4 outline-none">
-          <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0 text-primary text-sm font-semibold">
+          <div className="relative w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0 text-primary text-sm font-semibold">
             {user.profile?.avatar ? (
               <ImageDisplay
                 src={user.profile.avatar.url}
@@ -68,6 +69,7 @@ export const UserDropdown = () => {
             ) : (
               user.profile?.initials
             )}
+            <div className={clsx("w-2 h-2 absolute bottom-0.5 right-0.5 rounded-full", user.isOnline ? "bg-green-500" : "bg-gray-500")}></div>
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-foreground truncate leading-tight">

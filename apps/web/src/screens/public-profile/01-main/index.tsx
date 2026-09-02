@@ -21,6 +21,7 @@ import { Lightbox } from "@/shared/components/Lightbox";
 import { formatDate } from "@/utils/formatDate";
 import { MediaItemPublic } from "@shared/types";
 import { CERF } from "@shared/data";
+import { OnlineStatus } from "@/shared/components/OnlineStatus";
 
 type Props = {
   user: PublicProfileUser;
@@ -122,7 +123,8 @@ export const Main = ({ user }: Props) => {
               )}
             </div>
           </div>
-          <div className="shrink-0 sm:self-center">
+          <div className="shrink-0 sm:self-center grid grid-cols-1 gap-2.5 justify-items-center">
+            <OnlineStatus user={user} />
             <Button>
               <MessageCircle className="w-4 h-4" />
               Hire {firstName}
