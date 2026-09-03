@@ -11,7 +11,7 @@ import {
 import { MongoClient, ServerApiVersion, ObjectId, Db } from "mongodb";
 import { Response, Request, NextFunction } from "express";
 import { createApp } from "@/app";
-import { IServer, User, AuthRequest } from "@/types";
+import { IServer, User } from "@/types";
 import nodemailer, { Transporter } from "nodemailer";
 import jwt from "jsonwebtoken";
 import dns from "node:dns/promises";
@@ -138,7 +138,7 @@ export class Server implements IServer {
         return res
           .status(401)
           .json({ success: false, message: "Unauthorized." });
-      (req as AuthRequest).user = user;
+      req.user = user;
       next();
     };
   }
@@ -146,7 +146,7 @@ export class Server implements IServer {
   optionalAuth() {
     return async (req: Request, _: Response, next: NextFunction) => {
       const user = await this.getUserFromCookie(req);
-      if (user) (req as AuthRequest).user = user;
+      if (user) req.user = user;
       next();
     };
   }

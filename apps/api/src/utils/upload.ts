@@ -3,7 +3,6 @@ import path from "path";
 import fs from "fs";
 import sharp from "sharp";
 import { nanoid } from "nanoid";
-import { AuthRequest } from "@/types";
 import { ALLOWED_MIME_TYPES } from "@shared/data";
 
 const IMAGE_CONFIG = {
@@ -21,7 +20,7 @@ const IMAGE_MIME_EXT: Record<string, string> = {
 
 class OptimizedDiskStorage implements multer.StorageEngine {
   _handleFile(
-    req: AuthRequest,
+    req: Request,
     file: Express.Multer.File,
     cb: (error?: any, info?: Partial<Express.Multer.File>) => void,
   ) {
@@ -97,7 +96,7 @@ class OptimizedDiskStorage implements multer.StorageEngine {
   }
 
   _removeFile(
-    _req: AuthRequest,
+    _req: Request,
     file: Express.Multer.File,
     cb: (error: Error | null) => void,
   ) {

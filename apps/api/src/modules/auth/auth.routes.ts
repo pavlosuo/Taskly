@@ -1,7 +1,6 @@
 import { Router } from "express";
 import { IServer } from "@/types";
 import { AuthController } from "@/modules/auth/auth.controller";
-import { asAuth, asAuthOptional } from "@/utils";
 import { authLimiter, otpLimiter } from "@/utils/limiters";
 
 export function authRoutes(server: IServer): Router {
@@ -9,8 +8,8 @@ export function authRoutes(server: IServer): Router {
   const ctrl = new AuthController(server);
   router.post("/register", authLimiter, ctrl.register);
   router.post("/login", authLimiter, ctrl.login);
-  router.post("/logout", server.requireAuth(), asAuth(ctrl.logout));
-  router.get("/me", server.optionalAuth(), asAuthOptional(ctrl.me));
+  router.post("/logout", server.requireAuth(), ctrl.logout);
+  router.get("/me", server.optionalAuth(), ctrl.me);
   router.post(
     "/otp/verify-password-reset",
     otpLimiter,

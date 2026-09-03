@@ -1,5 +1,5 @@
 import { Response, Request } from "express";
-import { IServer, AuthRequest } from "@/types";
+import { IServer } from "@/types";
 import { UsersService } from "@/modules/users/users.service";
 
 export class UsersController {
@@ -9,7 +9,7 @@ export class UsersController {
     this.service = new UsersService(server);
   }
 
-  updateProfile = async (req: AuthRequest, res: Response) => {
+  updateProfile = async (req: Request, res: Response) => {
     const result = await this.service.updateProfile(req, res);
     if (!result.success)
       return res
@@ -22,7 +22,7 @@ export class UsersController {
     });
   };
 
-  deactivateAccount = async (req: AuthRequest, res: Response) => {
+  deactivateAccount = async (req: Request, res: Response) => {
     const result = await this.service.deactivateAccount(req.user);
     if (!result.success)
       return res
@@ -32,7 +32,7 @@ export class UsersController {
     return res.json({ success: true, message: "Account deactivated." });
   };
 
-  verifyPhoneOtp = async (req: AuthRequest, res: Response) => {
+  verifyPhoneOtp = async (req: Request, res: Response) => {
     const result = await this.service.verifyPhoneOtp(req.user, req.body);
     if (!result.success)
       return res
@@ -45,7 +45,7 @@ export class UsersController {
     });
   };
 
-  verifyEmailOtp = async (req: AuthRequest, res: Response) => {
+  verifyEmailOtp = async (req: Request, res: Response) => {
     const result = await this.service.verifyEmailOtp(req.user, req.body);
     if (!result.success)
       return res
@@ -58,7 +58,7 @@ export class UsersController {
     });
   };
 
-  changePassword = async (req: AuthRequest, res: Response) => {
+  changePassword = async (req: Request, res: Response) => {
     const result = await this.service.changePassword(req.user, req.body);
     if (!result.success)
       return res
@@ -71,7 +71,7 @@ export class UsersController {
     });
   };
 
-  getUserByUsername = async (req: AuthRequest | Request, res: Response) => {
+  getUserByUsername = async (req: Request, res: Response) => {
     const result = await this.service.getUserByUsername(req.user, req.body);
     return res.status(result.status).json(result);
   };

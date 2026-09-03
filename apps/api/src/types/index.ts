@@ -40,7 +40,3 @@ export interface IServer {
     next: NextFunction,
   ) => void | Response;
 }
-
-export interface AuthRequest extends Request {
-  user: User;
-}

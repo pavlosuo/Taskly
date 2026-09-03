@@ -9,12 +9,12 @@ import {
 import { CLIENT_URL, NODE_ENV } from "@/env";
 import { ServiceResult, PublicProfileUser } from "@shared/types";
 import { OtpService } from "@/modules/otp/otp.service";
-import { toPublicUser, extractMediaId } from "@/utils";
+import { toPublicUser, extractMediaId, stripMediaFields } from "@/utils";
 import bcrypt from "bcrypt";
-import { IServer, User, AuthRequest } from "@/types";
+import { IServer, User } from "@/types";
 import { MediaService } from "@/modules/media/media.service";
-import { stripMediaFields } from "@/utils";
-import { Response } from "express";
+import { Response, Request } from "express";
+import { PublicProfileLang } from "@shared/types";
 
 export class UsersService {
   private otpService: OtpService;
@@ -25,7 +25,7 @@ export class UsersService {
     this.mediaService = new MediaService(server);
   }
 
-  async updateProfile(req: AuthRequest, res: Response): Promise<ServiceResult> {
+  async updateProfile(req: Request, res: Response): Promise<ServiceResult> {
     const user = req.user;
     const body = req.body;
     const parsed = updateProfileSchema.safeParse(body);
@@ -203,8 +203,9 @@ export class UsersService {
 
           updates["publicProfile.languages"] = languages;
 
-          const oldLangs = user.publicProfile?.languages ?? [];
-          const newLangs = languages;
+          const oldLangs: PublicProfileLang[] =
+            user.publicProfile?.languages ?? [];
+          const newLangs: PublicProfileLang[] = languages;
 
           const toRemove = oldLangs.filter((old) => {
             if (!old.certificate?.media) return false;

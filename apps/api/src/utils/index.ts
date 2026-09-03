@@ -2,23 +2,11 @@ import fs from "fs";
 import path from "path";
 import { createHash, randomInt, timingSafeEqual } from "crypto";
 import { PublicUser, MediaItemPublic } from "@shared/types";
-import { RequestHandler, Response, Request } from "express";
-import { AuthRequest, User } from "@/types";
+import { Request } from "express";
+import { User } from "@/types";
 import { ObjectId, WithId, Document } from "mongodb";
 export * from "./limiters";
 export * from "./upload";
-
-export function asAuth(
-  handler: (req: AuthRequest, res: Response) => unknown,
-): RequestHandler {
-  return (req, res) => handler(req as AuthRequest, res);
-}
-
-export function asAuthOptional(
-  handler: (req: AuthRequest | Request, res: Response) => unknown,
-): RequestHandler {
-  return (req, res) => handler(req as AuthRequest | Request, res);
-}
 
 export function toPublicUser(
   user?: User | PublicUser | null | WithId<Document>,

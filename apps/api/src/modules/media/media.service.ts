@@ -4,7 +4,6 @@ import { IServer, User } from "@/types";
 import { ServiceResult } from "@shared/types";
 import { filePath } from "@/utils";
 import { MediaItemBack } from "@/types";
-import path from "path";
 
 export class MediaService {
   constructor(private server: IServer) {}

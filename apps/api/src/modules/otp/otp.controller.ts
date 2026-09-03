@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { IServer, AuthRequest } from "@/types";
+import { IServer } from "@/types";
 import { OtpService } from "@/modules/otp/otp.service";
 
 export class OtpController {
@@ -9,7 +9,7 @@ export class OtpController {
     this.service = new OtpService(server);
   }
 
-  send = async (req: AuthRequest | Request, res: Response) => {
+  send = async (req: Request, res: Response) => {
     const user = req.user;
     const result = await this.service.dispatch(user, req.body);
     if (!result.success)

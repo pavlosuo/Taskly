@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { MediaService } from "@/modules/media/media.service";
-import { AuthRequest, IServer } from "@/types";
+import { IServer } from "@/types";
 import fs from "fs";
 import path from "path";
 
@@ -15,7 +15,7 @@ export class MediaController {
     this.serveFile = this.serveFile.bind(this);
   }
 
-  async upload(req: AuthRequest, res: Response) {
+  async upload(req: Request, res: Response) {
     if (!req.file)
       return res
         .status(400)
@@ -24,12 +24,12 @@ export class MediaController {
     return res.status(result.status).json(result);
   }
 
-  async getAll(req: AuthRequest, res: Response) {
+  async getAll(req: Request, res: Response) {
     const result = await this.service.getAll(req.user);
     return res.status(result.status).json(result);
   }
 
-  async delete(req: AuthRequest, res: Response) {
+  async delete(req: Request, res: Response) {
     const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
     const result = await this.service.delete(req.user, id);
     return res.status(result.status).json(result);
@@ -37,7 +37,7 @@ export class MediaController {
 
   async serveFile(req: Request, res: Response) {
     try {
-      const user = (req as AuthRequest).user ?? null;
+      const user = req.user ?? null;
 
       const id = Array.isArray(req.params.id)
         ? req.params.id[0]

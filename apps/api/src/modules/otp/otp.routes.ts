@@ -2,7 +2,6 @@ import { Router } from "express";
 import { IServer } from "@/types";
 import { OtpController } from "@/modules/otp/otp.controller";
 import { otpLimiter } from "@/utils/limiters";
-import { asAuthOptional } from "@/utils";
 
 export function otpRoutes(server: IServer): Router {
   const router = Router();
@@ -11,7 +10,7 @@ export function otpRoutes(server: IServer): Router {
     "/send",
     server.optionalAuth(),
     otpLimiter,
-    asAuthOptional(ctrl.send),
+    ctrl.send,
   );
   return router;
 }
