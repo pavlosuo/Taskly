@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { IServer } from "@/types";
 import { UsersController } from "@/modules/users/users.controller";
-import { asAuth } from "@/utils";
+import { asAuth, asAuthOptional } from "@/utils";
 
 export function usersRoutes(server: IServer): Router {
   const router = Router();
@@ -19,6 +19,10 @@ export function usersRoutes(server: IServer): Router {
     asAuth(ctrl.verifyEmailOtp),
   );
   router.put("/password", server.requireAuth(), asAuth(ctrl.changePassword));
-  router.post("/get-user-by-username", ctrl.getUserByUsername);
+  router.post(
+    "/get-user-by-username",
+    server.optionalAuth(),
+    asAuthOptional(ctrl.getUserByUsername),
+  );
   return router;
 }

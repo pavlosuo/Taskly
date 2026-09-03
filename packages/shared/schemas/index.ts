@@ -180,10 +180,10 @@ export const registerSchema: z.ZodType<RegisterForm> = z
     email: emailField,
     password: passwordField,
     confirm: confirmPasswordField,
-    role: z.enum(["admin", "tasker", "client"] as [
-      Role | "admin",
-      ...(Role | "admin")[],
-    ]),
+    role: z.enum(["tasker", "client"] as [Role, ...Role[]]),
+    agreementAccepted: z
+      .boolean()
+      .refine((val) => val, "agreementAccepted.required"),
   })
   .refine((data) => data.password === data.confirm, {
     message: "confirm.mismatch",

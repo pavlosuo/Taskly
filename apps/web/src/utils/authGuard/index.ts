@@ -8,7 +8,7 @@ const homePage: Record<RoleNested, string> = {
   guest: "/login",
   tasker: "/profile",
   client: "/profile",
-  admin: "/admin",
+  admin: "/dashboard",
 };
 
 export async function authGuard(requiredRoles: RoleNested[]) {

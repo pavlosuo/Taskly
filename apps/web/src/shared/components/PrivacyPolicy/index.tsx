@@ -1,5 +1,5 @@
 import { Tiptap } from "@/shared/components/Tiptap";
-import { Input } from "@/components/ui/input";
+import { Input } from "@/shared/components/Input";
 import { Label } from "@/components/ui/label";
 import { useData } from "@/providers/PolicyDataProvider";
 import { Button } from "@/components/ui/button";
@@ -12,37 +12,29 @@ import {
   FieldDescription,
 } from "@/components/ui/field";
 import clsx from "clsx";
+import Link from "next/link";
 
-export const ClickwrapAdmin = () => {
+export const PrivacyPolicyAdmin = () => {
   const { data, setData, saveData, loading } = useData();
   return (
-    <div className="flex flex-col gap-4 p-5 max-w-300 mx-auto">
-      <div className="flex justify-end">
-        <Button
-          onClick={saveData}
-          className={clsx(loading && "pointer-events-none opacity-10")}
-        >
-          {loading ? "Saving..." : "Save"}
-        </Button>
-      </div>
+    <div className="flex flex-col gap-4 w-full">
       <div className="flex flex-col gap-2">
-        <Label htmlFor="agreement-title" className="text-md">
-          Agreement Title
+        <Label htmlFor="privacy-policy-title" className="text-md">
+          Privacy policy title
         </Label>
         <Input
-          defaultValue={data?.policyTitle}
+          value={data?.policyTitle}
           onChange={(e) =>
             setData((prev) => ({ ...prev, policyTitle: e.target.value }))
           }
-          id="agreement-title"
-          name="agreement-title"
+          name="privacy-policy-title"
           type="text"
           className="w-full"
           placeholder="Enter title here..."
         />
       </div>
       <div className="flex flex-col gap-2">
-        <span className="text-md">Agreement Content</span>
+        <span className="text-md">Privacy policy content</span>
         <Tiptap
           value={data?.policyContent || ""}
           onUpdate={({ editor }) => {
@@ -53,11 +45,19 @@ export const ClickwrapAdmin = () => {
           }}
         />
       </div>
+      <div className="flex justify-end">
+        <Button
+          onClick={saveData}
+          className={clsx(loading && "pointer-events-none opacity-10")}
+        >
+          {loading ? "Saving..." : "Save"}
+        </Button>
+      </div>
     </div>
   );
 };
 
-export const ClickwrapPublic = ({
+export const PrivacyPolicyPublic = ({
   error,
   accepted,
   setAccepted,
@@ -68,22 +68,30 @@ export const ClickwrapPublic = ({
 }) => {
   return (
     <>
-      <div className="flex justify-start w-full overflow-hidden">
+      <div className="flex justify-start w-full overflow-hidden col-span-full p-1">
         <FieldGroup className="w-full">
           <Field orientation="horizontal" data-invalid={error}>
             <Checkbox
-              id="terms-checkbox"
-              name="terms-checkbox"
+              id="policy-checkbox"
+              name="policy-checkbox"
               checked={accepted}
               onCheckedChange={() => setAccepted(!accepted)}
               aria-invalid={error}
             />
             <FieldContent>
-              <FieldLabel htmlFor="terms-checkbox">
-                I accept the agreement
+              <FieldLabel htmlFor="policy-checkbox">
+                I accept the privacy policy
               </FieldLabel>
               <FieldDescription>
-                By clicking this checkbox, you agree to the terms above.
+                By clicking this checkbox, you agree to the{" "}
+                <Link
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline text-primary"
+                  href="/privacy"
+                >
+                  privacy policy
+                </Link>
               </FieldDescription>
             </FieldContent>
           </Field>

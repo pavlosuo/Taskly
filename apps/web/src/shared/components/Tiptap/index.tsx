@@ -22,7 +22,7 @@ export const Tiptap = ({
   });
   const parsedContent = useMemo(() => (value ? parse(value) : null), [value]);
   return (
-    <div className="tiptap-wrapper">
+    <div className="tiptap-wrapper text-wrapper">
       {editor ? (
         <>
           <MenuBar editor={editor} />

@@ -152,7 +152,7 @@ export class Server implements IServer {
   }
 
   requireAdmin() {
-    return (req: AuthRequest, res: Response, next: NextFunction) => {
+    return (req: Request, res: Response, next: NextFunction) => {
       if (req?.user?.role !== "admin")
         return res.status(403).json({ success: false, message: "Forbidden." });
       next();

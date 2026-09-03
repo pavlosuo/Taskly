@@ -32,7 +32,7 @@ export function Account() {
     <section className="w-full px-4">
       <div className="flex flex-col gap-4">
         <PersonalInfoCard onVerify={openVerify} />
-        <PayoutCard />
+        {user.role !== "admin" && <PayoutCard />}
         <SecurityCard />
       </div>
       <VerifyDialog

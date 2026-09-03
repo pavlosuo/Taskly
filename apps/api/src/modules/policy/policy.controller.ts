@@ -1,17 +1,17 @@
 import { Request, Response } from "express";
+import { PolicyService } from "@/modules/policy/policy.service";
 import { IServer } from "@/types";
 
 export class PolicyController {
-  constructor(private server: IServer) {}
+  private policyService: PolicyService;
+  constructor(server: IServer) {
+    this.policyService = new PolicyService(server);
+  }
 
   getPolicy = async (_: Request, res: Response) => {
     try {
-      const db = await this.server.getDb();
-      const doc = await db.collection("settings").findOne({ key: "policy" });
-      return res.json({
-        success: true,
-        data: doc?.data ?? { policyTitle: "", policyContent: "" },
-      });
+      const data = await this.policyService.getPolicy();
+      return res.json({ success: true, data });
     } catch (e) {
       console.error("getPolicy error:", e);
       return res.status(500).json({ success: false, message: "Server error." });
@@ -21,21 +21,15 @@ export class PolicyController {
   updatePolicy = async (req: Request, res: Response) => {
     try {
       const { policyTitle, policyContent } = req.body;
-      if (typeof policyTitle !== "string" || typeof policyContent !== "string")
+      if (
+        typeof policyTitle !== "string" ||
+        typeof policyContent !== "string"
+      ) {
         return res
           .status(400)
           .json({ success: false, message: "Invalid data." });
-      const db = await this.server.getDb();
-      await db.collection("settings").updateOne(
-        { key: "policy" },
-        {
-          $set: {
-            data: { policyTitle, policyContent },
-            updatedAt: new Date(),
-          },
-        },
-        { upsert: true },
-      );
+      }
+      await this.policyService.updatePolicy({ policyTitle, policyContent });
       return res.json({ success: true, message: "Policy updated." });
     } catch (e) {
       console.error("updatePolicy error:", e);

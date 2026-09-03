@@ -20,6 +20,15 @@
     border: none !important;
     margin-top: 1rem !important;
   }
+}
+
+.tiptap-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.text-wrapper {
   h1,
   h2,
   h3,
@@ -119,10 +128,4 @@
     display: block;
     max-width: 100%;
   }
-}
-
-.tiptap-wrapper {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
 }

@@ -7,11 +7,11 @@ import {
   ReactNode,
 } from "react";
 import { axiosApi } from "api/index";
-import { Data } from "@shared/types";
+import { PolicyData } from "@shared/types";
 
 interface DataContextType {
-  data: Data;
-  setData: React.Dispatch<React.SetStateAction<Data>>;
+  data: PolicyData;
+  setData: React.Dispatch<React.SetStateAction<PolicyData>>;
   saveData: () => Promise<void>;
   loading: boolean;
   error: string | null;
@@ -19,7 +19,7 @@ interface DataContextType {
 
 interface DataProviderProps {
   children: ReactNode;
-  initialData?: Data;
+  initialData?: PolicyData;
 }
 
 const DataContext = createContext<DataContextType | null>(null);
@@ -31,7 +31,7 @@ export const DataProvider = ({
     policyTitle: "",
   },
 }: DataProviderProps) => {
-  const [data, setData] = useState<Data>(initialData);
+  const [data, setData] = useState<PolicyData>(initialData);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 

@@ -20,6 +20,7 @@ import { PhoneInput } from "@/shared/components/PhoneInput";
 import { CalendarCheck, UserPlus, ArrowLeftToLine } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { FlyingParticles } from "@/shared/components/FlyingParticles";
+import { PrivacyPolicyPublic } from "@/shared/components/PrivacyPolicy";
 
 export function Register() {
   const { t } = useTranslation("register");
@@ -39,6 +40,7 @@ export function Register() {
     code: "",
     role: "",
     fullPhone: "",
+    agreementAccepted: false,
   });
   const strength = getPasswordStrength(form.password);
   const roles = [
@@ -149,6 +151,7 @@ export function Register() {
         fullPhone: fieldErrors.fullPhone?.[0],
         password: fieldErrors.password?.[0],
         confirm: fieldErrors.confirm?.[0],
+        agreementAccepted: fieldErrors.agreementAccepted?.[0],
         general: formErrors[0],
       });
       return;
@@ -282,7 +285,7 @@ export function Register() {
                     name={name}
                     autoComplete={autoComplete}
                     placeholder={placeholder}
-                    value={form[name]}
+                    value={form[name] as string}
                     onChange={handleChange(name)}
                   />
                 )}
@@ -333,6 +336,13 @@ export function Register() {
             </div>
           );
         })}
+        <PrivacyPolicyPublic
+          error={!!errors.agreementAccepted}
+          accepted={form.agreementAccepted}
+          setAccepted={(accepted: boolean) =>
+            setForm((p) => ({ ...p, agreementAccepted: accepted }))
+          }
+        />
         {errors.general && (
           <p className="text-xs text-red -mt-2">{errors.general}</p>
         )}

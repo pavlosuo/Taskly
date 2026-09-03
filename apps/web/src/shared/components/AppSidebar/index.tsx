@@ -34,11 +34,25 @@ export function AppSidebar() {
           },
         },
       ];
-    } else {
+    } else if (user?.role === "tasker") {
       return [
         { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
         { label: "My Tasks", href: "/tasks", icon: ClipboardList },
         { label: "Chats", href: "/chats", icon: MessageCircle },
+        {
+          label: "Media Library",
+          icon: ImagePlus,
+          href: "/media-library",
+          onClick: () => {
+            openPicker({});
+          },
+        },
+      ];
+    } else if (user?.role === "admin") {
+      return [
+        { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+        { label: "Stats", href: "/stats", icon: ClipboardList },
+        { label: "Support Tickets", href: "/chats", icon: MessageCircle },
         {
           label: "Media Library",
           icon: ImagePlus,

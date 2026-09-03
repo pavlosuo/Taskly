@@ -22,6 +22,7 @@ export type RegisterForm = {
   role: Role | "";
   code: string;
   fullPhone: string;
+  agreementAccepted: boolean;
 };
 
 export interface AuthResponse {

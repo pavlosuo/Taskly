@@ -6,14 +6,15 @@ import {
   publicProfileSkillSchema,
   publicProfileCertificateSchema,
 } from "@shared/schemas";
-import { CLIENT_URL } from "@/env";
+import { CLIENT_URL, NODE_ENV } from "@/env";
 import { ServiceResult, PublicProfileUser } from "@shared/types";
 import { OtpService } from "@/modules/otp/otp.service";
 import { toPublicUser, extractMediaId } from "@/utils";
 import bcrypt from "bcrypt";
-import { IServer, User } from "@/types";
+import { IServer, User, AuthRequest } from "@/types";
 import { MediaService } from "@/modules/media/media.service";
 import { stripMediaFields } from "@/utils";
+import { Response } from "express";
 
 export class UsersService {
   private otpService: OtpService;
@@ -24,7 +25,9 @@ export class UsersService {
     this.mediaService = new MediaService(server);
   }
 
-  async updateProfile(user: User, body: unknown): Promise<ServiceResult> {
+  async updateProfile(req: AuthRequest, res: Response): Promise<ServiceResult> {
+    const user = req.user;
+    const body = req.body;
     const parsed = updateProfileSchema.safeParse(body);
     if (!parsed.success)
       return {
@@ -128,8 +131,22 @@ export class UsersService {
         const { lang, theme, checkboxes } = parsed.data.settings;
         if (lang !== undefined) updates["settings.lang"] = lang;
         if (theme !== undefined) updates["settings.theme"] = theme;
-        if (checkboxes !== undefined)
+        if (checkboxes !== undefined) {
           updates["settings.checkboxes"] = checkboxes;
+        }
+        const cookieOptions = {
+          httpOnly: true,
+          secure: NODE_ENV === "production",
+          sameSite: "lax" as const,
+          maxAge: 365 * 24 * 60 * 60 * 1000,
+          path: "/",
+        };
+        if (theme) {
+          res.cookie("theme", theme, cookieOptions);
+        }
+        if (lang) {
+          res.cookie("lang", lang, cookieOptions);
+        }
       }
       if (parsed.data.publicProfile !== undefined) {
         const { bio, languages, skills, certificates, header, introduction } =
@@ -471,7 +488,11 @@ export class UsersService {
     }
   }
 
-  async getUserByUsername(username: string): Promise<ServiceResult> {
+  async getUserByUsername(
+    userRequest: User,
+    body: { username: string },
+  ): Promise<ServiceResult> {
+    const { username } = body;
     try {
       if (!username)
         return {
@@ -483,31 +504,38 @@ export class UsersService {
       const user = await db
         .collection("users")
         .findOne<User>({ username: username });
-      if (!user)
-        return { success: false, status: 404, message: "User not found." };
 
-      const isPrivate = user?.settings?.checkboxes?.privateProfile;
-      if (isPrivate)
-        return { success: false, status: 403, message: "Forbidden" };
-
-      const userClean = toPublicUser(user);
-
-      if (!userClean) {
+      if (!user) {
         return { success: false, status: 404, message: "User not found." };
       }
 
+      if (
+        user?.settings?.checkboxes?.privateProfile &&
+        userRequest?._id !== user._id &&
+        userRequest?.role !== "admin"
+      ) {
+        return { success: false, status: 403, message: "Forbidden" };
+      }
+
+      if (user.role === "admin") {
+        return {
+          success: false,
+          status: 404,
+          message: "User not found.",
+        };
+      }
+
       const doc = stripMediaFields({
-        lastSeenAt: userClean.lastSeenAt,
-        isOnline: userClean.isOnline,
-        username: userClean.username,
-        role: userClean.role,
-        createdAt: userClean.createdAt,
+        lastSeenAt: user.lastSeenAt,
+        username: user.username,
+        role: user.role,
+        createdAt: user.createdAt,
         profile: {
-          fullName: userClean.profile.fullName,
-          avatar: userClean.profile.avatar,
-          initials: userClean.profile.initials,
+          fullName: user.profile.fullName,
+          avatar: user.profile.avatar,
+          initials: user.profile.initials,
         },
-        publicProfile: userClean.publicProfile,
+        publicProfile: user.publicProfile,
       } as PublicProfileUser);
 
       return {

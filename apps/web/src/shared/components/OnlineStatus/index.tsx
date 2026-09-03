@@ -10,20 +10,20 @@ export function OnlineStatus({
   const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => {
-    if (user.isOnline) return;
     const id = setInterval(() => setNow(Date.now()), 30000);
     return () => clearInterval(id);
-  }, [user.isOnline]);
+  }, [user.lastSeenAt]);
 
   const status = useMemo(() => {
-    if (user.isOnline) return { type: "online" as const };
     if (!user.lastSeenAt) return null;
-
     const diff = now - new Date(user.lastSeenAt).getTime();
     const minutes = Math.floor(diff / 60000);
     const hours = Math.floor(diff / 3600000);
     const days = Math.floor(diff / 86400000);
-
+    const isOnline = user.lastSeenAt ? diff < 2 * 60 * 1000 : false;
+    if (isOnline) {
+      return { type: "online" };
+    }
     const label =
       minutes < 1
         ? "Just now"
@@ -34,7 +34,7 @@ export function OnlineStatus({
             : `${days}d ago`;
 
     return { type: "offline" as const, label };
-  }, [user.isOnline, user.lastSeenAt, now]);
+  }, [user.lastSeenAt, now]);
 
   if (!status) return null;
   if (status.type === "online") {

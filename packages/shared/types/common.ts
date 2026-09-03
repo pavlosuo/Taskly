@@ -1,6 +1,7 @@
-export type Data = {
+export type PolicyData = {
   policyContent: string;
   policyTitle: string;
+  updatedAt?: string;
 };
 
 export type ZodErrors<T> = {

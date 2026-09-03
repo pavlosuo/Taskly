@@ -2,8 +2,10 @@
 
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
+  useMemo,
   useRef,
   useState,
   ReactNode,
@@ -16,8 +18,8 @@ import { useUser } from "@/providers/UserProvider";
 
 interface ThemeContextType {
   lang: Lang;
-  changeTheme: (theme: Theme) => void;
   theme: Theme;
+  changeTheme: (theme: Theme) => void;
   changeLang: (lang: Lang) => void;
 }
 
@@ -34,14 +36,16 @@ export const useTheme = () => {
 const CHANNEL_NAME = "theme-sync";
 
 type SyncMessage =
-  | {
-      type: "theme";
-      value: Theme;
-    }
-  | {
-      type: "lang";
-      value: Lang;
-    };
+  { type: "theme"; value: Theme } | { type: "lang"; value: Lang };
+
+function isSyncMessage(data: unknown): data is SyncMessage {
+  if (typeof data !== "object" || data === null) return false;
+  const msg = data as Record<string, unknown>;
+  return (
+    (msg.type === "theme" || msg.type === "lang") &&
+    typeof msg.value === "string"
+  );
+}
 
 interface ThemeProviderProps {
   initialTheme: Theme;
@@ -58,12 +62,18 @@ export const ThemeProvider = ({
   const [theme, setTheme] = useState<Theme>(initialTheme);
   const channelRef = useRef<BroadcastChannel | null>(null);
   const { user } = useUser();
+  const stateRef = useRef({ lang, theme });
+
+  useEffect(() => {
+    stateRef.current = { lang, theme };
+  }, [lang, theme]);
 
   useEffect(() => {
     const channel = new BroadcastChannel(CHANNEL_NAME);
     channelRef.current = channel;
 
-    channel.onmessage = (event: MessageEvent<SyncMessage>) => {
+    channel.onmessage = (event: MessageEvent<unknown>) => {
+      if (!isSyncMessage(event.data)) return;
       const message = event.data;
 
       if (message.type === "theme") {
@@ -72,16 +82,14 @@ export const ThemeProvider = ({
         return;
       }
 
-      if (message.type === "lang") {
-        i18n.changeLanguage(message.value, (err) => {
-          if (err) {
-            console.error(err);
-            return;
-          }
-          document.documentElement.lang = message.value;
-          setLang(message.value);
-        });
-      }
+      i18n.changeLanguage(message.value, (err) => {
+        if (err) {
+          console.error("Failed to sync language:", err);
+          return;
+        }
+        document.documentElement.lang = message.value;
+        setLang(message.value);
+      });
     };
 
     return () => {
@@ -90,90 +98,62 @@ export const ThemeProvider = ({
     };
   }, []);
 
-  // useEffect(() => {
-  //   i18n.changeLanguage(lang).catch(console.error);
-  // }, []);
-
-  const saveGuestPreferences = async (preferences: {
-    theme?: Theme;
-    lang?: Lang;
-  }) => {
-    if (user) {
-      return;
-    }
-    try {
-      await axiosApi.preferences(preferences);
-    } catch {}
-  };
-
-  const broadcast = (message: SyncMessage) => {
+  const broadcast = useCallback((message: SyncMessage) => {
     channelRef.current?.postMessage(message);
-  };
+  }, []);
 
-  const changeTheme = (newTheme: Theme) => {
-    setTheme(newTheme);
-    document.documentElement.dataset.theme = newTheme;
-    if (!user) {
-      saveGuestPreferences({
-        theme: newTheme,
-      });
-    }
-    if (user) {
-      axiosApi
-        .updateProfile({
+  const persistPreferences = useCallback(
+    async (next: { lang?: Lang; theme?: Theme }) => {
+      try {
+        if (!user) {
+          await axiosApi.preferences(next);
+          return;
+        }
+        await axiosApi.updateProfile({
           settings: {
-            lang,
-            theme: newTheme,
+            lang: next.lang ?? stateRef.current.lang,
+            theme: next.theme ?? stateRef.current.theme,
           },
-        })
-        .catch(console.error);
-    }
-    broadcast({
-      type: "theme",
-      value: newTheme,
-    });
-  };
-
-  const changeLang = (newLang: Lang) => {
-    i18n.changeLanguage(newLang, (err) => {
-      if (err) {
-        console.error(err);
-        return;
-      }
-      setLang(newLang);
-      document.documentElement.lang = newLang;
-      if (!user) {
-        saveGuestPreferences({
-          lang: newLang,
         });
+      } catch (err) {
+        console.error("Failed to save preferences:", err);
       }
-      if (user) {
-        axiosApi
-          .updateProfile({
-            settings: {
-              lang: newLang,
-              theme,
-            },
-          })
-          .catch(console.error);
-      }
-      broadcast({
-        type: "lang",
-        value: newLang,
+    },
+    [user],
+  );
+
+  const changeTheme = useCallback(
+    (newTheme: Theme) => {
+      setTheme(newTheme);
+      document.documentElement.dataset.theme = newTheme;
+      persistPreferences({ theme: newTheme });
+      broadcast({ type: "theme", value: newTheme });
+    },
+    [persistPreferences, broadcast],
+  );
+
+  const changeLang = useCallback(
+    (newLang: Lang) => {
+      i18n.changeLanguage(newLang, (err) => {
+        if (err) {
+          console.error("Failed to change language:", err);
+          return;
+        }
+        setLang(newLang);
+        document.documentElement.lang = newLang;
+        persistPreferences({ lang: newLang });
+        broadcast({ type: "lang", value: newLang });
       });
-    });
-  };
+    },
+    [persistPreferences, broadcast],
+  );
+
+  const value = useMemo(
+    () => ({ lang, theme, changeTheme, changeLang }),
+    [lang, theme, changeTheme, changeLang],
+  );
 
   return (
-    <ThemeContext.Provider
-      value={{
-        lang,
-        theme,
-        changeTheme,
-        changeLang,
-      }}
-    >
-      {children}
-    </ThemeContext.Provider>
+    <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
   );
 };

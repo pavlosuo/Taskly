@@ -25,12 +25,11 @@ export function toPublicUser(
 ): PublicUser | null {
   if (!user) return null;
 
-  const online = !user.settings.checkboxes?.noOnlineStatus ? {
-    lastSeenAt: user.lastSeenAt as string,
-    isOnline: user.lastSeenAt
-    ? Date.now() - new Date(user.lastSeenAt).getTime() < 5 * 60 * 1000
-    : false
-  } : {}
+  const online = !user.settings?.checkboxes?.noOnlineStatus
+    ? {
+        lastSeenAt: user.lastSeenAt as string,
+      }
+    : {};
 
   return {
     _id: user._id as string,
@@ -44,7 +43,7 @@ export function toPublicUser(
     profile: user.profile,
     settings: user.settings,
     publicProfile: user.publicProfile,
-    ...online
+    ...online,
   };
 }
 

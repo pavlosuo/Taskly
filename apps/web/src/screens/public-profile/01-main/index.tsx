@@ -18,10 +18,10 @@ import { Button } from "@/components/ui/button";
 import { VideoPlayer } from "@/shared/components/Player";
 import { SpanField } from "@/screens/user/ui/index.tsx";
 import { Lightbox } from "@/shared/components/Lightbox";
-import { formatDate } from "@/utils/formatDate";
 import { MediaItemPublic } from "@shared/types";
 import { CERF } from "@shared/data";
 import { OnlineStatus } from "@/shared/components/OnlineStatus";
+import { useTheme } from "@/providers/ThemeProvider";
 
 type Props = {
   user: PublicProfileUser;
@@ -58,6 +58,7 @@ export const Main = ({ user }: Props) => {
     items: MediaItemPublic[];
     index: number;
   } | null>(null);
+  const { lang } = useTheme();
   if (!p) return null;
   const hasSkills = !!p?.skills?.length;
   const hasCertificates = !!p?.certificates?.length;
@@ -65,15 +66,17 @@ export const Main = ({ user }: Props) => {
   const hasVideo = !!p?.introduction;
   const hasHeader = !!p?.header;
   const firstName = user.profile.fullName.split(" ")[0];
+
   const certificateItems: MediaItemPublic[] = (p.certificates ?? [])
     .filter((c) => !!c.media)
     .map((c) => ({ url: c.media!.url, originalName: c.label }));
+
   return (
     <>
       {hasHeader && (
         <ImageDisplay
           src={p.header!.url}
-          alt=""
+          alt="Header image"
           className="h-40 sm:h-52 w-full object-cover relative z-10"
         />
       )}
@@ -113,7 +116,11 @@ export const Main = ({ user }: Props) => {
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 mt-3 text-xs text-grey">
               <span className="inline-flex items-center gap-1.5">
                 <CalendarDays className="w-3.5 h-3.5" />
-                Member since {formatDate(user.createdAt)}
+                Member since{" "}
+                {new Date(user.createdAt).toLocaleDateString(lang, {
+                  month: "long",
+                  year: "numeric",
+                })}
               </span>
               {hasLanguages && (
                 <span className="inline-flex items-center gap-1.5">
@@ -153,7 +160,7 @@ export const Main = ({ user }: Props) => {
         <div id="about" className="py-8 border-b border-border">
           <h2 className="text-sm font-semibold text-foreground mb-3">About</h2>
           {p?.bio ? (
-            <div className="tiptap tiptap-none text-sm text-foreground leading-relaxed">
+            <div className="text-wrapper text-sm text-foreground leading-relaxed">
               {parse(p.bio)}
             </div>
           ) : (

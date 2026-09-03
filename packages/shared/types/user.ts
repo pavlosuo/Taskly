@@ -88,11 +88,9 @@ export interface PublicUser {
   settings: UserSettings;
   publicProfile: PublicProfile;
   lastSeenAt?: string;
-  isOnline?: boolean;
 }
 
 export type PublicProfileUser = {
-  isOnline: boolean;
   lastSeenAt: string;
   username: string;
   role: string;

@@ -10,7 +10,7 @@ export class UsersController {
   }
 
   updateProfile = async (req: AuthRequest, res: Response) => {
-    const result = await this.service.updateProfile(req.user, req.body);
+    const result = await this.service.updateProfile(req, res);
     if (!result.success)
       return res
         .status(result.status)
@@ -71,9 +71,8 @@ export class UsersController {
     });
   };
 
-  getUserByUsername = async (req: Request, res: Response) => {
-    const { username } = req.body;
-    const result = await this.service.getUserByUsername(username);
+  getUserByUsername = async (req: AuthRequest | Request, res: Response) => {
+    const result = await this.service.getUserByUsername(req.user, req.body);
     return res.status(result.status).json(result);
   };
 }

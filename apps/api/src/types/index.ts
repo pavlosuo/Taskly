@@ -35,7 +35,7 @@ export interface IServer {
     next: NextFunction,
   ) => Promise<void>;
   requireAdmin(): (
-    req: AuthRequest,
+    req: Request,
     res: Response,
     next: NextFunction,
   ) => void | Response;

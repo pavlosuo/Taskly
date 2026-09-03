@@ -52,6 +52,7 @@ export class AuthService {
         role,
         code,
         fullPhone,
+        agreementAccepted,
       } = parsed.data;
       const db = await this.server.getDb();
       const users = db.collection("users");
@@ -85,7 +86,7 @@ export class AuthService {
           phoneVerified: false,
           emailVerified: false,
           personVerified: false,
-          agreementAccepted: false,
+          agreementAccepted: agreementAccepted,
         },
         payout: {
           iban: "",

@@ -20,14 +20,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ImageDisplay } from "@/shared/components/MediaPicker";
-import clsx from "clsx";
 
 export const UserDropdown = () => {
   const { user, logout } = useUser();
 
   const menuItems = useMemo(() => {
     if (!user) return null;
-    if (user.role === "tasker") {
+    if (user.role === "tasker" || user.role === "client") {
       return [
         {
           label: "Account",
@@ -50,6 +49,19 @@ export const UserDropdown = () => {
           href: "/help",
         },
       ];
+    } else if (user.role === "admin") {
+      return [
+        {
+          label: "Account",
+          icon: ShieldUser,
+          href: `/account/`,
+        },
+        {
+          label: "Settings",
+          icon: Settings,
+          href: "/settings",
+        },
+      ];
     }
   }, [user]);
 
@@ -69,7 +81,6 @@ export const UserDropdown = () => {
             ) : (
               user.profile?.initials
             )}
-            <div className={clsx("w-2 h-2 absolute bottom-0.5 right-0.5 rounded-full", user.isOnline ? "bg-green-500" : "bg-gray-500")}></div>
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-foreground truncate leading-tight">

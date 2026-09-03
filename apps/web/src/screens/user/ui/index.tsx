@@ -1031,9 +1031,7 @@ export function PublicProfileCard() {
         <div className="flex flex-col gap-5">
           <div>
             <p className="text-xs text-grey mb-1">About me</p>
-            <div className="tiptap tiptap-none">
-              {p?.bio ? parse(p?.bio) : "—"}
-            </div>
+            <div className="text-wrapper">{p?.bio ? parse(p?.bio) : "—"}</div>
           </div>
           <div className="h-px bg-border" />
           <div>

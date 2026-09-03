@@ -1,17 +1,17 @@
 import { Screens } from "@/screens";
 import { getMetaData } from "@/utils/Metadata";
-import { authGuard } from "@/utils/authGuard";
+import { getPolicyData } from "@/lib/api/get-policy";
 
 export const metadata = getMetaData({
-  title: "Privacy Policy",
-  description: "Privacy Policy page",
+  title: "Privacy",
+  description: "Privacy page",
 });
 
 export default async function Profile() {
-  await authGuard(["guest", "tasker", "client", "admin"]);
+  const data = await getPolicyData();
   return (
     <main className="page">
-      <Screens.User.Profile />
+      <Screens.Privacy.Main data={data} />
     </main>
   );
 }

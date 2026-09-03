@@ -138,9 +138,10 @@ export const MenuBarSkeleton = () => (
             disabled
             className={clsx(
               "h-7 min-w-7 px-2 rounded-md text-sm font-medium transition-colors",
-              label === "H2"
-                ? "bg-gray-900 text-white"
-                : "text-gray-600 hover:bg-gray-100 hover:text-foreground",
+
+              label === "¶"
+                ? "bg-primary text-white"
+                : "text-foreground hover:bg-muted",
             )}
           >
             {label}
