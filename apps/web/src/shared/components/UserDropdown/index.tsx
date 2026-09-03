@@ -21,7 +21,15 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ImageDisplay } from "@/shared/components/MediaPicker";
 
-export const UserDropdown = () => {
+export const UserDropdown = ({
+  side = "top",
+  align = "start",
+  variant = "default",
+}: {
+  side?: "top" | "bottom" | "left" | "right";
+  align?: "start" | "end";
+  variant?: "default" | "compact";
+}) => {
   const { user, logout } = useUser();
 
   const menuItems = useMemo(() => {
@@ -69,33 +77,52 @@ export const UserDropdown = () => {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <div className="cursor-pointer flex items-center gap-3 p-3 rounded-xl border border-border bg-muted/50 hover:bg-muted transition-colors group mt-4 outline-none">
-          <div className="relative w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0 text-primary text-sm font-semibold">
-            {user.profile?.avatar ? (
-              <ImageDisplay
-                src={user.profile.avatar.url}
-                alt={user.profile.fullName}
-                className="rounded-full object-cover w-full h-full"
-              />
-            ) : (
-              user.profile?.initials
-            )}
+      {variant === "default" && (
+        <DropdownMenuTrigger asChild>
+          <div className="cursor-pointer flex items-center gap-3 p-3 border border-border bg-muted/50 hover:bg-muted transition-colors group mt-4 outline-none">
+            <div className="relative w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0 text-primary text-sm font-semibold">
+              {user.profile?.avatar ? (
+                <ImageDisplay
+                  src={user.profile.avatar.url}
+                  alt={user.profile.fullName}
+                  className="rounded-full object-cover w-full h-full"
+                />
+              ) : (
+                user.profile?.initials
+              )}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-foreground truncate leading-tight">
+                {user.username}
+              </p>
+              <p className="text-xs text-muted-foreground truncate capitalize">
+                {user.role}
+              </p>
+            </div>
+            <ChevronDown className="w-4 h-4 text-muted-foreground shrink-0 transition-transform group-data-[state=open]:rotate-180" />
           </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-foreground truncate leading-tight">
-              {user.username}
-            </p>
-            <p className="text-xs text-muted-foreground truncate capitalize">
-              {user.role}
-            </p>
+        </DropdownMenuTrigger>
+      )}
+      {variant === "compact" && (
+        <DropdownMenuTrigger asChild>
+          <div className="cursor-pointer flex items-center transition-colors group outline-none">
+            <div className="relative w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0 text-primary text-sm font-semibold">
+              {user.profile?.avatar ? (
+                <ImageDisplay
+                  src={user.profile.avatar.url}
+                  alt={user.profile.fullName}
+                  className="rounded-full object-cover w-full h-full"
+                />
+              ) : (
+                user.profile?.initials
+              )}
+            </div>
           </div>
-          <ChevronDown className="w-4 h-4 text-muted-foreground shrink-0 transition-transform group-data-[state=open]:rotate-180" />
-        </div>
-      </DropdownMenuTrigger>
+        </DropdownMenuTrigger>
+      )}
       <DropdownMenuContent
-        side="top"
-        align="start"
+        side={side}
+        align={align}
         sideOffset={8}
         className="w-58"
       >

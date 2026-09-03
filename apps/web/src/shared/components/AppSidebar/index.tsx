@@ -13,10 +13,13 @@ import { UserDropdown } from "@/shared/components/UserDropdown";
 import { useUser } from "@/providers/UserProvider";
 import { useMemo } from "react";
 import { useMediaPicker } from "@/providers/MediaPickerProvider";
+import { usePathname } from "next/navigation";
+import clsx from "clsx";
 
 export function AppSidebar() {
   const { user } = useUser();
-  const { openPicker } = useMediaPicker();
+  const { openPicker, isOpen } = useMediaPicker();
+  const pathname = usePathname();
 
   const navItems = useMemo(() => {
     if (user?.role === "client") {
@@ -25,78 +28,62 @@ export function AppSidebar() {
         { label: "Post a Task", href: "/post-task", icon: PlusCircle },
         { label: "My Tasks", href: "/tasks", icon: ClipboardList },
         { label: "Chats", href: "/chats", icon: MessageCircle },
-        {
-          label: "Media Library",
-          icon: ImagePlus,
-          href: "/media-library",
-          onClick: () => {
-            openPicker({});
-          },
-        },
       ];
     } else if (user?.role === "tasker") {
       return [
         { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
         { label: "My Tasks", href: "/tasks", icon: ClipboardList },
         { label: "Chats", href: "/chats", icon: MessageCircle },
-        {
-          label: "Media Library",
-          icon: ImagePlus,
-          href: "/media-library",
-          onClick: () => {
-            openPicker({});
-          },
-        },
       ];
     } else if (user?.role === "admin") {
       return [
         { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
         { label: "Stats", href: "/stats", icon: ClipboardList },
         { label: "Support Tickets", href: "/chats", icon: MessageCircle },
-        {
-          label: "Media Library",
-          icon: ImagePlus,
-          href: "/media-library",
-          onClick: () => {
-            openPicker({});
-          },
-        },
       ];
     }
-  }, [user, openPicker]);
+  }, [user]);
 
   return (
     <Sidebar className="pt-2 pb-2 pl-2 border-none">
       <div className="Sidebar overflow-hidden grid grid-cols-[100%] grid-rows-[max-content_1fr_max-content] p-2 w-full h-full bg-background">
-        <Link href="/" className="flex items-center justify-center py-2 mb-4">
-          Logo
+        <Link href="/" className="py-2 mb-4 logo flex items-center justify-center">
+          Taskly
         </Link>
         <nav>
           <ul className="flex flex-col gap-1">
             {navItems &&
-              navItems.map(({ label, href, icon: Icon, onClick }) => (
-                <li key={href}>
-                  {!onClick ? (
+              navItems.map(({ label, href, icon: Icon }) => {
+                const isActive =
+                  pathname === href || pathname?.startsWith(`${href}/`);
+                return (
+                  <li key={href}>
                     <Link
                       href={href}
-                      className="flex w-full items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-foreground hover:bg-primary hover:text-white transition-colors group"
+                      className={clsx(
+                        "flex w-full items-center gap-3 px-3 py-2.5 rounded-xl text-sm",
+                        "font-medium text-foreground hover:bg-primary hover:text-white transition-colors group",
+                        isActive && "bg-primary text-white",
+                      )}
                     >
                       <Icon className="shrink-0 w-4 h-4" />
                       <span>{label}</span>
                     </Link>
-                  ) : (
-                    <button
-                      key={href}
-                      type="button"
-                      onClick={onClick}
-                      className="flex w-full items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-foreground hover:bg-primary hover:text-white transition-colors group"
-                    >
-                      <Icon className="shrink-0 w-4 h-4" />
-                      <span>{label}</span>
-                    </button>
-                  )}
-                </li>
-              ))}
+                  </li>
+                );
+              })}
+            <button
+              type="button"
+              onClick={() => openPicker({})}
+              className={clsx(
+                "flex w-full items-center gap-3 px-3 py-2.5 rounded-xl text-sm",
+                "font-medium text-foreground hover:bg-primary hover:text-white transition-colors group",
+                isOpen && "bg-primary text-white",
+              )}
+            >
+              <ImagePlus className="shrink-0 w-4 h-4" />
+              <span>Media Library</span>
+            </button>
           </ul>
         </nav>
         <UserDropdown />

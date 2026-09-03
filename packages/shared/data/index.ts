@@ -12,6 +12,14 @@ export const countryList = countries.map((c) => ({
 
 export type Country = (typeof countryList)[number];
 
+export const navLinks = [
+  { label: "Find Taskers", href: "/users" },
+  { label: "Browse Tasks", href: "/tasks" },
+  { label: "Top Taskers", href: "/top" },
+  { label: "Leaderboard", href: "/leaderboard" },
+  { label: "Statistics", href: "/stats" },
+];
+
 export const FINNISH_BANKS: BankItem[] = [
   { value: "op", label: "OP", src: "/banks/fi-op.svg" },
   { value: "nordea", label: "Nordea", src: "/banks/fi-nordea.svg" },

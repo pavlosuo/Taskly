@@ -1,5 +1,4 @@
 "use client";
-
 import { AlertTriangle } from "lucide-react";
 import {
   Dialog,
@@ -14,7 +13,7 @@ import { useState, useCallback, useRef, useEffect } from "react";
 import { useUser } from "@/providers/UserProvider";
 import clsx from "clsx";
 
-const INACTIVITY_TIMEOUT_MS = 2 * 60 * 1000;
+const INACTIVITY_TIMEOUT_MS = 5 * 60 * 1000;
 const COUNTDOWN_DURATION_S = 60;
 
 const ACTIVITY_EVENTS: (keyof WindowEventMap)[] = [
@@ -27,7 +26,7 @@ const ACTIVITY_EVENTS: (keyof WindowEventMap)[] = [
   "click",
 ];
 
-export function AutoLogoutPopup() {
+export function AutoLogoutPopupInside() {
   const { logout } = useUser();
   const [showPopup, setShowPopup] = useState(false);
   const [countdown, setCountdown] = useState(COUNTDOWN_DURATION_S);
@@ -207,4 +206,10 @@ export function AutoLogoutPopup() {
       </DialogContent>
     </Dialog>
   );
+}
+
+export function AutoLogoutPopup() {
+  const { user } = useUser();
+  if (!user) return null;
+  return <AutoLogoutPopupInside />;
 }

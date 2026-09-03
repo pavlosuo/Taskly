@@ -19,13 +19,10 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { LANGS } from "@shared/data";
 import { useTheme } from "@/providers/ThemeProvider";
-import { useUser } from "@/providers/UserProvider";
 
 export function FloatingSettings() {
   const [open, setOpen] = useState(false);
   const { lang, theme, changeLang, changeTheme } = useTheme();
-  const { user } = useUser();
-  if (user) return null;
   return (
     <>
       <Button

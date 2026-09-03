@@ -9,3 +9,11 @@
   width: 100%;
   height: 100%;
 }
+
+.logo {
+  font-family: $font-family-logo !important;
+  font-size: calc(var(--spacing) * 6) !important;
+  line-height: calc(var(--spacing) * 6) !important;
+  color: var(--primary) !important;
+  text-transform: uppercase !important;
+}

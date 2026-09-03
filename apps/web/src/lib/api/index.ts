@@ -3,7 +3,7 @@ import {
   LoginForm,
   PublicUser,
   AuthResponse,
-  Data,
+  PolicyData,
   RegisterForm,
   OtpPurpose,
   UpdateProfileForm,
@@ -57,7 +57,7 @@ export const axiosApi = {
       { token, password },
     ),
 
-  saveDataPolicy: (payload: Data) =>
+  saveDataPolicy: (payload: PolicyData) =>
     api.put<{ success: boolean; message: string }>("/api/policy", payload),
 
   updateProfile: (payload: UpdateProfileForm) =>

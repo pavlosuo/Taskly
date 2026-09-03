@@ -1,5 +1,6 @@
 import { Screens } from "@/screens";
 import { getMetaData } from "@/utils/Metadata";
+import { FloatingSettings } from "@/shared/components/FloatingSettings";
 
 export const metadata = getMetaData({
   title: "Not found",
@@ -9,6 +10,7 @@ export const metadata = getMetaData({
 export default function Page404() {
   return (
     <main className="page">
+      <FloatingSettings />
       <Screens.Page404.Main />
     </main>
   );

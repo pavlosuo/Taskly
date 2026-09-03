@@ -22,3 +22,5 @@ export type PasswordStrength = {
   color: string;
   tips: string[];
 } | null;
+
+export type AccessReason = "same-account" | "admin" | "public";

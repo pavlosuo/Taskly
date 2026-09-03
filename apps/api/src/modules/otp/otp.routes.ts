@@ -6,11 +6,6 @@ import { otpLimiter } from "@/utils/limiters";
 export function otpRoutes(server: IServer): Router {
   const router = Router();
   const ctrl = new OtpController(server);
-  router.post(
-    "/send",
-    server.optionalAuth(),
-    otpLimiter,
-    ctrl.send,
-  );
+  router.post("/send", server.optionalAuth(), otpLimiter, ctrl.send);
   return router;
 }

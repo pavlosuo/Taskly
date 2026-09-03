@@ -2,6 +2,7 @@ import { Screens } from "@/screens";
 import { getMetaData } from "@/utils/Metadata";
 import { SidebarWrapper } from "@/shared/components/AppSidebar";
 import { authGuard } from "@/utils/authGuard";
+import { AutoLogoutPopup } from "@/shared/components/AutoLogoutPopup";
 
 export const metadata = getMetaData({
   title: "Profile",
@@ -13,6 +14,7 @@ export default async function Profile() {
   return (
     <SidebarWrapper title="Profile">
       <main className="page">
+        <AutoLogoutPopup />
         <Screens.User.Profile />
       </main>
     </SidebarWrapper>

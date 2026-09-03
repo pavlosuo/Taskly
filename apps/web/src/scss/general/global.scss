@@ -21,6 +21,10 @@ body {
   overflow: hidden;
   max-height: 100vh;
   overflow-y: visible;
+  font-family: $font-family;
+  color: var(--foreground);
+  background: var(--background);
+  font-weight: 400;
 }
 
 .container {

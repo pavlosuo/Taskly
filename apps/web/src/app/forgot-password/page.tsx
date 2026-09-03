@@ -3,6 +3,7 @@ import { getMetaData } from "@/utils/Metadata";
 import { redirect } from "next/navigation";
 import { isTokenValid } from "api/verify-reset-token";
 import { authGuard } from "@/utils/authGuard";
+import { FloatingSettings } from "@/shared/components/FloatingSettings";
 
 export const metadata = getMetaData({
   title: "Forgot Password",
@@ -19,6 +20,7 @@ export default async function ForgotPassword({
   if (!token) {
     return (
       <main className="page">
+        <FloatingSettings />
         <Screens.Auth.ForgotPassword
           error={error as "expired" | "invalid" | "error" | undefined}
         />
@@ -31,6 +33,7 @@ export default async function ForgotPassword({
   }
   return (
     <main className="page">
+      <FloatingSettings />
       <Screens.Auth.ForgotPassword initialToken={token} />
     </main>
   );

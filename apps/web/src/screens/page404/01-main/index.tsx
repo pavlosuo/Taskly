@@ -3,9 +3,13 @@ import { Beams } from "@/shared/components/Beams";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/providers/ThemeProvider";
+import { useEffect } from "react";
 
 export const Main = () => {
   const { theme } = useTheme();
+  useEffect(() => {
+    document.title = "Not found | Taskly";
+  }, []);
   return (
     <section className="relative flex h-screen w-full items-center justify-center overflow-hidden">
       <Beams

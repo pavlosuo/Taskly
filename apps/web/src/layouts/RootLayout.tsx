@@ -5,7 +5,6 @@ import { ThemeProvider } from "@/providers/ThemeProvider";
 import { ModalProvider } from "@/providers/ModalProvider";
 import { MediaPickerProvider } from "@/providers/MediaPickerProvider";
 import { Lang, Theme } from "@shared/types";
-import { FloatingSettings } from "@/shared/components/FloatingSettings";
 
 type IRootLayout = {
   userJson: string | null;
@@ -24,7 +23,6 @@ export const RootLayout: FC<PropsWithChildren<IRootLayout>> = ({
       <UserProvider initialUser={userJson ? JSON.parse(userJson) : null}>
         <ThemeProvider initialLang={initialLang} initialTheme={initialTheme}>
           <MediaPickerProvider>{children}</MediaPickerProvider>
-          <FloatingSettings />
         </ThemeProvider>
       </UserProvider>
     </ModalProvider>

@@ -1,4 +1,4 @@
-import { Open_Sans, Arvo } from "next/font/google";
+import { Open_Sans, Arvo, Orbitron } from "next/font/google";
 
 export const openSans = Open_Sans({
   weight: ["300", "400", "500", "600", "700", "800"],
@@ -14,4 +14,11 @@ export const arvo = Arvo({
   style: "normal",
 });
 
-export const fonts = [openSans, arvo];
+export const orbitron = Orbitron({
+  weight: ["700"],
+  subsets: ["latin"],
+  variable: "--var-orbitron",
+  style: "normal",
+});
+
+export const fonts = [openSans, arvo, orbitron];

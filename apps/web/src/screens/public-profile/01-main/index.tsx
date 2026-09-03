@@ -18,13 +18,15 @@ import { Button } from "@/components/ui/button";
 import { VideoPlayer } from "@/shared/components/Player";
 import { SpanField } from "@/screens/user/ui/index.tsx";
 import { Lightbox } from "@/shared/components/Lightbox";
-import { MediaItemPublic } from "@shared/types";
+import { MediaItemPublic, AccessReason } from "@shared/types";
 import { CERF } from "@shared/data";
 import { OnlineStatus } from "@/shared/components/OnlineStatus";
 import { useTheme } from "@/providers/ThemeProvider";
+import { PublicHeader } from "@/shared/components/PublicHeader";
 
 type Props = {
   user: PublicProfileUser;
+  accessReason: AccessReason;
 };
 
 function ScrollChip({
@@ -52,7 +54,7 @@ function EmptyState({ label }: { label: string }) {
   return <p className="text-sm text-grey">{label}</p>;
 }
 
-export const Main = ({ user }: Props) => {
+export const Main = ({ user, accessReason }: Props) => {
   const p = user.publicProfile;
   const [lightbox, setLightbox] = useState<{
     items: MediaItemPublic[];
@@ -66,13 +68,13 @@ export const Main = ({ user }: Props) => {
   const hasVideo = !!p?.introduction;
   const hasHeader = !!p?.header;
   const firstName = user.profile.fullName.split(" ")[0];
-
   const certificateItems: MediaItemPublic[] = (p.certificates ?? [])
     .filter((c) => !!c.media)
     .map((c) => ({ url: c.media!.url, originalName: c.label }));
 
   return (
     <>
+      <PublicHeader accessReason={accessReason} />
       {hasHeader && (
         <ImageDisplay
           src={p.header!.url}

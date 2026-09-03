@@ -7,14 +7,17 @@ import {
   publicProfileCertificateSchema,
 } from "@shared/schemas";
 import { CLIENT_URL, NODE_ENV } from "@/env";
-import { ServiceResult, PublicProfileUser } from "@shared/types";
+import {
+  ServiceResult,
+  PublicProfileUser,
+  PublicProfileLang,
+} from "@shared/types";
 import { OtpService } from "@/modules/otp/otp.service";
 import { toPublicUser, extractMediaId, stripMediaFields } from "@/utils";
-import bcrypt from "bcrypt";
 import { IServer, User } from "@/types";
 import { MediaService } from "@/modules/media/media.service";
 import { Response, Request } from "express";
-import { PublicProfileLang } from "@shared/types";
+import bcrypt from "bcrypt";
 
 export class UsersService {
   private otpService: OtpService;
@@ -490,41 +493,49 @@ export class UsersService {
   }
 
   async getUserByUsername(
-    userRequest: User,
+    userRequest: User | undefined,
     body: { username: string },
   ): Promise<ServiceResult> {
-    const { username } = body;
     try {
-      if (!username)
+      const username = body?.username?.trim();
+
+      if (!username) {
         return {
           success: false,
           status: 400,
           message: "Username is required.",
         };
+      }
+
       const db = await this.server.getDb();
-      const user = await db
-        .collection("users")
-        .findOne<User>({ username: username });
+      const user = await db.collection("users").findOne<User>({
+        username,
+      });
 
-      if (!user) {
-        return { success: false, status: 404, message: "User not found." };
-      }
-
-      if (
-        user?.settings?.checkboxes?.privateProfile &&
-        userRequest?._id !== user._id &&
-        userRequest?.role !== "admin"
-      ) {
-        return { success: false, status: 403, message: "Forbidden" };
-      }
-
-      if (user.role === "admin") {
+      if (!user || user.role === "admin") {
         return {
           success: false,
           status: 404,
           message: "User not found.",
         };
       }
+
+      const isOwner = userRequest?._id?.equals(user._id);
+      const isAdmin = userRequest?.role === "admin";
+
+      if (user.settings?.checkboxes?.privateProfile && !isOwner && !isAdmin) {
+        return {
+          success: false,
+          status: 403,
+          message: "Forbidden",
+        };
+      }
+
+      const accessReason = isOwner
+        ? "same-account"
+        : isAdmin
+          ? "admin"
+          : "public";
 
       const doc = stripMediaFields({
         lastSeenAt: user.lastSeenAt,
@@ -544,11 +555,18 @@ export class UsersService {
         status: 200,
         data: {
           user: doc,
+          ...(user.settings?.checkboxes?.privateProfile
+            ? { accessReason }
+            : {}),
         },
       };
     } catch (error) {
-      console.error("Get user by nick error:", error);
-      return { success: false, status: 500, message: "Server error." };
+      console.error("Get user by username error:", error);
+      return {
+        success: false,
+        status: 500,
+        message: "Server error.",
+      };
     }
   }
 }

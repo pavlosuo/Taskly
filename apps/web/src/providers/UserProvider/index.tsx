@@ -14,7 +14,6 @@ import {
   UpdateProfileForm,
 } from "@shared/types";
 import { axiosApi } from "api/index";
-import { AutoLogoutPopup } from "@/shared/components/AutoLogoutPopup";
 import { redirect } from "next/navigation";
 
 interface UserContextType {
@@ -246,7 +245,6 @@ export const UserProvider = ({
         changePassword,
       }}
     >
-      {user && <AutoLogoutPopup />}
       {children}
     </UserContext.Provider>
   );

@@ -1387,7 +1387,7 @@ export function QRCard() {
         desc="Your QR Code. Share it with your clients."
       />
       <div className="border border-border bg-background p-4 flex justify-between items-end">
-        <Button variant="link">
+        <Button variant="link" asChild>
           <Link href={link} target="_blank" className="flex items-center gap-1">
             <span>View my profile</span>
             <ArrowUpRight className="w-6 h-6" />
