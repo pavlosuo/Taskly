@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { IServer } from "@/types";
 import { UsersController } from "@/modules/users/users.controller";
+import { searchLimiter } from "@/utils/limiters";
 
 export function usersRoutes(server: IServer): Router {
   const router = Router();
@@ -11,9 +12,10 @@ export function usersRoutes(server: IServer): Router {
   router.post("/email/verify-otp", server.requireAuth(), ctrl.verifyEmailOtp);
   router.put("/password", server.requireAuth(), ctrl.changePassword);
   router.post(
-    "/get-user-by-username",
+    "/get-user-for-profile-page",
     server.optionalAuth(),
-    ctrl.getUserByUsername,
+    ctrl.getUserForProfilePage,
   );
+  router.get("/search", server.requireAuth(), searchLimiter, ctrl.search);
   return router;
 }

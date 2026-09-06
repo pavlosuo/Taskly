@@ -121,7 +121,9 @@ export function LanguagesEditor({
                                 ? {
                                     ...l,
                                     certificate: {
-                                      media: item,
+                                      media: Array.isArray(item)
+                                        ? item[0]
+                                        : item,
                                       description: "",
                                     },
                                   }

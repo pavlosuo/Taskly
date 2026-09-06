@@ -1,7 +1,15 @@
 import { Db, ObjectId } from "mongodb";
 import { Response, Request, NextFunction } from "express";
 import { Transporter } from "nodemailer";
-import { OtpPurpose, OtpRecord, MediaItem, PublicUser } from "@shared/types";
+import {
+  OtpPurpose,
+  OtpRecord,
+  MediaItem,
+  PublicUser,
+  Chat,
+  Message,
+  ChatLastMessage,
+} from "@shared/types";
 
 export interface User extends Omit<PublicUser, "_id" | "createdAt"> {
   _id: ObjectId;
@@ -13,6 +21,43 @@ export interface User extends Omit<PublicUser, "_id" | "createdAt"> {
 export interface MediaItemBack extends Omit<MediaItem, "_id" | "ownerId"> {
   _id: ObjectId;
   ownerId: ObjectId;
+}
+
+export interface ChatLastMessageBack extends Omit<
+  ChatLastMessage,
+  "senderId" | "createdAt"
+> {
+  createdAt: Date;
+  senderId: ObjectId;
+}
+
+export interface ChatBack extends Omit<
+  Chat,
+  | "_id"
+  | "participants"
+  | "deletedBy"
+  | "createdAt"
+  | "updatedAt"
+  | "lastMessage"
+> {
+  _id: ObjectId;
+  participants: ObjectId[];
+  deletedBy: ObjectId[];
+  lastMessage: ChatLastMessageBack | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface MessageBack extends Omit<
+  Message,
+  "_id" | "chatId" | "senderId" | "media" | "readBy" | "createdAt"
+> {
+  _id: ObjectId;
+  chatId: ObjectId;
+  senderId: ObjectId;
+  mediaIds: ObjectId[];
+  readBy: ObjectId[];
+  createdAt: Date;
 }
 
 export interface IServer {

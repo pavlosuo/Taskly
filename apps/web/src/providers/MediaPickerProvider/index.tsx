@@ -12,8 +12,9 @@ import { FilterType } from "@/utils/getFileType";
 
 type MediaPickerOptions = {
   accept?: FilterType;
-  onSelect?: (item: MediaItem) => void;
+  onSelect?: (item: MediaItem | MediaItem[]) => void;
   IsWait?: boolean;
+  multiple?: boolean;
 };
 
 interface MediaPickerContextType {
@@ -39,7 +40,7 @@ export const MediaPickerProvider = ({ children }: { children: ReactNode }) => {
     setOpen(true);
   }, []);
 
-  const handleSelect = (item: MediaItem) => {
+  const handleSelect = (item: MediaItem | MediaItem[]) => {
     options?.onSelect?.(item);
     if (options?.IsWait) {
       setOpen(false);

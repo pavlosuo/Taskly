@@ -21,7 +21,9 @@ export function PublicHeader({ accessReason = "public" }: Props) {
     <header className="w-full border-b border-border bg-background sticky top-0 z-20">
       <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between gap-4">
         <div className="flex items-center gap-8 min-w-0">
-          <Link href="/" className="logo shrink-0">Taskly</Link>
+          <Link href="/" className="logo shrink-0">
+            Taskly
+          </Link>
           <nav className="hidden md:flex items-center gap-1 overflow-x-auto">
             {navLinks.map((item) => {
               const isActive =

@@ -1212,7 +1212,9 @@ export function AvatarCard() {
                 openPicker({
                   accept: "image",
                   onSelect: (item) => {
-                    updateProfile({ avatar: item });
+                    updateProfile({
+                      avatar: Array.isArray(item) ? item[0] : item,
+                    });
                   },
                 })
               }
@@ -1285,7 +1287,7 @@ export function HeaderCard() {
                   updateProfile({
                     publicProfile: {
                       ...user.publicProfile,
-                      header: item,
+                      header: Array.isArray(item) ? item[0] : item,
                     },
                   });
                 },
@@ -1356,7 +1358,7 @@ export function VideoCard() {
                   updateProfile({
                     publicProfile: {
                       ...user.publicProfile,
-                      introduction: item,
+                      introduction: Array.isArray(item) ? item[0] : item,
                     },
                   });
                 },

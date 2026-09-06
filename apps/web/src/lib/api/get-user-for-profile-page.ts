@@ -3,7 +3,7 @@ import { BASE_URL } from "api/index";
 import { cookies } from "next/headers";
 import { AccessReason } from "@shared/types";
 
-export const getUserByUsername = async (
+export const getUserForProfilePage = async (
   username: string,
 ): Promise<{
   user: PublicProfileUser | null;
@@ -11,7 +11,7 @@ export const getUserByUsername = async (
 }> => {
   try {
     const cookieStore = await cookies();
-    const res = await fetch(`${BASE_URL}/api/profile/get-user-by-username`, {
+    const res = await fetch(`${BASE_URL}/api/users/get-user-for-profile-page`, {
       method: "POST",
       headers: {
         Cookie: cookieStore.toString(),

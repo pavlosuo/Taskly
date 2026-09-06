@@ -165,11 +165,17 @@ export class Server implements IServer {
     db.collection("skills").createIndex({ count: -1 });
     db.collection("certificates").createIndex({ label: "text" });
     db.collection("certificates").createIndex({ count: -1 });
+    db.collection("chats").createIndex({ participants: 1 });
+    db.collection("chats").createIndex({ updatedAt: -1 });
+    db.collection("messages").createIndex({ chatId: 1, _id: -1 });
+    db.collection("users").createIndex({ username: 1 });
+
+    // const allUsers = await db.collection("users").find().toArray();
+    // console.log(allUsers);
     return Promise.resolve();
   }
 
   async start() {
-    await this.getDb();
     await this.indexesConfig();
     const app = createApp(this);
     app.listen(this.port, () => {

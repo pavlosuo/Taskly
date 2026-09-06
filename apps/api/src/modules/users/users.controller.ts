@@ -71,8 +71,14 @@ export class UsersController {
     });
   };
 
-  getUserByUsername = async (req: Request, res: Response) => {
-    const result = await this.service.getUserByUsername(req.user, req.body);
+  getUserForProfilePage = async (req: Request, res: Response) => {
+    const result = await this.service.getUserForProfilePage(req.user, req.body);
+    return res.status(result.status).json(result);
+  };
+
+  search = async (req: Request, res: Response) => {
+    const q = typeof req.query.q === "string" ? req.query.q : "";
+    const result = await this.service.search(req.user, q);
     return res.status(result.status).json(result);
   };
 }

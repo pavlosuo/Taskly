@@ -11,6 +11,7 @@ import {
   ServiceResult,
   PublicProfileUser,
   PublicProfileLang,
+  ChatMemberPreview,
 } from "@shared/types";
 import { OtpService } from "@/modules/otp/otp.service";
 import { toPublicUser, extractMediaId, stripMediaFields } from "@/utils";
@@ -18,6 +19,10 @@ import { IServer, User } from "@/types";
 import { MediaService } from "@/modules/media/media.service";
 import { Response, Request } from "express";
 import bcrypt from "bcrypt";
+
+function escapeRegex(s: string) {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
 
 export class UsersService {
   private otpService: OtpService;
@@ -492,7 +497,7 @@ export class UsersService {
     }
   }
 
-  async getUserByUsername(
+  async getUserForProfilePage(
     userRequest: User | undefined,
     body: { username: string },
   ): Promise<ServiceResult> {
@@ -567,6 +572,50 @@ export class UsersService {
         status: 500,
         message: "Server error.",
       };
+    }
+  }
+
+  async search(
+    currentUser: User,
+    q: string,
+  ): Promise<ServiceResult<{ items: ChatMemberPreview[] }>> {
+    try {
+      const query = q?.trim();
+      if (!query || query.length < 2) {
+        return { success: true, status: 200, data: { items: [] } };
+      }
+      const db = await this.server.getDb();
+      const users = await db
+        .collection("users")
+        .find(
+          {
+            _id: { $ne: currentUser._id },
+            username: { $regex: escapeRegex(query), $options: "i" },
+          },
+          {
+            projection: {
+              username: 1,
+              "profile.fullName": 1,
+              "profile.avatar": 1,
+              "profile.initials": 1,
+            },
+            limit: 10,
+          },
+        )
+        .toArray();
+
+      const items: ChatMemberPreview[] = users.map((u) => ({
+        _id: u._id.toString(),
+        username: u.username,
+        fullName: u.profile?.fullName ?? "",
+        avatar: u.profile?.avatar ?? null,
+        initials: u.profile?.initials ?? "",
+      }));
+
+      return { success: true, status: 200, data: { items } };
+    } catch (e) {
+      console.error("Search users error:", e);
+      return { success: false, status: 500, message: "Server error." };
     }
   }
 }

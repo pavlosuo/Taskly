@@ -18,7 +18,7 @@ import clsx from "clsx";
 
 export function AppSidebar() {
   const { user } = useUser();
-  const { openPicker, isOpen } = useMediaPicker();
+  const { openPicker } = useMediaPicker();
   const pathname = usePathname();
 
   const navItems = useMemo(() => {
@@ -47,7 +47,10 @@ export function AppSidebar() {
   return (
     <Sidebar className="pt-2 pb-2 pl-2 border-none">
       <div className="Sidebar overflow-hidden grid grid-cols-[100%] grid-rows-[max-content_1fr_max-content] p-2 w-full h-full bg-background">
-        <Link href="/" className="py-2 mb-4 logo flex items-center justify-center">
+        <Link
+          href="/"
+          className="py-2 mb-4 logo flex items-center justify-center"
+        >
           Taskly
         </Link>
         <nav>
@@ -78,7 +81,6 @@ export function AppSidebar() {
               className={clsx(
                 "flex w-full items-center gap-3 px-3 py-2.5 rounded-xl text-sm",
                 "font-medium text-foreground hover:bg-primary hover:text-white transition-colors group",
-                isOpen && "bg-primary text-white",
               )}
             >
               <ImagePlus className="shrink-0 w-4 h-4" />
@@ -95,23 +97,32 @@ export function AppSidebar() {
 export const SidebarWrapper = ({
   children,
   title,
+  hiddenTitle,
 }: {
   children: React.ReactNode;
   title: string;
+  hiddenTitle?: boolean;
 }) => {
   return (
     <SidebarProvider className="bg-muted">
       <AppSidebar />
-      <div className="flex-1 gap-2 flex flex-col p-2">
+      <div className="flex-1 gap-2 flex flex-col p-2 h-screen">
         <header className="py-5 px-4 rounded-xl bg-background flex items-center gap-3">
           <SidebarTrigger className="text-foreground hover:bg-primary hover:text-white" />
           <span className="text-sm font-medium">{title}</span>
         </header>
-        <div className="flex-1 overflow-hidden bg-background rounded-xl">
-          <h1 className="text-2xl font-semibold text-foreground px-4 py-5">
-            {title}
-          </h1>
-          {children}
+        <div
+          className={clsx(
+            "flex-1 overflow-hidden h-full bg-background rounded-xl grid grid-cols-1",
+            hiddenTitle ? "grid-rows-[100%]" : "grid-rows-[max-content_1fr]",
+          )}
+        >
+          {!hiddenTitle && (
+            <h1 className="text-2xl font-semibold text-foreground px-4 py-5">
+              {title}
+            </h1>
+          )}
+          <div className="w-full h-full overflow-y-auto">{children}</div>
         </div>
       </div>
     </SidebarProvider>

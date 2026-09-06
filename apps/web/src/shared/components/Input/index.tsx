@@ -1,5 +1,6 @@
 import { Input as InputInitial } from "@/components/ui/input";
 import clsx from "clsx";
+import { forwardRef } from "react";
 
 interface Props {
   name: string;
@@ -13,32 +14,40 @@ interface Props {
   onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
 }
 
-export const Input = ({
-  name,
-  autoComplete = "off",
-  type,
-  placeholder,
-  value,
-  onChange,
-  error,
-  className,
-  onKeyDown,
-}: Props) => {
-  return (
-    <InputInitial
-      id={name}
-      name={name}
-      autoComplete={autoComplete}
-      type={type}
-      placeholder={placeholder}
-      value={value}
-      onChange={onChange}
-      onKeyDown={onKeyDown}
-      className={clsx(
-        "h-10 text-sm placeholder:text-grey",
-        className,
-        error ? "border-red focus-visible:ring-red/75" : "border-border",
-      )}
-    />
-  );
-};
+export const Input = forwardRef<HTMLInputElement, Props>(
+  (
+    {
+      name,
+      autoComplete = "off",
+      type,
+      placeholder,
+      value,
+      onChange,
+      error,
+      className,
+      onKeyDown,
+    },
+    ref,
+  ) => {
+    return (
+      <InputInitial
+        ref={ref}
+        id={name}
+        name={name}
+        autoComplete={autoComplete}
+        type={type}
+        placeholder={placeholder}
+        value={value}
+        onChange={onChange}
+        onKeyDown={onKeyDown}
+        className={clsx(
+          "h-10 text-sm placeholder:text-grey",
+          className,
+          error ? "border-red focus-visible:ring-red/75" : "border-border",
+        )}
+      />
+    );
+  },
+);
+
+Input.displayName = "Input";

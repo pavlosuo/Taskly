@@ -10,6 +10,11 @@ import {
   MediaItem,
   Theme,
   Lang,
+  ChatWithMember,
+  Message,
+  MessagesPage,
+  SendMessagePayload,
+  ChatMemberPreview,
 } from "@shared/types";
 
 export const BASE_URL =
@@ -61,13 +66,13 @@ export const axiosApi = {
     api.put<{ success: boolean; message: string }>("/api/policy", payload),
 
   updateProfile: (payload: UpdateProfileForm) =>
-    api.put<AuthResponse>("/api/profile", payload),
+    api.put<AuthResponse>("/api/users", payload),
 
   deactivateAccount: () =>
-    api.delete<{ success: boolean; message: string }>("/api/profile"),
+    api.delete<{ success: boolean; message: string }>("/api/users"),
 
   verifyPhoneOtp: (otp: string) =>
-    api.post<AuthResponse>("/api/profile/phone/verify-otp", { otp }),
+    api.post<AuthResponse>("/api/users/phone/verify-otp", { otp }),
 
   sendOtp: (purpose: OtpPurpose, data?: { fullPhone?: string }) =>
     api.post<{ success: boolean; message: string }>("/api/otp/send", {
@@ -77,12 +82,12 @@ export const axiosApi = {
 
   verifyEmailOtp: (otp: string) =>
     api.post<{ success: boolean; user: PublicUser }>(
-      "/api/profile/email/verify-otp",
+      "/api/users/email/verify-otp",
       { otp },
     ),
 
   changePassword: (payload: { oldPassword: string; newPassword: string }) =>
-    api.put<{ success: boolean; message: string }>("/api/profile/password", {
+    api.put<{ success: boolean; message: string }>("/api/users/password", {
       ...payload,
     }),
 
@@ -120,4 +125,33 @@ export const axiosApi = {
         certificate: { _id: string; label: string; description?: string };
       };
     }>(`/api/certificates`, { label, description }),
+
+  createChat: (memberId: string) =>
+    api.post<{ data: { chat: ChatWithMember } }>("/api/chats", { memberId }),
+
+  getChats: () => api.get<{ data: { chats: ChatWithMember[] } }>("/api/chats"),
+
+  getChat: (id: string) =>
+    api.get<{ data: { chat: ChatWithMember } }>(`/api/chats/${id}`),
+
+  deleteChat: (id: string) => api.delete(`/api/chats/${id}`),
+
+  getMessages: (chatId: string, before?: string) =>
+    api.get<{ data: MessagesPage }>(`/api/chats/${chatId}/messages`, {
+      params: before ? { before } : {},
+    }),
+
+  sendMessage: (chatId: string, payload: SendMessagePayload) =>
+    api.post<{ data: { message: Message } }>(
+      `/api/chats/${chatId}/messages`,
+      payload,
+    ),
+
+  markChatRead: (chatId: string) =>
+    api.patch<{ success: boolean }>(`/api/chats/${chatId}/messages/read`),
+
+  searchUsers: (q: string) =>
+    api.get<{ data: { items: ChatMemberPreview[] } }>("/api/users/search", {
+      params: { q },
+    }),
 };

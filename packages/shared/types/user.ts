@@ -1,4 +1,4 @@
-import { MediaItem } from "./media";
+import { MediaItem } from "@shared/types/media";
 
 export type Role = "tasker" | "client";
 

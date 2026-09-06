@@ -85,7 +85,11 @@ export function CertificatesEditor({
                   onClick={() =>
                     openPicker({
                       accept: "image",
-                      onSelect: (media) => setMedia(cert.value, media),
+                      onSelect: (media) =>
+                        setMedia(
+                          cert.value,
+                          Array.isArray(media) ? media[0] : media,
+                        ),
                     })
                   }
                   className={clsx(

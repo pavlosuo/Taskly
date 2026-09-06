@@ -112,11 +112,13 @@ export function MediaPicker({
   onOpenChange,
   onSelect,
   accept = "image",
+  multiple = false,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSelect?: (item: MediaItem) => void;
+  onSelect?: (item: MediaItem | MediaItem[]) => void;
   accept?: FilterType;
+  multiple?: boolean;
 }) {
   const [items, setItems] = useState<MediaItem[]>([]);
   const [filter, setFilter] = useState<FilterType>(accept);
@@ -297,11 +299,14 @@ export function MediaPicker({
   );
 
   const handleConfirm = useCallback(() => {
-    if (!selectedItem) return;
-    onSelect?.(selectedItem);
+    if (!selectedIds.size) return;
+    const mediaItems = selectedIds.size
+      ? (items.filter((i) => i._id === [...selectedIds][0]) ?? null)
+      : null;
+    if (mediaItems) onSelect?.(multiple ? mediaItems : mediaItems[0]);
     onOpenChange(false);
     setSelectedIds(new Set());
-  }, [selectedItem, onSelect, onOpenChange]);
+  }, [selectedIds, onSelect, onOpenChange, items, multiple]);
 
   const selectRange = (fromIndex: number, toIndex: number) => {
     const start = Math.min(fromIndex, toIndex);
@@ -659,8 +664,10 @@ export function MediaPicker({
             <Button
               onClick={handleConfirm}
               disabled={
-                selectedIds.size !== 1 ||
-                getFileType(selectedItem?.mimeType) !== accept
+                !items.every((m) => {
+                  const type = getFileType(m.mimeType);
+                  return type === accept || accept === "all";
+                })
               }
             >
               Select

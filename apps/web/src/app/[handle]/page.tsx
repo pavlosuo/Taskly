@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { getUserByUsername } from "@/lib/api/get-user-by-username";
+import { getUserForProfilePage } from "@/lib/api/get-user-for-profile-page";
 import { getMetaData } from "@/utils/Metadata";
 import { Screens } from "@/screens";
 import { removeHtml } from "@/utils/removeHtml";
@@ -15,7 +15,7 @@ export async function generateMetadata({ params }: Props) {
   const decoded = decodeURIComponent(handle);
   if (!decoded.startsWith("@")) return {};
   const username = decoded.slice(1);
-  const { user } = await getUserByUsername(username);
+  const { user } = await getUserForProfilePage(username);
   if (!user) return {};
   return getMetaData({
     title: username,
@@ -27,7 +27,7 @@ export default async function PublicProfilePage({ params }: Props) {
   const { handle } = await params;
   const decoded = decodeURIComponent(handle);
   if (!decoded.startsWith("@")) notFound();
-  const { user, accessReason } = await getUserByUsername(decoded.slice(1));
+  const { user, accessReason } = await getUserForProfilePage(decoded.slice(1));
   if (!user) notFound();
   return (
     <main className="page">

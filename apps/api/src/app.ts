@@ -12,6 +12,7 @@ import { otpRoutes } from "@/modules/otp/otp.routes";
 import { mediaRoutes } from "@/modules/media/media.routes";
 import { skillsRoutes } from "@/modules/skills/skills.routes";
 import { certificatesRoutes } from "@/modules/certificates/certificates.routes";
+import { chatRoutes } from "@/modules/chat/chat.routes";
 
 export function createApp(server: Server): Application {
   const app = express();
@@ -27,11 +28,12 @@ export function createApp(server: Server): Application {
   app.use(globalLimiter);
   app.use("/api/auth", authRoutes(server));
   app.use("/api/otp", otpRoutes(server));
-  app.use("/api/profile", usersRoutes(server));
+  app.use("/api/users", usersRoutes(server));
   app.use("/api/policy", policyRoutes(server));
   app.use("/api/media", mediaRoutes(server));
   app.use("/api/skills", skillsRoutes(server));
   app.use("/api/certificates", certificatesRoutes(server));
+  app.use("/api/chats", chatRoutes(server));
   app.post("/api/preferences", (req, res) => {
     const { theme, lang } = req.body;
     const cookieOptions = {
