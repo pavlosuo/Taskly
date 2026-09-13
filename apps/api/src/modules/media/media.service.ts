@@ -3,7 +3,7 @@ import fs from "fs/promises";
 import { IServer, User } from "@/types";
 import { ServiceResult } from "@shared/types";
 import { filePath } from "@/utils";
-import { MediaItemBack } from "@/types";
+import { MediaItemBack, ChatBack, MessageBack } from "@/types";
 
 export class MediaService {
   constructor(private server: IServer) {}
@@ -120,26 +120,6 @@ export class MediaService {
     }
   }
 
-  async addChatId(
-    id: string,
-    ownerId: ObjectId,
-    chatId: ObjectId,
-  ): Promise<ServiceResult> {
-    try {
-      const db = await this.server.getDb();
-      await db
-        .collection("media")
-        .updateOne(
-          { _id: new ObjectId(id), ownerId },
-          { $addToSet: { chatIds: chatId } },
-        );
-      return { success: true, status: 200, data: { message: "Chat added." } };
-    } catch (e) {
-      console.error("Add chat error:", e);
-      return { success: false, status: 500, message: "Server error." };
-    }
-  }
-
   async serveFile(
     id: string,
     user?: User | null,
@@ -150,12 +130,7 @@ export class MediaService {
         .collection("media")
         .findOne({ _id: new ObjectId(id) });
 
-      if (!item)
-        return {
-          success: false,
-          status: 404,
-          message: "Not found.",
-        };
+      if (!item) return { success: false, status: 404, message: "Not found." };
 
       const fp = filePath(item.filename, item.ownerId);
 
@@ -167,8 +142,9 @@ export class MediaService {
         };
       }
 
-      if (!user)
+      if (!user) {
         return { success: false, status: 401, message: "Unauthorized." };
+      }
 
       if (user._id.toString() === item.ownerId.toString()) {
         return {
@@ -177,20 +153,34 @@ export class MediaService {
           data: { filePath: fp, mimeType: item.mimeType },
         };
       }
-      if (item.chatIds?.length > 0) {
-        const chat = await db.collection("chats").findOne({
-          _id: { $in: item.chatIds.map((cid: ObjectId) => new ObjectId(cid)) },
-          participants: user._id,
-        });
-        if (chat) {
-          return {
-            success: true,
-            status: 200,
-            data: { filePath: fp, mimeType: item.mimeType },
-          };
-        }
+
+      const messages = await db
+        .collection<MessageBack>("messages")
+        .find({ mediaIds: item._id })
+        .toArray();
+
+      if (messages.length === 0) {
+        return { success: false, status: 403, message: "Forbidden." };
       }
-      return { success: false, status: 403, message: "Forbidden." };
+
+      const chatIds = [
+        ...new Set(messages.map((m) => m.chatId.toString())),
+      ].map((id) => new ObjectId(id));
+
+      const hasAccess = await db.collection<ChatBack>("chats").findOne({
+        _id: { $in: chatIds },
+        participants: user._id,
+      });
+
+      if (!hasAccess) {
+        return { success: false, status: 403, message: "Forbidden." };
+      }
+
+      return {
+        success: true,
+        status: 200,
+        data: { filePath: fp, mimeType: item.mimeType },
+      };
     } catch (e) {
       console.error("Serve file error:", e);
       return { success: false, status: 500, message: "Server error." };

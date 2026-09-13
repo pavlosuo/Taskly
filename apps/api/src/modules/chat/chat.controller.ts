@@ -14,6 +14,9 @@ export class ChatController {
     this.getMessages = this.getMessages.bind(this);
     this.sendMessage = this.sendMessage.bind(this);
     this.markRead = this.markRead.bind(this);
+    this.editMessage = this.editMessage.bind(this);
+    this.deleteMessage = this.deleteMessage.bind(this);
+    this.manageReaction = this.manageReaction.bind(this);
   }
 
   async create(req: Request, res: Response) {
@@ -56,6 +59,38 @@ export class ChatController {
   async markRead(req: Request, res: Response) {
     const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
     const result = await this.service.markRead(req.user, id);
+    return res.status(result.status).json(result);
+  }
+
+  async editMessage(req: Request, res: Response) {
+    const id = req.params.id as string;
+    const messageId = req.params.messageId as string;
+    const result = await this.service.editMessage(
+      req.user,
+      id,
+      messageId,
+      req.body.text,
+    );
+    return res.status(result.status).json(result);
+  }
+
+  async deleteMessage(req: Request, res: Response) {
+    const id = req.params.id as string;
+    const messageId = req.params.messageId as string;
+    const result = await this.service.deleteMessage(req.user, id, messageId);
+    return res.status(result.status).json(result);
+  }
+
+  async manageReaction(req: Request, res: Response) {
+    const id = req.params.id as string;
+    const messageId = req.params.messageId as string;
+    const reaction = req.body.reaction as string;
+    const result = await this.service.manageReaction(
+      req.user,
+      id,
+      messageId,
+      reaction,
+    );
     return res.status(result.status).json(result);
   }
 }

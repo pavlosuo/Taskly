@@ -5,7 +5,7 @@ import { BASE_URL } from "api/index";
 
 export const getChats = cache(
   async (): Promise<{
-    chats: ChatWithMember[] | null;
+    chats: ChatWithMember[];
   }> => {
     try {
       const cookieStore = await cookies();
@@ -15,15 +15,15 @@ export const getChats = cache(
       });
       if (!res.ok)
         return {
-          chats: null,
+          chats: [],
         };
       const data = await res.json();
       return {
-        chats: data.data.chats ?? null,
+        chats: data.data.chats ?? [],
       };
     } catch {
       return {
-        chats: null,
+        chats: [],
       };
     }
   },

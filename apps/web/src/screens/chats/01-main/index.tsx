@@ -1,34 +1,24 @@
 "use client";
-import { FC, useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Search, X, Loader2 } from "lucide-react";
 import { axiosApi } from "api/index";
-import { ChatMemberPreview, ChatWithMember } from "@shared/types";
+import { ChatMemberPreview } from "@shared/types";
 import { useChats } from "@/providers/ChatProvider";
 import { ChatListItem } from "@/screens/chats/ui/ChatListItem";
 import { ImageDisplay } from "@/shared/components/MediaPicker";
 import { Input } from "@/shared/components/Input";
 import { startTransition } from "react";
 
-export const Main: FC<{ chats: ChatWithMember[] | null }> = ({
-  chats: initialChats,
-}) => {
+export const Main = () => {
   const router = useRouter();
-  const { chats, isLoading, createChat, hydrate } = useChats();
-  const hydratedRef = useRef(false);
+  const { chats, isLoading, createChat } = useChats();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<ChatMemberPreview[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [startingId, setStartingId] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const isSearchMode = query.trim().length > 0;
-  const displayChats = chats.length > 0 ? chats : (initialChats ?? []);
-
-  useEffect(() => {
-    if (hydratedRef.current) return;
-    hydratedRef.current = true;
-    hydrate(initialChats ?? []);
-  }, [hydrate, initialChats]);
 
   useEffect(() => {
     if (query.trim().length < 2) return;
@@ -138,12 +128,12 @@ export const Main: FC<{ chats: ChatWithMember[] | null }> = ({
         </div>
       ) : (
         <>
-          {isLoading && displayChats.length === 0 && (
+          {isLoading && chats.length === 0 && (
             <div className="py-16 text-center text-sm text-grey">
               Loading...
             </div>
           )}
-          {!isLoading && displayChats.length === 0 && (
+          {!isLoading && chats.length === 0 && (
             <div className="py-16 text-center">
               <p className="text-sm text-grey">No conversations yet.</p>
               <p className="text-xs text-grey mt-1">
@@ -152,7 +142,7 @@ export const Main: FC<{ chats: ChatWithMember[] | null }> = ({
             </div>
           )}
           <div className="divide-y divide-primary flex flex-col w-full mt-2">
-            {displayChats.map((chat) => (
+            {chats.map((chat) => (
               <ChatListItem key={chat._id} chat={chat} />
             ))}
           </div>

@@ -143,3 +143,5 @@ export const ALLOWED_MIME_TYPES = new Set([
   "text/plain",
   "text/csv",
 ]);
+
+export const EMOJI = ["👀", "😢", "👍", "🔥", "❤️"];

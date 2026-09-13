@@ -1,18 +1,17 @@
 "use client";
-import { FC, useState } from "react";
+import { useState } from "react";
 import { Paperclip, Send, X, Loader2 } from "lucide-react";
 import { axiosApi } from "api/index";
-import { Message, MediaItem } from "@shared/types";
+import { MediaItem } from "@shared/types";
 import { useMediaPicker } from "@/providers/MediaPickerProvider";
 import { useChats } from "@/providers/ChatProvider";
 import { ImageDisplay } from "@/shared/components/MediaPicker";
+import { useSingleChat } from "@/providers/SingleChatProvider";
 
-export const ChatInput: FC<{
-  chatId: string;
-  onSent: (message: Message) => void;
-}> = ({ chatId, onSent }) => {
+export const ChatInput = () => {
   const { openPicker } = useMediaPicker();
   const { fetchChats } = useChats();
+  const { chat, onMessageSent } = useSingleChat();
   const [text, setText] = useState("");
   const [pendingMedia, setPendingMedia] = useState<MediaItem[]>([]);
   const [isSending, setIsSending] = useState(false);
@@ -22,17 +21,9 @@ export const ChatInput: FC<{
       accept: "all",
       multiple: true,
       onSelect: (items) => {
-        if (Array.isArray(items)) {
-          items?.forEach((item) => {
-            setPendingMedia((prev) =>
-              prev.some((m) => m._id === item._id) ? prev : [...prev, item],
-            );
-          });
-        } else {
-          setPendingMedia((prev) =>
-            prev.some((m) => m._id === items._id) ? prev : [...prev, items],
-          );
-        }
+        setPendingMedia(
+          items.filter((i) => !pendingMedia.some((m) => m._id === i._id)),
+        );
       },
     });
   };
@@ -46,11 +37,11 @@ export const ChatInput: FC<{
     if (!trimmed && pendingMedia.length === 0) return;
     try {
       setIsSending(true);
-      const { data } = await axiosApi.sendMessage(chatId, {
+      const { data } = await axiosApi.sendMessage(chat._id, {
         text: trimmed || undefined,
         mediaIds: pendingMedia.map((m) => m._id),
       });
-      onSent(data.data.message);
+      onMessageSent(data.data.message);
       setText("");
       setPendingMedia([]);
       fetchChats();
@@ -107,7 +98,7 @@ export const ChatInput: FC<{
           value={text}
           onChange={(e) => setText(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Message…"
+          placeholder="Message..."
           rows={1}
           className="flex-1 resize-none bg-muted rounded-2xl px-4 py-2.5 text-sm outline-none max-h-32"
         />

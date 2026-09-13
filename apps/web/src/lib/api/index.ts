@@ -154,4 +154,23 @@ export const axiosApi = {
     api.get<{ data: { items: ChatMemberPreview[] } }>("/api/users/search", {
       params: { q },
     }),
+
+  editMessage: (chatId: string, messageId: string, text: string) =>
+    api.patch<{ data: { message: Message } }>(
+      `/api/chats/${chatId}/messages/${messageId}`,
+      { text },
+    ),
+
+  deleteMessage: (chatId: string, messageId: string) =>
+    api.delete<{ success: boolean }>(
+      `/api/chats/${chatId}/messages/${messageId}`,
+    ),
+
+  manageReaction: (chatId: string, messageId: string, reaction: string) =>
+    api.post<{ data: { message: Message } }>(
+      `/api/chats/${chatId}/messages/${messageId}/react`,
+      {
+        reaction,
+      },
+    ),
 };

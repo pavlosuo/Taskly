@@ -11,8 +11,7 @@ import {
 } from "@shared/types/chat";
 import { MediaService } from "@/modules/media/media.service";
 import { ChatBack, MessageBack } from "@/types";
-
-const MESSAGES_PAGE_SIZE = 30;
+import { EMOJI } from "@shared/data";
 
 export class ChatService {
   private mediaService: MediaService;
@@ -52,7 +51,6 @@ export class ChatService {
         },
       )
       .toArray();
-
     const map = new Map<string, ChatMemberPreview>();
     for (const u of users) {
       map.set(u._id.toString(), {
@@ -129,7 +127,7 @@ export class ChatService {
   }
 
   private async populateMessages(docs: MessageBack[]): Promise<Message[]> {
-    if (docs.length === 0) return [];
+    if (docs.length === 0 || !docs) return [];
     const db = await this.server.getDb();
 
     const allMediaIds = [
@@ -142,6 +140,7 @@ export class ChatService {
           .find({ _id: { $in: allMediaIds } })
           .toArray()
       : [];
+
     const mediaMap = new Map(
       mediaDocs.map((m) => [m._id.toString(), { ...m, _id: m._id.toString() }]),
     );
@@ -154,9 +153,41 @@ export class ChatService {
       media: d.mediaIds
         .map((id) => mediaMap.get(id.toString()))
         .filter(Boolean) as Message["media"],
-      readBy: d.readBy.map((id) => id.toString()),
-      createdAt: d.createdAt.toISOString(),
+      readBy: d.readBy.map((id) => id?.toString()),
+      reactions: d.reactions?.map((r) => ({
+        userId: r.userId?.toString(),
+        emoji: r.emoji,
+      })),
+      edited: d.edited,
+      createdAt: d.createdAt?.toISOString(),
+      updatedAt: d.updatedAt?.toISOString(),
     }));
+  }
+
+  private async recomputeLastMessage(chatId: ObjectId): Promise<void> {
+    const db = await this.server.getDb();
+    const [last] = await db
+      .collection<MessageBack>("messages")
+      .find({ chatId })
+      .sort({ _id: -1 })
+      .limit(1)
+      .toArray();
+
+    await db.collection<ChatBack>("chats").updateOne(
+      { _id: chatId },
+      {
+        $set: {
+          lastMessage: last
+            ? {
+                text: last.text,
+                hasMedia: last.mediaIds.length > 0,
+                senderId: last.senderId,
+                createdAt: last.createdAt,
+              }
+            : null,
+        },
+      },
+    );
   }
 
   async createChat(
@@ -174,21 +205,17 @@ export class ChatService {
           message: "Cannot start a chat with yourself.",
         };
       }
-
       const db = await this.server.getDb();
       const otherId = new ObjectId(payload.memberId);
-
       const otherUser = await db
         .collection("users")
         .findOne({ _id: otherId }, { projection: { _id: 1 } });
       if (!otherUser) {
         return { success: false, status: 404, message: "User not found." };
       }
-
       const existing = await db.collection<ChatBack>("chats").findOne({
         participants: { $all: [user._id, otherId], $size: 2 },
       });
-
       if (existing) {
         if (existing.deletedBy.some((id) => id.equals(user._id))) {
           await db
@@ -204,7 +231,6 @@ export class ChatService {
         const [enriched] = await this.enrichChats([existing], user._id);
         return { success: true, status: 200, data: { chat: enriched } };
       }
-
       const now = new Date();
       const doc: Omit<ChatBack, "_id"> = {
         participants: [user._id, otherId],
@@ -287,30 +313,25 @@ export class ChatService {
     user: User,
     chatId: string,
     before?: string,
-    limit = MESSAGES_PAGE_SIZE,
+    limit = 30,
   ): Promise<ServiceResult<MessagesPage>> {
     try {
       const chat = await this.assertParticipant(chatId, user._id);
       if (!chat) return { success: false, status: 404, message: "Not found." };
-
       const db = await this.server.getDb();
       const query: any = { chatId: chat._id };
       if (before) query._id = { $lt: new ObjectId(before) };
-
       const docs = await db
         .collection<MessageBack>("messages")
         .find(query)
         .sort({ _id: -1 })
         .limit(limit)
         .toArray();
-
       const oldestId = docs.length
         ? docs[docs.length - 1]._id.toString()
         : null;
       const nextCursor = docs.length === limit ? oldestId : null;
-
       const items = await this.populateMessages(docs.reverse());
-
       return { success: true, status: 200, data: { items, nextCursor } };
     } catch (e) {
       console.error("Get messages error:", e);
@@ -326,7 +347,6 @@ export class ChatService {
     try {
       const chat = await this.assertParticipant(chatId, user._id);
       if (!chat) return { success: false, status: 404, message: "Not found." };
-
       const text = payload.text?.trim() || null;
       const mediaIds = payload.mediaIds ?? [];
       if (!text && mediaIds.length === 0) {
@@ -336,7 +356,6 @@ export class ChatService {
           message: "Message must contain text or media.",
         };
       }
-
       const db = await this.server.getDb();
       const now = new Date();
       const doc: Omit<MessageBack, "_id"> = {
@@ -345,24 +364,12 @@ export class ChatService {
         text,
         mediaIds: mediaIds.map((id) => new ObjectId(id)),
         readBy: [user._id],
+        reactions: [],
+        edited: false,
         createdAt: now,
+        updatedAt: now,
       };
-
       const result = await db.collection("messages").insertOne(doc);
-
-      for (const mediaId of mediaIds) {
-        const linked = await this.mediaService.addChatId(
-          mediaId,
-          user._id,
-          chat._id,
-        );
-        if (!linked.success) {
-          console.warn(
-            `Media ${mediaId} not linked to chat ${chatId}: not owned by sender`,
-          );
-        }
-      }
-
       await db.collection<ChatBack>("chats").updateOne(
         { _id: chat._id },
         {
@@ -378,11 +385,9 @@ export class ChatService {
           },
         },
       );
-
       const [message] = await this.populateMessages([
         { ...doc, _id: result.insertedId },
       ]);
-
       return { success: true, status: 201, data: { message } };
     } catch (e) {
       console.error("Send message error:", e);
@@ -394,7 +399,6 @@ export class ChatService {
     try {
       const chat = await this.assertParticipant(chatId, user._id);
       if (!chat) return { success: false, status: 404, message: "Not found." };
-
       const db = await this.server.getDb();
       await db.collection<MessageBack>("messages").updateMany(
         {
@@ -404,10 +408,127 @@ export class ChatService {
         },
         { $addToSet: { readBy: user._id } },
       );
-
       return { success: true, status: 200, data: { message: "Read." } };
     } catch (e) {
       console.error("Mark read error:", e);
+      return { success: false, status: 500, message: "Server error." };
+    }
+  }
+
+  async editMessage(
+    user: User,
+    chatId: string,
+    messageId: string,
+    text: string,
+  ): Promise<ServiceResult> {
+    try {
+      const chat = await this.assertParticipant(chatId, user._id);
+      if (!chat) return { success: false, status: 404, message: "Not found." };
+      const trimmed = text?.trim();
+      if (!trimmed) {
+        return { success: false, status: 400, message: "Text required." };
+      }
+      const db = await this.server.getDb();
+      const msg = await db.collection<MessageBack>("messages").findOne({
+        _id: new ObjectId(messageId),
+        chatId: chat._id,
+      });
+      if (!msg)
+        return { success: false, status: 404, message: "Message not found." };
+      if (!msg.senderId.equals(user._id)) {
+        return { success: false, status: 403, message: "Forbidden." };
+      }
+      const now = new Date();
+      await db
+        .collection<MessageBack>("messages")
+        .updateOne(
+          { _id: msg._id },
+          { $set: { text: trimmed, edited: true, updatedAt: now } },
+        );
+      const chatDoc = await db
+        .collection<ChatBack>("chats")
+        .findOne({ _id: chat._id, "lastMessage.createdAt": msg.createdAt });
+      if (chatDoc) {
+        await db
+          .collection<ChatBack>("chats")
+          .updateOne(
+            { _id: chat._id },
+            { $set: { "lastMessage.text": trimmed } },
+          );
+      }
+      const [message] = await this.populateMessages([
+        { ...msg, text: trimmed, edited: true, updatedAt: now },
+      ]);
+      return { success: true, status: 200, data: { message } };
+    } catch (e) {
+      console.error("Edit message error:", e);
+      return { success: false, status: 500, message: "Server error." };
+    }
+  }
+
+  async deleteMessage(
+    user: User,
+    chatId: string,
+    messageId: string,
+  ): Promise<ServiceResult> {
+    try {
+      const chat = await this.assertParticipant(chatId, user._id);
+      if (!chat) return { success: false, status: 404, message: "Not found." };
+      const db = await this.server.getDb();
+      const msg = await db.collection<MessageBack>("messages").findOne({
+        _id: new ObjectId(messageId),
+        chatId: chat._id,
+      });
+      if (!msg)
+        return { success: false, status: 404, message: "Message not found." };
+      if (!msg.senderId.equals(user._id)) {
+        return { success: false, status: 403, message: "Forbidden." };
+      }
+      await db.collection("messages").deleteOne({ _id: msg._id });
+      await this.recomputeLastMessage(chat._id);
+      return { success: true, status: 200, data: { message: "Deleted." } };
+    } catch (e) {
+      console.error("Delete message error:", e);
+      return { success: false, status: 500, message: "Server error." };
+    }
+  }
+
+  async manageReaction(
+    user: User,
+    chatId: string,
+    messageId: string,
+    emoji: string,
+  ): Promise<ServiceResult> {
+    try {
+      if (EMOJI.indexOf(emoji) === -1)
+        return { success: false, status: 400, message: "Invalid emoji." };
+      const chat = await this.assertParticipant(chatId, user._id);
+      if (!chat) return { success: false, status: 404, message: "Not found." };
+      const db = await this.server.getDb();
+      const msg = await db.collection<MessageBack>("messages").findOne({
+        _id: new ObjectId(messageId),
+        chatId: chat._id,
+      });
+      if (!msg)
+        return { success: false, status: 404, message: "Message not found." };
+      const myReaction = msg.reactions.find((r) => r.userId.equals(user._id));
+      const isRemovingSame = myReaction?.emoji === emoji;
+      const withoutMine = msg.reactions.filter(
+        (r) => !r.userId.equals(user._id),
+      );
+      const nextReactions = isRemovingSame
+        ? withoutMine
+        : [...withoutMine, { userId: user._id, emoji }];
+      await db
+        .collection<MessageBack>("messages")
+        .updateOne({ _id: msg._id }, { $set: { reactions: nextReactions } });
+      const updated = await db
+        .collection<MessageBack>("messages")
+        .findOne({ _id: msg._id });
+      const [message] = await this.populateMessages([updated!]);
+      return { success: true, status: 200, data: { message } };
+    } catch (e) {
+      console.error("Manage reaction error:", e);
       return { success: false, status: 500, message: "Server error." };
     }
   }

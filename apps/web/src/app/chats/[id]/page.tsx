@@ -28,8 +28,12 @@ export default async function Chat({
 }) {
   await authGuard(["tasker", "client", "admin"]);
   const { id } = await params;
-  const { chat } = await getChat(id);
-  const { messages } = await getMessages(id);
+  const [chatRes, messagesRes] = await Promise.all([
+    getChat(id),
+    getMessages(id),
+  ]);
+  const { chat } = chatRes;
+  const { messages } = messagesRes;
   if (!chat) notFound();
   return (
     <SidebarWrapper hiddenTitle title={`Chat with ${chat?.member?.fullName}`}>

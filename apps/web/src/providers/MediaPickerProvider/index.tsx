@@ -12,7 +12,7 @@ import { FilterType } from "@/utils/getFileType";
 
 type MediaPickerOptions = {
   accept?: FilterType;
-  onSelect?: (item: MediaItem | MediaItem[]) => void;
+  onSelect?: (items: MediaItem[]) => void;
   IsWait?: boolean;
   multiple?: boolean;
 };
@@ -40,8 +40,8 @@ export const MediaPickerProvider = ({ children }: { children: ReactNode }) => {
     setOpen(true);
   }, []);
 
-  const handleSelect = (item: MediaItem | MediaItem[]) => {
-    options?.onSelect?.(item);
+  const handleSelect = (items: MediaItem[]) => {
+    options?.onSelect?.(items);
     if (options?.IsWait) {
       setOpen(false);
       return;
@@ -69,6 +69,7 @@ export const MediaPickerProvider = ({ children }: { children: ReactNode }) => {
         onOpenChange={handleOpenChange}
         accept={options?.accept ?? "image"}
         onSelect={options?.onSelect ? handleSelect : undefined}
+        multiple={options?.multiple ?? false}
       />
     </MediaPickerContext.Provider>
   );

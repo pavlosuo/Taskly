@@ -91,7 +91,7 @@ export const ChatListItem: FC<{ chat: ChatWithMember }> = ({ chat }) => {
       <button
         onClick={handleDelete}
         disabled={isDeleting}
-        className="shrink-0 p-2 rounded-full opacity-0 group-hover:opacity-100 hover:bg-border transition-opacity text-grey hover:text-red-500"
+        className="shrink-0 p-2 rounded-full opacity-0 group-hover:opacity-100 hover:bg-border transition-opacity text-grey hover:text-red"
         aria-label="Delete chat"
       >
         <Trash2 className="w-4 h-4" />

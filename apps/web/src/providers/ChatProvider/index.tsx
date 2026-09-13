@@ -9,6 +9,8 @@ import {
 } from "react";
 import { ChatWithMember } from "@shared/types";
 import { axiosApi } from "api/index";
+import { useUser } from "@/providers/UserProvider";
+import { useEffect } from "react";
 
 interface ChatContextType {
   chats: ChatWithMember[];
@@ -20,17 +22,22 @@ interface ChatContextType {
   deleteChat: (chatId: string) => Promise<void>;
   upsertChat: (chat: ChatWithMember) => void;
   removeChatLocal: (chatId: string) => void;
+  setActiveChat: (chat: ChatWithMember | null) => void;
+  activeChat: ChatWithMember | null;
 }
 
 interface ChatProviderProps {
   children: ReactNode;
+  initialChats: ChatWithMember[];
 }
 
 const ChatContext = createContext<ChatContextType | null>(null);
 
-export const ChatProvider = ({ children }: ChatProviderProps) => {
-  const [chats, setChats] = useState<ChatWithMember[]>([]);
+export const ChatProvider = ({ children, initialChats }: ChatProviderProps) => {
+  const [chats, setChats] = useState<ChatWithMember[]>(initialChats);
   const [isLoading, setIsLoading] = useState(false);
+  const [activeChat, setActiveChat] = useState<ChatWithMember | null>(null);
+  const { user } = useUser();
 
   const fetchChats = useCallback(async () => {
     try {
@@ -85,6 +92,10 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
     [chats],
   );
 
+  useEffect(() => {
+    if (initialChats.length === 0) fetchChats();
+  }, [user, initialChats, fetchChats]);
+
   return (
     <ChatContext.Provider
       value={{
@@ -97,6 +108,8 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
         deleteChat,
         upsertChat,
         removeChatLocal,
+        setActiveChat,
+        activeChat,
       }}
     >
       {children}

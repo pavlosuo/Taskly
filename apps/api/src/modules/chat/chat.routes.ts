@@ -12,5 +12,20 @@ export function chatRoutes(server: IServer): Router {
   router.get("/:id/messages", server.requireAuth(), ctrl.getMessages);
   router.post("/:id/messages", server.requireAuth(), ctrl.sendMessage);
   router.patch("/:id/messages/read", server.requireAuth(), ctrl.markRead);
+  router.patch(
+    "/:id/messages/:messageId",
+    server.requireAuth(),
+    ctrl.editMessage,
+  );
+  router.delete(
+    "/:id/messages/:messageId",
+    server.requireAuth(),
+    ctrl.deleteMessage,
+  );
+  router.post(
+    "/:id/messages/:messageId/react",
+    server.requireAuth(),
+    ctrl.manageReaction,
+  );
   return router;
 }

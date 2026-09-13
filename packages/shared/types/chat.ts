@@ -36,7 +36,10 @@ export interface Message {
   text: string | null;
   media: MediaItem[];
   readBy: string[];
+  reactions: MessageReaction[];
+  edited: boolean;
   createdAt: string;
+  updatedAt: string;
 }
 
 export interface CreateChatPayload {
@@ -51,4 +54,9 @@ export interface SendMessagePayload {
 export interface MessagesPage {
   items: Message[];
   nextCursor: string | null;
+}
+
+export interface MessageReaction {
+  userId: string;
+  emoji: string;
 }

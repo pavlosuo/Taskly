@@ -66,7 +66,7 @@ export function getPasswordStrength(password?: string): PasswordStrength {
     return { label: "password.strength.invalid", color: "text-red-600", tips };
   }
   if (score <= 3) {
-    return { label: "password.strength.weak", color: "text-red-500", tips };
+    return { label: "password.strength.weak", color: "text-red", tips };
   }
   if (score === 4) {
     return {

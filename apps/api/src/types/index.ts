@@ -50,14 +50,23 @@ export interface ChatBack extends Omit<
 
 export interface MessageBack extends Omit<
   Message,
-  "_id" | "chatId" | "senderId" | "media" | "readBy" | "createdAt"
+  | "_id"
+  | "chatId"
+  | "senderId"
+  | "media"
+  | "readBy"
+  | "reactions"
+  | "createdAt"
+  | "updatedAt"
 > {
   _id: ObjectId;
   chatId: ObjectId;
   senderId: ObjectId;
   mediaIds: ObjectId[];
   readBy: ObjectId[];
+  reactions: { userId: ObjectId; emoji: string }[];
   createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface IServer {

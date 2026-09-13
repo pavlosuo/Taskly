@@ -169,7 +169,6 @@ export class Server implements IServer {
     db.collection("chats").createIndex({ updatedAt: -1 });
     db.collection("messages").createIndex({ chatId: 1, _id: -1 });
     db.collection("users").createIndex({ username: 1 });
-
     // const allUsers = await db.collection("users").find().toArray();
     // console.log(allUsers);
     return Promise.resolve();

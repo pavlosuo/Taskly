@@ -1,7 +1,5 @@
 "use client";
 import { useState } from "react";
-import "swiper/css";
-import "swiper/css/navigation";
 import { ImageDisplay } from "@/shared/components/MediaPicker";
 import parse from "html-react-parser";
 import {

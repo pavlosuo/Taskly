@@ -46,7 +46,7 @@ export const ImageDisplay = ({
   width,
   height,
 }: {
-  src: string;
+  src?: string;
   alt: string;
   className?: string;
   width?: number;
@@ -116,7 +116,7 @@ export function MediaPicker({
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSelect?: (item: MediaItem | MediaItem[]) => void;
+  onSelect?: (items: MediaItem[]) => void;
   accept?: FilterType;
   multiple?: boolean;
 }) {
@@ -300,10 +300,8 @@ export function MediaPicker({
 
   const handleConfirm = useCallback(() => {
     if (!selectedIds.size) return;
-    const mediaItems = selectedIds.size
-      ? (items.filter((i) => i._id === [...selectedIds][0]) ?? null)
-      : null;
-    if (mediaItems) onSelect?.(multiple ? mediaItems : mediaItems[0]);
+    const mediaItems = items.filter((i) => selectedIds.has(i._id));
+    if (mediaItems) onSelect?.(multiple ? mediaItems : [mediaItems[0]]);
     onOpenChange(false);
     setSelectedIds(new Set());
   }, [selectedIds, onSelect, onOpenChange, items, multiple]);
