@@ -27,8 +27,13 @@ export type RegisterForm = {
 
 export interface AuthResponse {
   success: boolean;
-  message: string;
+  message?: string;
   user: PublicUser;
+}
+
+export interface CommonResponse {
+  success: boolean;
+  message?: string;
 }
 
 export type UpdateProfileForm = Partial<{

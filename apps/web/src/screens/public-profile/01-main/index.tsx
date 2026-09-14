@@ -1,5 +1,4 @@
 "use client";
-import { useState } from "react";
 import { ImageDisplay } from "@/shared/components/MediaPicker";
 import parse from "html-react-parser";
 import {
@@ -15,7 +14,7 @@ import { PublicProfileUser } from "@shared/types";
 import { Button } from "@/components/ui/button";
 import { VideoPlayer } from "@/shared/components/Player";
 import { SpanField } from "@/screens/user/ui/index.tsx";
-import { Lightbox } from "@/shared/components/Lightbox";
+import { useLightbox } from "@/providers/LightboxProvider";
 import { MediaItemPublic, AccessReason } from "@shared/types";
 import { CERF } from "@shared/data";
 import { OnlineStatus } from "@/shared/components/OnlineStatus";
@@ -54,10 +53,7 @@ function EmptyState({ label }: { label: string }) {
 
 export const Main = ({ user, accessReason }: Props) => {
   const p = user.publicProfile;
-  const [lightbox, setLightbox] = useState<{
-    items: MediaItemPublic[];
-    index: number;
-  } | null>(null);
+  const { setLightbox } = useLightbox();
   const { lang } = useTheme();
   if (!p) return null;
   const hasSkills = !!p?.skills?.length;
@@ -248,7 +244,6 @@ export const Main = ({ user, accessReason }: Props) => {
                     </button>
                   );
                 }
-
                 return (
                   <div
                     key={c.value}
@@ -326,16 +321,6 @@ export const Main = ({ user, accessReason }: Props) => {
           )}
         </div>
       </section>
-      {lightbox && (
-        <Lightbox
-          items={lightbox.items}
-          index={lightbox.index}
-          onClose={() => setLightbox(null)}
-          onIndexChange={(i) =>
-            setLightbox({ items: lightbox.items, index: i })
-          }
-        />
-      )}
     </>
   );
 };

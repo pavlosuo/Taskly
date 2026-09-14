@@ -1,6 +1,6 @@
 import { Screens } from "@/screens";
 import { getMetaData } from "@/utils/Metadata";
-import { getPolicyData } from "@/lib/api/get-policy";
+import { getServerApi } from "api/server";
 import { AutoLogoutPopup } from "@/shared/components/AutoLogoutPopup";
 
 export const metadata = getMetaData({
@@ -9,7 +9,8 @@ export const metadata = getMetaData({
 });
 
 export default async function Profile() {
-  const data = await getPolicyData();
+  const axiosApi = await getServerApi();
+  const { data } = await axiosApi.getPolicyData();
   return (
     <main className="page">
       <AutoLogoutPopup />

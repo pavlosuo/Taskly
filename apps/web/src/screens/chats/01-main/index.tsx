@@ -3,16 +3,17 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Search, X, Loader2 } from "lucide-react";
 import { axiosApi } from "api/index";
-import { ChatMemberPreview } from "@shared/types";
+import { ChatMemberPreview, ChatWithMember } from "@shared/types";
 import { useChats } from "@/providers/ChatProvider";
 import { ChatListItem } from "@/screens/chats/ui/ChatListItem";
 import { ImageDisplay } from "@/shared/components/MediaPicker";
 import { Input } from "@/shared/components/Input";
 import { startTransition } from "react";
 
-export const Main = () => {
+export const Main = ({ chats: initialChats }: { chats: ChatWithMember[] }) => {
   const router = useRouter();
-  const { chats, isLoading, createChat } = useChats();
+  const { chats: storedChats, isLoading, createChat } = useChats();
+  const chats = storedChats.length > 0 ? storedChats : initialChats;
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<ChatMemberPreview[]>([]);
   const [isSearching, setIsSearching] = useState(false);

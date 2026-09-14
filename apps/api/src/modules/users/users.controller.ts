@@ -73,7 +73,11 @@ export class UsersController {
 
   getUserForProfilePage = async (req: Request, res: Response) => {
     const result = await this.service.getUserForProfilePage(req.user, req.body);
-    return res.status(result.status).json(result);
+    return res.status(result.status).json({
+      success: result.success,
+      message: result.message,
+      ...(result.data ?? {}),
+    });
   };
 
   search = async (req: Request, res: Response) => {

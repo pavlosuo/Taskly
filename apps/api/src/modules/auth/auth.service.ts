@@ -225,7 +225,6 @@ export class AuthService {
       );
       if (!check.ok)
         return { success: false, status: check.status, message: check.message };
-
       const resetToken = jwt.sign(
         { id: user._id.toString() },
         JWT_SECRET || "",
@@ -258,7 +257,6 @@ export class AuthService {
       const db = await this.server.getDb();
       const user = await db.collection("users").findOne({ email });
       if (!user) return { success: true, status: 200, data: {} };
-
       const resetToken = jwt.sign(
         { id: user._id.toString() },
         JWT_SECRET || "",
@@ -315,7 +313,6 @@ export class AuthService {
           status: 400,
           message: "Invalid or expired token.",
         };
-
       const passwordHash = await bcrypt.hash(password, 10);
       await db
         .collection("users")
@@ -333,7 +330,6 @@ export class AuthService {
   async verifyPasswordResetToken(token: unknown): Promise<ServiceResult> {
     if (!token || typeof token !== "string")
       return { success: false, status: 400, message: "Token is required." };
-
     try {
       let decoded: any;
       try {
@@ -359,7 +355,6 @@ export class AuthService {
           message: "Invalid or expired token.",
           data: { reason: "invalid" },
         };
-
       return { success: true, status: 200, data: {} };
     } catch (error) {
       console.error("Verify reset token error:", error);

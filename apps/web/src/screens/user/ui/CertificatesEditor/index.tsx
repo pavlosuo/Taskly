@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef } from "react";
 import { X, Plus, Loader2, BadgeCheck, ImageIcon, Trash2 } from "lucide-react";
 import { Input } from "@/shared/components/Input";
-import { axiosApi } from "@/lib/api";
+import { axiosApi } from "api/index";
 import { PublicProfileCertificate, MediaItem } from "@shared/types";
 import { useMediaPicker } from "@/providers/MediaPickerProvider";
 import { ImageDisplay } from "@/shared/components/MediaPicker";

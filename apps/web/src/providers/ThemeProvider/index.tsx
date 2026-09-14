@@ -13,7 +13,7 @@ import {
 import { Lang, Theme } from "@shared/types";
 import i18n from "i18next";
 import "@/i18n";
-import { axiosApi } from "@/lib/api";
+import { axiosApi } from "api/index";
 import { useUser } from "@/providers/UserProvider";
 
 interface ThemeContextType {

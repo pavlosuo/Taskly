@@ -28,13 +28,12 @@ interface ChatContextType {
 
 interface ChatProviderProps {
   children: ReactNode;
-  initialChats: ChatWithMember[];
 }
 
 const ChatContext = createContext<ChatContextType | null>(null);
 
-export const ChatProvider = ({ children, initialChats }: ChatProviderProps) => {
-  const [chats, setChats] = useState<ChatWithMember[]>(initialChats);
+export const ChatProvider = ({ children }: ChatProviderProps) => {
+  const [chats, setChats] = useState<ChatWithMember[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [activeChat, setActiveChat] = useState<ChatWithMember | null>(null);
   const { user } = useUser();
@@ -93,8 +92,8 @@ export const ChatProvider = ({ children, initialChats }: ChatProviderProps) => {
   );
 
   useEffect(() => {
-    if (initialChats.length === 0) fetchChats();
-  }, [user, initialChats, fetchChats]);
+    if (user) fetchChats();
+  }, [user, fetchChats]);
 
   return (
     <ChatContext.Provider

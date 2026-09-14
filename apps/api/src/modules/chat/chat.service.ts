@@ -12,6 +12,7 @@ import {
 import { MediaService } from "@/modules/media/media.service";
 import { ChatBack, MessageBack } from "@/types";
 import { EMOJI } from "@shared/data";
+import { stripMediaFields } from "@/utils";
 
 export class ChatService {
   private mediaService: MediaService;
@@ -331,7 +332,9 @@ export class ChatService {
         ? docs[docs.length - 1]._id.toString()
         : null;
       const nextCursor = docs.length === limit ? oldestId : null;
-      const items = await this.populateMessages(docs.reverse());
+      const items = stripMediaFields(
+        await this.populateMessages(docs.reverse()),
+      );
       return { success: true, status: 200, data: { items, nextCursor } };
     } catch (e) {
       console.error("Get messages error:", e);

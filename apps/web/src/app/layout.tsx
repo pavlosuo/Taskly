@@ -2,8 +2,7 @@ import { ReactNode } from "react";
 import clsx from "clsx";
 import { fonts } from "@/app/fonts";
 import { RootLayout } from "@/layouts/RootLayout";
-import { getUser } from "api/get-user";
-import { getChats } from "@/lib/api/get-chats";
+import { getServerApi } from "api/server";
 import "@/app/globals.css";
 import "@/scss/style.scss";
 
@@ -12,10 +11,11 @@ export default async function LocaleLayout({
 }: {
   children: ReactNode;
 }) {
-  const { user, settings } = await getUser();
+  const axiosApi = await getServerApi();
+  const { data } = await axiosApi.me();
+  const { user, settings } = data;
   const lang = user?.settings?.lang || settings?.lang || "en";
   const theme = user?.settings?.theme || settings?.theme || "light";
-  const { chats } = await getChats();
   return (
     <html
       className={clsx(fonts.map((f) => f.variable))}
@@ -24,12 +24,7 @@ export default async function LocaleLayout({
       suppressHydrationWarning
     >
       <body>
-        <RootLayout
-          initialLang={lang}
-          initialTheme={theme}
-          initialChats={chats}
-          user={user}
-        >
+        <RootLayout initialLang={lang} initialTheme={theme} user={user}>
           {children}
         </RootLayout>
       </body>

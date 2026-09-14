@@ -1,7 +1,7 @@
 import { Tiptap } from "@/shared/components/Tiptap";
 import { Input } from "@/shared/components/Input";
 import { Label } from "@/components/ui/label";
-import { useData } from "@/providers/PolicyDataProvider";
+import { usePolicyData } from "@/providers/PolicyDataProvider";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -15,7 +15,8 @@ import clsx from "clsx";
 import Link from "next/link";
 
 export const PrivacyPolicyAdmin = () => {
-  const { data, setData, saveData, loading } = useData();
+  const { policyData, setPolicyData, savePolicyData, loading } =
+    usePolicyData();
   return (
     <div className="flex flex-col gap-4 w-full">
       <div className="flex flex-col gap-2">
@@ -23,9 +24,9 @@ export const PrivacyPolicyAdmin = () => {
           Privacy policy title
         </Label>
         <Input
-          value={data?.policyTitle}
+          value={policyData?.policyTitle}
           onChange={(e) =>
-            setData((prev) => ({ ...prev, policyTitle: e.target.value }))
+            setPolicyData((prev) => ({ ...prev, policyTitle: e.target.value }))
           }
           name="privacy-policy-title"
           type="text"
@@ -36,9 +37,9 @@ export const PrivacyPolicyAdmin = () => {
       <div className="flex flex-col gap-2">
         <span className="text-md">Privacy policy content</span>
         <Tiptap
-          value={data?.policyContent || ""}
+          value={policyData?.policyContent || ""}
           onUpdate={({ editor }) => {
-            setData((prev) => ({
+            setPolicyData((prev) => ({
               ...prev,
               policyContent: editor.getHTML(),
             }));
@@ -47,7 +48,7 @@ export const PrivacyPolicyAdmin = () => {
       </div>
       <div className="flex justify-end">
         <Button
-          onClick={saveData}
+          onClick={savePolicyData}
           className={clsx(loading && "pointer-events-none opacity-10")}
         >
           {loading ? "Saving..." : "Save"}

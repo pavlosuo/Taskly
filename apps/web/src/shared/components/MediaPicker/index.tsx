@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import {
   Upload,
@@ -17,7 +17,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { axiosApi } from "@/lib/api";
+import { axiosApi } from "api/index";
 import { MediaItem } from "@shared/types";
 import { getAxiosError } from "@/utils/getAxiosError";
 import clsx from "clsx";
@@ -65,7 +65,7 @@ export const ImageDisplay = ({
     />
   );
 
-function FileIcon({
+export function FileIcon({
   mimeType,
   className,
 }: {
@@ -80,25 +80,55 @@ function FileIcon({
   return <File className={cls} />;
 }
 
-function FileThumbnail({ item }: { item: MediaItem }) {
+export function FileThumbnail({
+  item,
+  className,
+  onClick,
+}: {
+  item: MediaItem;
+  className?: string;
+  onClick?: () => void;
+}) {
+  const baseClassName = clsx(
+    "w-full h-full",
+    onClick && "cursor-pointer",
+    className,
+  );
+
   if (item.mimeType.startsWith("image/")) {
     return (
-      <ImageDisplay
-        src={item.url}
-        alt={item.originalName}
-        className="w-full h-full"
-      />
+      <div
+        onClick={onClick}
+        className={clsx("relative overflow-hidden", baseClassName)}
+      >
+        <ImageDisplay
+          src={item.url}
+          alt={item.originalName}
+          width={220}
+          height={220}
+          className="w-full h-full object-cover"
+        />
+      </div>
     );
   }
   if (item.mimeType.startsWith("video/")) {
     return (
-      <div className="w-full h-full">
+      <div
+        onClick={onClick}
+        className={clsx("relative overflow-hidden", baseClassName)}
+      >
         <VideoDisplay src={item.url} />
       </div>
     );
   }
   return (
-    <div className="w-full h-full bg-muted flex flex-col items-center justify-center gap-2 p-2">
+    <div
+      onClick={onClick}
+      className={clsx(
+        "bg-muted flex flex-col items-center justify-center gap-2 p-2",
+        baseClassName,
+      )}
+    >
       <FileIcon mimeType={item.mimeType} className="w-8 h-8" />
       <p className="text-[10px] text-grey text-center truncate w-full px-1">
         {item.originalName}
@@ -211,7 +241,7 @@ export function MediaPicker({
         const newItem = data.data.media;
         setItems((p) => [newItem, ...p]);
         uploadedIds.push(newItem._id);
-      } catch (e) {
+      } catch {
         failed.push(file.name);
       } finally {
         setUploadProgress((p) => (p ? { ...p, done: p.done + 1 } : p));
@@ -298,13 +328,29 @@ export function MediaPicker({
     [selectedIds, deleteIds],
   );
 
+  const handleConfirmDisabled = useMemo(() => {
+    const mediaItems = items.filter((i) => selectedIds.has(i._id));
+    if (mediaItems.length === 0) return true;
+    return !mediaItems.every((m) => {
+      const type = getFileType(m.mimeType);
+      return type === accept || accept === "all";
+    });
+  }, [items, selectedIds, accept]);
+
   const handleConfirm = useCallback(() => {
-    if (!selectedIds.size) return;
+    if (handleConfirmDisabled) return;
     const mediaItems = items.filter((i) => selectedIds.has(i._id));
     if (mediaItems) onSelect?.(multiple ? mediaItems : [mediaItems[0]]);
     onOpenChange(false);
     setSelectedIds(new Set());
-  }, [selectedIds, onSelect, onOpenChange, items, multiple]);
+  }, [
+    selectedIds,
+    onSelect,
+    onOpenChange,
+    items,
+    multiple,
+    handleConfirmDisabled,
+  ]);
 
   const selectRange = (fromIndex: number, toIndex: number) => {
     const start = Math.min(fromIndex, toIndex);
@@ -659,15 +705,7 @@ export function MediaPicker({
             Cancel
           </Button>
           {onSelect && (
-            <Button
-              onClick={handleConfirm}
-              disabled={
-                !items.every((m) => {
-                  const type = getFileType(m.mimeType);
-                  return type === accept || accept === "all";
-                })
-              }
-            >
+            <Button onClick={handleConfirm} disabled={handleConfirmDisabled}>
               Select
             </Button>
           )}

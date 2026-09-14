@@ -20,7 +20,6 @@ export const Single: FC<{
   const { upsertChat, activeChat, setActiveChat } = useChats();
   const displayChat = activeChat ?? chat;
   const chatId = displayChat._id;
-
   const [messages, setMessages] = useState<Message[]>(initialMessages ?? []);
   const [nextCursor, setNextCursor] = useState<string | null>(
     initialNextCursor ?? null,

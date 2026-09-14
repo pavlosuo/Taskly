@@ -1,7 +1,7 @@
 import { Screens } from "@/screens";
 import { getMetaData } from "@/utils/Metadata";
 import { redirect } from "next/navigation";
-import { isTokenValid } from "api/verify-reset-token";
+import { getServerApi } from "api/server";
 import { authGuard } from "@/utils/authGuard";
 import { FloatingSettings } from "@/shared/components/FloatingSettings";
 
@@ -27,9 +27,10 @@ export default async function ForgotPassword({
       </main>
     );
   }
-  const result = await isTokenValid(token);
-  if (!result.valid) {
-    redirect(`/forgot-password?error=${result.reason}`);
+  const axiosApi = await getServerApi();
+  const { data } = await axiosApi.verifyPasswordResetToken(token);
+  if (!data.success) {
+    redirect(`/forgot-password?error=${data.reason}`);
   }
   return (
     <main className="page">

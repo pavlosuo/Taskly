@@ -1,5 +1,13 @@
 export type FilterType =
-  "all" | "image" | "video" | "audio" | "document" | "other";
+  | "all"
+  | "image"
+  | "video"
+  | "audio"
+  | "document"
+  | "other"
+  | "pdf"
+  | "word"
+  | "excel";
 
 export const FILTERS: { value: FilterType; label: string }[] = [
   { value: "all", label: "All" },
@@ -10,22 +18,22 @@ export const FILTERS: { value: FilterType; label: string }[] = [
   { value: "other", label: "Other" },
 ];
 
-export function getFileType(mimeType?: string): FilterType {
-  if (!mimeType) return "other";
+export function getFileType(mimeType: string): FilterType {
   if (mimeType.startsWith("image/")) return "image";
   if (mimeType.startsWith("video/")) return "video";
   if (mimeType.startsWith("audio/")) return "audio";
+  if (mimeType === "application/pdf") return "pdf";
   if (
-    mimeType === "application/pdf" ||
-    mimeType.includes("word") ||
-    mimeType.includes("excel") ||
-    mimeType.includes("spreadsheet") ||
-    mimeType.includes("powerpoint") ||
-    mimeType.includes("presentation") ||
-    mimeType.includes("document") ||
-    mimeType === "text/plain" ||
-    mimeType === "text/csv"
+    mimeType === "application/msword" ||
+    mimeType ===
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
   )
-    return "document";
-  return "other";
+    return "word";
+  if (
+    mimeType === "application/vnd.ms-excel" ||
+    mimeType ===
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+  )
+    return "excel";
+  return "document";
 }

@@ -29,6 +29,8 @@ import {
 } from "@/components/ui/popover";
 import { EMOJI } from "@shared/data";
 import { useSingleChat } from "@/providers/SingleChatProvider";
+import { useLightbox } from "@/providers/LightboxProvider";
+import { FileThumbnail } from "@/shared/components/MediaPicker";
 
 const Time: FC<{
   message: MessageType;
@@ -176,6 +178,7 @@ export const MessageBubble: FC<{
     (r) => r.userId === user?._id,
   )?.emoji;
   const imageUrl = isOwn ? user?.profile.avatar?.url : member.avatar?.url;
+  const { setLightbox } = useLightbox();
 
   useEffect(() => {
     if (isEditing) textareaRef.current?.focus();
@@ -251,32 +254,21 @@ export const MessageBubble: FC<{
       className="relative items-end"
     >
       {message.media.length > 0 && (
-        <div className={clsx("flex flex-wrap gap-2 max-w-120")}>
-          {message.media.map((m) =>
-            m.mimeType?.startsWith("image/") ? (
-              <ImageDisplay
-                key={m._id}
-                src={m.url}
-                alt={m.originalName}
-                width={220}
-                height={220}
-                className="object-cover w-50 flex-1/2 basis-1"
-              />
-            ) : (
-              <a
-                key={m._id}
-                href={m.url}
-                target="_blank"
-                rel="noreferrer"
-                className={clsx(
-                  "flex items-center gap-2 rounded-lg px-2.5 py-2 text-xs underline",
-                  isOwn ? "bg-white/10" : "bg-white",
-                )}
-              >
-                {m.originalName}
-              </a>
-            ),
+        <div
+          className={clsx(
+            "grid gap-1.5 max-w-100",
+            message.media.length > 1 ? "grid-cols-2" : "grid-cols-1",
           )}
+        >
+          {message.media.map((m, i) => (
+            <div key={i} className="aspect-square">
+              <FileThumbnail
+                item={m}
+                className="rounded-lg"
+                onClick={() => setLightbox({ items: message.media, index: i })}
+              />
+            </div>
+          ))}
           {!message.text && !isEditing && (
             <Time message={message} location="image" isOwn={isOwn} />
           )}
@@ -363,61 +355,63 @@ export const MessageBubble: FC<{
   );
 
   return (
-    <Message className="w-full py-3" align={isOwn ? "end" : "start"}>
-      <div className="relative w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0 text-primary text-sm font-semibold">
-        {imageUrl ? (
-          <ImageDisplay
-            src={imageUrl}
-            alt={isOwn ? user?.profile.fullName : member.fullName}
-            width={36}
-            height={36}
-            className="rounded-full object-cover w-full h-full"
-          />
-        ) : isOwn ? (
-          user?.profile.initials
-        ) : (
-          member.initials
-        )}
-      </div>
-      <MessageContent>
-        <div
-          className={clsx(
-            "group/bubble relative flex",
-            isOwn ? "justify-end" : "justify-start",
-          )}
-        >
-          {isEditing || !(isOwn || !!message.text) ? (
-            bubbleInner
+    <>
+      <Message className="w-full py-3" align={isOwn ? "end" : "start"}>
+        <div className="relative w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0 text-primary text-sm font-semibold">
+          {imageUrl ? (
+            <ImageDisplay
+              src={imageUrl}
+              alt={isOwn ? user?.profile.fullName : member.fullName}
+              width={36}
+              height={36}
+              className="rounded-full object-cover w-full h-full"
+            />
+          ) : isOwn ? (
+            user?.profile.initials
           ) : (
-            <ContextMenu>
-              <ContextMenuTrigger asChild>{bubbleInner}</ContextMenuTrigger>
-              <ContextMenuContent className="w-40">
-                {isOwn && message.text && (
-                  <ContextMenuItem onClick={() => setIsEditing(true)}>
-                    <Pencil className="w-3.5 h-3.5" />
-                    Edit
-                  </ContextMenuItem>
-                )}
-                {message.text && (
-                  <ContextMenuItem onClick={handleCopyText}>
-                    <Copy className="w-3.5 h-3.5" />
-                    Copy text
-                  </ContextMenuItem>
-                )}
-                {isOwn && (
-                  <ContextMenuItem
-                    onClick={handleDelete}
-                    className="text-red focus:text-red hover:bg-red hover:text-white"
-                  >
-                    <Trash2 className="w-3.5 h-3.5 text-inherit" />
-                    Delete
-                  </ContextMenuItem>
-                )}
-              </ContextMenuContent>
-            </ContextMenu>
+            member.initials
           )}
         </div>
-      </MessageContent>
-    </Message>
+        <MessageContent>
+          <div
+            className={clsx(
+              "group/bubble relative flex",
+              isOwn ? "justify-end" : "justify-start",
+            )}
+          >
+            {isEditing || !(isOwn || !!message.text) ? (
+              bubbleInner
+            ) : (
+              <ContextMenu>
+                <ContextMenuTrigger asChild>{bubbleInner}</ContextMenuTrigger>
+                <ContextMenuContent className="w-40">
+                  {isOwn && message.text && (
+                    <ContextMenuItem onClick={() => setIsEditing(true)}>
+                      <Pencil className="w-3.5 h-3.5" />
+                      Edit
+                    </ContextMenuItem>
+                  )}
+                  {message.text && (
+                    <ContextMenuItem onClick={handleCopyText}>
+                      <Copy className="w-3.5 h-3.5" />
+                      Copy text
+                    </ContextMenuItem>
+                  )}
+                  {isOwn && (
+                    <ContextMenuItem
+                      onClick={handleDelete}
+                      className="text-red focus:text-red hover:bg-red hover:text-white"
+                    >
+                      <Trash2 className="w-3.5 h-3.5 text-inherit" />
+                      Delete
+                    </ContextMenuItem>
+                  )}
+                </ContextMenuContent>
+              </ContextMenu>
+            )}
+          </div>
+        </MessageContent>
+      </Message>
+    </>
   );
 };

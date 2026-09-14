@@ -2,8 +2,8 @@ import { Screens } from "@/screens";
 import { getMetaData } from "@/utils/Metadata";
 import { SidebarWrapper } from "@/shared/components/AppSidebar";
 import { authGuard } from "@/utils/authGuard";
-import { DataProvider } from "@/providers/PolicyDataProvider";
-import { getPolicyData } from "@/lib/api/get-policy";
+import { PolicyDataProvider } from "@/providers/PolicyDataProvider";
+import { getServerApi } from "api/server";
 import { AutoLogoutPopup } from "@/shared/components/AutoLogoutPopup";
 
 export const metadata = getMetaData({
@@ -13,17 +13,18 @@ export const metadata = getMetaData({
 
 export default async function Admin() {
   const user = await authGuard(["admin", "tasker", "client"]);
-  const data = await getPolicyData();
+  const axiosApi = await getServerApi();
+  const { data } = await axiosApi.getPolicyData();
   if (user?.role === "admin") {
     return (
-      <DataProvider initialData={data}>
+      <PolicyDataProvider initialPolicyData={data}>
         <SidebarWrapper title="Dashboard">
           <main className="page">
             <AutoLogoutPopup />
             <Screens.Admin.Main />
           </main>
         </SidebarWrapper>
-      </DataProvider>
+      </PolicyDataProvider>
     );
   }
 }

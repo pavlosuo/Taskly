@@ -14,4 +14,5 @@ export type MediaItem = {
 export type MediaItemPublic = {
   url: string;
   originalName: string;
+  mimeType: string;
 };

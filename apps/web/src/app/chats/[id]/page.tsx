@@ -3,8 +3,7 @@ import { getMetaData } from "@/utils/Metadata";
 import { SidebarWrapper } from "@/shared/components/AppSidebar";
 import { AutoLogoutPopup } from "@/shared/components/AutoLogoutPopup";
 import { authGuard } from "@/utils/authGuard";
-import { getChat } from "@/lib/api/get-chat";
-import { getMessages } from "@/lib/api/get-messages";
+import { getServerApi } from "api/server";
 import { notFound } from "next/navigation";
 
 export async function generateMetadata({
@@ -12,13 +11,19 @@ export async function generateMetadata({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { id } = await params;
-  const { chat } = await getChat(id);
-  if (!chat) return {};
-  return getMetaData({
-    title: `Chat with ${chat?.member?.fullName}`,
-    description: `Your conversation with ${chat?.member?.fullName}`,
-  });
+  try {
+    const { id } = await params;
+    const axiosApi = await getServerApi();
+    const { data } = await axiosApi.getChat(id);
+    const { chat } = data.data;
+    if (!chat) return {};
+    return getMetaData({
+      title: `Chat with ${chat.member.fullName}`,
+      description: `Your conversation with ${chat.member.fullName}`,
+    });
+  } catch {
+    return {};
+  }
 }
 
 export default async function Chat({
@@ -28,18 +33,29 @@ export default async function Chat({
 }) {
   await authGuard(["tasker", "client", "admin"]);
   const { id } = await params;
-  const [chatRes, messagesRes] = await Promise.all([
-    getChat(id),
-    getMessages(id),
-  ]);
-  const { chat } = chatRes;
-  const { messages } = messagesRes;
+  const axiosApi = await getServerApi();
+  let chat, messages, nextCursor;
+  try {
+    const [chatRes, messagesRes] = await Promise.all([
+      axiosApi.getChat(id),
+      axiosApi.getMessages(id),
+    ]);
+    chat = chatRes.data.data.chat;
+    messages = messagesRes.data.data.items;
+    nextCursor = messagesRes.data.data.nextCursor;
+  } catch {
+    notFound();
+  }
   if (!chat) notFound();
   return (
-    <SidebarWrapper hiddenTitle title={`Chat with ${chat?.member?.fullName}`}>
+    <SidebarWrapper hiddenTitle title={`Chat with ${chat.member.fullName}`}>
       <main className="page h-full">
         <AutoLogoutPopup />
-        <Screens.Chats.Single chat={chat} messages={messages} />
+        <Screens.Chats.Single
+          chat={chat}
+          messages={messages}
+          nextCursor={nextCursor}
+        />
       </main>
     </SidebarWrapper>
   );

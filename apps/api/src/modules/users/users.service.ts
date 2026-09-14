@@ -503,7 +503,6 @@ export class UsersService {
   ): Promise<ServiceResult> {
     try {
       const username = body?.username?.trim();
-
       if (!username) {
         return {
           success: false,
@@ -511,12 +510,10 @@ export class UsersService {
           message: "Username is required.",
         };
       }
-
       const db = await this.server.getDb();
       const user = await db.collection("users").findOne<User>({
         username,
       });
-
       if (!user || user.role === "admin") {
         return {
           success: false,
@@ -524,10 +521,8 @@ export class UsersService {
           message: "User not found.",
         };
       }
-
       const isOwner = userRequest?._id?.equals(user._id);
       const isAdmin = userRequest?.role === "admin";
-
       if (user.settings?.checkboxes?.privateProfile && !isOwner && !isAdmin) {
         return {
           success: false,
@@ -535,13 +530,11 @@ export class UsersService {
           message: "Forbidden",
         };
       }
-
       const accessReason = isOwner
         ? "same-account"
         : isAdmin
           ? "admin"
           : "public";
-
       const doc = stripMediaFields({
         lastSeenAt: user.lastSeenAt,
         username: user.username,
@@ -554,7 +547,6 @@ export class UsersService {
         },
         publicProfile: user.publicProfile,
       } as PublicProfileUser);
-
       return {
         success: true,
         status: 200,

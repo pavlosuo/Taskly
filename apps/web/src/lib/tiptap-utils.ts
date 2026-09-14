@@ -49,10 +49,6 @@ export function cn(
   return classes.filter(Boolean).join(" ");
 }
 
-/**
- * Determines if the current platform is macOS
- * @returns boolean indicating if the current platform is Mac
- */
 export function isMac(): boolean {
   return (
     typeof navigator !== "undefined" &&
@@ -60,13 +56,6 @@ export function isMac(): boolean {
   );
 }
 
-/**
- * Formats a shortcut key based on the platform (Mac or non-Mac)
- * @param key - The key to format (e.g., "ctrl", "alt", "shift")
- * @param isMac - Boolean indicating if the platform is Mac
- * @param capitalize - Whether to capitalize the key (default: true)
- * @returns Formatted shortcut key symbol
- */
 export const formatShortcutKey = (
   key: string,
   isMac: boolean,
@@ -80,13 +69,6 @@ export const formatShortcutKey = (
   return capitalize ? key.charAt(0).toUpperCase() + key.slice(1) : key;
 };
 
-/**
- * Parses a shortcut key string into an array of formatted key symbols
- * @param shortcutKeys - The string of shortcut keys (e.g., "ctrl-alt-shift")
- * @param delimiter - The delimiter used to split the keys (default: "-")
- * @param capitalize - Whether to capitalize the keys (default: true)
- * @returns Array of formatted shortcut key symbols
- */
 export const parseShortcutKeys = (props: {
   shortcutKeys: string | undefined;
   delimiter?: string;
@@ -102,12 +84,6 @@ export const parseShortcutKeys = (props: {
     .map((key) => formatShortcutKey(key, isMac(), capitalize));
 };
 
-/**
- * Checks if a mark exists in the editor schema
- * @param markName - The name of the mark to check
- * @param editor - The editor instance
- * @returns boolean indicating if the mark exists in the schema
- */
 export const isMarkInSchema = (
   markName: string,
   editor: Editor | null,
@@ -116,12 +92,6 @@ export const isMarkInSchema = (
   return editor.schema.spec.marks.get(markName) !== undefined;
 };
 
-/**
- * Checks if a node exists in the editor schema
- * @param nodeName - The name of the node to check
- * @param editor - The editor instance
- * @returns boolean indicating if the node exists in the schema
- */
 export const isNodeInSchema = (
   nodeName: string,
   editor: Editor | null,
@@ -130,11 +100,6 @@ export const isNodeInSchema = (
   return editor.schema.spec.nodes.get(nodeName) !== undefined;
 };
 
-/**
- * Moves the focus to the next node in the editor
- * @param editor - The editor instance
- * @returns boolean indicating if the focus was moved
- */
 export function focusNextNode(editor: Editor) {
   const { state, view } = editor;
   const { doc, selection } = state;

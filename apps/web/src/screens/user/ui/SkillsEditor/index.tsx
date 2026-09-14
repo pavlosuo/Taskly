@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef } from "react";
 import { X, Plus, Loader2 } from "lucide-react";
 import { Input } from "@/shared/components/Input";
-import { axiosApi } from "@/lib/api";
+import { axiosApi } from "api/index";
 import { PublicProfileSkill } from "@shared/types";
 
 export function SkillsEditor({

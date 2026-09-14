@@ -139,6 +139,7 @@ export function stripMediaFields<T>(input: T): T {
     return {
       originalName: input.originalName,
       url: input.url,
+      mimeType: input.mimeType,
     } as unknown as T;
   }
   if (isPlainObject(input)) {

@@ -9,54 +9,57 @@ import {
 import { axiosApi } from "api/index";
 import { PolicyData } from "@shared/types";
 
-interface DataContextType {
-  data: PolicyData;
-  setData: React.Dispatch<React.SetStateAction<PolicyData>>;
-  saveData: () => Promise<void>;
+interface PolicyDataContextType {
+  policyData: PolicyData;
+  setPolicyData: React.Dispatch<React.SetStateAction<PolicyData>>;
+  savePolicyData: () => Promise<void>;
   loading: boolean;
   error: string | null;
 }
 
-interface DataProviderProps {
+interface PolicyDataProviderProps {
   children: ReactNode;
-  initialData?: PolicyData;
+  initialPolicyData?: PolicyData;
 }
 
-const DataContext = createContext<DataContextType | null>(null);
+const PolicyDataContext = createContext<PolicyDataContextType | null>(null);
 
-export const DataProvider = ({
+export const PolicyDataProvider = ({
   children,
-  initialData = {
+  initialPolicyData = {
     policyContent: "",
     policyTitle: "",
   },
-}: DataProviderProps) => {
-  const [data, setData] = useState<PolicyData>(initialData);
+}: PolicyDataProviderProps) => {
+  const [policyData, setPolicyData] = useState<PolicyData>(initialPolicyData);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const saveData = useCallback(async () => {
+  const savePolicyData = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      await axiosApi.saveDataPolicy(data);
+      await axiosApi.savePolicyData(policyData);
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Unknown error");
       throw e;
     } finally {
       setLoading(false);
     }
-  }, [data]);
+  }, [policyData]);
 
   return (
-    <DataContext.Provider value={{ data, setData, saveData, loading, error }}>
+    <PolicyDataContext.Provider
+      value={{ policyData, setPolicyData, savePolicyData, loading, error }}
+    >
       {children}
-    </DataContext.Provider>
+    </PolicyDataContext.Provider>
   );
 };
 
-export const useData = (): DataContextType => {
-  const context = useContext(DataContext);
-  if (!context) throw new Error("useData must be used within DataProvider");
+export const usePolicyData = (): PolicyDataContextType => {
+  const context = useContext(PolicyDataContext);
+  if (!context)
+    throw new Error("usePolicyData must be used within PolicyDataProvider");
   return context;
 };
