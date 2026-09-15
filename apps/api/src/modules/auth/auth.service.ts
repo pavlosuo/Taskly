@@ -26,23 +26,27 @@ export class AuthService {
 
   constructor(private server: IServer) {
     this.otpService = new OtpService(server);
-    this.registerAdmin({
-      email: ADMIN_EMAIL,
-      password: ADMIN_PASSWORD,
-      username: ADMIN_USERNAME,
-    });
+    try {
+      this.registerAdmin({
+        email: ADMIN_EMAIL,
+        password: ADMIN_PASSWORD,
+        username: ADMIN_USERNAME,
+      });
+    } catch (error) {
+      console.log("Error registering admin:", error);
+    }
   }
 
   async register(body: unknown): Promise<ServiceResult> {
-    const parsed = registerSchema.safeParse(body);
-    if (!parsed.success)
-      return {
-        success: false,
-        status: 400,
-        message: parsed.error.issues[0].message,
-      };
-
     try {
+      const parsed = registerSchema.safeParse(body);
+      if (!parsed.success)
+        return {
+          success: false,
+          status: 400,
+          message: parsed.error.issues[0].message,
+        };
+
       const {
         email,
         password,
@@ -65,7 +69,6 @@ export class AuthService {
           success: false,
           status: 400,
           message: "User already exists.",
-          data: {},
         };
       const passwordHash = await bcrypt.hash(password, 10);
 
@@ -131,14 +134,15 @@ export class AuthService {
   }
 
   async registerAdmin(body: unknown): Promise<ServiceResult> {
-    const parsed = adminRegisterSchema.safeParse(body);
-    if (!parsed.success)
-      return {
-        success: false,
-        status: 400,
-        message: parsed.error.issues[0].message,
-      };
     try {
+      const parsed = adminRegisterSchema.safeParse(body);
+      if (!parsed.success)
+        return {
+          success: false,
+          status: 400,
+          message: parsed.error.issues[0].message,
+        };
+
       const { email, password, username } = parsed.data;
       const db = await this.server.getDb();
       const users = db.collection("users");
@@ -166,15 +170,15 @@ export class AuthService {
   }
 
   async login(body: unknown): Promise<ServiceResult> {
-    const parsed = loginSchema.safeParse(body);
-    if (!parsed.success)
-      return {
-        success: false,
-        status: 400,
-        message: parsed.error.issues[0].message,
-      };
-
     try {
+      const parsed = loginSchema.safeParse(body);
+      if (!parsed.success)
+        return {
+          success: false,
+          status: 400,
+          message: parsed.error.issues[0].message,
+        };
+
       const { email, password } = parsed.data;
       const db = await this.server.getDb();
       const user = (await db
@@ -201,15 +205,15 @@ export class AuthService {
   }
 
   async verifyPasswordResetOtp(body: unknown): Promise<ServiceResult> {
-    const parsed = verifyResetOtpSchema.safeParse(body);
-    if (!parsed.success)
-      return {
-        success: false,
-        status: 400,
-        message: parsed.error.issues[0].message,
-      };
-
     try {
+      const parsed = verifyResetOtpSchema.safeParse(body);
+      if (!parsed.success)
+        return {
+          success: false,
+          status: 400,
+          message: parsed.error.issues[0].message,
+        };
+
       const { fullPhone, otp } = parsed.data;
       const db = await this.server.getDb();
       const user = await db
@@ -244,19 +248,18 @@ export class AuthService {
   }
 
   async sendPasswordResetLink(body: unknown): Promise<ServiceResult> {
-    const parsed = forgotPasswordEmailSchema.safeParse(body);
-    if (!parsed.success)
-      return {
-        success: false,
-        status: 400,
-        message: parsed.error.issues[0].message,
-      };
-
     try {
+      const parsed = forgotPasswordEmailSchema.safeParse(body);
+      if (!parsed.success)
+        return {
+          success: false,
+          status: 400,
+          message: parsed.error.issues[0].message,
+        };
       const { email } = parsed.data;
       const db = await this.server.getDb();
       const user = await db.collection("users").findOne({ email });
-      if (!user) return { success: true, status: 200, data: {} };
+      if (!user) return { success: true, status: 200 };
       const resetToken = jwt.sign(
         { id: user._id.toString() },
         JWT_SECRET || "",
@@ -269,12 +272,12 @@ export class AuthService {
           { $set: { resetTokenHash: hashToken(resetToken) } },
         );
       const resetUrl = `${CLIENT_URL}/forgot-password?token=${resetToken}`;
-      await this.server.mailer?.sendMail({
+      await this.server.sendEmail({
         to: email,
         subject: "Password Reset",
         text: `Reset your password: ${resetUrl}\n\nLink expires in 1 hour.`,
       });
-      return { success: true, status: 200, data: {} };
+      return { success: true, status: 200 };
     } catch (error) {
       console.error("Forgot password error:", error);
       return { success: false, status: 500, message: "Server error." };
@@ -282,15 +285,15 @@ export class AuthService {
   }
 
   async resetPassword(body: unknown): Promise<ServiceResult> {
-    const parsed = resetPasswordSchema.safeParse(body);
-    if (!parsed.success)
-      return {
-        success: false,
-        status: 400,
-        message: parsed.error.issues[0].message,
-      };
-
     try {
+      const parsed = resetPasswordSchema.safeParse(body);
+      if (!parsed.success)
+        return {
+          success: false,
+          status: 400,
+          message: parsed.error.issues[0].message,
+        };
+
       const { token, password } = parsed.data;
       let decoded: any;
       try {
@@ -320,7 +323,7 @@ export class AuthService {
           { _id: user._id },
           { $set: { passwordHash }, $unset: { resetTokenHash: "" } },
         );
-      return { success: true, status: 200, data: {} };
+      return { success: true, status: 200 };
     } catch (error) {
       console.error("Reset password error:", error);
       return { success: false, status: 500, message: "Server error." };
@@ -328,9 +331,9 @@ export class AuthService {
   }
 
   async verifyPasswordResetToken(token: unknown): Promise<ServiceResult> {
-    if (!token || typeof token !== "string")
-      return { success: false, status: 400, message: "Token is required." };
     try {
+      if (!token || typeof token !== "string")
+        return { success: false, status: 400, message: "Token is required." };
       let decoded: any;
       try {
         decoded = jwt.verify(token, JWT_SECRET || "");
@@ -355,7 +358,7 @@ export class AuthService {
           message: "Invalid or expired token.",
           data: { reason: "invalid" },
         };
-      return { success: true, status: 200, data: {} };
+      return { success: true, status: 200 };
     } catch (error) {
       console.error("Verify reset token error:", error);
       return {

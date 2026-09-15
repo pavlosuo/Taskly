@@ -41,7 +41,7 @@ export const ChatInput = () => {
         text: trimmed || undefined,
         mediaIds: pendingMedia.map((m) => m._id),
       });
-      onMessageSent(data.data.message);
+      onMessageSent(data.message);
       setText("");
       setPendingMedia([]);
       fetchChats();

@@ -22,55 +22,65 @@ export class OtpService {
     user: User | undefined,
     body: unknown,
   ): Promise<ServiceResult> {
-    const parsed = sendOtpSchema.safeParse(body);
+    try {
+      const parsed = sendOtpSchema.safeParse(body);
 
-    if (!parsed.success)
-      return {
-        success: false,
-        status: 400,
-        message: parsed.error.issues[0].message,
-      };
+      if (!parsed.success)
+        return {
+          success: false,
+          status: 400,
+          message: parsed.error.issues[0].message,
+        };
 
-    const data = parsed.data;
+      const data = parsed.data;
 
-    if (data.purpose === "verify-email") {
-      if (!user)
-        return { success: false, status: 401, message: "Unauthorized." };
-      const destination = user.newEmail ?? user.email;
+      if (data.purpose === "verify-email") {
+        if (!user)
+          return { success: false, status: 401, message: "Unauthorized." };
+        const destination = user.newEmail ?? user.email;
+        return this.send({
+          userId: user._id,
+          purpose: "verify-email",
+          channel: "email",
+          destination,
+        });
+      }
+
+      if (data.purpose === "verify-phone") {
+        if (!user)
+          return { success: false, status: 401, message: "Unauthorized." };
+        const destination =
+          user.profile?.newFullPhone ?? user.profile?.fullPhone;
+        if (!destination)
+          return {
+            success: false,
+            status: 400,
+            message: "No phone number set.",
+          };
+        return this.send({
+          userId: user._id,
+          purpose: "verify-phone",
+          channel: "phone",
+          destination,
+        });
+      }
+
+      const db = await this.server.getDb();
+      const found = await db
+        .collection("users")
+        .findOne({ "profile.fullPhone": data.fullPhone });
+      if (!found) return { success: true, status: 200 };
+
       return this.send({
-        userId: user._id,
-        purpose: "verify-email",
-        channel: "email",
-        destination,
-      });
-    }
-
-    if (data.purpose === "verify-phone") {
-      if (!user)
-        return { success: false, status: 401, message: "Unauthorized." };
-      const destination = user.profile?.newFullPhone ?? user.profile?.fullPhone;
-      if (!destination)
-        return { success: false, status: 400, message: "No phone number set." };
-      return this.send({
-        userId: user._id,
-        purpose: "verify-phone",
+        userId: found._id,
+        purpose: "reset-password",
         channel: "phone",
-        destination,
+        destination: data.fullPhone,
       });
+    } catch (error) {
+      console.error("Send OTP error:", error);
+      return { success: false, status: 500, message: "Server error." };
     }
-
-    const db = await this.server.getDb();
-    const found = await db
-      .collection("users")
-      .findOne({ "profile.fullPhone": data.fullPhone });
-    if (!found) return { success: true, status: 200, data: {} };
-
-    return this.send({
-      userId: found._id,
-      purpose: "reset-password",
-      channel: "phone",
-      destination: data.fullPhone,
-    });
   }
 
   async send({
@@ -103,7 +113,7 @@ export class OtpService {
         await this.server.sendSms(destination, code);
       }
 
-      return { success: true, status: 200, data: {} };
+      return { success: true, status: 200 };
     } catch (error) {
       console.error("Send OTP error:", error);
       return { success: false, status: 500, message: "Server error." };
@@ -115,20 +125,25 @@ export class OtpService {
     purpose: OtpPurpose,
     code: string,
   ): Promise<ConsumeResult> {
-    const db = await this.server.getDb();
-    const user = await db.collection("users").findOne({ _id: userId });
-    const record = user?.otps?.[purpose];
+    try {
+      const db = await this.server.getDb();
+      const user = await db.collection("users").findOne({ _id: userId });
+      const record = user?.otps?.[purpose];
 
-    if (!record)
-      return { ok: false, status: 400, message: "No OTP requested." };
-    if (new Date() > new Date(record.expiresAt))
-      return { ok: false, status: 400, message: "OTP expired." };
-    if (!safeEqual(record.code, code))
-      return { ok: false, status: 400, message: "Invalid OTP." };
+      if (!record)
+        return { ok: false, status: 400, message: "No OTP requested." };
+      if (new Date() > new Date(record.expiresAt))
+        return { ok: false, status: 400, message: "OTP expired." };
+      if (!safeEqual(record.code, code))
+        return { ok: false, status: 400, message: "Invalid OTP." };
 
-    await db
-      .collection("users")
-      .updateOne({ _id: userId }, { $unset: { [`otps.${purpose}`]: "" } });
-    return { ok: true, record };
+      await db
+        .collection("users")
+        .updateOne({ _id: userId }, { $unset: { [`otps.${purpose}`]: "" } });
+      return { ok: true, record };
+    } catch (error) {
+      console.error("Consume OTP error:", error);
+      return { ok: false, status: 500, message: "Server error." };
+    }
   }
 }

@@ -47,8 +47,8 @@ export const Single: FC<{
     });
     axiosApi.getMessages(chatId).then(({ data }) => {
       if (cancelled) return;
-      setMessages(data.data.items);
-      setNextCursor(data.data.nextCursor);
+      setMessages(data.items);
+      setNextCursor(data.nextCursor);
       setIsLoadingInitial(false);
       didInitialScroll.current = false;
     });
@@ -74,8 +74,8 @@ export const Single: FC<{
     const container = scrollRef.current;
     const prevScrollHeight = container?.scrollHeight ?? 0;
     const { data } = await axiosApi.getMessages(chatId, nextCursor);
-    setMessages((prev) => [...data.data.items, ...prev]);
-    setNextCursor(data.data.nextCursor);
+    setMessages((prev) => [...data.items, ...prev]);
+    setNextCursor(data.nextCursor);
     requestAnimationFrame(() => {
       if (container) {
         container.scrollTop = container.scrollHeight - prevScrollHeight;

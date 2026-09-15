@@ -30,7 +30,7 @@ export class PolicyController {
           .json({ success: false, message: "Invalid data." });
       }
       await this.policyService.updatePolicy({ policyTitle, policyContent });
-      return res.json({ success: true, message: "Policy updated." });
+      return res.json({ success: true });
     } catch (e) {
       console.error("updatePolicy error:", e);
       return res.status(500).json({ success: false, message: "Server error." });

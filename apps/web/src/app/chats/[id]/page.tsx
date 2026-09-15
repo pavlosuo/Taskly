@@ -15,7 +15,7 @@ export async function generateMetadata({
     const { id } = await params;
     const axiosApi = await getServerApi();
     const { data } = await axiosApi.getChat(id);
-    const { chat } = data.data;
+    const { chat } = data;
     if (!chat) return {};
     return getMetaData({
       title: `Chat with ${chat.member.fullName}`,
@@ -40,9 +40,9 @@ export default async function Chat({
       axiosApi.getChat(id),
       axiosApi.getMessages(id),
     ]);
-    chat = chatRes.data.data.chat;
-    messages = messagesRes.data.data.items;
-    nextCursor = messagesRes.data.data.nextCursor;
+    chat = chatRes.data.chat;
+    messages = messagesRes.data.items;
+    nextCursor = messagesRes.data.nextCursor;
   } catch {
     notFound();
   }

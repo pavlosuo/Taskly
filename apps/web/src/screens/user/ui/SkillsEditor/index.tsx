@@ -29,7 +29,7 @@ export function SkillsEditor({
       setLoading(true);
       try {
         const { data } = await axiosApi.searchSkills(search);
-        setSuggestions(data.data.items);
+        setSuggestions(data.items);
       } finally {
         setLoading(false);
       }
@@ -43,7 +43,7 @@ export function SkillsEditor({
     }
     try {
       const { data } = await axiosApi.upsertSkill(label);
-      const skill = data.data.skill;
+      const skill = data.skill;
       onChange([...value, { value: skill._id, label: skill.label }]);
     } catch {
       onChange([...value, { value: label, label }]);

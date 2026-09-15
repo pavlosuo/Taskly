@@ -51,11 +51,6 @@ export interface SendMessagePayload {
   mediaIds?: string[];
 }
 
-export interface MessagesPage {
-  items: Message[];
-  nextCursor: string | null;
-}
-
 export interface MessageReaction {
   userId: string;
   emoji: string;

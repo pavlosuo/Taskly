@@ -29,7 +29,7 @@ export const Main = ({ chats: initialChats }: { chats: ChatWithMember[] }) => {
     const timeout = setTimeout(async () => {
       try {
         const { data } = await axiosApi.searchUsers(query.trim());
-        setResults(data.data.items);
+        setResults(data.items);
       } finally {
         setIsSearching(false);
       }

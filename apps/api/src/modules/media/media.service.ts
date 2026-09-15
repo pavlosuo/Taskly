@@ -4,6 +4,7 @@ import { IServer, User } from "@/types";
 import { ServiceResult } from "@shared/types";
 import { filePath } from "@/utils";
 import { MediaItemBack, ChatBack, MessageBack } from "@/types";
+import { NEXT_PUBLIC_API_URL } from "@/env";
 
 export class MediaService {
   constructor(private server: IServer) {}
@@ -22,7 +23,7 @@ export class MediaService {
         chatIds: [] as ObjectId[],
       };
       const result = await db.collection("media").insertOne(doc);
-      const url = `/api/media/${result.insertedId}/file`;
+      const url = `${NEXT_PUBLIC_API_URL}/api/media/${result.insertedId}/file`;
       await db
         .collection("media")
         .updateOne({ _id: result.insertedId }, { $set: { url } });
@@ -62,7 +63,7 @@ export class MediaService {
       if (!item) return { success: false, status: 404, message: "Not found." };
       await fs.unlink(filePath(item.filename, item.ownerId)).catch(() => {});
       await db.collection("media").deleteOne({ _id: new ObjectId(id) });
-      return { success: true, status: 200, data: { message: "Deleted." } };
+      return { success: true, status: 200 };
     } catch (e) {
       console.error("Delete media error:", e);
       return { success: false, status: 500, message: "Server error." };
@@ -87,7 +88,7 @@ export class MediaService {
           { _id: new ObjectId(id) },
           { $addToSet: { publicSources: source } },
         );
-      return { success: true, status: 200, data: { message: "Source added." } };
+      return { success: true, status: 200 };
     } catch (e) {
       console.error("Add public source error:", e);
       return { success: false, status: 500, message: "Server error." };
@@ -112,7 +113,6 @@ export class MediaService {
       return {
         success: true,
         status: 200,
-        data: { message: "Source removed." },
       };
     } catch (e) {
       console.error("Remove public source error:", e);

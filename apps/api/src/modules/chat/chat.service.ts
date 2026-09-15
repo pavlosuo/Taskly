@@ -5,21 +5,15 @@ import {
   ChatWithMember,
   ChatMemberPreview,
   Message,
-  MessagesPage,
   CreateChatPayload,
   SendMessagePayload,
 } from "@shared/types/chat";
-import { MediaService } from "@/modules/media/media.service";
 import { ChatBack, MessageBack } from "@/types";
 import { EMOJI } from "@shared/data";
 import { stripMediaFields } from "@/utils";
 
 export class ChatService {
-  private mediaService: MediaService;
-
-  constructor(private server: IServer) {
-    this.mediaService = new MediaService(this.server);
-  }
+  constructor(private server: IServer) {}
 
   private async assertParticipant(
     chatId: string,
@@ -71,14 +65,12 @@ export class ChatService {
   ): Promise<ChatWithMember[]> {
     if (chats.length === 0) return [];
     const db = await this.server.getDb();
-
     const otherIds = chats.map((c) =>
       c.participants.find((p) => !p.equals(currentUserId)),
     );
     const memberMap = await this.buildMemberMap(
       otherIds.filter((id): id is ObjectId => !!id),
     );
-
     const chatIds = chats.map((c) => c._id);
     const unreadAgg = await db
       .collection<MessageBack>("messages")
@@ -100,7 +92,6 @@ export class ChatService {
     return chats.map((chat) => {
       const otherId = chat.participants.find((p) => !p.equals(currentUserId));
       const member = otherId ? memberMap.get(otherId.toString()) : undefined;
-
       return {
         _id: chat._id.toString(),
         participants: chat.participants.map((p) => p.toString()),
@@ -173,7 +164,6 @@ export class ChatService {
       .sort({ _id: -1 })
       .limit(1)
       .toArray();
-
     await db.collection<ChatBack>("chats").updateOne(
       { _id: chatId },
       {
@@ -285,7 +275,6 @@ export class ChatService {
       const db = await this.server.getDb();
       const chat = await this.assertParticipant(chatId, user._id);
       if (!chat) return { success: false, status: 404, message: "Not found." };
-
       const newDeletedBy = [
         ...chat.deletedBy.map((id) => id.toString()),
         user._id.toString(),
@@ -293,7 +282,6 @@ export class ChatService {
       const allDeleted = chat.participants.every((p) =>
         newDeletedBy.includes(p.toString()),
       );
-
       if (allDeleted) {
         await db.collection("messages").deleteMany({ chatId: chat._id });
         await db.collection("chats").deleteOne({ _id: chat._id });
@@ -302,8 +290,7 @@ export class ChatService {
           .collection<ChatBack>("chats")
           .updateOne({ _id: chat._id }, { $addToSet: { deletedBy: user._id } });
       }
-
-      return { success: true, status: 200, data: { message: "Deleted." } };
+      return { success: true, status: 200 };
     } catch (e) {
       console.error("Delete chat error:", e);
       return { success: false, status: 500, message: "Server error." };
@@ -315,7 +302,12 @@ export class ChatService {
     chatId: string,
     before?: string,
     limit = 30,
-  ): Promise<ServiceResult<MessagesPage>> {
+  ): Promise<
+    ServiceResult<{
+      items: Message[];
+      nextCursor: string | null;
+    }>
+  > {
     try {
       const chat = await this.assertParticipant(chatId, user._id);
       if (!chat) return { success: false, status: 404, message: "Not found." };
@@ -411,7 +403,7 @@ export class ChatService {
         },
         { $addToSet: { readBy: user._id } },
       );
-      return { success: true, status: 200, data: { message: "Read." } };
+      return { success: true, status: 200 };
     } catch (e) {
       console.error("Mark read error:", e);
       return { success: false, status: 500, message: "Server error." };
@@ -489,7 +481,7 @@ export class ChatService {
       }
       await db.collection("messages").deleteOne({ _id: msg._id });
       await this.recomputeLastMessage(chat._id);
-      return { success: true, status: 200, data: { message: "Deleted." } };
+      return { success: true, status: 200 };
     } catch (e) {
       console.error("Delete message error:", e);
       return { success: false, status: 500, message: "Server error." };

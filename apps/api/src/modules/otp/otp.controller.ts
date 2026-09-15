@@ -16,6 +16,6 @@ export class OtpController {
       return res
         .status(result.status)
         .json({ success: false, message: result.message });
-    return res.json({ success: true, message: "Code sent." });
+    return res.json({ success: true });
   };
 }

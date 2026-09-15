@@ -21,18 +21,42 @@ export class MediaController {
         .status(400)
         .json({ success: false, message: "No file provided." });
     const result = await this.service.upload(req.user, req.file);
-    return res.status(result.status).json(result);
+    if (!result.success)
+      return res.status(result.status).json({
+        success: false,
+        message: result.message,
+      });
+    return res.json({
+      success: true,
+      ...(result.data ?? {}),
+    });
   }
 
   async getAll(req: Request, res: Response) {
     const result = await this.service.getAll(req.user);
-    return res.status(result.status).json(result);
+    if (!result.success)
+      return res.status(result.status).json({
+        success: false,
+        message: result.message,
+      });
+    return res.json({
+      success: true,
+      ...(result.data ?? {}),
+    });
   }
 
   async delete(req: Request, res: Response) {
     const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
     const result = await this.service.delete(req.user, id);
-    return res.status(result.status).json(result);
+    if (!result.success)
+      return res.status(result.status).json({
+        success: false,
+        message: result.message,
+      });
+    return res.json({
+      success: true,
+      ...(result.data ?? {}),
+    });
   }
 
   async serveFile(req: Request, res: Response) {

@@ -52,7 +52,7 @@ export class CertificatesService {
       );
       return { success: true, status: 200, data: { certificate: result } };
     } catch (e) {
-      console.error("Upsert skill error:", e);
+      console.error("Upsert certificate error:", e);
       return { success: false, status: 500, message: "Server error." };
     }
   }

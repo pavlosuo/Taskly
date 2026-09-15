@@ -18,7 +18,7 @@ export default async function Chats() {
     <SidebarWrapper title="Chats">
       <main className="page">
         <AutoLogoutPopup />
-        <Screens.Chats.Main chats={data.data.chats} />
+        <Screens.Chats.Main chats={data.chats} />
       </main>
     </SidebarWrapper>
   );

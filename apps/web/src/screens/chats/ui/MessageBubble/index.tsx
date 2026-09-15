@@ -179,6 +179,7 @@ export const MessageBubble: FC<{
   )?.emoji;
   const imageUrl = isOwn ? user?.profile.avatar?.url : member.avatar?.url;
   const { setLightbox } = useLightbox();
+  const { lang } = useTheme();
 
   useEffect(() => {
     if (isEditing) textareaRef.current?.focus();
@@ -198,7 +199,7 @@ export const MessageBubble: FC<{
     try {
       setIsSaving(true);
       const { data } = await axiosApi.editMessage(chatId, message._id, trimmed);
-      onMessageUpdate(data.data.message);
+      onMessageUpdate(data.message);
       setIsEditing(false);
     } finally {
       setIsSaving(false);
@@ -238,7 +239,7 @@ export const MessageBubble: FC<{
         message._id,
         emoji,
       );
-      onMessageUpdate(data.data.message);
+      onMessageUpdate(data.message);
     } catch {
       onMessageUpdate(message);
     }
@@ -276,7 +277,10 @@ export const MessageBubble: FC<{
       )}
       {(message.text || isEditing) && (
         <BubbleContent
-          className={clsx(!isOwn ? "bg-muted" : "bg-primary", "relative")}
+          className={clsx(
+            !isOwn ? "bg-muted" : "bg-primary",
+            "relative max-w-200",
+          )}
         >
           <div className="flex gap-1.5">
             {isEditing ? (
@@ -309,16 +313,13 @@ export const MessageBubble: FC<{
               <>
                 <p className="text-sm whitespace-pre-wrap wrap-break-word">
                   {message.text}
-                  <span className="invisible inline-flex gap-1 ml-2 text-[10px] align-bottom">
+                  <span className="invisible inline-flex gap-1 ml-4 text-[10px] align-bottom">
                     {message.edited && <span>edited</span>}
                     <span>
-                      {new Date(message.createdAt).toLocaleTimeString(
-                        undefined,
-                        {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        },
-                      )}
+                      {new Date(message.createdAt).toLocaleTimeString(lang, {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
                     </span>
                     {isOwn && <CheckCheck className="w-3 h-3" />}
                   </span>

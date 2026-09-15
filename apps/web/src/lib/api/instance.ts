@@ -11,7 +11,6 @@ import {
   Lang,
   ChatWithMember,
   Message,
-  MessagesPage,
   SendMessagePayload,
   ChatMemberPreview,
   CommonResponse,
@@ -111,70 +110,66 @@ export const methods = (api: AxiosInstance) => {
     uploadMedia: (file: File) => {
       const form = new FormData();
       form.append("file", file);
-      return api.post<{ data: { media: MediaItem } }>("/api/media", form, {
+      return api.post<{ media: MediaItem }>("/api/media", form, {
         headers: { "Content-Type": "multipart/form-data" },
       });
     },
 
-    getMedia: () => api.get<{ data: { items: MediaItem[] } }>("/api/media"),
+    getMedia: () => api.get<{ items: MediaItem[] }>("/api/media"),
 
     deleteMedia: (id: string) => api.delete(`/api/media/${id}`),
 
     searchSkills: (q: string) =>
-      api.get<{ data: { items: { _id: string; label: string }[] } }>(
+      api.get<{ items: { _id: string; label: string }[] }>(
         `/api/skills?q=${q}`,
       ),
 
     upsertSkill: (label: string) =>
-      api.post<{ data: { skill: { _id: string; label: string } } }>(
-        `/api/skills`,
-        { label },
-      ),
+      api.post<{ skill: { _id: string; label: string } }>(`/api/skills`, {
+        label,
+      }),
 
     searchCertificates: (q: string) =>
       api.get<{
-        data: { items: { _id: string; label: string; description?: string }[] };
+        items: { _id: string; label: string; description?: string }[];
       }>(`/api/certificates?q=${q}`),
 
     upsertCertificate: (label: string, description?: string) =>
       api.post<{
-        data: {
-          certificate: { _id: string; label: string; description?: string };
-        };
+        certificate: { _id: string; label: string; description?: string };
       }>(`/api/certificates`, { label, description }),
 
     createChat: (memberId: string) =>
-      api.post<{ data: { chat: ChatWithMember } }>("/api/chats", { memberId }),
+      api.post<{ chat: ChatWithMember }>("/api/chats", { memberId }),
 
-    getChats: () =>
-      api.get<{ data: { chats: ChatWithMember[] } }>("/api/chats"),
+    getChats: () => api.get<{ chats: ChatWithMember[] }>("/api/chats"),
 
     getChat: (id: string) =>
-      api.get<{ data: { chat: ChatWithMember } }>(`/api/chats/${id}`),
+      api.get<{ chat: ChatWithMember }>(`/api/chats/${id}`),
 
     deleteChat: (id: string) => api.delete(`/api/chats/${id}`),
 
     getMessages: (chatId: string, before?: string) =>
-      api.get<{ data: MessagesPage }>(`/api/chats/${chatId}/messages`, {
-        params: before ? { before } : {},
-      }),
+      api.get<{ items: Message[]; nextCursor: string | null }>(
+        `/api/chats/${chatId}/messages`,
+        {
+          params: before ? { before } : {},
+        },
+      ),
 
     sendMessage: (chatId: string, payload: SendMessagePayload) =>
-      api.post<{ data: { message: Message } }>(
-        `/api/chats/${chatId}/messages`,
-        payload,
-      ),
+      api.post<{ message: Message }>(`/api/chats/${chatId}/messages`, payload),
 
     markChatRead: (chatId: string) =>
       api.patch<{ success: boolean }>(`/api/chats/${chatId}/messages/read`),
 
     searchUsers: (q: string) =>
-      api.get<{ data: { items: ChatMemberPreview[] } }>("/api/users/search", {
+      api.get<{ items: ChatMemberPreview[] }>("/api/users/search", {
         params: { q },
       }),
 
     editMessage: (chatId: string, messageId: string, text: string) =>
-      api.patch<{ data: { message: Message } }>(
+      api.patch<{ message: Message }>(
         `/api/chats/${chatId}/messages/${messageId}`,
         { text },
       ),
@@ -185,7 +180,7 @@ export const methods = (api: AxiosInstance) => {
       ),
 
     manageReaction: (chatId: string, messageId: string, reaction: string) =>
-      api.post<{ data: { message: Message } }>(
+      api.post<{ message: Message }>(
         `/api/chats/${chatId}/messages/${messageId}/react`,
         {
           reaction,

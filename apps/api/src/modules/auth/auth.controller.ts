@@ -17,7 +17,6 @@ export class AuthController {
       return res.status(result.status).json({
         success: false,
         message: result.message,
-        ...(result.data ? result.data : {}),
       });
     const { user, fullUser } = result.data as {
       user: PublicUser;
@@ -26,7 +25,6 @@ export class AuthController {
     this.server.issueToken(res, fullUser);
     return res.json({
       success: true,
-      message: "User registered successfully.",
       user: toPublicUser(user),
     });
   };
@@ -42,7 +40,6 @@ export class AuthController {
     this.server.issueToken(res, user);
     return res.json({
       success: true,
-      message: "Login successful.",
       user: toPublicUser(user),
     });
   };
@@ -53,7 +50,8 @@ export class AuthController {
   };
 
   me = (req: Request, res: Response) => {
-    if (!req.user) {
+    const user = req.user;
+    if (!user) {
       return res.json({
         success: true,
         user: null,
@@ -65,8 +63,11 @@ export class AuthController {
     }
     return res.json({
       success: true,
-      user: toPublicUser(req.user),
-      settings: req.user.settings,
+      user: toPublicUser(user),
+      settings: {
+        lang: user.settings.lang,
+        theme: user.settings.theme,
+      },
     });
   };
 
@@ -88,10 +89,7 @@ export class AuthController {
       return res
         .status(result.status)
         .json({ success: false, message: result.message });
-    return res.json({
-      success: true,
-      message: "If this email exists, a reset link has been sent.",
-    });
+    return res.json({ success: true });
   };
 
   resetPassword = async (req: Request, res: Response) => {
@@ -100,7 +98,7 @@ export class AuthController {
       return res
         .status(result.status)
         .json({ success: false, message: result.message });
-    return res.json({ success: true, message: "Password reset successfully." });
+    return res.json({ success: true });
   };
 
   verifyPasswordResetToken = async (req: Request, res: Response) => {

@@ -28,6 +28,8 @@ import { formatDate } from "@/utils/formatDate";
 
 const ACCEPT_STRING = [...ALLOWED_MIME_TYPES].join(",");
 
+const MAX_FILES_PER_UPLOAD = 25;
+
 export const VideoDisplay = ({ src }: { src: string; className?: string }) => {
   return (
     <video
@@ -165,8 +167,6 @@ export function MediaPicker({
     done: number;
   } | null>(null);
 
-  const MAX_FILES_PER_UPLOAD = 25;
-
   const selectedItem =
     selectedIds.size === 1
       ? (items.find((i) => i._id === [...selectedIds][0]) ?? null)
@@ -174,7 +174,7 @@ export function MediaPicker({
 
   useEffect(() => {
     if (!open) return;
-    axiosApi.getMedia().then(({ data }) => setItems(data.data.items));
+    axiosApi.getMedia().then(({ data }) => setItems(data.items));
   }, [open]);
 
   useEffect(() => {
@@ -238,7 +238,7 @@ export function MediaPicker({
     for (const file of valid) {
       try {
         const { data } = await axiosApi.uploadMedia(file);
-        const newItem = data.data.media;
+        const newItem = data.media;
         setItems((p) => [newItem, ...p]);
         uploadedIds.push(newItem._id);
       } catch {

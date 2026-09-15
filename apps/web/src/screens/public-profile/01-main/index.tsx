@@ -64,7 +64,11 @@ export const Main = ({ user, accessReason }: Props) => {
   const firstName = user.profile.fullName.split(" ")[0];
   const certificateItems: MediaItemPublic[] = (p.certificates ?? [])
     .filter((c) => !!c.media)
-    .map((c) => ({ url: c.media!.url, originalName: c.label }));
+    .map((c) => ({
+      url: c.media!.url,
+      originalName: c.label,
+      mimeType: c.media!.mimeType,
+    }));
 
   return (
     <>
@@ -282,7 +286,13 @@ export const Main = ({ user, accessReason }: Props) => {
                         type="button"
                         onClick={() =>
                           setLightbox({
-                            items: [{ url: certUrl, originalName: l.label }],
+                            items: [
+                              {
+                                url: certUrl,
+                                originalName: l.label,
+                                mimeType: l.certificate?.media?.mimeType || "",
+                              },
+                            ],
                             index: 0,
                           })
                         }

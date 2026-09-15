@@ -41,8 +41,8 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
   const fetchChats = useCallback(async () => {
     try {
       setIsLoading(true);
-      const { data: body } = await axiosApi.getChats();
-      setChats(body.data.chats);
+      const { data } = await axiosApi.getChats();
+      setChats(data.chats);
     } finally {
       setIsLoading(false);
     }
@@ -53,8 +53,8 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
   }, []);
 
   const createChat = useCallback(async (memberId: string) => {
-    const { data: body } = await axiosApi.createChat(memberId);
-    const chat = body.data.chat;
+    const { data } = await axiosApi.createChat(memberId);
+    const chat = data.chat;
     setChats((prev) => {
       const exists = prev.some((c) => c._id === chat._id);
       return exists

@@ -5,24 +5,37 @@ export class PolicyService {
   constructor(private server: IServer) {}
 
   async getPolicy(): Promise<PolicyData> {
-    const db = await this.server.getDb();
-    const doc = await db.collection("settings").findOne({ key: "policy" });
-    return doc?.data;
+    try {
+      const db = await this.server.getDb();
+      const doc = await db.collection("settings").findOne({ key: "policy" });
+      return doc?.data;
+    } catch (e) {
+      console.error("Get policy error:", e);
+      return {
+        policyContent: "",
+        policyTitle: "",
+        updatedAt: "",
+      };
+    }
   }
 
   async updatePolicy(data: PolicyData): Promise<void> {
-    const db = await this.server.getDb();
-    await db.collection("settings").updateOne(
-      { key: "policy" },
-      {
-        $set: {
-          data: {
-            ...data,
-            updatedAt: new Date(),
+    try {
+      const db = await this.server.getDb();
+      await db.collection("settings").updateOne(
+        { key: "policy" },
+        {
+          $set: {
+            data: {
+              ...data,
+              updatedAt: new Date(),
+            },
           },
         },
-      },
-      { upsert: true },
-    );
+        { upsert: true },
+      );
+    } catch (e) {
+      console.error("Update policy error:", e);
+    }
   }
 }

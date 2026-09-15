@@ -33,7 +33,7 @@ export function CertificatesEditor({
       setLoading(true);
       try {
         const { data } = await axiosApi.searchCertificates(search);
-        setSuggestions(data.data.items);
+        setSuggestions(data.items);
       } finally {
         setLoading(false);
       }
@@ -47,7 +47,7 @@ export function CertificatesEditor({
     }
     try {
       const { data } = await axiosApi.upsertCertificate(label, description);
-      const cert = data.data.certificate;
+      const cert = data.certificate;
       onChange([...value, { value: cert._id, label: cert.label }]);
     } catch {
       onChange([...value, { value: label, label }]);

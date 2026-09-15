@@ -14,12 +14,28 @@ export class CertificatesController {
   async search(req: Request, res: Response) {
     const q = (req.query.q as string) ?? "";
     const result = await this.service.search(q);
-    return res.status(result.status).json(result);
+    if (!result.success)
+      return res.status(result.status).json({
+        success: false,
+        message: result.message,
+      });
+    return res.json({
+      success: true,
+      ...(result.data ?? {}),
+    });
   }
 
   async upsert(req: Request, res: Response) {
     const { label, description } = req.body;
     const result = await this.service.upsert(label, description);
-    return res.status(result.status).json(result);
+    if (!result.success)
+      return res.status(result.status).json({
+        success: false,
+        message: result.message,
+      });
+    return res.json({
+      success: true,
+      ...(result.data ?? {}),
+    });
   }
 }

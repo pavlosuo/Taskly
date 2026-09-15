@@ -34,16 +34,17 @@ export class UsersService {
   }
 
   async updateProfile(req: Request, res: Response): Promise<ServiceResult> {
-    const user = req.user;
-    const body = req.body;
-    const parsed = updateProfileSchema.safeParse(body);
-    if (!parsed.success)
-      return {
-        success: false,
-        status: 400,
-        message: parsed.error.issues[0].message,
-      };
     try {
+      const user = req.user;
+      const body = req.body;
+      const parsed = updateProfileSchema.safeParse(body);
+      if (!parsed.success)
+        return {
+          success: false,
+          status: 400,
+          message: parsed.error.issues[0].message,
+        };
+
       const {
         username,
         fullName,
@@ -340,7 +341,7 @@ export class UsersService {
     try {
       const db = await this.server.getDb();
       await db.collection("users").deleteOne({ _id: user._id });
-      return { success: true, status: 200, data: {} };
+      return { success: true, status: 200 };
     } catch (error) {
       console.error("Deactivate account error:", error);
       return { success: false, status: 500, message: "Server error." };
@@ -348,23 +349,23 @@ export class UsersService {
   }
 
   async verifyPhoneOtp(user: User, body: unknown): Promise<ServiceResult> {
-    const parsed = otpSchema.safeParse(body);
-    if (!parsed.success)
-      return {
-        success: false,
-        status: 400,
-        message: parsed.error.issues[0].message,
-      };
-
-    const check = await this.otpService.consume(
-      user._id,
-      "verify-phone",
-      parsed.data.otp,
-    );
-    if (!check.ok)
-      return { success: false, status: check.status, message: check.message };
-
     try {
+      const parsed = otpSchema.safeParse(body);
+      if (!parsed.success)
+        return {
+          success: false,
+          status: 400,
+          message: parsed.error.issues[0].message,
+        };
+
+      const check = await this.otpService.consume(
+        user._id,
+        "verify-phone",
+        parsed.data.otp,
+      );
+      if (!check.ok)
+        return { success: false, status: check.status, message: check.message };
+
       const db = await this.server.getDb();
       const fullPhone = user.profile?.newFullPhone ?? user.profile?.fullPhone;
       const phone = user.profile?.newPhone ?? user.profile?.phone;
@@ -400,23 +401,23 @@ export class UsersService {
   }
 
   async verifyEmailOtp(user: User, body: unknown): Promise<ServiceResult> {
-    const parsed = otpSchema.safeParse(body);
-    if (!parsed.success)
-      return {
-        success: false,
-        status: 400,
-        message: parsed.error.issues[0].message,
-      };
-
-    const check = await this.otpService.consume(
-      user._id,
-      "verify-email",
-      parsed.data.otp,
-    );
-    if (!check.ok)
-      return { success: false, status: check.status, message: check.message };
-
     try {
+      const parsed = otpSchema.safeParse(body);
+      if (!parsed.success)
+        return {
+          success: false,
+          status: 400,
+          message: parsed.error.issues[0].message,
+        };
+
+      const check = await this.otpService.consume(
+        user._id,
+        "verify-email",
+        parsed.data.otp,
+      );
+      if (!check.ok)
+        return { success: false, status: check.status, message: check.message };
+
       const db = await this.server.getDb();
       const confirmedEmail = check.record.destination;
 
@@ -444,17 +445,17 @@ export class UsersService {
   }
 
   async changePassword(user: User, body: unknown): Promise<ServiceResult> {
-    const parsed = changePasswordSchema.safeParse(body);
-    if (!parsed.success)
-      return {
-        success: false,
-        status: 400,
-        message: parsed.error.issues[0].message,
-      };
-
-    const { oldPassword, newPassword } = parsed.data;
-
     try {
+      const parsed = changePasswordSchema.safeParse(body);
+      if (!parsed.success)
+        return {
+          success: false,
+          status: 400,
+          message: parsed.error.issues[0].message,
+        };
+
+      const { oldPassword, newPassword } = parsed.data;
+
       const db = await this.server.getDb();
       const dbUser = await db
         .collection("users")
