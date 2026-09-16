@@ -10,6 +10,7 @@ import {
   Message,
   ChatLastMessage,
 } from "@shared/types";
+import { Server as SocketIOServer } from "socket.io";
 
 export interface User extends Omit<PublicUser, "_id" | "createdAt"> {
   _id: ObjectId;
@@ -72,6 +73,8 @@ export interface MessageBack extends Omit<
 export interface IServer {
   readonly time: number;
   mailer: Transporter | null;
+  emitToUser(userId: ObjectId, event: string, payload: unknown): void;
+  getIO(): SocketIOServer;
   getDb(): Promise<Db>;
   indexesConfig(): Promise<void>;
   sendEmail(args: { to: string; subject: string; text: string }): Promise<void>;

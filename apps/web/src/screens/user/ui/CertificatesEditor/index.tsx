@@ -6,6 +6,7 @@ import { axiosApi } from "api/index";
 import { PublicProfileCertificate, MediaItem } from "@shared/types";
 import { useMediaPicker } from "@/providers/MediaPickerProvider";
 import { ImageDisplay } from "@/shared/components/MediaPicker";
+import { startTransition } from "react";
 import clsx from "clsx";
 
 export function CertificatesEditor({
@@ -26,7 +27,7 @@ export function CertificatesEditor({
   useEffect(() => {
     clearTimeout(debounceRef.current);
     if (!search.trim()) {
-      requestAnimationFrame(() => setSuggestions([]));
+      startTransition(() => setSuggestions([]));
       return;
     }
     debounceRef.current = setTimeout(async () => {

@@ -1,5 +1,4 @@
 import { ObjectId } from "mongodb";
-import { IServer, User } from "@/types";
 import { ServiceResult } from "@shared/types";
 import {
   ChatWithMember,
@@ -8,12 +7,26 @@ import {
   CreateChatPayload,
   SendMessagePayload,
 } from "@shared/types/chat";
-import { ChatBack, MessageBack } from "@/types";
+import { ChatBack, MessageBack, IServer, User } from "@/types";
 import { EMOJI } from "@shared/data";
 import { stripMediaFields } from "@/utils";
 
 export class ChatService {
   constructor(private server: IServer) {}
+
+  private emitToChat(
+    chatId: ObjectId,
+    event: string,
+    payload: unknown,
+    excludeUserId?: ObjectId,
+  ) {
+    const emitter = this.server.getIO().to(`chat:${chatId.toString()}`);
+    if (excludeUserId) {
+      emitter.except(`user:${excludeUserId.toString()}`).emit(event, payload);
+    } else {
+      emitter.emit(event, payload);
+    }
+  }
 
   private async assertParticipant(
     chatId: string,
@@ -42,6 +55,9 @@ export class ChatService {
             "profile.fullName": 1,
             "profile.avatar": 1,
             "profile.initials": 1,
+            publicLink: 1,
+            lastSeenAt: 1,
+            role: 1,
           },
         },
       )
@@ -52,8 +68,14 @@ export class ChatService {
         _id: u._id.toString(),
         username: u.username,
         fullName: u.profile?.fullName ?? "",
-        avatar: u.profile?.avatar ?? null,
+        avatar: stripMediaFields(u.profile?.avatar) ?? null,
         initials: u.profile?.initials ?? "",
+        ...(u.role !== "admin"
+          ? {
+              publicLink: u.publicLink,
+              lastSeenAt: u.lastSeenAt as string,
+            }
+          : {}),
       });
     }
     return map;
@@ -88,7 +110,6 @@ export class ChatService {
     const unreadMap = new Map<string, number>(
       unreadAgg.map((u) => [u._id.toString(), u.count as number]),
     );
-
     return chats.map((chat) => {
       const otherId = chat.participants.find((p) => !p.equals(currentUserId));
       const member = otherId ? memberMap.get(otherId.toString()) : undefined;
@@ -112,6 +133,8 @@ export class ChatService {
           fullName: "Deleted user",
           avatar: null,
           initials: "",
+          publicLink: "",
+          lastSeenAt: "",
         },
         unreadCount: unreadMap.get(chat._id.toString()) ?? 0,
       };
@@ -142,9 +165,11 @@ export class ChatService {
       chatId: d.chatId.toString(),
       senderId: d.senderId.toString(),
       text: d.text,
-      media: d.mediaIds
-        .map((id) => mediaMap.get(id.toString()))
-        .filter(Boolean) as Message["media"],
+      media: stripMediaFields(
+        d.mediaIds
+          .map((id) => mediaMap.get(id.toString()))
+          .filter(Boolean) as Message["media"],
+      ),
       readBy: d.readBy.map((id) => id?.toString()),
       reactions: d.reactions?.map((r) => ({
         userId: r.userId?.toString(),
@@ -235,6 +260,11 @@ export class ChatService {
         [{ ...doc, _id: result.insertedId }],
         user._id,
       );
+      const [otherView] = await this.enrichChats(
+        [{ ...doc, _id: result.insertedId }],
+        otherId,
+      );
+      this.server.emitToUser(otherId, "chat:new", { chat: otherView });
       return { success: true, status: 201, data: { chat: enriched } };
     } catch (e) {
       console.error("Create chat error:", e);
@@ -324,9 +354,7 @@ export class ChatService {
         ? docs[docs.length - 1]._id.toString()
         : null;
       const nextCursor = docs.length === limit ? oldestId : null;
-      const items = stripMediaFields(
-        await this.populateMessages(docs.reverse()),
-      );
+      const items = await this.populateMessages(docs.reverse());
       return { success: true, status: 200, data: { items, nextCursor } };
     } catch (e) {
       console.error("Get messages error:", e);
@@ -365,24 +393,19 @@ export class ChatService {
         updatedAt: now,
       };
       const result = await db.collection("messages").insertOne(doc);
-      await db.collection<ChatBack>("chats").updateOne(
-        { _id: chat._id },
-        {
-          $set: {
-            lastMessage: {
-              text,
-              hasMedia: mediaIds.length > 0,
-              senderId: user._id,
-              createdAt: now,
-            },
-            updatedAt: now,
-            deletedBy: [],
-          },
-        },
-      );
+      await this.recomputeLastMessage(chat._id);
       const [message] = await this.populateMessages([
         { ...doc, _id: result.insertedId },
       ]);
+      this.emitToChat(chat._id, "message:new", { message }, user._id);
+      const otherId = chat.participants.find((p) => !p.equals(user._id));
+      if (otherId) {
+        const chatUpdated = await this.assertParticipant(chatId, user._id);
+        if (chatUpdated) {
+          const [otherView] = await this.enrichChats([chatUpdated], otherId);
+          this.server.emitToUser(otherId, "chat:updated", { chat: otherView });
+        }
+      }
       return { success: true, status: 201, data: { message } };
     } catch (e) {
       console.error("Send message error:", e);
@@ -402,6 +425,15 @@ export class ChatService {
           readBy: { $ne: user._id },
         },
         { $addToSet: { readBy: user._id } },
+      );
+      this.emitToChat(
+        chat._id,
+        "chat:read",
+        {
+          chatId: chat._id.toString(),
+          userId: user._id.toString(),
+        },
+        user._id,
       );
       return { success: true, status: 200 };
     } catch (e) {
@@ -454,6 +486,7 @@ export class ChatService {
       const [message] = await this.populateMessages([
         { ...msg, text: trimmed, edited: true, updatedAt: now },
       ]);
+      this.emitToChat(chat._id, "message:updated", { message }, user._id);
       return { success: true, status: 200, data: { message } };
     } catch (e) {
       console.error("Edit message error:", e);
@@ -481,6 +514,14 @@ export class ChatService {
       }
       await db.collection("messages").deleteOne({ _id: msg._id });
       await this.recomputeLastMessage(chat._id);
+      this.emitToChat(
+        chat._id,
+        "message:deleted",
+        {
+          messageId: msg._id.toString(),
+        },
+        user._id,
+      );
       return { success: true, status: 200 };
     } catch (e) {
       console.error("Delete message error:", e);
@@ -521,6 +562,7 @@ export class ChatService {
         .collection<MessageBack>("messages")
         .findOne({ _id: msg._id });
       const [message] = await this.populateMessages([updated!]);
+      this.emitToChat(chat._id, "message:updated", { message }, user._id);
       return { success: true, status: 200, data: { message } };
     } catch (e) {
       console.error("Manage reaction error:", e);

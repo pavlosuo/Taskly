@@ -33,7 +33,7 @@ export class AuthService {
         username: ADMIN_USERNAME,
       });
     } catch (error) {
-      console.log("Error registering admin:", error);
+      console.error("Error registering admin:", error);
     }
   }
 

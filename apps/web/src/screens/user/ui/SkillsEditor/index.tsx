@@ -4,6 +4,7 @@ import { X, Plus, Loader2 } from "lucide-react";
 import { Input } from "@/shared/components/Input";
 import { axiosApi } from "api/index";
 import { PublicProfileSkill } from "@shared/types";
+import { startTransition } from "react";
 
 export function SkillsEditor({
   value,
@@ -22,7 +23,7 @@ export function SkillsEditor({
   useEffect(() => {
     clearTimeout(debounceRef.current);
     if (!search.trim()) {
-      requestAnimationFrame(() => setSuggestions([]));
+      startTransition(() => setSuggestions([]));
       return;
     }
     debounceRef.current = setTimeout(async () => {

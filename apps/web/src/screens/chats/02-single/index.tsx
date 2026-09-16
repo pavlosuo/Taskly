@@ -10,6 +10,10 @@ import { MessageBubble } from "@/screens/chats/ui/MessageBubble";
 import { ChatInput } from "@/screens/chats/ui/ChatInput";
 import { Marker, MarkerContent } from "@/components/ui/marker";
 import { SingleChatProvider } from "@/providers/SingleChatProvider";
+import { useSocket } from "@/providers/SocketProvider";
+import { startTransition } from "react";
+import Link from "next/link";
+import { OnlineStatus } from "@/shared/components/OnlineStatus";
 
 export const Single: FC<{
   chat: ChatWithMember;
@@ -17,7 +21,7 @@ export const Single: FC<{
   nextCursor?: string | null;
 }> = ({ chat, messages: initialMessages, nextCursor: initialNextCursor }) => {
   const router = useRouter();
-  const { upsertChat, activeChat, setActiveChat } = useChats();
+  const { upsertChat, activeChat, setActiveChat, typingByChat } = useChats();
   const displayChat = activeChat ?? chat;
   const chatId = displayChat._id;
   const [messages, setMessages] = useState<Message[]>(initialMessages ?? []);
@@ -29,10 +33,51 @@ export const Single: FC<{
   const scrollRef = useRef<HTMLDivElement>(null);
   const topSentinelRef = useRef<HTMLDivElement>(null);
   const didInitialScroll = useRef(false);
+  const { socket } = useSocket();
+  const isTyping = typingByChat[chatId] ?? false;
+
+  const loadMore = useCallback(async () => {
+    if (!nextCursor || isLoadingMore) return;
+    setIsLoadingMore(true);
+    const container = scrollRef.current;
+    const prevScrollHeight = container?.scrollHeight ?? 0;
+    const { data } = await axiosApi.getMessages(chatId, nextCursor);
+    setMessages((prev) => [...data.items, ...prev]);
+    setNextCursor(data.nextCursor);
+    startTransition(() => {
+      if (container) {
+        container.scrollTop = container.scrollHeight - prevScrollHeight;
+      }
+    });
+    setIsLoadingMore(false);
+  }, [chatId, nextCursor, isLoadingMore]);
+
+  const handleMessageSent = (message: Message) => {
+    setMessages((prev) => [...prev, message]);
+    startTransition(() => {
+      if (scrollRef.current) {
+        scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+      }
+    });
+  };
+
+  const handleMessageUpdate = (updated: Message) => {
+    setMessages((prev) =>
+      prev.map((m) => (m._id === updated._id ? updated : m)),
+    );
+  };
+
+  const handleMessageDelete = (messageId: string) => {
+    setMessages((prev) => prev.filter((m) => m._id !== messageId));
+  };
 
   useEffect(() => {
-    upsertChat(chat);
-  }, [upsertChat, chat]);
+    if (!socket) return;
+    socket.emit("chat:join", chatId);
+    return () => {
+      socket.emit("chat:leave", chatId);
+    };
+  }, [socket, chatId]);
 
   useEffect(() => {
     setActiveChat(chat);
@@ -42,7 +87,7 @@ export const Single: FC<{
   useEffect(() => {
     if (initialMessages) return;
     let cancelled = false;
-    requestAnimationFrame(() => {
+    startTransition(() => {
       setIsLoadingInitial(true);
     });
     axiosApi.getMessages(chatId).then(({ data }) => {
@@ -59,7 +104,11 @@ export const Single: FC<{
 
   useEffect(() => {
     axiosApi.markChatRead(chatId).catch(() => {});
-  }, [chatId]);
+    upsertChat({
+      ...chat,
+      unreadCount: 0,
+    });
+  }, [chatId, upsertChat, chat]);
 
   useEffect(() => {
     if (!isLoadingInitial && !didInitialScroll.current && scrollRef.current) {
@@ -67,22 +116,6 @@ export const Single: FC<{
       didInitialScroll.current = true;
     }
   }, [isLoadingInitial, messages.length]);
-
-  const loadMore = useCallback(async () => {
-    if (!nextCursor || isLoadingMore) return;
-    setIsLoadingMore(true);
-    const container = scrollRef.current;
-    const prevScrollHeight = container?.scrollHeight ?? 0;
-    const { data } = await axiosApi.getMessages(chatId, nextCursor);
-    setMessages((prev) => [...data.items, ...prev]);
-    setNextCursor(data.nextCursor);
-    requestAnimationFrame(() => {
-      if (container) {
-        container.scrollTop = container.scrollHeight - prevScrollHeight;
-      }
-    });
-    setIsLoadingMore(false);
-  }, [chatId, nextCursor, isLoadingMore]);
 
   useEffect(() => {
     const sentinel = topSentinelRef.current;
@@ -97,24 +130,53 @@ export const Single: FC<{
     return () => observer.disconnect();
   }, [loadMore]);
 
-  const handleMessageSent = (message: Message) => {
-    setMessages((prev) => [...prev, message]);
-    requestAnimationFrame(() => {
-      if (scrollRef.current) {
-        scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-      }
-    });
-  };
+  useEffect(() => {
+    if (!socket) return;
 
-  const handleMessageUpdate = (updated: Message) => {
-    setMessages((prev) =>
-      prev.map((m) => (m._id === updated._id ? updated : m)),
-    );
-  };
+    const handleNew = ({ message }: { message: Message }) => {
+      setMessages((prev) => {
+        return [...prev, message];
+      });
+      axiosApi.markChatRead(chatId).catch(() => {});
+      startTransition(() => {
+        if (scrollRef.current) {
+          scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+        }
+      });
+    };
 
-  const handleMessageDelete = (messageId: string) => {
-    setMessages((prev) => prev.filter((m) => m._id !== messageId));
-  };
+    const handleUpdated = ({ message }: { message: Message }) => {
+      setMessages((prev) =>
+        prev.map((m) => (m._id === message._id ? message : m)),
+      );
+    };
+
+    const handleDeleted = ({ messageId }: { messageId: string }) => {
+      setMessages((prev) => prev.filter((m) => m._id !== messageId));
+    };
+
+    const handleRead = () => {
+      setMessages((prev) =>
+        prev.map((m) => ({
+          ...m,
+          readBy: m.readBy.includes(chat.member._id)
+            ? m.readBy
+            : [...m.readBy, chat.member._id],
+        })),
+      );
+    };
+
+    socket.on("message:new", handleNew);
+    socket.on("message:updated", handleUpdated);
+    socket.on("message:deleted", handleDeleted);
+    socket.on("chat:read", handleRead);
+    return () => {
+      socket.off("message:new", handleNew);
+      socket.off("message:updated", handleUpdated);
+      socket.off("message:deleted", handleDeleted);
+      socket.off("chat:read", handleRead);
+    };
+  }, [socket, chatId, chat]);
 
   return (
     <SingleChatProvider
@@ -134,33 +196,49 @@ export const Single: FC<{
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
-          {chat.member.avatar ? (
-            <ImageDisplay
-              src={chat.member.avatar.url}
-              alt={chat.member.fullName}
-              width={40}
-              height={40}
-              className="w-10 h-10 rounded-full object-cover"
-            />
+          <div className="relative shrink-0">
+            {chat.member.avatar ? (
+              <ImageDisplay
+                src={chat.member.avatar.url}
+                alt={chat.member.fullName}
+                width={40}
+                height={40}
+                className="w-10 h-10 rounded-full object-cover"
+              />
+            ) : (
+              <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center text-sm font-semibold">
+                {chat.member.initials}
+              </div>
+            )}
+            <OnlineStatus user={chat.member} variant="compact" />
+          </div>
+          {chat.member.publicLink ? (
+            <Link href={chat.member.publicLink} className="min-w-0">
+              <p className="text-sm font-semibold text-foreground truncate">
+                {chat.member.fullName}
+              </p>
+              {chat.member.username && (
+                <p className="text-xs text-grey truncate">
+                  @{chat.member.username}
+                </p>
+              )}
+            </Link>
           ) : (
-            <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center text-sm font-semibold">
-              {chat.member.initials}
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-foreground truncate">
+                {chat.member.fullName}
+              </p>
+              {chat.member.username && (
+                <p className="text-xs text-grey truncate">
+                  @{chat.member.username}
+                </p>
+              )}
             </div>
           )}
-          <div className="min-w-0">
-            <p className="text-sm font-semibold text-foreground truncate">
-              {chat.member.fullName}
-            </p>
-            {chat.member.username && (
-              <p className="text-xs text-grey truncate">
-                @{chat.member.username}
-              </p>
-            )}
-          </div>
         </div>
         <div
           ref={scrollRef}
-          className="flex-1 overflow-y-auto flex w-full flex-col py-12 px-6"
+          className="flex-1 overflow-y-auto flex w-full flex-col py-6 px-2 md:py-12 md:px-6"
         >
           <div ref={topSentinelRef} />
           {isLoadingInitial && (
@@ -168,12 +246,14 @@ export const Single: FC<{
           )}
           {!isLoadingInitial &&
             messages.map((m) => <MessageBubble key={m._id} message={m} />)}
-          <Marker role="status" className="mt-4">
-            <MarkerContent className="shimmer">
-              <span className="font-medium">{chat.member.fullName}</span> is
-              typing...
-            </MarkerContent>
-          </Marker>
+          {isTyping && (
+            <Marker role="status" className="mt-4">
+              <MarkerContent className="shimmer">
+                <span className="font-medium">{chat.member.fullName}</span> is
+                typing...
+              </MarkerContent>
+            </Marker>
+          )}
         </div>
         <ChatInput />
       </div>

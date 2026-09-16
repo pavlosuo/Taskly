@@ -17,7 +17,7 @@ export default async function Admin() {
   const { data } = await axiosApi.getPolicyData();
   if (user?.role === "admin") {
     return (
-      <PolicyDataProvider initialPolicyData={data}>
+      <PolicyDataProvider initialPolicyData={data.data}>
         <SidebarWrapper title="Dashboard">
           <main className="page">
             <AutoLogoutPopup />

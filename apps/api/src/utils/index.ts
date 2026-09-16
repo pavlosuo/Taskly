@@ -8,6 +8,22 @@ import { ObjectId, WithId, Document } from "mongodb";
 export * from "./limiters";
 export * from "./upload";
 
+export function parseCookieHeader(header: string): Record<string, string> {
+  const result: Record<string, string> = {};
+  for (const part of header.split(";")) {
+    const eqIndex = part.indexOf("=");
+    if (eqIndex === -1) continue;
+    const key = part.slice(0, eqIndex).trim();
+    const value = part.slice(eqIndex + 1).trim();
+    try {
+      result[key] = decodeURIComponent(value);
+    } catch {
+      result[key] = value;
+    }
+  }
+  return result;
+}
+
 export function toPublicUser(
   user?: User | PublicUser | null | WithId<Document>,
 ): PublicUser | null {

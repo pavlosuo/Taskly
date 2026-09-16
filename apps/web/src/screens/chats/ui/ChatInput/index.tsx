@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Paperclip, Send, X, Loader2 } from "lucide-react";
 import { axiosApi } from "api/index";
 import { MediaItem } from "@shared/types";
@@ -7,6 +7,7 @@ import { useMediaPicker } from "@/providers/MediaPickerProvider";
 import { useChats } from "@/providers/ChatProvider";
 import { ImageDisplay } from "@/shared/components/MediaPicker";
 import { useSingleChat } from "@/providers/SingleChatProvider";
+import { useSocket } from "@/providers/SocketProvider";
 
 export const ChatInput = () => {
   const { openPicker } = useMediaPicker();
@@ -15,6 +16,23 @@ export const ChatInput = () => {
   const [text, setText] = useState("");
   const [pendingMedia, setPendingMedia] = useState<MediaItem[]>([]);
   const [isSending, setIsSending] = useState(false);
+  const { socket } = useSocket();
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setText(e.target.value);
+    socket?.emit("typing:start", {
+      chatId: chat._id,
+      memberId: chat.member._id,
+    });
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+    typingTimeoutRef.current = setTimeout(() => {
+      socket?.emit("typing:stop", {
+        chatId: chat._id,
+        memberId: chat.member._id,
+      });
+    }, 2000);
+  };
 
   const handleAttach = () => {
     openPicker({
@@ -40,6 +58,10 @@ export const ChatInput = () => {
       const { data } = await axiosApi.sendMessage(chat._id, {
         text: trimmed || undefined,
         mediaIds: pendingMedia.map((m) => m._id),
+      });
+      socket?.emit("typing:stop", {
+        chatId: chat._id,
+        memberId: chat.member._id,
       });
       onMessageSent(data.message);
       setText("");
@@ -96,7 +118,7 @@ export const ChatInput = () => {
         </button>
         <textarea
           value={text}
-          onChange={(e) => setText(e.target.value)}
+          onChange={handleTextChange}
           onKeyDown={handleKeyDown}
           placeholder="Message..."
           rows={1}

@@ -11,19 +11,22 @@ import { ChatWithMember } from "@shared/types";
 import { axiosApi } from "api/index";
 import { useUser } from "@/providers/UserProvider";
 import { useEffect } from "react";
+import { useSocket } from "@/providers/SocketProvider";
 
 interface ChatContextType {
   chats: ChatWithMember[];
   isLoading: boolean;
   totalUnread: number;
+  activeChat: ChatWithMember | null;
+  isInitialized: boolean;
+  typingByChat: Record<string, boolean>;
   fetchChats: () => Promise<void>;
   hydrate: (chats: ChatWithMember[]) => void;
   createChat: (memberId: string) => Promise<ChatWithMember>;
   deleteChat: (chatId: string) => Promise<void>;
   upsertChat: (chat: ChatWithMember) => void;
-  removeChatLocal: (chatId: string) => void;
   setActiveChat: (chat: ChatWithMember | null) => void;
-  activeChat: ChatWithMember | null;
+  playNotificationSound: () => void;
 }
 
 interface ChatProviderProps {
@@ -37,6 +40,17 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [activeChat, setActiveChat] = useState<ChatWithMember | null>(null);
   const { user } = useUser();
+  const { socket } = useSocket();
+  const [isInitialized, setIsInitialized] = useState(false);
+  const [typingByChat, setTypingByChat] = useState<Record<string, boolean>>({});
+
+  const playNotificationSound = useCallback(() => {
+    const audio = new Audio(
+      "/sounds/universfield-new-notification-012-363675.mp3",
+    );
+    audio.volume = 0.5;
+    audio.play().catch(() => {});
+  }, []);
 
   const fetchChats = useCallback(async () => {
     try {
@@ -45,6 +59,7 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
       setChats(data.chats);
     } finally {
       setIsLoading(false);
+      setIsInitialized(true);
     }
   }, []);
 
@@ -65,8 +80,8 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
   }, []);
 
   const deleteChat = useCallback(async (chatId: string) => {
-    await axiosApi.deleteChat(chatId);
     setChats((prev) => prev.filter((c) => c._id !== chatId));
+    await axiosApi.deleteChat(chatId);
   }, []);
 
   const upsertChat = useCallback((updated: ChatWithMember) => {
@@ -82,18 +97,49 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
     });
   }, []);
 
-  const removeChatLocal = useCallback((chatId: string) => {
-    setChats((prev) => prev.filter((c) => c._id !== chatId));
-  }, []);
-
   const totalUnread = useMemo(
-    () => chats.reduce((sum, c) => sum + c.unreadCount, 0),
-    [chats],
+    () =>
+      chats.reduce((sum, c) => {
+        return c._id === activeChat?._id ? 0 : sum + c.unreadCount;
+      }, 0),
+    [chats, activeChat],
   );
 
   useEffect(() => {
     if (user) fetchChats();
   }, [user, fetchChats]);
+
+  useEffect(() => {
+    if (!socket) return;
+    const handleChat = ({ chat }: { chat: ChatWithMember }) => {
+      upsertChat(chat);
+      playNotificationSound();
+    };
+    socket.on("chat:new", handleChat);
+    socket.on("chat:updated", handleChat);
+    return () => {
+      socket.off("chat:new", handleChat);
+      socket.off("chat:updated", handleChat);
+    };
+  }, [socket, upsertChat, playNotificationSound]);
+
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleStart = ({ chatId }: { chatId: string }) => {
+      setTypingByChat((prev) => ({ ...prev, [chatId]: true }));
+    };
+    const handleStop = ({ chatId }: { chatId: string }) => {
+      setTypingByChat((prev) => ({ ...prev, [chatId]: false }));
+    };
+
+    socket.on("typing:start", handleStart);
+    socket.on("typing:stop", handleStop);
+    return () => {
+      socket.off("typing:start", handleStart);
+      socket.off("typing:stop", handleStop);
+    };
+  }, [socket]);
 
   return (
     <ChatContext.Provider
@@ -101,14 +147,16 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
         chats,
         isLoading,
         totalUnread,
+        activeChat,
+        isInitialized,
+        typingByChat,
         fetchChats,
         hydrate,
         createChat,
         deleteChat,
         upsertChat,
-        removeChatLocal,
         setActiveChat,
-        activeChat,
+        playNotificationSound,
       }}
     >
       {children}

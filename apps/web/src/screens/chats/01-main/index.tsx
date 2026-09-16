@@ -12,8 +12,13 @@ import { startTransition } from "react";
 
 export const Main = ({ chats: initialChats }: { chats: ChatWithMember[] }) => {
   const router = useRouter();
-  const { chats: storedChats, isLoading, createChat } = useChats();
-  const chats = storedChats.length > 0 ? storedChats : initialChats;
+  const {
+    chats: storedChats,
+    isLoading,
+    isInitialized,
+    createChat,
+  } = useChats();
+  const chats = isInitialized ? storedChats : initialChats;
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<ChatMemberPreview[]>([]);
   const [isSearching, setIsSearching] = useState(false);

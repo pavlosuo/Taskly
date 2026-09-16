@@ -2,6 +2,8 @@ import { MediaItem } from "@shared/types/media";
 
 export interface ChatMemberPreview {
   _id: string;
+  publicLink?: string;
+  lastSeenAt?: string;
   username: string;
   fullName: string;
   avatar: MediaItem | null;

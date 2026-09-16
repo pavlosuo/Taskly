@@ -6,6 +6,8 @@ import { ChatWithMember } from "@shared/types";
 import { useChats } from "@/providers/ChatProvider";
 import { ImageDisplay } from "@/shared/components/MediaPicker";
 import { useModal } from "@/providers/ModalProvider";
+import { OnlineStatus } from "@/shared/components/OnlineStatus";
+import { Marker, MarkerContent } from "@/components/ui/marker";
 
 function formatTime(iso: string) {
   const date = new Date(iso);
@@ -17,10 +19,11 @@ function formatTime(iso: string) {
 }
 
 export const ChatListItem: FC<{ chat: ChatWithMember }> = ({ chat }) => {
-  const { deleteChat } = useChats();
+  const { deleteChat, typingByChat } = useChats();
   const [isDeleting, setIsDeleting] = useState(false);
   const { confirm } = useModal();
   const preview = chat.lastMessage ? (chat.lastMessage.text ?? null) : null;
+  const isTyping = typingByChat[chat._id] ?? false;
 
   const handleDelete = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -62,6 +65,7 @@ export const ChatListItem: FC<{ chat: ChatWithMember }> = ({ chat }) => {
             {chat.unreadCount > 9 ? "9+" : chat.unreadCount}
           </span>
         )}
+        <OnlineStatus user={chat.member} variant="compact" />
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between gap-2">
@@ -80,12 +84,23 @@ export const ChatListItem: FC<{ chat: ChatWithMember }> = ({ chat }) => {
           {chat.lastMessage?.hasMedia && (
             <Paperclip className="w-3.5 h-3.5 text-grey shrink-0" />
           )}
-          <p
-            className={`truncate text-xs ${chat.unreadCount > 0 ? "text-foreground" : "text-grey"}`}
-          >
-            {preview ??
-              (chat.lastMessage?.hasMedia ? "Attachment" : "No messages yet")}
-          </p>
+          {isTyping ? (
+            <Marker role="status" className="h-4 flex items-center">
+              <MarkerContent className="shimmer">
+                <span className="truncate text-xs text-foreground">
+                  {chat.member.fullName}
+                </span>{" "}
+                is typing...
+              </MarkerContent>
+            </Marker>
+          ) : (
+            <p
+              className={`truncate text-xs h-4 flex items-center text-foreground`}
+            >
+              {preview ??
+                (chat.lastMessage?.hasMedia ? "Attachment" : "No messages yet")}
+            </p>
+          )}
         </div>
       </div>
       <button

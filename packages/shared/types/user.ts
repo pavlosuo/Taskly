@@ -91,6 +91,7 @@ export interface PublicUser {
 }
 
 export type PublicProfileUser = {
+  _id: string;
   lastSeenAt: string;
   username: string;
   role: string;

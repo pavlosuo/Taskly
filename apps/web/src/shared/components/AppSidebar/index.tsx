@@ -14,6 +14,7 @@ import { useUser } from "@/providers/UserProvider";
 import { useMemo } from "react";
 import { useMediaPicker } from "@/providers/MediaPickerProvider";
 import { usePathname } from "next/navigation";
+import { Notify } from "@/shared/components/Notify";
 import clsx from "clsx";
 
 export function AppSidebar() {
@@ -107,9 +108,10 @@ export const SidebarWrapper = ({
     <SidebarProvider className="bg-muted">
       <AppSidebar />
       <div className="flex-1 gap-2 flex flex-col p-2 h-screen">
-        <header className="py-5 px-4 rounded-xl bg-background flex items-center gap-3">
+        <header className="py-5 px-4 rounded-xl bg-background grid grid-cols-[max-content_1fr_max-content] items-center gap-3">
           <SidebarTrigger className="text-foreground hover:bg-primary hover:text-white" />
           <span className="text-sm font-medium">{title}</span>
+          <Notify />
         </header>
         <div
           className={clsx(

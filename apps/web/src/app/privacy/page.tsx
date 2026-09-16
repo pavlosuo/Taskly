@@ -14,7 +14,7 @@ export default async function Profile() {
   return (
     <main className="page">
       <AutoLogoutPopup />
-      <Screens.Privacy.Main data={data} />
+      <Screens.Privacy.Main data={data.data} />
     </main>
   );
 }

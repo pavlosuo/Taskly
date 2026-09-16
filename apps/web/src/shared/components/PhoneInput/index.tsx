@@ -4,6 +4,7 @@ import { countryList, type Country } from "@shared/index";
 import clsx from "clsx";
 import { Input } from "@/components/ui/input";
 import { PhoneNumberUtil, AsYouTypeFormatter } from "google-libphonenumber";
+import { startTransition } from "react";
 
 const util = PhoneNumberUtil.getInstance();
 const nsnLengthCache = new Map<string, number>();
@@ -252,7 +253,7 @@ export const PhoneInput = memo(function PhoneInput({
 
   const handleToggle = useCallback(() => {
     setOpen((v) => {
-      if (!v) requestAnimationFrame(() => searchRef.current?.focus());
+      if (!v) startTransition(() => searchRef.current?.focus());
       else setQuery("");
       return !v;
     });
@@ -270,7 +271,7 @@ export const PhoneInput = memo(function PhoneInput({
       applyCountry(country);
       setOpen(false);
       setQuery("");
-      requestAnimationFrame(() => inputRef.current?.focus());
+      startTransition(() => inputRef.current?.focus());
     },
     [applyCountry],
   );

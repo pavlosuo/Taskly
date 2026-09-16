@@ -7,6 +7,8 @@ import { MediaPickerProvider } from "@/providers/MediaPickerProvider";
 import { ChatProvider } from "@/providers/ChatProvider";
 import { Lang, Theme, PublicUser } from "@shared/types";
 import { LightboxProvider } from "@/providers/LightboxProvider";
+import { SocketProvider } from "@/providers/SocketProvider";
+import { PresenceProvider } from "@/providers/PresenceProvider";
 
 type IRootLayout = {
   user: PublicUser | null;
@@ -23,13 +25,20 @@ export const RootLayout: FC<PropsWithChildren<IRootLayout>> = ({
   return (
     <ModalProvider>
       <UserProvider initialUser={user}>
-        <ThemeProvider initialLang={initialLang} initialTheme={initialTheme}>
-          <MediaPickerProvider>
-            <ChatProvider>
-              <LightboxProvider>{children}</LightboxProvider>
-            </ChatProvider>
-          </MediaPickerProvider>
-        </ThemeProvider>
+        <SocketProvider>
+          <PresenceProvider>
+            <ThemeProvider
+              initialLang={initialLang}
+              initialTheme={initialTheme}
+            >
+              <MediaPickerProvider>
+                <ChatProvider>
+                  <LightboxProvider>{children}</LightboxProvider>
+                </ChatProvider>
+              </MediaPickerProvider>
+            </ThemeProvider>
+          </PresenceProvider>
+        </SocketProvider>
       </UserProvider>
     </ModalProvider>
   );

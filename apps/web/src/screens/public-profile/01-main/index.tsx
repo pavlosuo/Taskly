@@ -21,11 +21,6 @@ import { OnlineStatus } from "@/shared/components/OnlineStatus";
 import { useTheme } from "@/providers/ThemeProvider";
 import { PublicHeader } from "@/shared/components/PublicHeader";
 
-type Props = {
-  user: PublicProfileUser;
-  accessReason: AccessReason;
-};
-
 function ScrollChip({
   id,
   label,
@@ -51,7 +46,13 @@ function EmptyState({ label }: { label: string }) {
   return <p className="text-sm text-grey">{label}</p>;
 }
 
-export const Main = ({ user, accessReason }: Props) => {
+export const Main = ({
+  user,
+  accessReason,
+}: {
+  user: PublicProfileUser;
+  accessReason: AccessReason;
+}) => {
   const p = user.publicProfile;
   const { setLightbox } = useLightbox();
   const { lang } = useTheme();

@@ -51,8 +51,9 @@ const Time: FC<{
         className,
         "rounded-full inline-flex gap-1 text-[10px] leading-none whitespace-nowrap",
         isOwn ? "text-white" : "text-foreground",
-        location === "image" &&
-          "p-1.5 items-center bg-primary absolute right-2 bottom-2",
+        location === "image" && "p-1.5 items-center absolute right-2 bottom-2",
+        location === "image" && isOwn && "bg-primary",
+        location === "image" && !isOwn && "bg-muted",
       )}
     >
       {message.edited && <span className="italic">edited</span>}
@@ -77,7 +78,7 @@ const Reactions: FC<{
   const { chat } = useSingleChat();
   const member = chat.member;
 
-  const reactionGroups = message.reactions.reduce<Record<string, string[]>>(
+  const reactionGroups = message.reactions?.reduce<Record<string, string[]>>(
     (acc, r) => {
       (acc[r.emoji] ??= []).push(r.userId);
       return acc;
@@ -95,6 +96,7 @@ const Reactions: FC<{
   };
 
   return (
+    reactionGroups &&
     Object.keys(reactionGroups).length > 0 &&
     !isEditing && (
       <BubbleReactions
@@ -174,7 +176,7 @@ export const MessageBubble: FC<{
   const [draft, setDraft] = useState(message.text ?? "");
   const [isSaving, setIsSaving] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const myReaction = message.reactions.find(
+  const myReaction = message.reactions?.find(
     (r) => r.userId === user?._id,
   )?.emoji;
   const imageUrl = isOwn ? user?.profile.avatar?.url : member.avatar?.url;
@@ -221,14 +223,14 @@ export const MessageBubble: FC<{
   };
 
   const handleToggleReaction = async (emoji: string) => {
-    if (!user) return;
+    if (!user || !message.reactions) return;
     const optimistic: MessageType = {
       ...message,
       reactions:
         myReaction === emoji
-          ? message.reactions.filter((r) => r.userId !== user._id)
+          ? message.reactions?.filter((r) => r.userId !== user._id)
           : [
-              ...message.reactions.filter((r) => r.userId !== user._id),
+              ...message.reactions?.filter((r) => r.userId !== user._id),
               { userId: user._id, emoji },
             ],
     };
@@ -257,15 +259,19 @@ export const MessageBubble: FC<{
       {message.media.length > 0 && (
         <div
           className={clsx(
-            "grid gap-1.5 max-w-100",
-            message.media.length > 1 ? "grid-cols-2" : "grid-cols-1",
+            "grid gap-2 max-w-100 w-full",
+            message.media.length > 1
+              ? "grid-cols-1 md:grid-cols-2"
+              : "grid-cols-1",
           )}
         >
           {message.media.map((m, i) => (
-            <div key={i} className="aspect-square">
+            <div
+              key={`${message._id}-${m.url}`}
+              className="aspect-square max-w-48 w-[50vw]"
+            >
               <FileThumbnail
                 item={m}
-                className="rounded-lg"
                 onClick={() => setLightbox({ items: message.media, index: i })}
               />
             </div>
@@ -284,7 +290,7 @@ export const MessageBubble: FC<{
         >
           <div className="flex gap-1.5">
             {isEditing ? (
-              <div className="flex flex-col gap-1 min-w-48">
+              <div className="flex flex-col gap-1 w-full">
                 <textarea
                   ref={textareaRef}
                   value={draft}

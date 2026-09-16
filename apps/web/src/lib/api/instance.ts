@@ -77,7 +77,7 @@ export const methods = (api: AxiosInstance) => {
     savePolicyData: (payload: PolicyData) =>
       api.put<CommonResponse>("/api/policy", payload),
 
-    getPolicyData: () => api.get<PolicyData>("/api/policy"),
+    getPolicyData: () => api.get<{ data: PolicyData }>("/api/policy"),
 
     updateProfile: (payload: UpdateProfileForm) =>
       api.put<AuthResponse>("/api/users", payload),

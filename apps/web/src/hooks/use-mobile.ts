@@ -1,5 +1,5 @@
 import * as React from "react";
-
+import { startTransition } from "react";
 const MOBILE_BREAKPOINT = 768;
 
 export function useIsMobile() {
@@ -13,7 +13,7 @@ export function useIsMobile() {
       setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
     };
     mql.addEventListener("change", onChange);
-    requestAnimationFrame(() => {
+    startTransition(() => {
       setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
     });
     return () => mql.removeEventListener("change", onChange);

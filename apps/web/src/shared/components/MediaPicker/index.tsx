@@ -25,6 +25,7 @@ import { ALLOWED_MIME_TYPES } from "@shared/data";
 import { getFileType, FilterType, FILTERS } from "@/utils/getFileType";
 import { formatSize } from "@/utils/formatSize";
 import { formatDate } from "@/utils/formatDate";
+import { startTransition } from "react";
 
 const ACCEPT_STRING = [...ALLOWED_MIME_TYPES].join(",");
 
@@ -178,7 +179,7 @@ export function MediaPicker({
   }, [open]);
 
   useEffect(() => {
-    requestAnimationFrame(() => {
+    startTransition(() => {
       if (open) {
         setFilter(accept);
       } else {

@@ -1,7 +1,7 @@
 "use client";
 import { useRef } from "react";
 import { Input } from "@/components/ui/input";
-
+import { startTransition } from "react";
 const COUNTRY_PREFIX = "FI";
 const IBAN_DIGIT_LENGTH = 16;
 
@@ -41,7 +41,7 @@ export function IbanInput({
     onChange(newDigits ? COUNTRY_PREFIX + newDigits : "");
     const newDisplay = newDigits ? formatIban(COUNTRY_PREFIX + newDigits) : "";
     const targetDigitCount = Math.min(digitsBeforeCursor, newDigits.length);
-    requestAnimationFrame(() => {
+    startTransition(() => {
       const input = inputRef.current;
       if (!input) return;
       let seen = 0;

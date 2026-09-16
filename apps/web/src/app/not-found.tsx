@@ -11,7 +11,7 @@ export default function Page404() {
   return (
     <main className="page">
       <FloatingSettings />
-      <Screens.Page404.Main />
+      <Screens.Error.Main type="not-found" />
     </main>
   );
 }
