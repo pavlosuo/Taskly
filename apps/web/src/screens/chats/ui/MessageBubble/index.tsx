@@ -31,6 +31,7 @@ import { EMOJI } from "@shared/data";
 import { useSingleChat } from "@/providers/SingleChatProvider";
 import { useLightbox } from "@/providers/LightboxProvider";
 import { FileThumbnail } from "@/shared/components/MediaPicker";
+import { useModal } from "@/providers/ModalProvider";
 
 const Time: FC<{
   message: MessageType;
@@ -139,7 +140,7 @@ const PopoverReactions: FC<{
     <Popover>
       <PopoverTrigger asChild>
         <button
-          className="absolute -bottom-2.5 left-2 flex items-center justify-center w-6 h-6 rounded-full border border-border bg-background shadow-sm opacity-0 scale-90 transition-all group-hover/bubble:opacity-100 group-hover/bubble:scale-100"
+          className="absolute top-full -translate-y-1/2 left-2 flex items-center justify-center w-6 h-6 rounded-full border border-border bg-background opacity-0 transition-opacity group-hover/bubble:opacity-100"
           aria-label="React"
         >
           <SmilePlus className="w-3 h-3 text-foreground" />
@@ -182,6 +183,7 @@ export const MessageBubble: FC<{
   const imageUrl = isOwn ? user?.profile.avatar?.url : member.avatar?.url;
   const { setLightbox } = useLightbox();
   const { lang } = useTheme();
+  const { confirm } = useModal();
 
   useEffect(() => {
     if (isEditing) textareaRef.current?.focus();
@@ -196,15 +198,17 @@ export const MessageBubble: FC<{
     const trimmed = draft.trim();
     if (!trimmed || trimmed === message.text) {
       setIsEditing(false);
+      setDraft(message.text || "");
       return;
     }
     try {
       setIsSaving(true);
       const { data } = await axiosApi.editMessage(chatId, message._id, trimmed);
       onMessageUpdate(data.message);
-      setIsEditing(false);
+      setDraft(data.message.text || "");
     } finally {
       setIsSaving(false);
+      setIsEditing(false);
     }
   };
 
@@ -217,7 +221,8 @@ export const MessageBubble: FC<{
   };
 
   const handleDelete = async () => {
-    if (!confirm("Delete this message?")) return;
+    const confirmed = await confirm("Delete this message?");
+    if (!confirmed) return;
     await axiosApi.deleteMessage(chatId, message._id);
     onMessageDelete(message._id);
   };
@@ -285,65 +290,65 @@ export const MessageBubble: FC<{
         <BubbleContent
           className={clsx(
             !isOwn ? "bg-muted" : "bg-primary",
-            "relative max-w-200",
+            "relative max-w-100",
+            isEditing && "min-w-50",
           )}
         >
-          <div className="flex gap-1.5">
-            {isEditing ? (
-              <div className="flex flex-col gap-1 w-full">
+          <div className="flex gap-1.5 relative">
+            {isEditing && (
+              <div className="absolute inset-0 w-full h-full bg-primary z-1">
                 <textarea
                   ref={textareaRef}
                   value={draft}
                   onChange={(e) => setDraft(e.target.value)}
                   onKeyDown={handleEditKeyDown}
-                  rows={1}
-                  className="w-full bg-transparent outline-none resize-none text-sm"
+                  className="bg-transparent outline-none resize-none text-sm w-full h-full whitespace-pre-wrap wrap-anywhere"
+                  name={message._id}
+                  id={message._id}
                 />
-                <div className="flex justify-end gap-3 text-xs">
+                <div className="flex h-5 justify-end gap-3 text-xs absolute bottom-0 right-0 left-0 pointer-events-none">
                   <button
                     onClick={cancelEdit}
-                    className="opacity-50 hover:opacity-100"
+                    className="opacity-50 hover:opacity-100 pointer-events-auto"
                   >
                     Cancel
                   </button>
                   <button
                     onClick={saveEdit}
                     disabled={isSaving}
-                    className="font-medium disabled:opacity-50"
+                    className="font-medium disabled:opacity-50 pointer-events-auto"
                   >
                     Save
                   </button>
                 </div>
               </div>
-            ) : (
-              <>
-                <p className="text-sm whitespace-pre-wrap wrap-break-word">
-                  {message.text}
-                  <span className="invisible inline-flex gap-1 ml-4 text-[10px] align-bottom">
-                    {message.edited && <span>edited</span>}
-                    <span>
-                      {new Date(message.createdAt).toLocaleTimeString(lang, {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </span>
-                    {isOwn && <CheckCheck className="w-3 h-3" />}
-                  </span>
-                </p>
-                <Time
-                  message={message}
-                  isOwn={isOwn}
-                  className="absolute bottom-1.5 right-2.5"
-                />
-                {message.text && (
-                  <PopoverReactions
-                    isOwn={isOwn}
-                    handleToggleReaction={handleToggleReaction}
-                  />
-                )}
-              </>
             )}
+            <p className="text-sm whitespace-pre-wrap wrap-anywhere">
+              {isEditing ? draft : message.text}
+              <span
+                className={clsx(
+                  "invisible inline-flex gap-1 text-[10px] align-bottom",
+                  isEditing ? "ml-6" : "ml-4",
+                )}
+              >
+                {message.edited && <span>edited</span>}
+                <span>
+                  {new Date(message.createdAt).toLocaleTimeString(lang, {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </span>
+                {isOwn && <CheckCheck className="w-3 h-3" />}
+              </span>
+            </p>
           </div>
+          {!isEditing && (
+            <Time
+              message={message}
+              isOwn={isOwn}
+              className="absolute bottom-1.5 right-2.5"
+            />
+          )}
         </BubbleContent>
       )}
       <Reactions
@@ -352,12 +357,10 @@ export const MessageBubble: FC<{
         handleToggleReaction={handleToggleReaction}
         isEditing={isEditing}
       />
-      {!isEditing && !message.text && (
-        <PopoverReactions
-          isOwn={isOwn}
-          handleToggleReaction={handleToggleReaction}
-        />
-      )}
+      <PopoverReactions
+        isOwn={isOwn}
+        handleToggleReaction={handleToggleReaction}
+      />
     </Bubble>
   );
 

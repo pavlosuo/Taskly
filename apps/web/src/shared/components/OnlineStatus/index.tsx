@@ -22,7 +22,7 @@ export function OnlineStatus({
     const id = setInterval(() => setNow(Date.now()), 30000);
     return () => clearInterval(id);
   }, [user.lastSeenAt]);
-  
+
   const status = useMemo(() => {
     if (liveOnline) return { type: "online" as const, label: "Online" };
     if (!user.lastSeenAt) return null;

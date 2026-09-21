@@ -20,6 +20,14 @@ import { CERF } from "@shared/data";
 import { OnlineStatus } from "@/shared/components/OnlineStatus";
 import { useTheme } from "@/providers/ThemeProvider";
 import { PublicHeader } from "@/shared/components/PublicHeader";
+import { useRouter } from "next/navigation";
+import { useChats } from "@/providers/ChatProvider";
+import { useUser } from "@/providers/UserProvider";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 function ScrollChip({
   id,
@@ -56,6 +64,9 @@ export const Main = ({
   const p = user.publicProfile;
   const { setLightbox } = useLightbox();
   const { lang } = useTheme();
+  const router = useRouter();
+  const { createChat } = useChats();
+  const { user: me } = useUser();
   if (!p) return null;
   const hasSkills = !!p?.skills?.length;
   const hasCertificates = !!p?.certificates?.length;
@@ -70,6 +81,22 @@ export const Main = ({
       originalName: c.label,
       mimeType: c.media!.mimeType,
     }));
+  const isOwnProfile = me && me._id === user._id;
+  const isLoggedOut = !me;
+  const isDisabled = isLoggedOut || isOwnProfile;
+  const disabledReason = isLoggedOut
+    ? "Log in to send a message"
+    : isOwnProfile
+      ? "You can't message yourself"
+      : null;
+
+  const handleSelect = async (userId: string) => {
+    try {
+      const chat = await createChat(userId);
+      router.push(`/chats/${chat._id}`);
+    } finally {
+    }
+  };
 
   return (
     <>
@@ -131,13 +158,30 @@ export const Main = ({
               )}
             </div>
           </div>
-          <div className="shrink-0 sm:self-center grid grid-cols-1 gap-2.5 justify-items-center">
-            <OnlineStatus user={user} />
-            <Button>
-              <MessageCircle className="w-4 h-4" />
-              Hire {firstName}
-            </Button>
-          </div>
+          {isDisabled ? (
+            <div className="shrink-0 sm:self-center grid grid-cols-1 gap-2.5 justify-items-center opacity-50">
+              <OnlineStatus user={user} />
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="inline-flex" tabIndex={0}>
+                    <Button disabled className="pointer-events-none">
+                      <MessageCircle className="w-4 h-4" />
+                      Hire {firstName}
+                    </Button>
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent>{disabledReason}</TooltipContent>
+              </Tooltip>
+            </div>
+          ) : (
+            <div className="shrink-0 sm:self-center grid grid-cols-1 gap-2.5 justify-items-center">
+              <OnlineStatus user={user} />
+              <Button onClick={() => handleSelect(user._id)}>
+                <MessageCircle className="w-4 h-4" />
+                Hire {firstName}
+              </Button>
+            </div>
+          )}
         </div>
         {(hasSkills || hasCertificates || hasLanguages) && (
           <div className="flex flex-wrap gap-2 py-5 border-b border-border">
@@ -221,7 +265,6 @@ export const Main = ({
                       (item) => item.url === c.media!.url,
                     )
                   : -1;
-
                 if (hasImage && galleryIndex >= 0) {
                   return (
                     <button

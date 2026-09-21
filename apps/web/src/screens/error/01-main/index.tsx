@@ -4,13 +4,16 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/providers/ThemeProvider";
 import { useEffect } from "react";
+import { appName } from "@shared/data";
 
 export const Main = ({ type = "error" }: { type: "error" | "not-found" }) => {
   const { theme } = useTheme();
   const isError = type === "error";
+
   useEffect(() => {
-    document.title = isError ? "Error | Taskly" : "Not found | Taskly";
+    document.title = isError ? `Error | ${appName}` : `Not found | ${appName}`;
   }, [isError]);
+
   return (
     <section className="relative flex h-screen w-full items-center justify-center overflow-hidden">
       <Beams

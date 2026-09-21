@@ -132,12 +132,15 @@ export const Single: FC<{
 
   useEffect(() => {
     if (!socket) return;
-
     const handleNew = ({ message }: { message: Message }) => {
       setMessages((prev) => {
         return [...prev, message];
       });
       axiosApi.markChatRead(chatId).catch(() => {});
+      upsertChat({
+        ...chat,
+        unreadCount: 0,
+      });
       startTransition(() => {
         if (scrollRef.current) {
           scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -165,7 +168,6 @@ export const Single: FC<{
         })),
       );
     };
-
     socket.on("message:new", handleNew);
     socket.on("message:updated", handleUpdated);
     socket.on("message:deleted", handleDeleted);
@@ -176,7 +178,7 @@ export const Single: FC<{
       socket.off("message:deleted", handleDeleted);
       socket.off("chat:read", handleRead);
     };
-  }, [socket, chatId, chat]);
+  }, [socket, chatId, chat, upsertChat]);
 
   return (
     <SingleChatProvider
@@ -213,7 +215,12 @@ export const Single: FC<{
             <OnlineStatus user={chat.member} variant="compact" />
           </div>
           {chat.member.publicLink ? (
-            <Link href={chat.member.publicLink} className="min-w-0">
+            <Link
+              target="_blank"
+              rel="noopener noreferrer"
+              href={chat.member.publicLink}
+              className="min-w-0"
+            >
               <p className="text-sm font-semibold text-foreground truncate">
                 {chat.member.fullName}
               </p>

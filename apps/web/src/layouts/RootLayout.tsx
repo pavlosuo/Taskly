@@ -9,6 +9,7 @@ import { Lang, Theme, PublicUser } from "@shared/types";
 import { LightboxProvider } from "@/providers/LightboxProvider";
 import { SocketProvider } from "@/providers/SocketProvider";
 import { PresenceProvider } from "@/providers/PresenceProvider";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 type IRootLayout = {
   user: PublicUser | null;
@@ -23,23 +24,25 @@ export const RootLayout: FC<PropsWithChildren<IRootLayout>> = ({
   initialTheme,
 }) => {
   return (
-    <ModalProvider>
-      <UserProvider initialUser={user}>
-        <SocketProvider>
-          <PresenceProvider>
-            <ThemeProvider
-              initialLang={initialLang}
-              initialTheme={initialTheme}
-            >
-              <MediaPickerProvider>
-                <ChatProvider>
-                  <LightboxProvider>{children}</LightboxProvider>
-                </ChatProvider>
-              </MediaPickerProvider>
-            </ThemeProvider>
-          </PresenceProvider>
-        </SocketProvider>
-      </UserProvider>
-    </ModalProvider>
+    <TooltipProvider>
+      <ModalProvider>
+        <UserProvider initialUser={user}>
+          <SocketProvider>
+            <PresenceProvider>
+              <ThemeProvider
+                initialLang={initialLang}
+                initialTheme={initialTheme}
+              >
+                <MediaPickerProvider>
+                  <ChatProvider>
+                    <LightboxProvider>{children}</LightboxProvider>
+                  </ChatProvider>
+                </MediaPickerProvider>
+              </ThemeProvider>
+            </PresenceProvider>
+          </SocketProvider>
+        </UserProvider>
+      </ModalProvider>
+    </TooltipProvider>
   );
 };

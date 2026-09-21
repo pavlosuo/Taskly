@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import { appName } from "@shared/data";
 
 type MetadataInput = {
   title: string;
@@ -7,13 +8,7 @@ type MetadataInput = {
 
 export function getMetaData({ title, description }: MetadataInput): Metadata {
   return {
-    title: `${title} | Taskly`,
+    title: `${title} | ${appName}`,
     description,
-    icons: {
-      icon: {
-        url: "/favicon.ico",
-        href: "/favicon.ico",
-      },
-    },
   };
 }

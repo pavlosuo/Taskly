@@ -25,8 +25,6 @@ import {
   Star,
   BadgeCheck,
   Globe,
-  ImageIcon,
-  Video,
   Upload,
   QrCode,
   ArrowUpRight,
@@ -72,6 +70,26 @@ import { updateProfileSchema } from "@shared/schemas";
 import { VideoPlayer } from "@/shared/components/Player";
 import { QRCode } from "@/shared/components/QRCode";
 import Link from "next/link";
+
+export function SectionCard({
+  icon,
+  title,
+  desc,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  desc: string;
+}) {
+  return (
+    <div className="border border-border bg-background p-4 transition-shadow">
+      <div className="w-12 h-12 bg-foreground flex items-center justify-center mb-3">
+        {icon}
+      </div>
+      <p className="text-sm font-medium text-foreground mb-1">{title}</p>
+      <p className="text-xs text-grey">{desc}</p>
+    </div>
+  );
+}
 
 export function SpanField({
   text,
@@ -280,14 +298,12 @@ export function PersonalInfoCard({
     sendPhoneOtp,
     verifyPhoneOtp,
   } = useUser();
-
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<"form" | "verify-email" | "verify-phone">(
     "form",
   );
   const [error, setError] = useState("");
   const [otpError, setOtpError] = useState("");
-
   const buildForm = useCallback(
     () => ({
       fullName: user?.profile?.fullName ?? "",
@@ -299,7 +315,6 @@ export function PersonalInfoCard({
     }),
     [user],
   );
-
   const [form, setForm] = useState(buildForm);
   const emailChanged = form.email !== user?.email;
   const phoneChanged = form.fullPhone !== user?.profile?.fullPhone;
@@ -826,31 +841,8 @@ export function SecurityCard() {
   );
 }
 
-export function SectionCard({
-  icon,
-  title,
-  desc,
-}: {
-  icon: React.ReactNode;
-  title: string;
-  desc: string;
-}) {
-  return (
-    <div className="border border-border bg-background p-4 transition-shadow hover:shadow-sm">
-      <div className="w-12 h-12 bg-foreground flex items-center justify-center mb-3">
-        {icon}
-      </div>
-      <p className="text-sm font-medium text-foreground mb-1">{title}</p>
-      <p className="text-xs text-grey">{desc}</p>
-    </div>
-  );
-}
-
 export function AppearanceCard() {
-  const { user } = useUser();
   const { lang, changeTheme, theme, changeLang } = useTheme();
-  if (!user) return null;
-
   return (
     <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-4 lg:gap-6 items-start">
       <SectionCard
@@ -977,6 +969,9 @@ export function PublicProfileCard() {
       user?.publicProfile?.certificates ?? ([] as PublicProfileCertificate[]),
     languages: user?.publicProfile?.languages ?? ([] as PublicProfileLang[]),
   });
+  const { openPicker } = useMediaPicker();
+  const hasHeader = Boolean(user?.publicProfile?.header);
+  const hasIntroduction = Boolean(user?.publicProfile?.introduction);
 
   const openDialog = () => {
     setForm({
@@ -1077,6 +1072,130 @@ export function PublicProfileCard() {
             ) : (
               <p className="text-sm text-grey">No languages added yet.</p>
             )}
+          </div>
+          <div className="h-px bg-border" />
+          <div>
+            <p className="text-xs text-grey mb-2">
+              Add a header for your profile
+            </p>
+            <div
+              className={clsx(
+                "group relative h-45 overflow-hidden border transition-colors",
+                hasHeader
+                  ? "border-border bg-background"
+                  : "border-dashed border-border",
+              )}
+            >
+              {hasHeader ? (
+                <>
+                  <ImageDisplay
+                    src={user.publicProfile!.header!.url}
+                    alt={user.profile.fullName}
+                    className="absolute inset-0 h-full w-full object-cover"
+                  />
+                  <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-linear-to-t from-black/50 to-transparent" />
+                  <button
+                    type="button"
+                    onClick={() =>
+                      updateProfile({
+                        publicProfile: {
+                          ...user.publicProfile,
+                          header: null,
+                        },
+                      })
+                    }
+                    className="absolute bottom-3 right-3 flex h-8 w-8 items-center justify-center rounded-full bg-black/40 text-white opacity-0 backdrop-blur-sm transition-all duration-150 hover:bg-destructive group-hover:opacity-100"
+                    aria-label="Remove header image"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() =>
+                    openPicker({
+                      accept: "image",
+                      onSelect: (item) => {
+                        updateProfile({
+                          publicProfile: {
+                            ...user.publicProfile,
+                            header: item[0],
+                          },
+                        });
+                      },
+                    })
+                  }
+                  className="flex h-full w-full flex-col items-center justify-center gap-2 text-foreground"
+                >
+                  <span className="flex h-10 w-10 items-center justify-center rounded-full bg-muted">
+                    <Upload className="h-5 w-5" />
+                  </span>
+                  <span className="text-sm font-medium">Add header image</span>
+                </button>
+              )}
+            </div>
+          </div>
+          <div className="h-px bg-border" />
+          <div>
+            <p className="text-xs text-grey mb-2">Add a introduction video</p>
+            <div
+              className={clsx(
+                "relative overflow-hidden border",
+                hasIntroduction
+                  ? "border-border bg-background"
+                  : "h-45 border-dashed border-border",
+              )}
+            >
+              {hasIntroduction ? (
+                <div className="group relative aspect-video w-full">
+                  <VideoPlayer
+                    src={user.publicProfile!.introduction!.url}
+                    className="h-full w-full"
+                  />
+                  <button
+                    type="button"
+                    onClick={() =>
+                      updateProfile({
+                        publicProfile: {
+                          ...user.publicProfile,
+                          introduction: null,
+                        },
+                      })
+                    }
+                    className="absolute right-3 top-3 z-20 flex h-8 w-8 items-center justify-center rounded-full bg-black/40 text-white opacity-0 backdrop-blur-sm transition-all duration-150 hover:bg-destructive group-hover:opacity-100"
+                    aria-label="Remove introduction video"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() =>
+                    openPicker({
+                      accept: "video",
+                      onSelect: (item) => {
+                        updateProfile({
+                          publicProfile: {
+                            ...user.publicProfile,
+                            introduction: item[0],
+                          },
+                        });
+                      },
+                    })
+                  }
+                  className="flex h-full w-full flex-col items-center justify-center gap-2 text-foreground"
+                >
+                  <span className="flex h-10 w-10 items-center justify-center rounded-full bg-muted">
+                    <Upload className="h-5 w-5" />
+                  </span>
+                  <span className="text-sm font-medium">
+                    Add introduction video
+                  </span>
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -1225,153 +1344,6 @@ export function AvatarCard() {
             <p className="text-xs text-grey mt-0.5">JPG, PNG — max 10MB</p>
           </div>
         </div>
-      </div>
-    </div>
-  );
-}
-
-export function HeaderCard() {
-  const { user, updateProfile } = useUser();
-  const { openPicker } = useMediaPicker();
-
-  if (!user) return null;
-
-  const hasHeader = Boolean(user.publicProfile?.header);
-
-  return (
-    <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-4 lg:gap-6 items-start">
-      <SectionCard
-        icon={<ImageIcon className="w-6 h-6 text-background" />}
-        title="Header of your profile"
-        desc="Your header shown to clients and on your public profile."
-      />
-      <div
-        className={clsx(
-          "group relative h-45 overflow-hidden border transition-colors",
-          hasHeader
-            ? "border-border bg-background"
-            : "border-dashed border-border",
-        )}
-      >
-        {hasHeader ? (
-          <>
-            <ImageDisplay
-              src={user.publicProfile!.header!.url}
-              alt={user.profile.fullName}
-              className="absolute inset-0 h-full w-full object-cover"
-            />
-            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-linear-to-t from-black/50 to-transparent" />
-            <button
-              type="button"
-              onClick={() =>
-                updateProfile({
-                  publicProfile: {
-                    ...user.publicProfile,
-                    header: null,
-                  },
-                })
-              }
-              className="absolute bottom-3 right-3 flex h-8 w-8 items-center justify-center rounded-full bg-black/40 text-white opacity-0 backdrop-blur-sm transition-all duration-150 hover:bg-destructive group-hover:opacity-100"
-              aria-label="Remove header image"
-            >
-              <Trash2 className="h-4 w-4" />
-            </button>
-          </>
-        ) : (
-          <button
-            type="button"
-            onClick={() =>
-              openPicker({
-                accept: "image",
-                onSelect: (item) => {
-                  updateProfile({
-                    publicProfile: {
-                      ...user.publicProfile,
-                      header: item[0],
-                    },
-                  });
-                },
-              })
-            }
-            className="flex h-full w-full flex-col items-center justify-center gap-2 text-foreground"
-          >
-            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-muted">
-              <Upload className="h-5 w-5" />
-            </span>
-            <span className="text-sm font-medium">Add header image</span>
-          </button>
-        )}
-      </div>
-    </div>
-  );
-}
-
-export function VideoCard() {
-  const { user, updateProfile } = useUser();
-  const { openPicker } = useMediaPicker();
-  if (!user) return null;
-  const hasIntroduction = Boolean(user.publicProfile?.introduction);
-  return (
-    <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-4 lg:gap-6 items-start">
-      <SectionCard
-        icon={<Video className="w-6 h-6 text-background" />}
-        title="Video Introduction"
-        desc="Your video shown to clients and on your public profile."
-      />
-      <div
-        className={clsx(
-          "relative overflow-hidden border",
-          hasIntroduction
-            ? "border-border bg-background"
-            : "h-45 border-dashed border-border",
-        )}
-      >
-        {hasIntroduction ? (
-          <div className="group relative aspect-video w-full">
-            <VideoPlayer
-              src={user.publicProfile!.introduction!.url}
-              className="h-full w-full"
-            />
-            <button
-              type="button"
-              onClick={() =>
-                updateProfile({
-                  publicProfile: {
-                    ...user.publicProfile,
-                    introduction: null,
-                  },
-                })
-              }
-              className="absolute right-3 top-3 z-20 flex h-8 w-8 items-center justify-center rounded-full bg-black/40 text-white opacity-0 backdrop-blur-sm transition-all duration-150 hover:bg-destructive group-hover:opacity-100"
-              aria-label="Remove introduction video"
-            >
-              <Trash2 className="h-4 w-4" />
-            </button>
-          </div>
-        ) : (
-          <button
-            type="button"
-            onClick={() =>
-              openPicker({
-                accept: "video",
-                onSelect: (item) => {
-                  updateProfile({
-                    publicProfile: {
-                      ...user.publicProfile,
-                      introduction: item[0],
-                    },
-                  });
-                },
-              })
-            }
-            className="flex h-full w-full flex-col items-center justify-center gap-2 text-foreground"
-          >
-            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-muted">
-              <Upload className="h-5 w-5" />
-            </span>
-            <span className="text-sm font-medium">Add introduction video</span>
-          </button>
-        )}
       </div>
     </div>
   );

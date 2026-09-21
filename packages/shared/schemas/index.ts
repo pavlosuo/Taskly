@@ -70,6 +70,8 @@ const passwordField = z.string().superRefine((val, ctx) => {
   }
 });
 
+const passwordFieldWithoutValidation = z.string().min(1, "password.required");
+
 const confirmPasswordField = z.string().min(1, "confirm.required");
 
 const usernameField = z
@@ -167,7 +169,7 @@ const settingsSchema: z.ZodType<Partial<UserSettings>> = z.object({
 
 export const loginSchema: z.ZodType<LoginForm> = z.object({
   email: emailField,
-  password: passwordField,
+  password: passwordFieldWithoutValidation,
 });
 
 export const registerSchema: z.ZodType<RegisterForm> = z

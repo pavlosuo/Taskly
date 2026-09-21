@@ -536,7 +536,9 @@ export class UsersService {
         : isAdmin
           ? "admin"
           : "public";
+
       const doc = stripMediaFields({
+        _id: user._id.toString(),
         lastSeenAt: user.lastSeenAt,
         username: user.username,
         role: user.role,
@@ -548,6 +550,7 @@ export class UsersService {
         },
         publicProfile: user.publicProfile,
       } as PublicProfileUser);
+
       return {
         success: true,
         status: 200,

@@ -6,12 +6,13 @@ import {
   useCallback,
   useMemo,
   ReactNode,
+  useEffect,
 } from "react";
 import { ChatWithMember } from "@shared/types";
 import { axiosApi } from "api/index";
 import { useUser } from "@/providers/UserProvider";
-import { useEffect } from "react";
 import { useSocket } from "@/providers/SocketProvider";
+import { useTabNotifications } from "@/hooks/useTabNotifications";
 
 interface ChatContextType {
   chats: ChatWithMember[];
@@ -21,12 +22,11 @@ interface ChatContextType {
   isInitialized: boolean;
   typingByChat: Record<string, boolean>;
   fetchChats: () => Promise<void>;
-  hydrate: (chats: ChatWithMember[]) => void;
   createChat: (memberId: string) => Promise<ChatWithMember>;
   deleteChat: (chatId: string) => Promise<void>;
   upsertChat: (chat: ChatWithMember) => void;
   setActiveChat: (chat: ChatWithMember | null) => void;
-  playNotificationSound: () => void;
+  notify: () => void;
 }
 
 interface ChatProviderProps {
@@ -44,13 +44,15 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
   const [isInitialized, setIsInitialized] = useState(false);
   const [typingByChat, setTypingByChat] = useState<Record<string, boolean>>({});
 
-  const playNotificationSound = useCallback(() => {
-    const audio = new Audio(
-      "/sounds/universfield-new-notification-012-363675.mp3",
-    );
-    audio.volume = 0.5;
-    audio.play().catch(() => {});
-  }, []);
+  const totalUnread = useMemo(
+    () =>
+      chats.reduce((sum, c) => {
+        return c._id === activeChat?._id ? sum : sum + c.unreadCount;
+      }, 0),
+    [chats, activeChat],
+  );
+
+  const { notify } = useTabNotifications(totalUnread);
 
   const fetchChats = useCallback(async () => {
     try {
@@ -61,10 +63,6 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
       setIsLoading(false);
       setIsInitialized(true);
     }
-  }, []);
-
-  const hydrate = useCallback((initial: ChatWithMember[]) => {
-    setChats(initial);
   }, []);
 
   const createChat = useCallback(async (memberId: string) => {
@@ -97,14 +95,6 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
     });
   }, []);
 
-  const totalUnread = useMemo(
-    () =>
-      chats.reduce((sum, c) => {
-        return c._id === activeChat?._id ? 0 : sum + c.unreadCount;
-      }, 0),
-    [chats, activeChat],
-  );
-
   useEffect(() => {
     if (user) fetchChats();
   }, [user, fetchChats]);
@@ -113,7 +103,7 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
     if (!socket) return;
     const handleChat = ({ chat }: { chat: ChatWithMember }) => {
       upsertChat(chat);
-      playNotificationSound();
+      notify();
     };
     socket.on("chat:new", handleChat);
     socket.on("chat:updated", handleChat);
@@ -121,7 +111,7 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
       socket.off("chat:new", handleChat);
       socket.off("chat:updated", handleChat);
     };
-  }, [socket, upsertChat, playNotificationSound]);
+  }, [socket, upsertChat, notify]);
 
   useEffect(() => {
     if (!socket) return;
@@ -151,12 +141,11 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
         isInitialized,
         typingByChat,
         fetchChats,
-        hydrate,
         createChat,
         deleteChat,
         upsertChat,
         setActiveChat,
-        playNotificationSound,
+        notify,
       }}
     >
       {children}

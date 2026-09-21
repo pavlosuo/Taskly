@@ -64,18 +64,18 @@ export class Server implements IServer {
     subject: string;
     text: string;
   }): Promise<void> {
-    console.log(`Email sent to ${to}: ${subject} ${text}`);
-    if (!this.mailer) {
-      const t = nodemailer.createTransport({
-        host: SMTP_HOST,
-        port: Number(SMTP_PORT),
-        secure: SMTP_SECURE === "true",
-        auth: { user: SMTP_USER, pass: SMTP_PASS },
-      });
-      t.verify().catch((err) => console.error("SMTP error:", err));
-      this.mailer = t;
-    }
     try {
+      console.log(`Email sent to ${to}: ${subject} ${text}`);
+      if (!this.mailer) {
+        const t = nodemailer.createTransport({
+          host: SMTP_HOST,
+          port: Number(SMTP_PORT),
+          secure: SMTP_SECURE === "true",
+          auth: { user: SMTP_USER, pass: SMTP_PASS },
+        });
+        t.verify().catch((err) => console.error("SMTP error:", err));
+        this.mailer = t;
+      }
       await this.mailer.sendMail({
         from: SMTP_USER,
         to,
@@ -207,6 +207,7 @@ export class Server implements IServer {
         const user = await this.getUserFromToken(cookies["token"]);
         if (!user) return next(new Error("unauthorized"));
         socket.data.userId = user._id.toString();
+        socket.data.role = user.role;
         next();
       } catch (err) {
         console.error("SOCKET AUTH ERROR:", err);
@@ -215,15 +216,21 @@ export class Server implements IServer {
     });
     io.on("connection", (socket: Socket) => {
       const userId = socket.data.userId as string;
-      
+      const isAdmin = socket.data.role === "admin";
+      const onlineUserIds = new Set<string>();
       socket.join(`user:${userId}`);
 
-      const onlineUserIds = [...io.sockets.adapter.rooms.keys()]
-        .filter((room) => room.startsWith("user:"))
-        .map((room) => room.slice("user:".length));
-      socket.emit("presence:initial", { userIds: onlineUserIds });
+      for (const [_, s] of io.sockets.sockets) {
+        if (s.data.role !== "admin" && typeof s.data.userId === "string") {
+          onlineUserIds.add(s.data.userId);
+        }
+      }
 
-      socket.broadcast.emit("presence:online", { userId });
+      socket.emit("presence:initial", { userIds: [...onlineUserIds] });
+
+      if (!isAdmin) {
+        socket.broadcast.emit("presence:online", { userId });
+      }
 
       socket.on("chat:join", (chatId: string) => {
         socket.join(`chat:${chatId}`);
@@ -241,6 +248,7 @@ export class Server implements IServer {
             .emit("typing:start", { chatId, userId });
         },
       );
+
       socket.on(
         "typing:stop",
         ({ chatId, memberId }: { chatId: string; memberId: string }) => {
@@ -251,6 +259,7 @@ export class Server implements IServer {
       socket.on("disconnect", async () => {
         const room = io.sockets.adapter.rooms.get(`user:${userId}`);
         const stillHasOtherConnections = room && room.size > 0;
+
         if (!stillHasOtherConnections) {
           try {
             const db = await this.getDb();
@@ -263,10 +272,14 @@ export class Server implements IServer {
           } catch (e) {
             console.error("Update lastSeenAt on disconnect error:", e);
           }
-          io.emit("presence:offline", { userId });
+
+          if (!isAdmin) {
+            io.emit("presence:offline", { userId });
+          }
         }
       });
     });
+
     this._io = io;
   }
 

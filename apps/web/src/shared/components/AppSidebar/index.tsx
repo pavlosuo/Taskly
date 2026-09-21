@@ -4,17 +4,16 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import Link from "next/link";
 import {
   LayoutDashboard,
-  PlusCircle,
   ClipboardList,
   MessageCircle,
   ImagePlus,
 } from "lucide-react";
 import { UserDropdown } from "@/shared/components/UserDropdown";
 import { useUser } from "@/providers/UserProvider";
-import { useMemo } from "react";
 import { useMediaPicker } from "@/providers/MediaPickerProvider";
 import { usePathname } from "next/navigation";
 import { Notify } from "@/shared/components/Notify";
+import { appName } from "@shared/data";
 import clsx from "clsx";
 
 export function AppSidebar() {
@@ -22,11 +21,10 @@ export function AppSidebar() {
   const { openPicker } = useMediaPicker();
   const pathname = usePathname();
 
-  const navItems = useMemo(() => {
+  const navItems = (() => {
     if (user?.role === "client") {
       return [
         { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-        { label: "Post a Task", href: "/post-task", icon: PlusCircle },
         { label: "My Tasks", href: "/tasks", icon: ClipboardList },
         { label: "Chats", href: "/chats", icon: MessageCircle },
       ];
@@ -43,7 +41,7 @@ export function AppSidebar() {
         { label: "Support Tickets", href: "/chats", icon: MessageCircle },
       ];
     }
-  }, [user]);
+  })();
 
   return (
     <Sidebar className="pt-2 pb-2 pl-2 border-none">
@@ -52,7 +50,7 @@ export function AppSidebar() {
           href="/"
           className="py-2 mb-4 logo flex items-center justify-center"
         >
-          Taskly
+          {appName}
         </Link>
         <nav>
           <ul className="flex flex-col gap-1">

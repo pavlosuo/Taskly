@@ -8,15 +8,8 @@ import { ImageDisplay } from "@/shared/components/MediaPicker";
 import { useModal } from "@/providers/ModalProvider";
 import { OnlineStatus } from "@/shared/components/OnlineStatus";
 import { Marker, MarkerContent } from "@/components/ui/marker";
-
-function formatTime(iso: string) {
-  const date = new Date(iso);
-  const now = new Date();
-  const sameDay = date.toDateString() === now.toDateString();
-  return sameDay
-    ? date.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })
-    : date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
-}
+import { useTheme } from "@/providers/ThemeProvider";
+import clsx from "clsx";
 
 export const ChatListItem: FC<{ chat: ChatWithMember }> = ({ chat }) => {
   const { deleteChat, typingByChat } = useChats();
@@ -24,6 +17,13 @@ export const ChatListItem: FC<{ chat: ChatWithMember }> = ({ chat }) => {
   const { confirm } = useModal();
   const preview = chat.lastMessage ? (chat.lastMessage.text ?? null) : null;
   const isTyping = typingByChat[chat._id] ?? false;
+  const date = new Date(chat?.lastMessage?.createdAt || "");
+  const now = new Date();
+  const sameDay = date.toDateString() === now.toDateString();
+  const { lang } = useTheme();
+  const time = sameDay
+    ? date.toLocaleTimeString(lang, { hour: "2-digit", minute: "2-digit" })
+    : date.toLocaleDateString(lang, { month: "short", day: "numeric" });
 
   const handleDelete = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -67,20 +67,18 @@ export const ChatListItem: FC<{ chat: ChatWithMember }> = ({ chat }) => {
         )}
         <OnlineStatus user={chat.member} variant="compact" />
       </div>
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center justify-between gap-2">
-          <span
-            className={`truncate text-sm ${chat.unreadCount > 0 ? "font-semibold text-foreground" : "font-medium text-foreground"}`}
-          >
-            {chat.member.fullName}
-          </span>
-          {chat.lastMessage && (
-            <span className="shrink-0 text-xs text-grey">
-              {formatTime(chat.lastMessage.createdAt)}
-            </span>
+      <div className="flex-1 min-w-0 grid grid-cols-[1fr_max-content] grid-rows-2 gap-0.5">
+        <span
+          className={clsx(
+            "truncate text-sm",
+            chat.unreadCount > 0
+              ? "font-semibold text-foreground"
+              : "font-medium text-foreground",
           )}
-        </div>
-        <div className="flex items-center gap-1 mt-0.5">
+        >
+          {chat.member.fullName}
+        </span>
+        <div className="flex items-center gap-1">
           {chat.lastMessage?.hasMedia && (
             <Paperclip className="w-3.5 h-3.5 text-grey shrink-0" />
           )}
@@ -94,14 +92,17 @@ export const ChatListItem: FC<{ chat: ChatWithMember }> = ({ chat }) => {
               </MarkerContent>
             </Marker>
           ) : (
-            <p
-              className={`truncate text-xs h-4 flex items-center text-foreground`}
-            >
+            <p className="truncate text-xs h-4 flex items-center text-foreground">
               {preview ??
                 (chat.lastMessage?.hasMedia ? "Attachment" : "No messages yet")}
             </p>
           )}
         </div>
+        {chat.lastMessage && (
+          <span className="shrink-0 text-xs text-grey row-span-full col-start-2 self-center">
+            {time}
+          </span>
+        )}
       </div>
       <button
         onClick={handleDelete}

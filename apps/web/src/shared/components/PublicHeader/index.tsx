@@ -8,6 +8,7 @@ import { useUser } from "@/providers/UserProvider";
 import { AccessReason } from "@shared/types";
 import { navLinks } from "@shared/data";
 import { Notify } from "@/shared/components/Notify";
+import { appName } from "@shared/data";
 
 export function PublicHeader({
   accessReason = "public",
@@ -21,7 +22,7 @@ export function PublicHeader({
       <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between gap-4">
         <div className="flex items-center gap-8 min-w-0">
           <Link href="/" className="logo shrink-0">
-            Taskly
+            {appName}
           </Link>
           <nav className="hidden md:flex items-center gap-1 overflow-x-auto">
             {navLinks.map((item) => {

@@ -14,12 +14,17 @@ const homePage: Record<RoleNested, string> = {
 export async function authGuard(
   requiredRoles: RoleNested[],
 ): Promise<PublicUser> {
-  const axiosApi = await getServerApi();
-  const { data } = await axiosApi.me();
-  const { user } = data;
-  const currentRole: RoleNested = user?.role ?? "guest";
-  if (!requiredRoles.includes(currentRole)) {
-    redirect(homePage[currentRole]);
+  try {
+    const axiosApi = await getServerApi();
+    const { data } = await axiosApi.me();
+    const { user } = data;
+    const currentRole: RoleNested = user?.role ?? "guest";
+    if (!requiredRoles.includes(currentRole)) {
+      redirect(homePage[currentRole]);
+    }
+    return user;
+  } catch (error) {
+    console.error(error);
+    redirect(homePage["guest"]);
   }
-  return user;
 }

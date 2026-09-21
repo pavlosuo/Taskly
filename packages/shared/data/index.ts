@@ -12,6 +12,8 @@ export const countryList = countries.map((c) => ({
 
 export type Country = (typeof countryList)[number];
 
+export const appName = "Taskly";
+
 export const navLinks = [
   { label: "Find Taskers", href: "/users" },
   { label: "Browse Tasks", href: "/tasks" },

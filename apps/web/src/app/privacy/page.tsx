@@ -1,7 +1,7 @@
 import { Screens } from "@/screens";
 import { getMetaData } from "@/utils/Metadata";
 import { getServerApi } from "api/server";
-import { AutoLogoutPopup } from "@/shared/components/AutoLogoutPopup";
+import { FloatingSettings } from "@/shared/components/FloatingSettings";
 
 export const metadata = getMetaData({
   title: "Privacy",
@@ -13,7 +13,7 @@ export default async function Profile() {
   const { data } = await axiosApi.getPolicyData();
   return (
     <main className="page">
-      <AutoLogoutPopup />
+      <FloatingSettings />
       <Screens.Privacy.Main data={data.data} />
     </main>
   );
