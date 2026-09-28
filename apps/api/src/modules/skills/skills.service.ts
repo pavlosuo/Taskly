@@ -18,7 +18,7 @@ export class SkillsService {
       return { success: true, status: 200, data: { items } };
     } catch (e) {
       console.error("Search skills error:", e);
-      return { success: false, status: 500, message: "Server error." };
+      return { success: false, status: 500, message: "errors.server" };
     }
   }
 
@@ -45,10 +45,10 @@ export class SkillsService {
         },
         { upsert: true, returnDocument: "after" },
       );
-      return { success: true, status: 200, data: { skill: result } };
+      return { success: true, status: 200, data: result };
     } catch (e) {
       console.error("Upsert skill error:", e);
-      return { success: false, status: 500, message: "Server error." };
+      return { success: false, status: 500, message: "errors.server" };
     }
   }
 }

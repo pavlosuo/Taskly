@@ -9,12 +9,13 @@ import {
   Chat,
   Message,
   ChatLastMessage,
+  Task,
+  TaskResponse,
 } from "@shared/types";
 import { Server as SocketIOServer } from "socket.io";
 
-export interface User extends Omit<PublicUser, "_id" | "createdAt"> {
+export interface User extends Omit<PublicUser, "_id"> {
   _id: ObjectId;
-  createdAt: Date;
   otps?: Partial<Record<OtpPurpose, OtpRecord>>;
   passwordHash: string;
 }
@@ -24,41 +25,23 @@ export interface MediaItemBack extends Omit<MediaItem, "_id" | "ownerId"> {
   ownerId: ObjectId;
 }
 
-export interface ChatLastMessageBack extends Omit<
-  ChatLastMessage,
-  "senderId" | "createdAt"
-> {
-  createdAt: Date;
+export interface ChatLastMessageBack extends Omit<ChatLastMessage, "senderId"> {
   senderId: ObjectId;
 }
 
 export interface ChatBack extends Omit<
   Chat,
-  | "_id"
-  | "participants"
-  | "deletedBy"
-  | "createdAt"
-  | "updatedAt"
-  | "lastMessage"
+  "_id" | "participants" | "deletedBy" | "lastMessage"
 > {
   _id: ObjectId;
   participants: ObjectId[];
   deletedBy: ObjectId[];
   lastMessage: ChatLastMessageBack | null;
-  createdAt: Date;
-  updatedAt: Date;
 }
 
 export interface MessageBack extends Omit<
   Message,
-  | "_id"
-  | "chatId"
-  | "senderId"
-  | "media"
-  | "readBy"
-  | "reactions"
-  | "createdAt"
-  | "updatedAt"
+  "_id" | "chatId" | "senderId" | "media" | "readBy" | "reactions"
 > {
   _id: ObjectId;
   chatId: ObjectId;
@@ -66,8 +49,25 @@ export interface MessageBack extends Omit<
   mediaIds: ObjectId[];
   readBy: ObjectId[];
   reactions: { userId: ObjectId; emoji: string }[];
-  createdAt: Date;
-  updatedAt: Date;
+}
+
+export interface TaskBack extends Omit<
+  Task,
+  "_id" | "clientId" | "assignedTaskerId"
+> {
+  _id: ObjectId;
+  clientId: ObjectId;
+  assignedTaskerId: ObjectId | null;
+}
+
+export interface TaskResponseBack extends Omit<
+  TaskResponse,
+  "_id" | "taskId" | "clientId" | "taskerId"
+> {
+  _id: ObjectId;
+  taskId: ObjectId;
+  clientId: ObjectId;
+  taskerId: ObjectId;
 }
 
 export interface IServer {

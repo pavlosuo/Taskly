@@ -15,17 +15,6 @@
 .tiptap {
   padding: 1.5rem !important;
   border: 1px solid var(--border) !important;
-  &.tiptap-none {
-    padding: 0 !important;
-    border: none !important;
-    margin-top: 1rem !important;
-  }
-}
-
-.tiptap-wrapper {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
 }
 
 .text-wrapper {

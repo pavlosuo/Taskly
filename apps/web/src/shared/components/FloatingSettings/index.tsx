@@ -36,7 +36,7 @@ export function FloatingSettings() {
         <Settings className="h-4 w-4" />
       </Button>
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="sm:max-w-md border-border">
+        <DialogContent>
           <DialogHeader>
             <DialogTitle>Settings</DialogTitle>
             <DialogDescription>

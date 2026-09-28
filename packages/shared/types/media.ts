@@ -6,7 +6,7 @@ export type MediaItem = {
   originalName: string;
   size: number;
   mimeType: string;
-  uploadedAt: string;
+  uploadedAt: Date;
   publicSources: string[];
   chatIds: string[];
 };

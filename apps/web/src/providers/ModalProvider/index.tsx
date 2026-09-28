@@ -117,7 +117,7 @@ export const ModalProvider: React.FC<{ children: ReactNode }> = ({
     <ModalContext.Provider value={{ alert, confirm }}>
       {children}
       <Dialog open={!!modalState.type} onOpenChange={handleOpenChange}>
-        <DialogContent className="sm:max-w-sm border-border">
+        <DialogContent className="sm:max-w-sm">
           <DialogHeader>
             <DialogTitle>{modalState.title}</DialogTitle>
             <DialogDescription>{modalState.message}</DialogDescription>

@@ -118,7 +118,7 @@ export function AutoLogoutPopupInside() {
   return (
     <Dialog open={showPopup} onOpenChange={(open) => !open && handleStay()}>
       <DialogContent
-        className="ssm:max-w-100 gap-0 p-0 overflow-hidden"
+        className="sm:max-w-100 gap-0 p-0 overflow-hidden"
         onInteractOutside={(e) => {
           e.preventDefault();
           handleStay();

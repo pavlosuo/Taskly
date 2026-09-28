@@ -15,7 +15,6 @@ export function Separator({
   const semanticProps = decorative
     ? { role: "none" }
     : { "aria-orientation": ariaOrientation, role: "separator" };
-
   return (
     <div
       className={cn("tiptap-separator", className)}

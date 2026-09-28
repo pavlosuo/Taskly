@@ -14,7 +14,7 @@ export class PolicyService {
       return {
         policyContent: "",
         policyTitle: "",
-        updatedAt: "",
+        updatedAt: new Date(),
       };
     }
   }

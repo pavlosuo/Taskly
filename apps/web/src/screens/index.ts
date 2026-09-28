@@ -5,6 +5,7 @@ import * as Error from "./error";
 import * as PublicProfile from "./public-profile";
 import * as Privacy from "./privacy";
 import * as Chats from "./chats";
+import * as Tasks from "./tasks";
 
 export const Screens = {
   Auth,
@@ -14,4 +15,5 @@ export const Screens = {
   PublicProfile,
   Privacy,
   Chats,
+  Tasks,
 };

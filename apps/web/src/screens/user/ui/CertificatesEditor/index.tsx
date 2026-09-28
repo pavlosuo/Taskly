@@ -1,12 +1,11 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, startTransition } from "react";
 import { X, Plus, Loader2, BadgeCheck, ImageIcon, Trash2 } from "lucide-react";
 import { Input } from "@/shared/components/Input";
 import { axiosApi } from "api/index";
 import { PublicProfileCertificate, MediaItem } from "@shared/types";
 import { useMediaPicker } from "@/providers/MediaPickerProvider";
 import { ImageDisplay } from "@/shared/components/MediaPicker";
-import { startTransition } from "react";
 import clsx from "clsx";
 
 export function CertificatesEditor({
@@ -48,8 +47,7 @@ export function CertificatesEditor({
     }
     try {
       const { data } = await axiosApi.upsertCertificate(label, description);
-      const cert = data.certificate;
-      onChange([...value, { value: cert._id, label: cert.label }]);
+      onChange([...value, { value: data._id, label: data.label }]);
     } catch {
       onChange([...value, { value: label, label }]);
     }

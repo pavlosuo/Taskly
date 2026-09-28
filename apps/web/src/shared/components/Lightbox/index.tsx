@@ -84,7 +84,6 @@ export function Lightbox({ items, index, onClose, onIndexChange }: Props) {
           <Download className="w-4 h-4" />
         )}
       </button>
-
       {items.length > 1 && (
         <button
           type="button"

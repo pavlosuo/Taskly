@@ -1,6 +1,6 @@
 import { getServerApi } from "api/server";
-import { redirect } from "next/navigation";
 import { Role, PublicUser } from "@shared/types";
+import { notFound, redirect } from "next/navigation";
 
 type RoleNested = "guest" | "admin" | Role;
 
@@ -13,7 +13,7 @@ const homePage: Record<RoleNested, string> = {
 
 export async function authGuard(
   requiredRoles: RoleNested[],
-): Promise<PublicUser> {
+): Promise<PublicUser | null> {
   try {
     const axiosApi = await getServerApi();
     const { data } = await axiosApi.me();
@@ -23,8 +23,7 @@ export async function authGuard(
       redirect(homePage[currentRole]);
     }
     return user;
-  } catch (error) {
-    console.error(error);
-    redirect(homePage["guest"]);
+  } catch {
+    notFound();
   }
 }

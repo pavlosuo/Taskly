@@ -14,7 +14,7 @@ export interface ChatLastMessage {
   text: string | null;
   hasMedia: boolean;
   senderId: string;
-  createdAt: string;
+  createdAt: Date;
 }
 
 export interface Chat {
@@ -22,8 +22,8 @@ export interface Chat {
   participants: string[];
   deletedBy: string[];
   lastMessage: ChatLastMessage | null;
-  createdAt: string;
-  updatedAt: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface ChatWithMember extends Chat {
@@ -40,8 +40,8 @@ export interface Message {
   readBy: string[];
   reactions: MessageReaction[];
   edited: boolean;
-  createdAt: string;
-  updatedAt: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface CreateChatPayload {

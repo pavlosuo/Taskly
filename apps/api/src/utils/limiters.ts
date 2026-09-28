@@ -10,7 +10,7 @@ export const authLimiter = rateLimit({
 
 export const globalLimiter = rateLimit({
   windowMs: 60 * 1000,
-  max: 100,
+  max: 50,
   message: { success: false, message: "Too many requests." },
 });
 
@@ -27,7 +27,7 @@ export const otpLimiter = rateLimit({
 
 export const searchLimiter = rateLimit({
   windowMs: 60 * 1000,
-  max: 60,
+  max: 50,
   standardHeaders: true,
   legacyHeaders: false,
   message: {

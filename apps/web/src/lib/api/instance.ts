@@ -16,6 +16,13 @@ import {
   CommonResponse,
   PublicProfileUser,
   AccessReason,
+  Task,
+  TaskCreateForm,
+  TaskUpdateForm,
+  TaskListQuery,
+  TaskList,
+  TaskResponseItem,
+  TaskResponseCreateForm,
 } from "@shared/types";
 import axios, { type AxiosInstance } from "axios";
 
@@ -125,7 +132,7 @@ export const methods = (api: AxiosInstance) => {
       ),
 
     upsertSkill: (label: string) =>
-      api.post<{ skill: { _id: string; label: string } }>(`/api/skills`, {
+      api.post<{ _id: string; label: string }>(`/api/skills`, {
         label,
       }),
 
@@ -136,7 +143,9 @@ export const methods = (api: AxiosInstance) => {
 
     upsertCertificate: (label: string, description?: string) =>
       api.post<{
-        certificate: { _id: string; label: string; description?: string };
+        _id: string;
+        label: string;
+        description?: string;
       }>(`/api/certificates`, { label, description }),
 
     createChat: (memberId: string) =>
@@ -185,6 +194,49 @@ export const methods = (api: AxiosInstance) => {
         {
           reaction,
         },
+      ),
+
+    createTask: (payload: TaskCreateForm) =>
+      api.post<{ task: Task }>("/api/tasks", payload),
+
+    getTasks: (query?: TaskListQuery) =>
+      api.get<TaskList>("/api/tasks", { params: query }),
+
+    getTask: (id: string) => api.get<{ task: Task }>(`/api/tasks/${id}`),
+
+    updateTask: (id: string, payload: TaskUpdateForm) =>
+      api.patch<CommonResponse>(`/api/tasks/${id}`, payload),
+
+    deleteTask: (id: string) => api.delete<CommonResponse>(`/api/tasks/${id}`),
+
+    cancelTask: (id: string) =>
+      api.post<CommonResponse>(`/api/tasks/${id}/cancel`),
+
+    completeTask: (id: string) =>
+      api.post<CommonResponse>(`/api/tasks/${id}/complete`),
+
+    createTaskResponse: (taskId: string, payload: TaskResponseCreateForm) =>
+      api.post<{ response: TaskResponseItem }>(
+        `/api/tasks/${taskId}/responses`,
+        payload,
+      ),
+
+    getTaskResponses: (taskId: string) =>
+      api.get<{ items: TaskResponseItem[] }>(`/api/tasks/${taskId}/responses`),
+
+    acceptTaskResponse: (taskId: string, responseId: string) =>
+      api.post<CommonResponse>(
+        `/api/tasks/${taskId}/responses/${responseId}/accept`,
+      ),
+
+    declineTaskResponse: (taskId: string, responseId: string) =>
+      api.post<CommonResponse>(
+        `/api/tasks/${taskId}/responses/${responseId}/decline`,
+      ),
+
+    withdrawTaskResponse: (taskId: string, responseId: string) =>
+      api.delete<CommonResponse>(
+        `/api/tasks/${taskId}/responses/${responseId}`,
       ),
   };
 };

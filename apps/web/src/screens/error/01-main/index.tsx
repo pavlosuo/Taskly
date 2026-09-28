@@ -5,9 +5,11 @@ import { Button } from "@/components/ui/button";
 import { useTheme } from "@/providers/ThemeProvider";
 import { useEffect } from "react";
 import { appName } from "@shared/data";
+import { useUser } from "@/providers/UserProvider";
 
 export const Main = ({ type = "error" }: { type: "error" | "not-found" }) => {
   const { theme } = useTheme();
+  const { user } = useUser();
   const isError = type === "error";
 
   useEffect(() => {
@@ -40,9 +42,15 @@ export const Main = ({ type = "error" }: { type: "error" | "not-found" }) => {
         {!isError && (
           <>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <Button asChild>
-                <Link href="/">Go to dashboard</Link>
-              </Button>
+              {user ? (
+                <Button asChild>
+                  <Link href="/profile">Profile</Link>
+                </Button>
+              ) : (
+                <Button asChild>
+                  <Link href="/login">Login</Link>
+                </Button>
+              )}
               <Button
                 asChild
                 variant="outline"
@@ -51,15 +59,6 @@ export const Main = ({ type = "error" }: { type: "error" | "not-found" }) => {
                 <Link href="/services">View Services</Link>
               </Button>
             </div>
-            <p className="mt-8 text-xs text-white/75">
-              Looking for something specific?{" "}
-              <Link
-                href="/contact"
-                className="text-white/70 underline underline-offset-4 hover:text-white"
-              >
-                Tell me about your project.
-              </Link>
-            </p>
           </>
         )}
       </div>

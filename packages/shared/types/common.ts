@@ -1,7 +1,7 @@
 export type PolicyData = {
   policyContent: string;
   policyTitle: string;
-  updatedAt?: string;
+  updatedAt?: Date;
 };
 
 export type ZodErrors<T> = {
@@ -24,3 +24,8 @@ export type PasswordStrength = {
 } | null;
 
 export type AccessReason = "same-account" | "admin" | "public";
+
+export type Tag = {
+  value: string;
+  label: string;
+};

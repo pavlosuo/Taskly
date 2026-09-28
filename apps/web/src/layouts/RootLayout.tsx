@@ -10,6 +10,7 @@ import { LightboxProvider } from "@/providers/LightboxProvider";
 import { SocketProvider } from "@/providers/SocketProvider";
 import { PresenceProvider } from "@/providers/PresenceProvider";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { TaskProvider } from "@/providers/TaskProvider";
 
 type IRootLayout = {
   user: PublicUser | null;
@@ -35,7 +36,9 @@ export const RootLayout: FC<PropsWithChildren<IRootLayout>> = ({
               >
                 <MediaPickerProvider>
                   <ChatProvider>
-                    <LightboxProvider>{children}</LightboxProvider>
+                    <TaskProvider>
+                      <LightboxProvider>{children}</LightboxProvider>
+                    </TaskProvider>
                   </ChatProvider>
                 </MediaPickerProvider>
               </ThemeProvider>

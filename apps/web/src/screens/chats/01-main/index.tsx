@@ -59,7 +59,7 @@ export const Main = ({ chats: initialChats }: { chats: ChatWithMember[] }) => {
   };
 
   return (
-    <div className="w-full pb-6 px-4">
+    <div className="w-full pb-6 px-4 pt-1">
       <div className="relative">
         <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-grey pointer-events-none" />
         <Input

@@ -2,7 +2,6 @@ import { memo } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { OtpChannel } from "@shared/types";
 import Image from "next/image";
-import { useTranslation } from "react-i18next";
 import { Label as LabelPrimitive } from "@/components/ui/label";
 import clsx from "clsx";
 

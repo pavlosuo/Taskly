@@ -79,7 +79,7 @@ export class OtpService {
       });
     } catch (error) {
       console.error("Send OTP error:", error);
-      return { success: false, status: 500, message: "Server error." };
+      return { success: false, status: 500, message: "errors.server" };
     }
   }
 
@@ -116,7 +116,7 @@ export class OtpService {
       return { success: true, status: 200 };
     } catch (error) {
       console.error("Send OTP error:", error);
-      return { success: false, status: 500, message: "Server error." };
+      return { success: false, status: 500, message: "errors.server" };
     }
   }
 
@@ -143,7 +143,7 @@ export class OtpService {
       return { ok: true, record };
     } catch (error) {
       console.error("Consume OTP error:", error);
-      return { ok: false, status: 500, message: "Server error." };
+      return { ok: false, status: 500, message: "errors.server" };
     }
   }
 }

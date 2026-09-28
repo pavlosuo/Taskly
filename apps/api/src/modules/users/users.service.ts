@@ -14,15 +14,16 @@ import {
   ChatMemberPreview,
 } from "@shared/types";
 import { OtpService } from "@/modules/otp/otp.service";
-import { toPublicUser, extractMediaId, stripMediaFields } from "@/utils";
+import {
+  toPublicUser,
+  extractMediaId,
+  stripMediaFields,
+  escapeRegex,
+} from "@/utils";
 import { IServer, User } from "@/types";
 import { MediaService } from "@/modules/media/media.service";
 import { Response, Request } from "express";
 import bcrypt from "bcrypt";
-
-function escapeRegex(s: string) {
-  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
 
 export class UsersService {
   private otpService: OtpService;
@@ -333,7 +334,7 @@ export class UsersService {
       };
     } catch (error) {
       console.error("Update profile error:", error);
-      return { success: false, status: 500, message: "Server error." };
+      return { success: false, status: 500, message: "errors.server" };
     }
   }
 
@@ -344,7 +345,7 @@ export class UsersService {
       return { success: true, status: 200 };
     } catch (error) {
       console.error("Deactivate account error:", error);
-      return { success: false, status: 500, message: "Server error." };
+      return { success: false, status: 500, message: "errors.server" };
     }
   }
 
@@ -396,7 +397,7 @@ export class UsersService {
       };
     } catch (error) {
       console.error("Verify phone OTP error:", error);
-      return { success: false, status: 500, message: "Server error." };
+      return { success: false, status: 500, message: "errors.server" };
     }
   }
 
@@ -440,7 +441,7 @@ export class UsersService {
       };
     } catch (error) {
       console.error("Verify email OTP error:", error);
-      return { success: false, status: 500, message: "Server error." };
+      return { success: false, status: 500, message: "errors.server" };
     }
   }
 
@@ -494,7 +495,7 @@ export class UsersService {
       };
     } catch (error) {
       console.error("Change password error:", error);
-      return { success: false, status: 500, message: "Server error." };
+      return { success: false, status: 500, message: "errors.server" };
     }
   }
 
@@ -566,7 +567,7 @@ export class UsersService {
       return {
         success: false,
         status: 500,
-        message: "Server error.",
+        message: "errors.server",
       };
     }
   }
@@ -611,7 +612,7 @@ export class UsersService {
       return { success: true, status: 200, data: { items } };
     } catch (e) {
       console.error("Search users error:", e);
-      return { success: false, status: 500, message: "Server error." };
+      return { success: false, status: 500, message: "errors.server" };
     }
   }
 }

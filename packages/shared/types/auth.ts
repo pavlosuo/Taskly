@@ -19,7 +19,7 @@ export type RegisterForm = {
   username: string;
   fullName: string;
   phone: string;
-  role: Role | "";
+  role: Role;
   code: string;
   fullPhone: string;
   agreementAccepted: boolean;

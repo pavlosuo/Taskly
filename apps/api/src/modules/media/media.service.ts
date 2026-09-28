@@ -34,7 +34,7 @@ export class MediaService {
       };
     } catch (e) {
       console.error("Upload media error:", e);
-      return { success: false, status: 500, message: "Server error." };
+      return { success: false, status: 500, message: "errors.server" };
     }
   }
 
@@ -49,7 +49,7 @@ export class MediaService {
       return { success: true, status: 200, data: { items } };
     } catch (e) {
       console.error("Get media error:", e);
-      return { success: false, status: 500, message: "Server error." };
+      return { success: false, status: 500, message: "errors.server" };
     }
   }
 
@@ -66,7 +66,7 @@ export class MediaService {
       return { success: true, status: 200 };
     } catch (e) {
       console.error("Delete media error:", e);
-      return { success: false, status: 500, message: "Server error." };
+      return { success: false, status: 500, message: "errors.server" };
     }
   }
 
@@ -91,7 +91,7 @@ export class MediaService {
       return { success: true, status: 200 };
     } catch (e) {
       console.error("Add public source error:", e);
-      return { success: false, status: 500, message: "Server error." };
+      return { success: false, status: 500, message: "errors.server" };
     }
   }
 
@@ -116,7 +116,7 @@ export class MediaService {
       };
     } catch (e) {
       console.error("Remove public source error:", e);
-      return { success: false, status: 500, message: "Server error." };
+      return { success: false, status: 500, message: "errors.server" };
     }
   }
 
@@ -183,7 +183,7 @@ export class MediaService {
       };
     } catch (e) {
       console.error("Serve file error:", e);
-      return { success: false, status: 500, message: "Server error." };
+      return { success: false, status: 500, message: "errors.server" };
     }
   }
 }

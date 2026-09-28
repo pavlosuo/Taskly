@@ -72,6 +72,8 @@ export const UserProvider = ({
       const { data } = await axiosApi.register(payload);
       setUser(data.user);
       return data;
+    } catch (error) {
+      throw error;
     } finally {
       setIsLoading(false);
     }

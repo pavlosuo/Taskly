@@ -42,7 +42,6 @@ export const PolicyDataProvider = ({
       await axiosApi.savePolicyData(policyData);
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Unknown error");
-      throw e;
     } finally {
       setLoading(false);
     }

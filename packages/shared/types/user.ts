@@ -81,21 +81,21 @@ export interface PublicUser {
   email: string;
   newEmail?: string;
   role: "admin" | Role;
-  createdAt: string;
+  createdAt: Date;
   acceptance: UserAcceptance;
   payout: Payout;
   profile: UserProfile;
   settings: UserSettings;
   publicProfile: PublicProfile;
-  lastSeenAt?: string;
+  lastSeenAt?: Date;
 }
 
 export type PublicProfileUser = {
   _id: string;
-  lastSeenAt: string;
+  lastSeenAt: Date;
   username: string;
   role: string;
-  createdAt: string | Date;
+  createdAt: Date;
   profile: {
     fullName: string;
     avatar: MediaItem | undefined | null;

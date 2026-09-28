@@ -14,7 +14,7 @@ export class PolicyController {
       return res.json({ success: true, data });
     } catch (e) {
       console.error("getPolicy error:", e);
-      return res.status(500).json({ success: false, message: "Server error." });
+      return res.status(500).json({ success: false, message: "errors.server" });
     }
   };
 
@@ -33,7 +33,7 @@ export class PolicyController {
       return res.json({ success: true });
     } catch (e) {
       console.error("updatePolicy error:", e);
-      return res.status(500).json({ success: false, message: "Server error." });
+      return res.status(500).json({ success: false, message: "errors.server" });
     }
   };
 }

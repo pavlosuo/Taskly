@@ -1,4 +1,4 @@
-import { PasswordStrength } from "@shared/types";
+import { PasswordStrength, Tag } from "@shared/types";
 
 const CHECKS = [
   {
@@ -54,14 +54,11 @@ export function validateIban(raw: string) {
 
 export function getPasswordStrength(password?: string): PasswordStrength {
   if (!password) return null;
-
   const results = Object.fromEntries(
     CHECKS.map((c) => [c.key, c.test(password)]),
   ) as Record<CheckKey, boolean>;
-
   const tips = CHECKS.filter((c) => !results[c.key]).map((c) => c.tip);
   const score = Object.values(results).filter(Boolean).length;
-
   if (!results.hasMinLength || !results.hasNoSpaces) {
     return { label: "password.strength.invalid", color: "text-red-600", tips };
   }
@@ -78,7 +75,6 @@ export function getPasswordStrength(password?: string): PasswordStrength {
   if (score === 5) {
     return { label: "password.strength.strong", color: "text-green-500", tips };
   }
-
   return {
     label: "password.strength.veryStrong",
     color: "text-green-600",
@@ -98,4 +94,18 @@ export function validatePassword(val: string): true | string {
 export function bigFirstLetter(normalized: string) {
   if (!normalized) return "";
   return normalized[0].toUpperCase() + normalized.slice(1);
+}
+
+export function normalizeTagList(values: Tag[]): Tag[] {
+  const seen = new Set<string>();
+  const result: Tag[] = [];
+  for (const raw of values) {
+    const trimmed = raw.value.trim();
+    const key = trimmed.toLowerCase();
+    if (trimmed && !seen.has(key)) {
+      seen.add(key);
+      result.push(raw);
+    }
+  }
+  return result;
 }

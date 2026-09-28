@@ -8,6 +8,10 @@ import { ObjectId, WithId, Document } from "mongodb";
 export * from "./limiters";
 export * from "./upload";
 
+export function escapeRegex(s: string) {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 export function parseCookieHeader(header: string): Record<string, string> {
   const result: Record<string, string> = {};
   for (const part of header.split(";")) {
@@ -31,17 +35,17 @@ export function toPublicUser(
 
   const online = !user.settings?.checkboxes?.noOnlineStatus
     ? {
-        lastSeenAt: user.lastSeenAt as string,
+        lastSeenAt: user.lastSeenAt,
       }
     : {};
 
   return {
-    _id: user._id as string,
+    _id: user._id.toString(),
     publicLink: user.publicLink,
     username: user.username,
     email: user.email,
     role: user.role,
-    createdAt: user.createdAt as string,
+    createdAt: user.createdAt,
     acceptance: user.acceptance,
     payout: user.payout,
     profile: user.profile,

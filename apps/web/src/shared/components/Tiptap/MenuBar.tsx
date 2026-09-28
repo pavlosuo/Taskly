@@ -28,6 +28,7 @@ const btn = (
     key={label}
     onClick={onClick}
     disabled={disabled}
+    type="button"
     className={clsx(
       "h-7 min-w-7 px-2 rounded-md text-sm font-medium transition-colors",
       active ? "bg-primary text-white" : "text-foreground hover:bg-muted",

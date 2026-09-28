@@ -13,6 +13,7 @@ import { mediaRoutes } from "@/modules/media/media.routes";
 import { skillsRoutes } from "@/modules/skills/skills.routes";
 import { certificatesRoutes } from "@/modules/certificates/certificates.routes";
 import { chatRoutes } from "@/modules/chat/chat.routes";
+import { taskRoutes } from "@/modules/task/task.routes";
 
 export function createApp(server: Server): Application {
   const app = express();
@@ -25,7 +26,7 @@ export function createApp(server: Server): Application {
       credentials: true,
     }),
   );
-  app.use(globalLimiter);
+  // app.use(globalLimiter);
   app.use("/api/auth", authRoutes(server));
   app.use("/api/otp", otpRoutes(server));
   app.use("/api/users", usersRoutes(server));
@@ -34,6 +35,7 @@ export function createApp(server: Server): Application {
   app.use("/api/skills", skillsRoutes(server));
   app.use("/api/certificates", certificatesRoutes(server));
   app.use("/api/chats", chatRoutes(server));
+  app.use("/api/tasks", taskRoutes(server));
   app.post("/api/preferences", (req, res) => {
     const { theme, lang } = req.body;
     const cookieOptions = {
@@ -67,7 +69,7 @@ export function createApp(server: Server): Application {
     res.status(500).json({
       success: false,
       status: 500,
-      message: "Server error.",
+      message: "errors.server",
     });
   });
   return app;

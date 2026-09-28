@@ -5,6 +5,7 @@ import { EditorContent, useEditor, EditorEvents } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { MenuBar, MenuBarSkeleton } from "./MenuBar";
 import parse from "html-react-parser";
+
 const EXTENSIONS = [TextStyleKit, StarterKit];
 
 export const Tiptap = ({
@@ -22,7 +23,7 @@ export const Tiptap = ({
   });
   const parsedContent = useMemo(() => (value ? parse(value) : null), [value]);
   return (
-    <div className="tiptap-wrapper text-wrapper">
+    <div className="flex flex-col gap-1 text-wrapper">
       {editor ? (
         <>
           <MenuBar editor={editor} />
@@ -31,7 +32,7 @@ export const Tiptap = ({
       ) : (
         <>
           <MenuBarSkeleton />
-          <div className="tiptap">{parsedContent}</div>
+          <div className="p-6 border border-border">{parsedContent}</div>
         </>
       )}
     </div>

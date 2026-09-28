@@ -8,7 +8,7 @@ h3,
 h4,
 h5,
 h6 {
-  font-family: $font-family-titles;
+  font-family: $font-family-titles !important;
 }
 
 @mixin respond($breakpoint) {
@@ -98,13 +98,11 @@ h6 {
 
 @mixin aspect-ratio($width, $height) {
   position: relative;
-
   &::before {
     content: "";
     display: block;
     padding-bottom: percentage($height / $width);
   }
-
   > * {
     position: absolute;
     top: 0;

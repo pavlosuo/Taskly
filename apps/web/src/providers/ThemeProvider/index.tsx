@@ -75,13 +75,11 @@ export const ThemeProvider = ({
     channel.onmessage = (event: MessageEvent<unknown>) => {
       if (!isSyncMessage(event.data)) return;
       const message = event.data;
-
       if (message.type === "theme") {
         setTheme(message.value);
         document.documentElement.dataset.theme = message.value;
         return;
       }
-
       i18n.changeLanguage(message.value, (err) => {
         if (err) {
           console.error("Failed to sync language:", err);
@@ -91,7 +89,6 @@ export const ThemeProvider = ({
         setLang(message.value);
       });
     };
-
     return () => {
       channel.close();
       channelRef.current = null;

@@ -113,7 +113,7 @@ const mediaItemField = z.object({
   originalName: z.string(),
   size: z.number(),
   mimeType: z.string(),
-  uploadedAt: z.string(),
+  uploadedAt: z.date(),
   publicSources: z.array(z.string()),
   chatIds: z.array(z.string()),
 }) satisfies z.ZodType<MediaItem>;
@@ -256,3 +256,51 @@ export const changePasswordSchema = z
     newPassword: passwordField,
   })
   .strict();
+
+export const taskLocationSchema = z.object({
+  address: z.string().trim().min(3).max(200),
+  lat: z.number().min(-90).max(90),
+  lng: z.number().min(-180).max(180),
+});
+
+export const taskBudgetSchema = z
+  .object({
+    amount: z.number().positive().optional(),
+    negotiable: z.boolean().default(false),
+  })
+  .refine((b) => b.negotiable || typeof b.amount === "number");
+
+export const taskCreateSchema = z.object({
+  title: z
+    .string()
+    .trim()
+    .min(5, "task.title.tooShort")
+    .max(120, "task.title.tooLong"),
+  description: z
+    .string()
+    .trim()
+    .min(20, "task.description.tooShort")
+    .max(5000, "task.description.tooLong"),
+  skills: z
+    .array(publicProfileSkillSchema)
+    .max(15, "task.skills.tooMany")
+    .default([]),
+  certificates: z
+    .array(publicProfileCertificateSchema)
+    .max(15, "task.certificates.tooMany")
+    .default([]),
+  budget: taskBudgetSchema,
+  location: taskLocationSchema,
+  deadline: z.coerce.date().refine((date) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return date >= today;
+  }, "task.deadline.invalid"),
+});
+
+export const taskUpdateSchema = taskCreateSchema.partial();
+
+export const taskResponseCreateSchema = z.object({
+  message: z.string().trim().min(5).max(2000),
+  price: z.number().positive().optional(),
+});

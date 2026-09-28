@@ -122,11 +122,11 @@ export class ChatService {
               text: chat.lastMessage.text,
               hasMedia: chat.lastMessage.hasMedia,
               senderId: chat.lastMessage.senderId.toString(),
-              createdAt: chat.lastMessage.createdAt.toISOString(),
+              createdAt: chat.lastMessage.createdAt,
             }
           : null,
-        createdAt: chat.createdAt.toISOString(),
-        updatedAt: chat.updatedAt.toISOString(),
+        createdAt: chat.createdAt,
+        updatedAt: chat.updatedAt,
         member: member ?? {
           _id: otherId?.toString() ?? "",
           username: "",
@@ -176,8 +176,8 @@ export class ChatService {
         emoji: r.emoji,
       })),
       edited: d.edited,
-      createdAt: d.createdAt?.toISOString(),
-      updatedAt: d.updatedAt?.toISOString(),
+      updatedAt: d.updatedAt,
+      createdAt: d.createdAt,
     }));
   }
 
@@ -268,7 +268,7 @@ export class ChatService {
       return { success: true, status: 201, data: { chat: enriched } };
     } catch (e) {
       console.error("Create chat error:", e);
-      return { success: false, status: 500, message: "Server error." };
+      return { success: false, status: 500, message: "errors.server" };
     }
   }
 
@@ -284,7 +284,7 @@ export class ChatService {
       return { success: true, status: 200, data: { chats: enriched } };
     } catch (e) {
       console.error("Get chats error:", e);
-      return { success: false, status: 500, message: "Server error." };
+      return { success: false, status: 500, message: "errors.server" };
     }
   }
 
@@ -296,7 +296,7 @@ export class ChatService {
       return { success: true, status: 200, data: { chat: enriched } };
     } catch (e) {
       console.error("Get chat error:", e);
-      return { success: false, status: 500, message: "Server error." };
+      return { success: false, status: 500, message: "errors.server" };
     }
   }
 
@@ -323,7 +323,7 @@ export class ChatService {
       return { success: true, status: 200 };
     } catch (e) {
       console.error("Delete chat error:", e);
-      return { success: false, status: 500, message: "Server error." };
+      return { success: false, status: 500, message: "errors.server" };
     }
   }
 
@@ -358,7 +358,7 @@ export class ChatService {
       return { success: true, status: 200, data: { items, nextCursor } };
     } catch (e) {
       console.error("Get messages error:", e);
-      return { success: false, status: 500, message: "Server error." };
+      return { success: false, status: 500, message: "errors.server" };
     }
   }
 
@@ -409,7 +409,7 @@ export class ChatService {
       return { success: true, status: 201, data: { message } };
     } catch (e) {
       console.error("Send message error:", e);
-      return { success: false, status: 500, message: "Server error." };
+      return { success: false, status: 500, message: "errors.server" };
     }
   }
 
@@ -438,7 +438,7 @@ export class ChatService {
       return { success: true, status: 200 };
     } catch (e) {
       console.error("Mark read error:", e);
-      return { success: false, status: 500, message: "Server error." };
+      return { success: false, status: 500, message: "errors.server" };
     }
   }
 
@@ -490,7 +490,7 @@ export class ChatService {
       return { success: true, status: 200, data: { message } };
     } catch (e) {
       console.error("Edit message error:", e);
-      return { success: false, status: 500, message: "Server error." };
+      return { success: false, status: 500, message: "errors.server" };
     }
   }
 
@@ -525,7 +525,7 @@ export class ChatService {
       return { success: true, status: 200 };
     } catch (e) {
       console.error("Delete message error:", e);
-      return { success: false, status: 500, message: "Server error." };
+      return { success: false, status: 500, message: "errors.server" };
     }
   }
 
@@ -566,7 +566,7 @@ export class ChatService {
       return { success: true, status: 200, data: { message } };
     } catch (e) {
       console.error("Manage reaction error:", e);
-      return { success: false, status: 500, message: "Server error." };
+      return { success: false, status: 500, message: "errors.server" };
     }
   }
 }

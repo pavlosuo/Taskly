@@ -208,6 +208,7 @@ export class Server implements IServer {
         if (!user) return next(new Error("unauthorized"));
         socket.data.userId = user._id.toString();
         socket.data.role = user.role;
+        socket.data.noOnlineStatus = user.settings.checkboxes.noOnlineStatus;
         next();
       } catch (err) {
         console.error("SOCKET AUTH ERROR:", err);
@@ -221,7 +222,11 @@ export class Server implements IServer {
       socket.join(`user:${userId}`);
 
       for (const [_, s] of io.sockets.sockets) {
-        if (s.data.role !== "admin" && typeof s.data.userId === "string") {
+        if (
+          s.data.role !== "admin" &&
+          typeof s.data.userId === "string" &&
+          !s.data.noOnlineStatus
+        ) {
           onlineUserIds.add(s.data.userId);
         }
       }

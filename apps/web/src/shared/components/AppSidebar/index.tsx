@@ -25,13 +25,13 @@ export function AppSidebar() {
     if (user?.role === "client") {
       return [
         { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-        { label: "My Tasks", href: "/tasks", icon: ClipboardList },
+        { label: "Tasks", href: "/tasks", icon: ClipboardList },
         { label: "Chats", href: "/chats", icon: MessageCircle },
       ];
     } else if (user?.role === "tasker") {
       return [
         { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-        { label: "My Tasks", href: "/tasks", icon: ClipboardList },
+        { label: "Tasks", href: "/tasks", icon: ClipboardList },
         { label: "Chats", href: "/chats", icon: MessageCircle },
       ];
     } else if (user?.role === "admin") {

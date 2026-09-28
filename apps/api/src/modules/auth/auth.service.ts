@@ -108,7 +108,9 @@ export class AuthService {
           theme: "light",
           checkboxes: {
             email: true,
+            phone: true,
             privateProfile: false,
+            noOnlineStatus: false,
           },
         },
         publicProfile: {
@@ -129,7 +131,7 @@ export class AuthService {
       };
     } catch (error) {
       console.error("Register error:", error);
-      return { success: false, status: 500, message: "Server error." };
+      return { success: false, status: 500, message: "errors.server" };
     }
   }
 
@@ -165,7 +167,7 @@ export class AuthService {
       };
     } catch (error) {
       console.error("Register admin error:", error);
-      return { success: false, status: 500, message: "Server error." };
+      return { success: false, status: 500, message: "errors.server" };
     }
   }
 
@@ -200,7 +202,7 @@ export class AuthService {
       };
     } catch (error) {
       console.error("Login error:", error);
-      return { success: false, status: 500, message: "Server error." };
+      return { success: false, status: 500, message: "errors.server" };
     }
   }
 
@@ -243,7 +245,7 @@ export class AuthService {
       return { success: true, status: 200, data: { resetToken } };
     } catch (error) {
       console.error("Verify reset OTP error:", error);
-      return { success: false, status: 500, message: "Server error." };
+      return { success: false, status: 500, message: "errors.server" };
     }
   }
 
@@ -280,7 +282,7 @@ export class AuthService {
       return { success: true, status: 200 };
     } catch (error) {
       console.error("Forgot password error:", error);
-      return { success: false, status: 500, message: "Server error." };
+      return { success: false, status: 500, message: "errors.server" };
     }
   }
 
@@ -326,7 +328,7 @@ export class AuthService {
       return { success: true, status: 200 };
     } catch (error) {
       console.error("Reset password error:", error);
-      return { success: false, status: 500, message: "Server error." };
+      return { success: false, status: 500, message: "errors.server" };
     }
   }
 
@@ -364,7 +366,7 @@ export class AuthService {
       return {
         success: false,
         status: 500,
-        message: "Server error.",
+        message: "errors.server",
         data: { reason: "error" },
       };
     }
