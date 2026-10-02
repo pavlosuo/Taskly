@@ -9,7 +9,7 @@ import {
 } from "react";
 import { io, Socket } from "socket.io-client";
 import { useUser } from "@/providers/UserProvider";
-import { BASE_URL } from "api/instance";
+import { BASE_URL } from "@/api/instance";
 import { startTransition } from "react";
 
 interface SocketContextType {

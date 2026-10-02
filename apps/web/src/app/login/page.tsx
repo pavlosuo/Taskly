@@ -1,7 +1,7 @@
 import { Screens } from "@/screens";
 import { getMetaData } from "@/utils/Metadata";
 import { authGuard } from "@/utils/authGuard";
-import { FloatingSettings } from "@/shared/components/FloatingSettings";
+import { FloatingSettings } from "@/components/shared/FloatingSettings";
 
 export const metadata = getMetaData({
   title: "Login",
@@ -9,7 +9,7 @@ export const metadata = getMetaData({
 });
 
 export default async function Login() {
-  await authGuard(["guest"]);
+  await authGuard(["guest"], "/login");
   return (
     <main className="page">
       <FloatingSettings />

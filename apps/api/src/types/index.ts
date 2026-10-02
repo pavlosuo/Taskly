@@ -11,7 +11,7 @@ import {
   ChatLastMessage,
   Task,
   TaskResponse,
-} from "@shared/types";
+} from "shared/types";
 import { Server as SocketIOServer } from "socket.io";
 
 export interface User extends Omit<PublicUser, "_id"> {

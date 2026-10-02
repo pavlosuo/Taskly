@@ -11,7 +11,7 @@ export function SectionCard({
   desc: string;
 }) {
   return (
-    <div className="border border-border bg-background p-4 transition-shadow">
+    <div className="border border-border bg-background p-4">
       <div className="w-12 h-12 bg-foreground flex items-center justify-center mb-3">
         {icon}
       </div>

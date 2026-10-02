@@ -1,7 +1,7 @@
 "use client";
 import { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/shared/components/Input";
+import { Input, PhoneInput } from "@/components/shared/Input";
 import {
   Dialog,
   DialogContent,
@@ -10,13 +10,18 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { PhoneInput } from "@/shared/components/PhoneInput";
 import { User as UserIcon, SquarePen } from "lucide-react";
 import clsx from "clsx";
-import { OtpChannel } from "@shared/types";
+import {
+  OtpChannel,
+  updateProfileSchema,
+  UpdateProfileForm,
+  ZodErrors,
+} from "shared/index";
 import { useUser } from "@/providers/UserProvider";
 import { getAxiosError } from "@/utils/getAxiosError";
 import { SectionCard, Field, FormField, OtpInput } from "@/screens/user/ui";
+import { FieldError } from "@/components/shared/FieldError";
 
 export function PersonalInfoCard({
   onVerify,
@@ -32,12 +37,6 @@ export function PersonalInfoCard({
     sendPhoneOtp,
     verifyPhoneOtp,
   } = useUser();
-  const [open, setOpen] = useState(false);
-  const [step, setStep] = useState<"form" | "verify-email" | "verify-phone">(
-    "form",
-  );
-  const [error, setError] = useState("");
-  const [otpError, setOtpError] = useState("");
   const buildForm = useCallback(
     () => ({
       fullName: user?.profile?.fullName ?? "",
@@ -49,18 +48,23 @@ export function PersonalInfoCard({
     }),
     [user],
   );
+  const [open, setOpen] = useState(false);
+  const [step, setStep] = useState<"form" | "verify-email" | "verify-phone">(
+    "form",
+  );
+  const [errors, setErrors] = useState<ZodErrors<UpdateProfileForm>>({});
   const [form, setForm] = useState(buildForm);
   const emailChanged = form.email !== user?.email;
   const phoneChanged = form.fullPhone !== user?.profile?.fullPhone;
 
-  const handleChange =
-    (field: keyof ReturnType<typeof buildForm>) =>
-    (e: React.ChangeEvent<HTMLInputElement>) =>
-      setForm((p) => ({ ...p, [field]: e.target.value }));
+  const handleChange = (field: keyof UpdateProfileForm, value?: string) => {
+    setForm((p) => ({ ...p, [field]: value }));
+    setErrors((p) => ({ ...p, [field]: undefined, general: undefined }));
+  };
 
   const openDialog = () => {
     setForm(buildForm());
-    setError("");
+    setErrors({});
     setStep("form");
     setOpen(true);
   };
@@ -71,8 +75,22 @@ export function PersonalInfoCard({
   };
 
   const handleSave = async () => {
-    setError("");
+    setErrors({});
     try {
+      const parsed = updateProfileSchema.safeParse(form);
+      if (!parsed.success) {
+        const { fieldErrors, formErrors } = parsed.error.flatten();
+        setErrors({
+          fullName: fieldErrors.fullName?.[0],
+          username: fieldErrors.username?.[0],
+          email: fieldErrors.email?.[0],
+          fullPhone: fieldErrors.fullPhone?.[0],
+          phone: fieldErrors.phone?.[0],
+          code: fieldErrors.code?.[0],
+          general: formErrors[0],
+        });
+        return;
+      }
       await updateProfile({
         fullName: form.fullName,
         username: form.username,
@@ -82,40 +100,44 @@ export function PersonalInfoCard({
         code: phoneChanged ? form.code : undefined,
       });
       if (emailChanged) {
-        await sendEmailOtp();
         setStep("verify-email");
+        await sendEmailOtp();
         return;
       }
       if (phoneChanged) {
-        await sendPhoneOtp();
         setStep("verify-phone");
+        await sendPhoneOtp();
         return;
       }
       setOpen(false);
     } catch (e) {
-      setError(getAxiosError(e));
+      setErrors({
+        general: getAxiosError(e),
+      });
     }
   };
 
   const handleConfirmEmail = async (code: string) => {
-    setOtpError("");
     try {
       await verifyEmailOtp(code);
       setOpen(false);
       setStep("form");
     } catch (e) {
-      setError(getAxiosError(e));
+      setErrors({
+        general: getAxiosError(e),
+      });
     }
   };
 
   const handleConfirmPhone = async (code: string) => {
-    setOtpError("");
     try {
       await verifyPhoneOtp(code);
       setOpen(false);
       setStep("form");
     } catch (e) {
-      setError(getAxiosError(e));
+      setErrors({
+        general: getAxiosError(e),
+      });
     }
   };
 
@@ -127,7 +149,6 @@ export function PersonalInfoCard({
 
   const handleLocalPhone = useCallback(
     (phone: string) => {
-      setError("");
       setForm((p) => ({
         ...p,
         phone,
@@ -139,7 +160,6 @@ export function PersonalInfoCard({
 
   const handleCodeChange = useCallback(
     (code: string) => {
-      setError("");
       setForm((p) => ({
         ...p,
         code,
@@ -169,7 +189,7 @@ export function PersonalInfoCard({
           </button>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-6">
-          <Field label="Full name" value={user.profile?.fullName || "—"} />
+          <Field label="Full name" value={user.profile?.fullName} />
           <Field label="Username" value={user.username} />
           <Field
             label="Email"
@@ -184,7 +204,7 @@ export function PersonalInfoCard({
           />
           <Field
             label="Phone number"
-            value={user.profile?.fullPhone || "—"}
+            value={user.profile?.fullPhone}
             badge={user.acceptance?.phoneVerified ? "Verified" : "Unverified"}
             badgeOk={user.acceptance?.phoneVerified}
             onVerify={
@@ -196,7 +216,7 @@ export function PersonalInfoCard({
         </div>
       </div>
       <Dialog open={open} onOpenChange={handleOpenChange}>
-        <DialogContent className={clsx("sm:max-w-xl")}>
+        <DialogContent className={clsx(step === "form" && "sm:max-w-xl")}>
           <DialogHeader>
             <DialogTitle>
               {step === "form" && "Edit personal information"}
@@ -215,44 +235,59 @@ export function PersonalInfoCard({
           {step === "form" && (
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 py-2">
-                <FormField label="Full name">
+                <FormField
+                  label="Full name"
+                  error={errors.fullName}
+                  htmlFor="fullName"
+                >
                   <Input
                     type="text"
                     name="fullName"
                     value={form.fullName}
-                    onChange={handleChange("fullName")}
+                    onChange={(e) => handleChange("fullName", e.target.value)}
+                    error={errors.fullName}
                   />
                 </FormField>
-                <FormField label="Username">
+                <FormField
+                  label="Username"
+                  error={errors.username}
+                  htmlFor="username"
+                >
                   <Input
                     type="text"
                     name="username"
                     value={form.username}
-                    onChange={handleChange("username")}
+                    onChange={(e) => handleChange("username", e.target.value)}
+                    error={errors.username}
                   />
                 </FormField>
                 <FormField
                   label="Email"
+                  htmlFor="email"
                   hint={
                     emailChanged
                       ? "Changing email will require verification."
                       : undefined
                   }
+                  error={errors.email}
                 >
                   <Input
                     name="email"
                     type="email"
                     value={form.email}
-                    onChange={handleChange("email")}
+                    onChange={(e) => handleChange("email", e.target.value)}
+                    error={errors.email}
                   />
                 </FormField>
                 <FormField
                   label="Phone number"
+                  htmlFor="phone"
                   hint={
                     phoneChanged
                       ? "Changing phone will require verification."
                       : undefined
                   }
+                  error={errors.fullPhone}
                 >
                   <PhoneInput
                     code={form.code}
@@ -260,10 +295,11 @@ export function PersonalInfoCard({
                     value={form.phone}
                     onChange={handleLocalPhone}
                     id="phone"
+                    error={errors.fullPhone}
                   />
                 </FormField>
               </div>
-              {error && <p className="text-xs text-red">{error}</p>}
+              <FieldError message={errors.general} />
               <DialogFooter>
                 <Button variant="outline" onClick={() => setOpen(false)}>
                   Cancel
@@ -277,17 +313,23 @@ export function PersonalInfoCard({
           {step === "verify-email" && (
             <OtpInput
               onConfirm={handleConfirmEmail}
-              onResend={() => sendEmailOtp()}
+              onResend={() => {
+                sendEmailOtp();
+                setErrors({});
+              }}
               isLoading={isLoading}
-              error={otpError}
+              error={errors.general}
             />
           )}
           {step === "verify-phone" && (
             <OtpInput
               onConfirm={handleConfirmPhone}
-              onResend={sendPhoneOtp}
+              onResend={() => {
+                sendPhoneOtp();
+                setErrors({});
+              }}
               isLoading={isLoading}
-              error={otpError}
+              error={errors.general}
             />
           )}
         </DialogContent>

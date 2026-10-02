@@ -6,8 +6,8 @@ import {
   useCallback,
   ReactNode,
 } from "react";
-import { axiosApi } from "api/index";
-import { PolicyData } from "@shared/types";
+import { axiosApi } from "@/api/index";
+import { PolicyData } from "shared/types";
 
 interface PolicyDataContextType {
   policyData: PolicyData;

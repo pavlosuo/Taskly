@@ -1,7 +1,6 @@
 import { countries } from "country-codes-flags-phone-codes";
 import * as flags from "country-flag-icons/react/3x2";
-import { BankItem } from "@shared/types";
-import { Lang } from "@shared/types";
+import { BankItem, Lang } from "shared/types";
 
 export const countryList = countries.map((c) => ({
   name: c.name,
@@ -12,9 +11,13 @@ export const countryList = countries.map((c) => ({
 
 export type Country = (typeof countryList)[number];
 
-export const appName = "Taskly";
+export const COUNTRY_CODES_LIST = ["fi"];
 
-export const navLinks = [
+export const MAX_FILE_SIZE = 50 * 1024 * 1024;
+
+export const APP_NAME = "Taskly";
+
+export const NAV_LINKS = [
   { label: "Find Taskers", href: "/users" },
   { label: "Browse Tasks", href: "/tasks" },
   { label: "Top Taskers", href: "/top" },
@@ -46,75 +49,78 @@ export const FINNISH_BANKS: BankItem[] = [
   },
 ];
 
+export const FINNISH_BANKS_VALUES: (typeof FINNISH_BANKS)[number]["value"][] =
+  FINNISH_BANKS.map((b) => b.value);
+
 export const LANGS: { value: Lang; label: string }[] = [
-  { value: "en", label: "english" },
-  { value: "fi-FI", label: "finnish" },
-  { value: "sv-FI", label: "swedish" },
+  { value: "en", label: "general.english" },
+  { value: "fi-FI", label: "general.finnish" },
+  { value: "sv-FI", label: "general.swedish" },
 ];
 
 export const WORLD_LANGUAGES = [
-  { value: "fi", label: "Finnish" },
-  { value: "sv", label: "Swedish" },
-  { value: "en", label: "English" },
-  { value: "ru", label: "Russian" },
-  { value: "et", label: "Estonian" },
-  { value: "ar", label: "Arabic" },
-  { value: "so", label: "Somali" },
-  { value: "fr", label: "French" },
-  { value: "de", label: "German" },
-  { value: "es", label: "Spanish" },
-  { value: "it", label: "Italian" },
-  { value: "pt", label: "Portuguese" },
-  { value: "pl", label: "Polish" },
-  { value: "uk", label: "Ukrainian" },
-  { value: "zh", label: "Chinese" },
-  { value: "ja", label: "Japanese" },
-  { value: "ko", label: "Korean" },
-  { value: "tr", label: "Turkish" },
-  { value: "fa", label: "Persian" },
-  { value: "hi", label: "Hindi" },
-  { value: "bn", label: "Bengali" },
-  { value: "ur", label: "Urdu" },
-  { value: "vi", label: "Vietnamese" },
-  { value: "th", label: "Thai" },
-  { value: "nl", label: "Dutch" },
-  { value: "ro", label: "Romanian" },
-  { value: "hu", label: "Hungarian" },
-  { value: "cs", label: "Czech" },
-  { value: "sk", label: "Slovak" },
-  { value: "bg", label: "Bulgarian" },
-  { value: "hr", label: "Croatian" },
-  { value: "sr", label: "Serbian" },
-  { value: "da", label: "Danish" },
-  { value: "no", label: "Norwegian" },
-  { value: "lt", label: "Lithuanian" },
-  { value: "lv", label: "Latvian" },
-  { value: "el", label: "Greek" },
-  { value: "he", label: "Hebrew" },
-  { value: "id", label: "Indonesian" },
-  { value: "ms", label: "Malay" },
-  { value: "tl", label: "Filipino" },
-  { value: "sw", label: "Swahili" },
-  { value: "am", label: "Amharic" },
-  { value: "ku", label: "Kurdish" },
-  { value: "az", label: "Azerbaijani" },
-  { value: "ka", label: "Georgian" },
-  { value: "hy", label: "Armenian" },
-  { value: "mn", label: "Mongolian" },
-  { value: "kk", label: "Kazakh" },
-  { value: "uz", label: "Uzbek" },
+  { value: "fi", label: "general.finnish" },
+  { value: "sv", label: "general.swedish" },
+  { value: "en", label: "general.english" },
+  { value: "ru", label: "general.russian" },
+  { value: "et", label: "general.estonian" },
+  { value: "ar", label: "general.arabic" },
+  { value: "so", label: "general.somali" },
+  { value: "fr", label: "general.french" },
+  { value: "de", label: "general.german" },
+  { value: "es", label: "general.spanish" },
+  { value: "it", label: "general.italian" },
+  { value: "pt", label: "general.portuguese" },
+  { value: "pl", label: "general.polish" },
+  { value: "uk", label: "general.ukrainian" },
+  { value: "zh", label: "general.chinese" },
+  { value: "ja", label: "general.japanese" },
+  { value: "ko", label: "general.korean" },
+  { value: "tr", label: "general.turkish" },
+  { value: "fa", label: "general.persian" },
+  { value: "hi", label: "general.hindi" },
+  { value: "bn", label: "general.bengali" },
+  { value: "ur", label: "general.urdu" },
+  { value: "vi", label: "general.vietnamese" },
+  { value: "th", label: "general.thai" },
+  { value: "nl", label: "general.dutch" },
+  { value: "ro", label: "general.romanian" },
+  { value: "hu", label: "general.hungarian" },
+  { value: "cs", label: "general.czech" },
+  { value: "sk", label: "general.slovak" },
+  { value: "bg", label: "general.bulgarian" },
+  { value: "hr", label: "general.croatian" },
+  { value: "sr", label: "general.serbian" },
+  { value: "da", label: "general.danish" },
+  { value: "no", label: "general.norwegian" },
+  { value: "lt", label: "general.lithuanian" },
+  { value: "lv", label: "general.latvian" },
+  { value: "el", label: "general.greek" },
+  { value: "he", label: "general.hebrew" },
+  { value: "id", label: "general.indonesian" },
+  { value: "ms", label: "general.malay" },
+  { value: "tl", label: "general.filipino" },
+  { value: "sw", label: "general.swahili" },
+  { value: "am", label: "general.amharic" },
+  { value: "ku", label: "general.kurdish" },
+  { value: "az", label: "general.azerbaijani" },
+  { value: "ka", label: "general.georgian" },
+  { value: "hy", label: "general.armenian" },
+  { value: "mn", label: "general.mongolian" },
+  { value: "kk", label: "general.kazakh" },
+  { value: "uz", label: "general.uzbek" },
 ];
 
 export const CERF_LEVELS: {
   value: "A1" | "A2" | "B1" | "B2" | "C1" | "C2";
   label: string;
 }[] = [
-  { value: "A1", label: "A1 — Beginner" },
-  { value: "A2", label: "A2 — Elementary" },
-  { value: "B1", label: "B1 — Intermediate" },
-  { value: "B2", label: "B2 — Upper Intermediate" },
-  { value: "C1", label: "C1 — Advanced" },
-  { value: "C2", label: "C2 — Mastery" },
+  { value: "A1", label: "general.cerfA1" },
+  { value: "A2", label: "general.cerfA2" },
+  { value: "B1", label: "general.cerfB1" },
+  { value: "B2", label: "general.cerfB2" },
+  { value: "C1", label: "general.cerfC1" },
+  { value: "C2", label: "general.cerfC2" },
 ];
 
 export const CERF = CERF_LEVELS.map((l) => l.value);

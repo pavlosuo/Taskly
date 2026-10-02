@@ -3,19 +3,19 @@ import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/providers/UserProvider";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/shared/components/Input";
-import { loginSchema, LoginForm, ZodErrors } from "@shared/index";
+import { Input } from "@/components/shared/Input";
+import { loginSchema, LoginForm, ZodErrors } from "shared/index";
 import {
-  FieldError,
   PasswordToggle,
   BottomLink,
   AuthLayout,
   Title,
-  Label,
 } from "@/screens/auth/ui";
 import { getAxiosError } from "@/utils/getAxiosError";
 import { useTranslation } from "react-i18next";
 import clsx from "clsx";
+import { FieldError } from "@/components/shared/FieldError";
+import { Label } from "@/components/shared/Label";
 
 export function Login() {
   const { t } = useTranslation("login");
@@ -50,8 +50,8 @@ export function Login() {
       try {
         await login({ email: form.email, password: form.password });
         router.push("/");
-      } catch (err) {
-        setErrors({ general: getAxiosError(err) });
+      } catch (e) {
+        setErrors({ general: getAxiosError(e) });
       }
     },
     [form, login, router],
@@ -110,7 +110,7 @@ export function Login() {
           </div>
         </div>
         {errors.general && (
-          <p className="text-xs text-red -mt-2">{errors.general}</p>
+          <p className="text-xs text-destructive -mt-2">{errors.general}</p>
         )}
         <Button type="submit" disabled={isLoading}>
           {isLoading ? t("submit.loading") : t("submit.idle")}

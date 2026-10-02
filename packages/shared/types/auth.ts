@@ -5,7 +5,7 @@ import {
   UserSettings,
   PublicProfile,
   MediaItem,
-} from "@shared/types";
+} from "shared/types";
 
 export type LoginForm = {
   email: string;

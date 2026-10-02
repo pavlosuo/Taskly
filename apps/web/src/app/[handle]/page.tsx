@@ -1,10 +1,10 @@
 import { notFound } from "next/navigation";
 import { getMetaData } from "@/utils/Metadata";
 import { Screens } from "@/screens";
-import { removeHtml } from "@/utils/removeHtml";
+import { removeHtml } from "shared/utils";
 import { truncateForSeo } from "@/utils/truncateForSeo";
-import { FloatingSettings } from "@/shared/components/FloatingSettings";
-import { getServerApi } from "api/server";
+import { FloatingSettings } from "@/components/shared/FloatingSettings";
+import { getServerApi } from "@/api/server";
 
 type Props = {
   params: Promise<{ handle: string }>;

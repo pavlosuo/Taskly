@@ -1,8 +1,8 @@
 import { Screens } from "@/screens";
 import { getMetaData } from "@/utils/Metadata";
-import { SidebarWrapper } from "@/shared/components/AppSidebar";
+import { SidebarWrapper } from "@/components/shared/AppSidebar";
 import { authGuard } from "@/utils/authGuard";
-import { AutoLogoutPopup } from "@/shared/components/AutoLogoutPopup";
+import { AutoLogoutPopup } from "@/components/shared/AutoLogoutPopup";
 
 export const metadata = getMetaData({
   title: "Account",
@@ -10,7 +10,7 @@ export const metadata = getMetaData({
 });
 
 export default async function Account() {
-  await authGuard(["tasker", "client", "admin"]);
+  await authGuard(["tasker", "client", "admin"], "/account");
   return (
     <SidebarWrapper title="Account">
       <main className="page">

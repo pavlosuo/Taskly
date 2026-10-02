@@ -1,20 +1,22 @@
 "use client";
 import { useState, useMemo } from "react";
 import { X } from "lucide-react";
-import { Input } from "@/shared/components/Input";
-import { WORLD_LANGUAGES, CERF_LEVELS } from "@shared/data";
-import { PublicProfileLang } from "@shared/types";
+import { Input } from "@/components/shared/Input";
+import { WORLD_LANGUAGES, CERF_LEVELS } from "shared/data";
+import { PublicProfileLang } from "shared/types";
 import clsx from "clsx";
-import { ImageDisplay } from "@/shared/components/MediaPicker";
+import { ImageDisplay } from "@/components/shared/MediaPicker";
 import { Button } from "@/components/ui/button";
 import { useMediaPicker } from "@/providers/MediaPickerProvider";
 
 export function LanguagesEditor({
   value,
   onChange,
+  error,
 }: {
   value: PublicProfileLang[];
   onChange: (langs: PublicProfileLang[]) => void;
+  error?: string;
 }) {
   const [search, setSearch] = useState("");
   const { openPicker } = useMediaPicker();
@@ -57,7 +59,7 @@ export function LanguagesEditor({
                 <button
                   type="button"
                   onClick={() => removeLang(lang.value)}
-                  className="text-grey hover:text-red transition-colors"
+                  className="text-grey hover:text-destructive transition-colors"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -173,6 +175,7 @@ export function LanguagesEditor({
         value={search}
         onChange={(e) => setSearch(e.target.value)}
         name="search"
+        error={error}
       />
       <div className="flex flex-wrap gap-1.5">
         {filtered.map((lang) => {

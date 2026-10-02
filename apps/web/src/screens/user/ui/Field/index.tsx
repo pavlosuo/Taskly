@@ -17,7 +17,7 @@ export function Field({
 }) {
   return (
     <div>
-      <p className="text-xs text-grey mb-1">{label}</p>
+      <p className="text-xs text-foreground mb-1">{label}</p>
       <div className="flex items-center gap-2 flex-wrap">
         <p className="text-sm text-foreground truncate">{value}</p>
         {badge && (

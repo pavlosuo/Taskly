@@ -1,12 +1,12 @@
 import { ObjectId } from "mongodb";
 import { IServer, User, TaskBack } from "@/types";
-import { ServiceResult } from "@shared/types";
+import { ServiceResult } from "shared/types";
 import {
   taskCreateSchema,
   taskUpdateSchema,
   taskResponseCreateSchema,
-} from "@shared/schemas";
-import { normalizeTagList } from "@shared/utils";
+} from "shared/schemas";
+import { normalizeTagList } from "shared/utils";
 import { Document } from "mongodb";
 
 export class TaskService {

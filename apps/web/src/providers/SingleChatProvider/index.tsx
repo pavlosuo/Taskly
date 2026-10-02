@@ -1,6 +1,6 @@
 "use client";
 import { createContext, useContext, ReactNode } from "react";
-import { ChatWithMember, Message } from "@shared/types";
+import { ChatWithMember, Message } from "shared/types";
 
 interface SingleChatContextType {
   chat: ChatWithMember;

@@ -1,8 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { createHash, randomInt, timingSafeEqual } from "crypto";
-import { PublicUser, MediaItemPublic } from "@shared/types";
-import { Request } from "express";
+import { PublicUser, MediaItemPublic } from "shared/types";
 import { User } from "@/types";
 import { ObjectId, WithId, Document } from "mongodb";
 export * from "./limiters";
@@ -39,32 +38,34 @@ export function toPublicUser(
       }
     : {};
 
+  const onlyTasker =
+    user.role === "tasker"
+      ? {
+          payout: user.payout,
+        }
+      : {};
+
+  const notAdmin =
+    user.role !== "admin"
+      ? {
+          publicLink: user.publicLink,
+          ...online,
+        }
+      : {};
+
   return {
     _id: user._id.toString(),
-    publicLink: user.publicLink,
     username: user.username,
     email: user.email,
     role: user.role,
     createdAt: user.createdAt,
     acceptance: user.acceptance,
-    payout: user.payout,
     profile: user.profile,
     settings: user.settings,
     publicProfile: user.publicProfile,
-    ...online,
+    ...onlyTasker,
+    ...notAdmin,
   };
-}
-
-export function getClientIp(req: Request): string {
-  return (
-    (req.headers["x-forwarded-for"] as string)?.split(",")[0] ||
-    req.socket.remoteAddress ||
-    "unknown"
-  );
-}
-
-export function getDeviceInfo(req: Request): string {
-  return req.headers["user-agent"] || "unknown";
 }
 
 export const hashToken = (t: string): string =>

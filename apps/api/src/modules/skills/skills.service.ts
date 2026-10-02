@@ -1,7 +1,7 @@
-import { publicProfileSkillSchema } from "@shared/schemas";
+import { publicProfileSkillSchema } from "shared/schemas";
 import { IServer } from "@/types";
-import { ServiceResult } from "@shared/types";
-import { bigFirstLetter } from "@shared/utils";
+import { ServiceResult } from "shared/types";
+import { bigFirstLetter } from "shared/utils";
 
 export class SkillsService {
   constructor(private server: IServer) {}

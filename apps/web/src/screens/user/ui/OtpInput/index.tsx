@@ -1,12 +1,12 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   InputOTP,
   InputOTPGroup,
   InputOTPSlot,
 } from "@/components/ui/input-otp";
-import { AlertCircle } from "lucide-react";
+import { FieldError } from "@/components/shared/FieldError";
 
 export function OtpInput({
   onConfirm,
@@ -17,9 +17,26 @@ export function OtpInput({
   onConfirm: (code: string) => void;
   onResend: () => void;
   isLoading: boolean;
-  error: string;
+  error?: string;
 }) {
   const [code, setCode] = useState("");
+  const [resendCooldown, setResendCooldown] = useState(0);
+
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const timer = setInterval(() => {
+      setResendCooldown((prev) => Math.max(0, prev - 1));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [resendCooldown]);
+
+  const handleResend = () => {
+    if (resendCooldown > 0) return;
+    onResend();
+    setCode("");
+    setResendCooldown(60);
+  };
+
   return (
     <div className="flex flex-col gap-3 mt-2">
       <p className="text-xs text-grey">Enter the 6-digit code we sent you.</p>
@@ -39,22 +56,21 @@ export function OtpInput({
             onClick={() => onConfirm(code)}
             disabled={isLoading || code.length !== 6}
           >
-            {isLoading ? "Confirming..." : "Confirm"}
+            {isLoading ? "Loading..." : "Confirm"}
           </Button>
           <button
-            onClick={onResend}
-            className="text-xs text-grey hover:text-foreground hover:underline underline-offset-2 transition-colors"
+            type="button"
+            onClick={handleResend}
+            disabled={resendCooldown > 0}
+            className="text-xs text-grey hover:text-foreground hover:underline underline-offset-2 transition-colors disabled:cursor-not-allowed disabled:no-underline disabled:opacity-50"
           >
-            Resend code
+            {resendCooldown > 0
+              ? `Resend code in ${resendCooldown}s`
+              : "Resend code"}
           </button>
         </div>
       </div>
-      {error && (
-        <p className="text-xs text-red flex items-center gap-1">
-          <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-          {error}
-        </p>
-      )}
+      <FieldError message={error} icon />
     </div>
   );
 }

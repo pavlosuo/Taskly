@@ -1,14 +1,14 @@
 import { ObjectId } from "mongodb";
-import { ServiceResult } from "@shared/types";
+import { ServiceResult } from "shared/types";
 import {
   ChatWithMember,
   ChatMemberPreview,
   Message,
   CreateChatPayload,
   SendMessagePayload,
-} from "@shared/types/chat";
+} from "shared/types/chat";
 import { ChatBack, MessageBack, IServer, User } from "@/types";
-import { EMOJI } from "@shared/data";
+import { EMOJI } from "shared/data";
 import { stripMediaFields } from "@/utils";
 
 export class ChatService {

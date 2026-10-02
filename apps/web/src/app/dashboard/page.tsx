@@ -1,10 +1,10 @@
 import { Screens } from "@/screens";
 import { getMetaData } from "@/utils/Metadata";
-import { SidebarWrapper } from "@/shared/components/AppSidebar";
+import { SidebarWrapper } from "@/components/shared/AppSidebar";
 import { authGuard } from "@/utils/authGuard";
 import { PolicyDataProvider } from "@/providers/PolicyDataProvider";
-import { getServerApi } from "api/server";
-import { AutoLogoutPopup } from "@/shared/components/AutoLogoutPopup";
+import { getServerApi } from "@/api/server";
+import { AutoLogoutPopup } from "@/components/shared/AutoLogoutPopup";
 
 export const metadata = getMetaData({
   title: "Dashboard",
@@ -12,7 +12,7 @@ export const metadata = getMetaData({
 });
 
 export default async function Admin() {
-  const user = await authGuard(["admin", "tasker", "client"]);
+  const user = await authGuard(["admin", "tasker", "client"], "/dashboard");
   const axiosApi = await getServerApi();
   const { data } = await axiosApi.getPolicyData();
   if (user?.role === "admin") {

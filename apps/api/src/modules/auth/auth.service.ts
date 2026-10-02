@@ -13,9 +13,9 @@ import {
   verifyResetOtpSchema,
   forgotPasswordEmailSchema,
   resetPasswordSchema,
-} from "@shared/index";
+} from "shared/index";
 import { IServer, User } from "@/types";
-import { ServiceResult } from "@shared/types";
+import { ServiceResult } from "shared/types";
 import jwt from "jsonwebtoken";
 import { ObjectId } from "mongodb";
 import { hashToken } from "@/utils";
@@ -119,6 +119,7 @@ export class AuthService {
           certificates: [],
           languages: [],
           header: null,
+          introduction: null,
         },
         passwordHash,
       } as Omit<User, "_id">;

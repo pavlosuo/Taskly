@@ -1,5 +1,5 @@
 "use client";
-import { TaskStatus } from "@shared/types";
+import { TaskStatus } from "shared/types";
 import clsx from "clsx";
 
 export const TaskStatusBadge = ({
@@ -9,12 +9,6 @@ export const TaskStatusBadge = ({
   status: TaskStatus;
   className?: string;
 }) => {
-  const LABEL: Record<TaskStatus, string> = {
-    open: "Open",
-    assigned: "In progress",
-    completed: "Completed",
-    cancelled: "Cancelled",
-  };
   return (
     <span
       className={clsx(
@@ -28,7 +22,7 @@ export const TaskStatusBadge = ({
         },
       )}
     >
-      {LABEL[status]}
+      {status}
     </span>
   );
 };

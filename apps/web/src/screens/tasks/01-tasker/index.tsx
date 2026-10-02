@@ -1,10 +1,10 @@
 "use client";
 import { useState, useEffect, startTransition } from "react";
 import { Search, X, Loader2, SlidersHorizontal } from "lucide-react";
-import { axiosApi } from "api/index";
-import { Task, TaskListQuery, TaskList } from "@shared/types";
+import { axiosApi } from "@/api/index";
+import { Task, TaskListQuery, TaskList } from "shared/types";
 import { useTasks } from "@/providers/TaskProvider";
-import { Input } from "@/shared/components/Input";
+import { Input } from "@/components/shared/Input";
 import { TaskerView, TaskListItem } from "@/screens/tasks/ui";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 

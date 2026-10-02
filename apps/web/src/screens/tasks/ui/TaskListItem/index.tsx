@@ -1,7 +1,7 @@
 "use client";
 import clsx from "clsx";
 import { Clock, MapPin, MessageSquare } from "lucide-react";
-import { Task, TaskStatus } from "@shared/types";
+import { Task, TaskStatus } from "shared/types";
 import { formatPrice } from "@/utils/formatPrice";
 
 export const TaskListItem = ({
@@ -17,12 +17,6 @@ export const TaskListItem = ({
     0,
     (task.skills?.length ?? 0) - visibleSkills.length,
   );
-  const STATUS_LABEL: Record<TaskStatus, string> = {
-    open: "Open",
-    assigned: "In progress",
-    completed: "Completed",
-    cancelled: "Cancelled",
-  };
   return (
     <button
       type="button"
@@ -66,7 +60,7 @@ export const TaskListItem = ({
                   "bg-muted-foreground": task.status === "cancelled",
                 })}
               />
-              {STATUS_LABEL[task.status]}
+              {task.status}
             </span>
           </div>
           <h3 className="line-clamp-1 text-[15px] font-semibold tracking-[-0.01em] text-foreground transition-colors group-hover:text-primary">
@@ -110,17 +104,17 @@ export const TaskListItem = ({
           )}
         </div>
       )}
-      <div className="mt-5 flex items-center gap-4 border-t border-border/60 pt-4 text-xs text-muted-foreground">
+      <div className="mt-5 border-t border-border/50 pt-4 text-xs text-muted-foreground grid grid-cols-[1fr_max-content_max-content]">
         <span className="flex min-w-0 items-center gap-1.5">
           <MapPin className="shrink-0 w-3.5 h-3.5" />
           <span className="truncate">{task.location.address}</span>
         </span>
-        <span className="flex shrink-0 items-center gap-1.5">
+        <span className="flex items-center gap-1.5 ml-4">
           <Clock className="w-3.5 h-3.5" />
           {deadline}
         </span>
         {task.responsesCount > 0 && (
-          <span className="ml-auto flex shrink-0 items-center gap-1.5 rounded-full bg-muted/60 px-2.5 py-1 font-medium text-muted-foreground">
+          <span className="ml-4 flex items-center gap-1.5 rounded-full bg-muted/50 px-2.5 py-1 font-medium text-muted-foreground">
             <MessageSquare className="w-3.5 h-3.5" />
             {task.responsesCount}
           </span>

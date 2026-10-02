@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import Image from "next/image";
+import clsx from "clsx";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -18,18 +19,19 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { Landmark, Plus, SquarePen } from "lucide-react";
-import { FINNISH_BANKS } from "@shared/data";
-import { IbanInput, formatIban } from "@/shared/components/IbanInput";
+import { FINNISH_BANKS } from "shared/data";
+import { payoutSchema, Payout, ZodErrors } from "shared/index";
+import { IbanInput, formatIban } from "@/components/shared/Input";
 import { useUser } from "@/providers/UserProvider";
 import { getAxiosError } from "@/utils/getAxiosError";
 import { SectionCard, Field, FormField } from "@/screens/user/ui";
+import { FieldError } from "@/components/shared/FieldError";
 
 export function PayoutCard() {
   const { user, isLoading, updateProfile } = useUser();
-
   const [open, setOpen] = useState(false);
-  const [error, setError] = useState("");
-  const [form, setForm] = useState({
+  const [errors, setErrors] = useState<ZodErrors<Payout>>({});
+  const [form, setForm] = useState<Payout>({
     iban: user?.payout?.iban ?? "",
     bankName: user?.payout?.bankName ?? "",
   });
@@ -39,17 +41,32 @@ export function PayoutCard() {
       iban: user?.payout?.iban ?? "",
       bankName: user?.payout?.bankName ?? "",
     });
-    setError("");
+    setErrors({});
     setOpen(true);
   };
 
+  const handleChange = (field: keyof Payout, value: string) => {
+    setForm((p) => ({ ...p, [field]: value }));
+    setErrors((p) => ({ ...p, [field]: undefined, general: undefined }));
+  };
+
   const handleSave = async () => {
-    setError("");
+    setErrors({});
     try {
+      const parsed = payoutSchema.safeParse(form);
+      if (!parsed.success) {
+        const { fieldErrors, formErrors } = parsed.error.flatten();
+        setErrors({
+          bankName: fieldErrors.bankName?.[0],
+          iban: fieldErrors.iban?.[0],
+          general: formErrors[0],
+        });
+        return;
+      }
       await updateProfile({ payout: form });
       setOpen(false);
     } catch (e) {
-      setError(getAxiosError(e));
+      setErrors({ general: getAxiosError(e) });
     }
   };
 
@@ -114,14 +131,18 @@ export function PayoutCard() {
             </DialogDescription>
           </DialogHeader>
           <div className="flex flex-col gap-4 py-2">
-            <FormField label="Bank">
+            <FormField label="Bank" htmlFor="bankName" error={errors.bankName}>
               <Select
                 value={form.bankName}
-                onValueChange={(value) =>
-                  setForm((p) => ({ ...p, bankName: value }))
-                }
+                onValueChange={(value) => handleChange("bankName", value)}
               >
-                <SelectTrigger className="h-10 text-sm w-full">
+                <SelectTrigger
+                  id="bankName"
+                  className={clsx(
+                    "h-10 text-sm w-full",
+                    errors.bankName && "border-destructive",
+                  )}
+                >
                   <SelectValue placeholder="Select your bank" />
                 </SelectTrigger>
                 <SelectContent className="w-full bg-background">
@@ -140,15 +161,17 @@ export function PayoutCard() {
                 </SelectContent>
               </Select>
             </FormField>
-            <FormField label="IBAN">
+            <FormField label="IBAN" htmlFor="iban" error={errors.iban}>
               <IbanInput
+                id="iban"
                 value={form.iban}
-                onChange={(value) => setForm((p) => ({ ...p, iban: value }))}
+                onChange={(value) => handleChange("iban", value)}
+                error={errors.iban}
                 className="h-10 text-sm font-mono"
               />
             </FormField>
           </div>
-          {error && <p className="text-xs text-red">{error}</p>}
+          <FieldError message={errors.general} />
           <DialogFooter>
             <Button variant="outline" onClick={() => setOpen(false)}>
               Cancel

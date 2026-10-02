@@ -4,6 +4,7 @@ import { Switch } from "@/components/ui/switch";
 import { useUser } from "@/providers/UserProvider";
 import { getAxiosError } from "@/utils/getAxiosError";
 import { SectionCard } from "@/screens/user/ui";
+import { FieldError } from "@/components/shared/FieldError";
 
 export function CheckboxesCard({
   list,
@@ -60,7 +61,7 @@ export function CheckboxesCard({
               </div>
             </div>
           ))}
-          {error && <p className="text-xs text-red mt-1">{error}</p>}
+          <FieldError message={error} />
         </div>
       </div>
     </>

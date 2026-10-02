@@ -18,12 +18,6 @@ import {
   ArrowRight,
   ArrowLeft,
 } from "lucide-react";
-import {
-  Task,
-  TaskUpdateForm,
-  TaskResponseItem,
-  TaskCreateForm,
-} from "@shared/types";
 import { useTasks } from "@/providers/TaskProvider";
 import {
   DialogHeader,
@@ -31,25 +25,36 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
+import { FieldError } from "@/components/shared/FieldError";
+import { Label } from "@/components/shared/Label";
 import { Switch } from "@/components/ui/switch";
-import { Input, PriceInput } from "@/shared/components/Input";
-import { TagInput } from "@/shared/components/TagInput";
-import { DatePicker } from "@/shared/components/DatePicker";
+import { Input, PriceInput, TagInput } from "@/components/shared/Input";
+import { DatePicker } from "@/components/shared/DatePicker";
 import { Textarea } from "@/components/ui/textarea";
-import { axiosApi } from "api/index";
-import { taskCreateSchema, taskResponseCreateSchema } from "@shared/schemas";
-import { LocationPicker } from "@/shared/components/LocationPicker";
+import { axiosApi } from "@/api/index";
+import { LocationPicker } from "@/components/shared/LocationPicker";
 import {
   SectionLabel,
   TaskStatusBadge,
   ResponseStatusBadge,
 } from "@/screens/tasks/ui";
 import { formatPrice } from "@/utils/formatPrice";
-import { Tiptap } from "@/shared/components/Tiptap";
+import { Tiptap } from "@/components/shared/Tiptap";
 import clsx from "clsx";
 import parse from "html-react-parser";
 import { TaskerStep } from "@/screens/tasks/types";
+import { getAxiosError } from "@/utils/getAxiosError";
+import {
+  ZodErrors,
+  Task,
+  TaskUpdateForm,
+  TaskResponseItem,
+  TaskCreateForm,
+  TaskResponseCreateForm,
+  removeHtml,
+  taskCreateSchema,
+  taskResponseCreateSchema,
+} from "shared/index";
 
 interface ViewProps {
   task: Task | null;
@@ -160,7 +165,7 @@ const EditTaskForm = ({
 }) => {
   const [form, setForm] = useState<TaskCreateForm>(task);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [errors, setErrors] = useState<ZodErrors<TaskCreateForm>>({});
 
   const handleUpdate = <K extends keyof TaskCreateForm>(
     key: K,
@@ -169,10 +174,20 @@ const EditTaskForm = ({
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    setError(null);
+    setErrors({});
     const parsed = taskCreateSchema.safeParse(form);
     if (!parsed.success) {
-      setError(parsed.error.issues[0].message);
+      const { fieldErrors, formErrors } = parsed.error.flatten();
+      setErrors({
+        title: fieldErrors?.title?.[0],
+        description: fieldErrors?.description?.[0],
+        deadline: fieldErrors?.deadline?.[0],
+        location: fieldErrors?.location?.[0],
+        skills: fieldErrors?.skills?.[0],
+        certificates: fieldErrors?.certificates?.[0],
+        budget: fieldErrors?.budget?.[0],
+        general: formErrors[0],
+      });
       return;
     }
     setSaving(true);
@@ -186,8 +201,10 @@ const EditTaskForm = ({
         certificates: form.certificates,
         budget: form.budget,
       });
-    } catch {
-      setError("Couldn't save changes. Please try again.");
+    } catch (e) {
+      setErrors({
+        general: getAxiosError(e),
+      });
     } finally {
       setSaving(false);
     }
@@ -220,6 +237,7 @@ const EditTaskForm = ({
               name="edit-title"
               value={form.title}
               onChange={(e) => handleUpdate("title", e.target.value)}
+              error={errors.title}
             />
           </div>
           <div className="flex flex-col gap-1.5">
@@ -237,6 +255,7 @@ const EditTaskForm = ({
             <LocationPicker
               value={form.location}
               onChange={(location) => handleUpdate("location", location)}
+              error={errors.location}
             />
           </div>
         </div>
@@ -249,6 +268,7 @@ const EditTaskForm = ({
                 value={form.deadline}
                 onChange={(date) => handleUpdate("deadline", date)}
                 className="w-full"
+                error={errors.deadline}
               />
             </div>
             <div className="flex flex-col gap-1.5">
@@ -263,6 +283,7 @@ const EditTaskForm = ({
                   })
                 }
                 placeholder="Optional"
+                error={errors.budget}
               />
             </div>
           </div>
@@ -325,7 +346,9 @@ const EditTaskForm = ({
         </div>
       </div>
       <div className="border-t border-border pt-5 mt-5">
-        {error && <p className="mb-5 text-sm text-red">{error}</p>}
+        {errors.general && (
+          <p className="mb-5 text-xs text-destructive">{errors.general}</p>
+        )}
         <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
           <Button
             type="button"
@@ -522,7 +545,7 @@ export const ClientView = ({ task, onClose }: ViewProps) => {
   } = useTasks();
   const [isEditing, setIsEditing] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string>("");
   const [responses, setResponses] = useState<TaskResponseItem[]>([]);
   const [loadingResponses, setLoadingResponses] = useState(false);
 
@@ -536,8 +559,8 @@ export const ClientView = ({ task, onClose }: ViewProps) => {
       .then((items) => {
         if (!cancelled) setResponses(items);
       })
-      .catch(() => {
-        if (!cancelled) setError("Couldn't load responses.");
+      .catch((e) => {
+        if (!cancelled) setError(getAxiosError(e));
       })
       .finally(() => {
         if (!cancelled) setLoadingResponses(false);
@@ -551,11 +574,11 @@ export const ClientView = ({ task, onClose }: ViewProps) => {
 
   const runAction = async (action: () => Promise<void>) => {
     setBusy(true);
-    setError(null);
+    setError("");
     try {
       await action();
-    } catch {
-      setError("Action failed. Please try again.");
+    } catch (e) {
+      setError(getAxiosError(e));
     } finally {
       setBusy(false);
     }
@@ -664,7 +687,7 @@ export const ClientView = ({ task, onClose }: ViewProps) => {
         <Button
           variant="outline"
           size="sm"
-          className="text-red hover:text-red"
+          className="text-destructive hover:text-destructive"
           onClick={handleDelete}
           disabled={busy}
         >
@@ -672,7 +695,7 @@ export const ClientView = ({ task, onClose }: ViewProps) => {
           Delete
         </Button>
       </div>
-      {error && <p className="text-sm text-red mt-5">{error}</p>}
+      <FieldError message={error} />
     </>
   );
 };
@@ -682,9 +705,9 @@ export const TaskerView = ({ task, onClose }: ViewProps) => {
   const [myResponse, setMyResponse] = useState<TaskResponseItem | null>(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [errors, setErrors] = useState<ZodErrors<TaskResponseCreateForm>>({});
   const [step, setStep] = useState<TaskerStep>("overview");
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<TaskResponseCreateForm>({
     message: "",
     price: 0,
   });
@@ -699,8 +722,11 @@ export const TaskerView = ({ task, onClose }: ViewProps) => {
       .then((items) => {
         if (!cancelled) setMyResponse(items[0] ?? null);
       })
-      .catch(() => {
-        if (!cancelled) setError("Couldn't load your response status.");
+      .catch((e) => {
+        if (!cancelled)
+          setErrors({
+            general: getAxiosError(e),
+          });
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -715,17 +741,24 @@ export const TaskerView = ({ task, onClose }: ViewProps) => {
   const handleRespond = async (e: FormEvent) => {
     try {
       e.preventDefault();
-      setError(null);
+      setErrors({});
       const parsed = taskResponseCreateSchema.safeParse(form);
       if (!parsed.success) {
-        setError(parsed.error.issues[0].message);
+        const { fieldErrors, formErrors } = parsed.error.flatten();
+        setErrors({
+          message: fieldErrors.message?.[0],
+          price: fieldErrors.price?.[0],
+          general: formErrors[0],
+        });
         return;
       }
       setBusy(true);
       const response = await respondToTask(task._id, form);
       setMyResponse(response);
-    } catch {
-      setError("Couldn't send your response.");
+    } catch (e) {
+      setErrors({
+        message: getAxiosError(e),
+      });
     } finally {
       setBusy(false);
     }
@@ -734,12 +767,14 @@ export const TaskerView = ({ task, onClose }: ViewProps) => {
   const handleWithdraw = async () => {
     if (!myResponse) return;
     setBusy(true);
-    setError(null);
+    setErrors({});
     try {
       await withdrawResponse(task._id, myResponse._id);
       setMyResponse({ ...myResponse, status: "withdrawn" });
-    } catch {
-      setError("Couldn't withdraw your response.");
+    } catch (e) {
+      setErrors({
+        message: getAxiosError(e),
+      });
     } finally {
       setBusy(false);
     }
@@ -797,21 +832,38 @@ export const TaskerView = ({ task, onClose }: ViewProps) => {
           task.status === "open" &&
           (!myResponse || myResponse.status === "withdrawn") ? (
             <form onSubmit={handleRespond} className="flex flex-col gap-4">
-              <div className="grid grid-cols-1 gap-5 md:grid-cols-[4fr_1fr]">
-                <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="respond-message">Message to the client</Label>
+              <div className="grid grid-cols-1 gap-5 md:grid-cols-[80%_1fr]">
+                <div className="form-group">
+                  <Label htmlFor="respond-message" error={!!errors.message}>
+                    Message to the client
+                  </Label>
                   <Tiptap
                     value={form.message}
+                    error={errors.message}
                     onUpdate={({ editor }) => {
                       setForm((prev) => ({
                         ...prev,
                         message: editor.getHTML(),
                       }));
+                      setErrors((p) => ({ ...p, message: undefined }));
                     }}
                   />
+                  <FieldError message={errors.message} />
+                  <p
+                    className={clsx(
+                      "text-xs text-right mt-1",
+                      removeHtml(form.message ?? "").length > 1000
+                        ? "text-destructive"
+                        : "text-grey",
+                    )}
+                  >
+                    {removeHtml(form.message ?? "").length}/1000
+                  </p>
                 </div>
-                <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="price">Your price</Label>
+                <div className="form-group">
+                  <Label htmlFor="price" error={!!errors.price}>
+                    Your price
+                  </Label>
                   <PriceInput
                     name="price"
                     value={form.price}
@@ -820,12 +872,14 @@ export const TaskerView = ({ task, onClose }: ViewProps) => {
                         ...p,
                         price: number,
                       }));
+                      setErrors((p) => ({ ...p, price: undefined }));
                     }}
                     placeholder="Budget"
+                    error={errors.price}
                   />
+                  <FieldError message={errors.price} />
                 </div>
               </div>
-              {error && <p className="text-sm text-red">{error}</p>}
               <div className="flex flex-col-reverse gap-3 border-t border-border pt-5 sm:flex-row sm:justify-between">
                 <Button
                   type="button"
@@ -898,8 +952,8 @@ export const TaskerView = ({ task, onClose }: ViewProps) => {
           )}
         </div>
       )}
-      {error && step !== "respond" && (
-        <p className="text-sm text-red mt-5">{error}</p>
+      {errors.general && step !== "respond" && (
+        <p className="text-xs text-destructive mt-5">{errors.general}</p>
       )}
     </>
   );

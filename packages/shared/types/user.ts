@@ -1,4 +1,4 @@
-import { MediaItem } from "@shared/types/media";
+import { MediaItem } from "shared/types";
 
 export type Role = "tasker" | "client";
 
@@ -77,13 +77,13 @@ export interface UserSettings {
 export interface PublicUser {
   _id: string;
   username: string;
-  publicLink: string;
+  publicLink?: string;
   email: string;
   newEmail?: string;
   role: "admin" | Role;
   createdAt: Date;
   acceptance: UserAcceptance;
-  payout: Payout;
+  payout?: Payout;
   profile: UserProfile;
   settings: UserSettings;
   publicProfile: PublicProfile;

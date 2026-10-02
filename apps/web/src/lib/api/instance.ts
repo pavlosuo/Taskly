@@ -23,7 +23,7 @@ import {
   TaskList,
   TaskResponseItem,
   TaskResponseCreateForm,
-} from "@shared/types";
+} from "shared/types";
 import axios, { type AxiosInstance } from "axios";
 
 export const BASE_URL =

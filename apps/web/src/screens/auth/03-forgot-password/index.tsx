@@ -3,14 +3,13 @@ import { useState, useCallback, memo, createContext, useContext } from "react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/providers/UserProvider";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/shared/components/Input";
+import { Input, PhoneInput } from "@/components/shared/Input";
 import { Info, Check } from "lucide-react";
 import {
   InputOTP,
   InputOTPGroup,
   InputOTPSlot,
 } from "@/components/ui/input-otp";
-import { getPasswordStrength } from "@shared/utils";
 import {
   forgotPasswordEmailSchema,
   otpSchema,
@@ -19,21 +18,21 @@ import {
   NewPasswordForm,
   OtpChannel,
   Step,
-  NewPasswordErrors,
-} from "@shared/index";
+  ZodErrors,
+  getPasswordStrength,
+} from "shared/index";
 import {
   AuthLayout,
-  FieldError,
   PasswordToggle,
   BottomLink,
   MethodToggle,
   Title,
-  Label,
 } from "@/screens/auth/ui";
 import { getAxiosError } from "@/utils/getAxiosError";
-import { PhoneInput } from "@/shared/components/PhoneInput";
 import clsx from "clsx";
 import { useTranslation } from "react-i18next";
+import { FieldError } from "@/components/shared/FieldError";
+import { Label } from "@/components/shared/Label";
 
 export interface ForgotPasswordContextValue {
   step: Step;
@@ -349,7 +348,7 @@ const NewPasswordStep = memo(function NewPasswordStep() {
     confirm: "",
   });
   const [show, setShow] = useState({ password: false, confirm: false });
-  const [errors, setErrors] = useState<NewPasswordErrors>({});
+  const [errors, setErrors] = useState<ZodErrors<NewPasswordForm>>({});
   const strength = getPasswordStrength(form.password);
   const { resetPassword, isLoading } = useUser();
   const router = useRouter();
@@ -438,7 +437,9 @@ const NewPasswordStep = memo(function NewPasswordStep() {
           </div>
           <p className="text-sm text-primary">{t("newPassword.hint")}</p>
         </div>
-        {errors.general && <p className="text-xs text-red">{errors.general}</p>}
+        {errors.general && (
+          <p className="text-xs text-destructive">{errors.general}</p>
+        )}
         <Button type="submit" disabled={isLoading}>
           {isLoading
             ? t("newPassword.submit.loading")

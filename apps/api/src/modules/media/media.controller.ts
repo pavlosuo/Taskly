@@ -76,23 +76,18 @@ export class MediaController {
         });
       }
 
-      const { filePath: fp, mimeType } = result.data!;
-
+      const { filePath: fp, mimeType, fileSize } = result.data!;
       const filePath = path.resolve(fp);
-
-      const stat = await fs.promises.stat(filePath);
-      const fileSize = stat.size;
+      const range = req.headers.range;
 
       res.setHeader("Content-Type", mimeType);
       res.setHeader("Accept-Ranges", "bytes");
       res.setHeader("X-Content-Type-Options", "nosniff");
-
+      res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
       res.setHeader(
         "Cache-Control",
         user ? "private, max-age=3600" : "public, max-age=86400",
       );
-
-      const range = req.headers.range;
 
       if (!range) {
         res.setHeader("Content-Length", fileSize);
@@ -109,13 +104,16 @@ export class MediaController {
       }
 
       const match = range.match(/^bytes=(\d*)-(\d*)$/);
+
       if (!match) {
         res.status(416);
         res.setHeader("Content-Range", `bytes */${fileSize}`);
         return res.end();
       }
+
       let start: number;
       let end: number;
+
       if (match[1] === "") {
         const suffixLength = Number(match[2]);
         start = Math.max(fileSize - suffixLength, 0);
@@ -138,15 +136,14 @@ export class MediaController {
         end,
       });
       stream.on("error", (err) => {
-        console.error("[serveFile] range stream error:", err);
         res.destroy(err);
       });
       stream.pipe(res);
     } catch (error) {
       if (!res.headersSent) {
-        return res.status(404).json({
+        return res.status(500).json({
           success: false,
-          message: "File not found.",
+          message: "errors.server",
         });
       }
       res.destroy();

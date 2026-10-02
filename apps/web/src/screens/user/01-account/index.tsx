@@ -7,7 +7,7 @@ import {
   SecurityCard,
   VerifyDialog,
 } from "@/screens/user/ui";
-import { OtpChannel } from "@shared/types";
+import { OtpChannel } from "shared/types";
 
 export function Account() {
   const { user, sendEmailOtp, verifyEmailOtp, sendPhoneOtp, verifyPhoneOtp } =
@@ -32,7 +32,7 @@ export function Account() {
     <section className="w-full px-4">
       <div className="flex flex-col gap-4">
         <PersonalInfoCard onVerify={openVerify} />
-        {user.role !== "admin" && <PayoutCard />}
+        {user.role === "tasker" && <PayoutCard />}
         <SecurityCard />
       </div>
       <VerifyDialog

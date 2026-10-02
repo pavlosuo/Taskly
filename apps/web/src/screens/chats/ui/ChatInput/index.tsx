@@ -1,11 +1,11 @@
 "use client";
 import { useState, useRef } from "react";
 import { Paperclip, Send, X, Loader2 } from "lucide-react";
-import { axiosApi } from "api/index";
-import { MediaItem } from "@shared/types";
+import { axiosApi } from "@/api/index";
+import { MediaItem } from "shared/types";
 import { useMediaPicker } from "@/providers/MediaPickerProvider";
 import { useChats } from "@/providers/ChatProvider";
-import { ImageDisplay } from "@/shared/components/MediaPicker";
+import { ImageDisplay } from "@/components/shared/MediaPicker";
 import { useSingleChat } from "@/providers/SingleChatProvider";
 import { useSocket } from "@/providers/SocketProvider";
 

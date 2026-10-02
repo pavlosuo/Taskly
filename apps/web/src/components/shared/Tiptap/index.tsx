@@ -1,0 +1,46 @@
+"use client";
+import { useMemo } from "react";
+import { TextStyleKit } from "@tiptap/extension-text-style";
+import { EditorContent, useEditor, EditorEvents } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
+import { MenuBar, MenuBarSkeleton } from "./MenuBar";
+import parse from "html-react-parser";
+import clsx from "clsx";
+
+export const Tiptap = ({
+  value,
+  onUpdate,
+  error,
+}: {
+  value: string;
+  onUpdate: (props: EditorEvents["update"]) => void;
+  error?: string;
+}) => {
+  const editor = useEditor({
+    extensions: [TextStyleKit, StarterKit],
+    content: value,
+    immediatelyRender: false,
+    onUpdate,
+  });
+  const parsedContent = useMemo(() => (value ? parse(value) : null), [value]);
+  return (
+    <div
+      className={clsx(
+        "flex flex-col gap-1 text-wrapper",
+        error && "border border-destructive",
+      )}
+    >
+      {editor ? (
+        <>
+          <MenuBar editor={editor} />
+          <EditorContent editor={editor} />
+        </>
+      ) : (
+        <>
+          <MenuBarSkeleton />
+          <div className="p-6 border border-border">{parsedContent}</div>
+        </>
+      )}
+    </div>
+  );
+};

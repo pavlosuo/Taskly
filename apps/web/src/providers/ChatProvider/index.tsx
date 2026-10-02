@@ -8,8 +8,8 @@ import {
   ReactNode,
   useEffect,
 } from "react";
-import { ChatWithMember } from "@shared/types";
-import { axiosApi } from "api/index";
+import { ChatWithMember } from "shared/types";
+import { axiosApi } from "@/api/index";
 import { useUser } from "@/providers/UserProvider";
 import { useSocket } from "@/providers/SocketProvider";
 import { useTabNotifications } from "@/hooks/useTabNotifications";

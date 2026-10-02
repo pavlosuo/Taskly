@@ -29,3 +29,9 @@ export type Tag = {
   value: string;
   label: string;
 };
+
+export type ChangePasswordForm = {
+  oldPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+};

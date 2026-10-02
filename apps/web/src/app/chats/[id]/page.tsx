@@ -1,9 +1,9 @@
 import { Screens } from "@/screens";
 import { getMetaData } from "@/utils/Metadata";
-import { SidebarWrapper } from "@/shared/components/AppSidebar";
-import { AutoLogoutPopup } from "@/shared/components/AutoLogoutPopup";
+import { SidebarWrapper } from "@/components/shared/AppSidebar";
+import { AutoLogoutPopup } from "@/components/shared/AutoLogoutPopup";
 import { authGuard } from "@/utils/authGuard";
-import { getServerApi } from "api/server";
+import { getServerApi } from "@/api/server";
 import { notFound } from "next/navigation";
 
 export async function generateMetadata({

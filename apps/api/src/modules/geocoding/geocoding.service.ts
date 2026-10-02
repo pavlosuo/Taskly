@@ -1,4 +1,4 @@
-import { ServiceResult } from "@shared/types";
+import { ServiceResult } from "shared/types";
 
 const BASE = "https://nominatim.openstreetmap.org";
 

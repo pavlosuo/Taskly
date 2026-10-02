@@ -1,4 +1,4 @@
-import { MediaItem } from "@shared/types/media";
+import { MediaItem } from "shared/types";
 
 export interface ChatMemberPreview {
   _id: string;

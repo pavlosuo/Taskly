@@ -5,7 +5,7 @@ import { ThemeProvider } from "@/providers/ThemeProvider";
 import { ModalProvider } from "@/providers/ModalProvider";
 import { MediaPickerProvider } from "@/providers/MediaPickerProvider";
 import { ChatProvider } from "@/providers/ChatProvider";
-import { Lang, Theme, PublicUser } from "@shared/types";
+import { Lang, Theme, PublicUser } from "shared/types";
 import { LightboxProvider } from "@/providers/LightboxProvider";
 import { SocketProvider } from "@/providers/SocketProvider";
 import { PresenceProvider } from "@/providers/PresenceProvider";

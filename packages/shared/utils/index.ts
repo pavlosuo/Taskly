@@ -1,4 +1,4 @@
-import { PasswordStrength, Tag } from "@shared/types";
+import { PasswordStrength, Tag } from "shared/types";
 
 const CHECKS = [
   {
@@ -60,10 +60,14 @@ export function getPasswordStrength(password?: string): PasswordStrength {
   const tips = CHECKS.filter((c) => !results[c.key]).map((c) => c.tip);
   const score = Object.values(results).filter(Boolean).length;
   if (!results.hasMinLength || !results.hasNoSpaces) {
-    return { label: "password.strength.invalid", color: "text-red-600", tips };
+    return {
+      label: "password.strength.invalid",
+      color: "text-destructive-600",
+      tips,
+    };
   }
   if (score <= 3) {
-    return { label: "password.strength.weak", color: "text-red", tips };
+    return { label: "password.strength.weak", color: "text-destructive", tips };
   }
   if (score === 4) {
     return {
@@ -108,4 +112,9 @@ export function normalizeTagList(values: Tag[]): Tag[] {
     }
   }
   return result;
+}
+
+export function removeHtml(str: string) {
+  if (!str) return "";
+  return str.replace(/<\/?[^>]+(>|$)/g, "");
 }

@@ -1,25 +1,22 @@
 @layer theme, base, media-skin, components, utilities;
-
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 @import "../css/player.css" layer(media-skin);
 @source "../../../../packages/shared/utils/index.ts";
-
 @custom-variant dark (&:is(.dark *));
-
 @theme {
   --breakpoint-xs: 480px;
 }
 
 @theme inline {
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
-  --radius-2xl: calc(var(--radius) + 8px);
-  --radius-3xl: calc(var(--radius) + 12px);
-  --radius-4xl: calc(var(--radius) + 16px);
+  --radius-sm: 0;
+  --radius-md: 0;
+  --radius-lg: 0;
+  --radius-xl: 0;
+  --radius-2xl: 0;
+  --radius-3xl: 0;
+  --radius-4xl: 0;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-grey: var(--grey);
@@ -56,7 +53,7 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
-  --color-red: #e3170a;
+  --color-destructive: var(--destructive);
   --color-black: #201e1f;
   --font-heading: var(--font-sans);
   --font-sans: var(--font-sans);
@@ -69,11 +66,6 @@
   }
   body {
     @apply bg-background text-foreground;
-  }
-  [data-slot="checkbox"] {
-    transition:
-      background-color 0.25s,
-      color 0.25s;
   }
   html {
     @apply font-sans;

@@ -1,5 +1,5 @@
 "use client";
-import { ImageDisplay } from "@/shared/components/MediaPicker";
+import { ImageDisplay } from "@/components/shared/MediaPicker";
 import parse from "html-react-parser";
 import {
   BadgeCheck,
@@ -10,16 +10,19 @@ import {
   TvMinimalPlay,
   Drill,
 } from "lucide-react";
-import { PublicProfileUser } from "@shared/types";
+import {
+  PublicProfileUser,
+  MediaItemPublic,
+  AccessReason,
+  CERF,
+} from "shared/index";
 import { Button } from "@/components/ui/button";
-import { VideoPlayer } from "@/shared/components/Player";
+import { VideoPlayer } from "@/components/shared/VideoPlayer";
 import { SpanField } from "@/screens/user/ui/index.tsx";
 import { useLightbox } from "@/providers/LightboxProvider";
-import { MediaItemPublic, AccessReason } from "@shared/types";
-import { CERF } from "@shared/data";
-import { OnlineStatus } from "@/shared/components/OnlineStatus";
+import { OnlineStatus } from "@/components/shared/OnlineStatus";
 import { useTheme } from "@/providers/ThemeProvider";
-import { PublicHeader } from "@/shared/components/PublicHeader";
+import { PublicHeader } from "@/components/shared/PublicHeader";
 import { useRouter } from "next/navigation";
 import { useChats } from "@/providers/ChatProvider";
 import { useUser } from "@/providers/UserProvider";
@@ -61,6 +64,7 @@ export const Main = ({
   user: PublicProfileUser;
   accessReason: AccessReason;
 }) => {
+  console.log(user);
   const p = user.publicProfile;
   const { setLightbox } = useLightbox();
   const { lang } = useTheme();
@@ -94,8 +98,7 @@ export const Main = ({
     try {
       const chat = await createChat(userId);
       router.push(`/chats/${chat._id}`);
-    } finally {
-    }
+    } catch {}
   };
 
   return (
@@ -185,16 +188,20 @@ export const Main = ({
         </div>
         {(hasSkills || hasCertificates || hasLanguages) && (
           <div className="flex flex-wrap gap-2 py-5 border-b border-border">
-            <ScrollChip
-              id="skills"
-              label="skills"
-              count={p.skills?.length ?? 0}
-            />
-            <ScrollChip
-              id="certificates"
-              label="certificates"
-              count={p.certificates?.length ?? 0}
-            />
+            {user.role === "tasker" && (
+              <>
+                <ScrollChip
+                  id="skills"
+                  label="skills"
+                  count={p.skills?.length ?? 0}
+                />
+                <ScrollChip
+                  id="certificates"
+                  label="certificates"
+                  count={p.certificates?.length ?? 0}
+                />
+              </>
+            )}
             <ScrollChip
               id="languages"
               label="languages"
@@ -214,101 +221,107 @@ export const Main = ({
             />
           )}
         </div>
-        <div id="introduction" className="py-8 border-b border-border">
-          <div className="flex items-center gap-2 mb-3">
-            <TvMinimalPlay className="w-4 h-4 text-primary" />
-            <h2 className="text-sm font-semibold text-foreground">
-              Introduction video
-            </h2>
-          </div>
-          {hasVideo ? (
-            <div className="group relative aspect-video w-full">
-              <VideoPlayer
-                src={p.introduction!.url}
-                className="h-full w-full"
-              />
+        {user.role === "tasker" && (
+          <>
+            <div id="introduction" className="py-8 border-b border-border">
+              <div className="flex items-center gap-2 mb-3">
+                <TvMinimalPlay className="w-4 h-4 text-primary" />
+                <h2 className="text-sm font-semibold text-foreground">
+                  Introduction video
+                </h2>
+              </div>
+              {hasVideo ? (
+                <div className="group relative aspect-video w-full">
+                  <VideoPlayer
+                    src={p.introduction!.url}
+                    className="h-full w-full"
+                  />
+                </div>
+              ) : (
+                <EmptyState
+                  label={`${user.profile.fullName} hasn't added an introduction video yet.`}
+                />
+              )}
             </div>
-          ) : (
-            <EmptyState
-              label={`${user.profile.fullName} hasn't added an introduction video yet.`}
-            />
-          )}
-        </div>
-        <div id="skills" className="py-8 border-b border-border">
-          <div className="flex items-center gap-2 mb-3">
-            <Drill className="w-4 h-4 text-primary" />
-            <h2 className="text-sm font-semibold text-foreground">Skills</h2>
-          </div>
-          {hasSkills ? (
-            <div className="flex flex-wrap gap-2">
-              {p.skills!.map((s) => (
-                <SpanField key={s.value} text={s.label} />
-              ))}
+            <div id="skills" className="py-8 border-b border-border">
+              <div className="flex items-center gap-2 mb-3">
+                <Drill className="w-4 h-4 text-primary" />
+                <h2 className="text-sm font-semibold text-foreground">
+                  Skills
+                </h2>
+              </div>
+              {hasSkills ? (
+                <div className="flex flex-wrap gap-2">
+                  {p.skills!.map((s) => (
+                    <SpanField key={s.value} text={s.label} />
+                  ))}
+                </div>
+              ) : (
+                <EmptyState label="No skills added yet." />
+              )}
             </div>
-          ) : (
-            <EmptyState label="No skills added yet." />
-          )}
-        </div>
-        <div id="certificates" className="py-8 border-b border-border">
-          <div className="flex items-center gap-2 mb-3">
-            <ShieldCheck className="w-4 h-4 text-primary" />
-            <h2 className="text-sm font-semibold text-foreground">
-              Certificates
-            </h2>
-          </div>
-          {hasCertificates ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-              {p.certificates!.map((c) => {
-                const hasImage = !!c.media;
-                const galleryIndex = hasImage
-                  ? certificateItems.findIndex(
-                      (item) => item.url === c.media!.url,
-                    )
-                  : -1;
-                if (hasImage && galleryIndex >= 0) {
-                  return (
-                    <button
-                      key={c.value}
-                      type="button"
-                      onClick={() =>
-                        setLightbox({
-                          items: certificateItems,
-                          index: galleryIndex,
-                        })
-                      }
-                      className="group relative aspect-4/3 overflow-hidden rounded-lg border border-border bg-muted"
-                    >
-                      <ImageDisplay
-                        src={c.media!.url}
-                        alt={c.label}
-                        className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                      />
-                      <div className="absolute inset-x-0 bottom-0 bg-linear-to-t from-black/70 via-black/10 to-transparent p-2.5">
-                        <p className="flex items-center gap-1 text-xs font-medium text-white">
-                          <BadgeCheck className="w-3.5 h-3.5 shrink-0" />
-                          <span className="truncate">{c.label}</span>
-                        </p>
+            <div id="certificates" className="py-8 border-b border-border">
+              <div className="flex items-center gap-2 mb-3">
+                <ShieldCheck className="w-4 h-4 text-primary" />
+                <h2 className="text-sm font-semibold text-foreground">
+                  Certificates
+                </h2>
+              </div>
+              {hasCertificates ? (
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {p.certificates!.map((c) => {
+                    const hasImage = !!c.media;
+                    const galleryIndex = hasImage
+                      ? certificateItems.findIndex(
+                          (item) => item.url === c.media!.url,
+                        )
+                      : -1;
+                    if (hasImage && galleryIndex >= 0) {
+                      return (
+                        <button
+                          key={c.value}
+                          type="button"
+                          onClick={() =>
+                            setLightbox({
+                              items: certificateItems,
+                              index: galleryIndex,
+                            })
+                          }
+                          className="group relative aspect-4/3 overflow-hidden rounded-lg border border-border bg-muted"
+                        >
+                          <ImageDisplay
+                            src={c.media!.url}
+                            alt={c.label}
+                            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                          />
+                          <div className="absolute inset-x-0 bottom-0 bg-linear-to-t from-black/70 via-black/10 to-transparent p-2.5">
+                            <p className="flex items-center gap-1 text-xs font-medium text-white">
+                              <BadgeCheck className="w-3.5 h-3.5 shrink-0" />
+                              <span className="truncate">{c.label}</span>
+                            </p>
+                          </div>
+                        </button>
+                      );
+                    }
+                    return (
+                      <div
+                        key={c.value}
+                        className="flex aspect-4/3 flex-col items-center justify-center gap-1.5 rounded-lg border border-border bg-muted px-2 text-center"
+                      >
+                        <BadgeCheck className="w-5 h-5 text-primary" />
+                        <span className="text-xs font-medium text-foreground truncate w-full">
+                          {c.label}
+                        </span>
                       </div>
-                    </button>
-                  );
-                }
-                return (
-                  <div
-                    key={c.value}
-                    className="flex aspect-4/3 flex-col items-center justify-center gap-1.5 rounded-lg border border-border bg-muted px-2 text-center"
-                  >
-                    <BadgeCheck className="w-5 h-5 text-primary" />
-                    <span className="text-xs font-medium text-foreground truncate w-full">
-                      {c.label}
-                    </span>
-                  </div>
-                );
-              })}
+                    );
+                  })}
+                </div>
+              ) : (
+                <EmptyState label="No certificates added yet." />
+              )}
             </div>
-          ) : (
-            <EmptyState label="No certificates added yet." />
-          )}
-        </div>
+          </>
+        )}
         <div id="languages" className="py-8">
           <div className="flex items-center gap-2 mb-3">
             <LanguagesIcon className="w-4 h-4 text-primary" />

@@ -1,6 +1,6 @@
 import { Screens } from "@/screens";
 import { getMetaData } from "@/utils/Metadata";
-import { FloatingSettings } from "@/shared/components/FloatingSettings";
+import { FloatingSettings } from "@/components/shared/FloatingSettings";
 
 export const metadata = getMetaData({
   title: "Not found",

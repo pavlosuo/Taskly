@@ -1,9 +1,9 @@
 import { Screens } from "@/screens";
 import { getMetaData } from "@/utils/Metadata";
 import { redirect } from "next/navigation";
-import { getServerApi } from "api/server";
+import { getServerApi } from "@/api/server";
 import { authGuard } from "@/utils/authGuard";
-import { FloatingSettings } from "@/shared/components/FloatingSettings";
+import { FloatingSettings } from "@/components/shared/FloatingSettings";
 
 export const metadata = getMetaData({
   title: "Forgot Password",
@@ -15,7 +15,7 @@ export default async function ForgotPassword({
 }: {
   searchParams: Promise<{ token?: string; error?: string }>;
 }) {
-  await authGuard(["guest"]);
+  await authGuard(["guest"], "/forgot-password");
   const { token, error } = await searchParams;
   if (!token) {
     return (

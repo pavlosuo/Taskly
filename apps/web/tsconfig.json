@@ -18,11 +18,11 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
-      "api/*": ["./src/lib/api/*"],
-      "@shared/*": ["../../packages/shared/*"]
+      "@/api/*": ["./src/lib/api/*"],
+      "shared/*": ["../../packages/shared/*"]
     },
     "plugins": [{ "name": "next" }]
   },
-  "include": ["./src/**/*", ".next/types/**/*.ts"],
+  "include": ["./src/**/*"],
   "exclude": ["node_modules"]
 }

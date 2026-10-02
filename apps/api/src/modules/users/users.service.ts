@@ -5,14 +5,14 @@ import {
   publicProfileLangSchema,
   publicProfileSkillSchema,
   publicProfileCertificateSchema,
-} from "@shared/schemas";
+} from "shared/schemas";
 import { CLIENT_URL, NODE_ENV } from "@/env";
 import {
   ServiceResult,
   PublicProfileUser,
   PublicProfileLang,
   ChatMemberPreview,
-} from "@shared/types";
+} from "shared/types";
 import { OtpService } from "@/modules/otp/otp.service";
 import {
   toPublicUser,
@@ -71,7 +71,8 @@ export class UsersService {
             message: "Username already taken.",
           };
         updates.username = username;
-        updates.publicLink = `${CLIENT_URL}/@${username}`;
+        if (user?.role !== "admin")
+          updates.publicLink = `${CLIENT_URL}/@${username}`;
       }
       if (email !== undefined && email !== user.email) {
         const exists = await users.findOne({

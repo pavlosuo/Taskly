@@ -3,7 +3,7 @@ import path from "path";
 import fs from "fs";
 import sharp from "sharp";
 import { nanoid } from "nanoid";
-import { ALLOWED_MIME_TYPES } from "@shared/data";
+import { ALLOWED_MIME_TYPES, MAX_FILE_SIZE } from "shared/data";
 import { Request } from "express";
 
 const IMAGE_CONFIG = {
@@ -29,30 +29,23 @@ class OptimizedDiskStorage implements multer.StorageEngine {
       const userId = req.user._id.toString();
       const uploadDir = path.join(process.cwd(), "../../uploads", userId);
       fs.mkdirSync(uploadDir, { recursive: true });
-
       const isImage = Object.prototype.hasOwnProperty.call(
         IMAGE_MIME_EXT,
         file.mimetype,
       );
-
       const ext = isImage
         ? IMAGE_MIME_EXT[file.mimetype]
         : path.extname(file.originalname);
-
       const filename = `${nanoid()}${ext}`;
       const finalPath = path.join(uploadDir, filename);
-
       let size = 0;
       const writeStream = fs.createWriteStream(finalPath);
-
       const onError = (err: Error) => {
         writeStream.destroy();
         fs.unlink(finalPath, () => cb(err));
       };
-
       writeStream.on("error", onError);
       file.stream.on("error", onError);
-
       writeStream.on("finish", () => {
         cb(null, {
           path: finalPath,
@@ -61,19 +54,16 @@ class OptimizedDiskStorage implements multer.StorageEngine {
           destination: uploadDir,
         });
       });
-
       if (!isImage) {
         file.stream.on("data", (chunk) => (size += chunk.length));
         file.stream.pipe(writeStream);
         return;
       }
-
       const transformer = sharp().resize({
         width: IMAGE_CONFIG.maxWidth,
         fit: "inside",
         withoutEnlargement: true,
       });
-
       if (file.mimetype === "image/jpeg") {
         transformer.jpeg({
           quality: IMAGE_CONFIG.jpegQuality,
@@ -108,7 +98,7 @@ class OptimizedDiskStorage implements multer.StorageEngine {
 export const upload = multer({
   storage: new OptimizedDiskStorage(),
   limits: {
-    fileSize: 50 * 1024 * 1024,
+    fileSize: MAX_FILE_SIZE,
   },
   fileFilter: (_, file, cb) => {
     cb(null, ALLOWED_MIME_TYPES.has(file.mimetype));

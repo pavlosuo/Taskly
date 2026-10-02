@@ -1,14 +1,13 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, startTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Search, X, Loader2 } from "lucide-react";
-import { axiosApi } from "api/index";
-import { ChatMemberPreview, ChatWithMember } from "@shared/types";
+import { axiosApi } from "@/api/index";
+import { ChatMemberPreview, ChatWithMember } from "shared/types";
 import { useChats } from "@/providers/ChatProvider";
 import { ChatListItem } from "@/screens/chats/ui/ChatListItem";
-import { ImageDisplay } from "@/shared/components/MediaPicker";
-import { Input } from "@/shared/components/Input";
-import { startTransition } from "react";
+import { ImageDisplay } from "@/components/shared/MediaPicker";
+import { Input } from "@/components/shared/Input";
 
 export const Main = ({ chats: initialChats }: { chats: ChatWithMember[] }) => {
   const router = useRouter();

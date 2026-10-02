@@ -15,8 +15,9 @@ import {
   TaskListQuery,
   TaskResponseItem,
   TaskResponseCreateForm,
-} from "@shared/types";
-import { axiosApi } from "api/index";
+} from "shared/types";
+import { axiosApi } from "@/api/index";
+import { useUser } from "@/providers/UserProvider";
 
 interface TaskContextType {
   allTasks: Task[];
@@ -50,10 +51,10 @@ export const TaskProvider = ({ children }: TaskProviderProps) => {
   const [myTasks, setMyTasks] = useState<Task[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
+  const { user } = useUser();
 
   const fetchTasks = useCallback(async (query?: TaskListQuery) => {
     try {
-      setIsLoading(true);
       const { data } = await axiosApi.getTasks(query);
       setAllTasks(data.allItems);
       setMyTasks(data.myItems);
@@ -230,10 +231,11 @@ export const TaskProvider = ({ children }: TaskProviderProps) => {
   );
 
   useEffect(() => {
+    if (!user) return;
     startTransition(() => {
       fetchTasks();
     });
-  }, [fetchTasks]);
+  }, [fetchTasks, user]);
 
   return (
     <TaskContext.Provider

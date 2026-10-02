@@ -2,7 +2,7 @@
 import { Plus, Trash2 } from "lucide-react";
 import { useUser } from "@/providers/UserProvider";
 import { useMediaPicker } from "@/providers/MediaPickerProvider";
-import { ImageDisplay } from "@/shared/components/MediaPicker";
+import { ImageDisplay } from "@/components/shared/MediaPicker";
 import { SectionCard } from "@/screens/user/ui";
 
 export function AvatarCard() {

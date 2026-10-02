@@ -1,19 +1,25 @@
 "use client";
-import { FC, useEffect, useRef, useState, useCallback } from "react";
+import {
+  FC,
+  useEffect,
+  useRef,
+  useState,
+  useCallback,
+  startTransition,
+} from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
-import { axiosApi } from "api/index";
+import { axiosApi } from "@/api/index";
 import { useChats } from "@/providers/ChatProvider";
-import { Message, ChatWithMember } from "@shared/types";
-import { ImageDisplay } from "@/shared/components/MediaPicker";
+import { Message, ChatWithMember } from "shared/types";
+import { ImageDisplay } from "@/components/shared/MediaPicker";
 import { MessageBubble } from "@/screens/chats/ui/MessageBubble";
 import { ChatInput } from "@/screens/chats/ui/ChatInput";
 import { Marker, MarkerContent } from "@/components/ui/marker";
 import { SingleChatProvider } from "@/providers/SingleChatProvider";
 import { useSocket } from "@/providers/SocketProvider";
-import { startTransition } from "react";
 import Link from "next/link";
-import { OnlineStatus } from "@/shared/components/OnlineStatus";
+import { OnlineStatus } from "@/components/shared/OnlineStatus";
 
 export const Single: FC<{
   chat: ChatWithMember;

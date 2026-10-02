@@ -1,5 +1,5 @@
 "use client";
-import { PrivacyPolicyAdmin } from "@/shared/components/PrivacyPolicy";
+import { PrivacyPolicyAdmin } from "@/components/shared/PrivacyPolicy";
 import { SectionCard } from "@/screens/user/ui";
 import { GlobeLock } from "lucide-react";
 

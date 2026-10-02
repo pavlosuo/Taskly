@@ -9,9 +9,9 @@ import {
   Trash2,
   SmilePlus,
 } from "lucide-react";
-import { Message as MessageType } from "@shared/types";
+import { Message as MessageType, EMOJI } from "shared/index";
 import { useUser } from "@/providers/UserProvider";
-import { axiosApi } from "api/index";
+import { axiosApi } from "@/api/index";
 import { Bubble, BubbleContent, BubbleReactions } from "@/components/ui/bubble";
 import { Message, MessageContent } from "@/components/ui/message";
 import {
@@ -20,17 +20,16 @@ import {
   ContextMenuItem,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
-import { ImageDisplay } from "@/shared/components/MediaPicker";
+import { ImageDisplay } from "@/components/shared/MediaPicker";
 import { useTheme } from "@/providers/ThemeProvider";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { EMOJI } from "@shared/data";
 import { useSingleChat } from "@/providers/SingleChatProvider";
 import { useLightbox } from "@/providers/LightboxProvider";
-import { FileThumbnail } from "@/shared/components/MediaPicker";
+import { FileThumbnail } from "@/components/shared/MediaPicker";
 import { useModal } from "@/providers/ModalProvider";
 
 const Time: FC<{
@@ -410,7 +409,7 @@ export const MessageBubble: FC<{
                   {isOwn && (
                     <ContextMenuItem
                       onClick={handleDelete}
-                      className="text-red focus:text-red hover:bg-red hover:text-white"
+                      className="text-destructive focus:text-destructive hover:bg-destructive hover:text-white"
                     >
                       <Trash2 className="w-3.5 h-3.5 text-inherit" />
                       Delete

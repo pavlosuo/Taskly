@@ -1,8 +1,9 @@
 import { ReactNode } from "react";
-import clsx from "clsx";
 import { fonts } from "@/app/fonts";
 import { RootLayout } from "@/layouts/RootLayout";
-import { getServerApi } from "api/server";
+import { getServerApi } from "@/api/server";
+import { Lang, Theme } from "shared/types";
+import clsx from "clsx";
 import "@/app/globals.css";
 import "@/scss/style.scss";
 
@@ -11,11 +12,17 @@ export default async function LocaleLayout({
 }: {
   children: ReactNode;
 }) {
-  const axiosApi = await getServerApi();
-  const { data } = await axiosApi.me();
-  const { user, settings } = data;
-  const lang = user?.settings?.lang || settings?.lang || "en";
-  const theme = user?.settings?.theme || settings?.theme || "light";
+  let lang: Lang = "en";
+  let theme: Theme = "light";
+  let user = null;
+  try {
+    const axiosApi = await getServerApi();
+    const { data } = await axiosApi.me();
+    const { settings } = data;
+    user = data.user;
+    lang = user?.settings?.lang || settings?.lang;
+    theme = user?.settings?.theme || settings?.theme;
+  } catch {}
   return (
     <html
       className={clsx(fonts.map((f) => f.variable))}

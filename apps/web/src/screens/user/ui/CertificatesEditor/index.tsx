@@ -1,19 +1,21 @@
 "use client";
 import { useState, useEffect, useRef, startTransition } from "react";
 import { X, Plus, Loader2, BadgeCheck, ImageIcon, Trash2 } from "lucide-react";
-import { Input } from "@/shared/components/Input";
-import { axiosApi } from "api/index";
-import { PublicProfileCertificate, MediaItem } from "@shared/types";
+import { Input } from "@/components/shared/Input";
+import { axiosApi } from "@/api/index";
+import { PublicProfileCertificate, MediaItem } from "shared/types";
 import { useMediaPicker } from "@/providers/MediaPickerProvider";
-import { ImageDisplay } from "@/shared/components/MediaPicker";
+import { ImageDisplay } from "@/components/shared/MediaPicker";
 import clsx from "clsx";
 
 export function CertificatesEditor({
   value,
   onChange,
+  error,
 }: {
   value: PublicProfileCertificate[];
   onChange: (certs: PublicProfileCertificate[]) => void;
+  error?: string;
 }) {
   const [search, setSearch] = useState("");
   const [suggestions, setSuggestions] = useState<
@@ -84,11 +86,7 @@ export function CertificatesEditor({
                   onClick={() =>
                     openPicker({
                       accept: "image",
-                      onSelect: (media) =>
-                        setMedia(
-                          cert.value,
-                          Array.isArray(media) ? media[0] : media,
-                        ),
+                      onSelect: (media) => setMedia(cert.value, media[0]),
                     })
                   }
                   className={clsx(
@@ -135,7 +133,7 @@ export function CertificatesEditor({
               <button
                 type="button"
                 onClick={() => removeCertificate(cert.value)}
-                className="text-grey hover:text-red transition-colors shrink-0"
+                className="text-grey hover:text-destructive transition-colors shrink-0"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -149,6 +147,7 @@ export function CertificatesEditor({
           type="text"
           placeholder="Search or add a certificate..."
           value={search}
+          error={error}
           onChange={(e) => setSearch(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === "Enter" && search.trim()) {

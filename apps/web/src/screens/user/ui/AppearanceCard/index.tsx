@@ -8,7 +8,7 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { LANGS } from "@shared/data";
+import { LANGS } from "shared/data";
 import { useTheme } from "@/providers/ThemeProvider";
 import { SectionCard } from "@/screens/user/ui";
 

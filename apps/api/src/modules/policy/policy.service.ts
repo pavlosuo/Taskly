@@ -1,5 +1,5 @@
 import { IServer } from "@/types";
-import { PolicyData } from "@shared/types";
+import { PolicyData } from "shared/types";
 
 export class PolicyService {
   constructor(private server: IServer) {}

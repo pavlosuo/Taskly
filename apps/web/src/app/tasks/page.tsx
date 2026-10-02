@@ -1,9 +1,9 @@
 import { Screens } from "@/screens";
 import { getMetaData } from "@/utils/Metadata";
-import { SidebarWrapper } from "@/shared/components/AppSidebar";
+import { SidebarWrapper } from "@/components/shared/AppSidebar";
 import { authGuard } from "@/utils/authGuard";
-import { AutoLogoutPopup } from "@/shared/components/AutoLogoutPopup";
-import { getServerApi } from "api/server";
+import { AutoLogoutPopup } from "@/components/shared/AutoLogoutPopup";
+import { getServerApi } from "@/api/server";
 
 export const metadata = getMetaData({
   title: "Tasks",
@@ -11,7 +11,7 @@ export const metadata = getMetaData({
 });
 
 export default async function Tasks() {
-  const user = await authGuard(["tasker", "client", "admin"]);
+  const user = await authGuard(["tasker", "client", "admin"], "/tasks");
   const axiosApi = await getServerApi();
   const { data } = await axiosApi.getTasks();
   return (

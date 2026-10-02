@@ -1,14 +1,16 @@
 "use client";
-import { axiosApi } from "api/index";
-import { PublicProfileSkill } from "@shared/types";
-import { TagInput } from "@/shared/components/TagInput";
+import { axiosApi } from "@/api/index";
+import { PublicProfileSkill } from "shared/index";
+import { TagInput } from "@/components/shared/Input";
 
 export function SkillsEditor({
   value,
   onChange,
+  error,
 }: {
   value: PublicProfileSkill[];
   onChange: (skills: PublicProfileSkill[]) => void;
+  error?: string;
 }) {
   return (
     <TagInput
@@ -16,6 +18,7 @@ export function SkillsEditor({
       onChange={onChange}
       placeholder="Search or add a skill..."
       name="skills"
+      error={error}
       searchFn={async (search: string) => {
         const { data } = await axiosApi.searchSkills(search);
         return data.items.map((skill) => ({

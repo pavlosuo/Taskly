@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
-import { Task, TaskList } from "@shared/types";
+import { Task, TaskList } from "shared/types";
 import { useTasks } from "@/providers/TaskProvider";
 import { CreateTaskDialog, TaskListItem, ClientView } from "@/screens/tasks/ui";
 import { Dialog, DialogContent } from "@/components/ui/dialog";

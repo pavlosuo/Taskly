@@ -1,10 +1,10 @@
 "use client";
-import { Beams } from "@/shared/components/Beams";
+import { Beams } from "@/components/shared/Beams";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/providers/ThemeProvider";
 import { useEffect } from "react";
-import { appName } from "@shared/data";
+import { APP_NAME } from "shared/data";
 import { useUser } from "@/providers/UserProvider";
 
 export const Main = ({ type = "error" }: { type: "error" | "not-found" }) => {
@@ -13,7 +13,9 @@ export const Main = ({ type = "error" }: { type: "error" | "not-found" }) => {
   const isError = type === "error";
 
   useEffect(() => {
-    document.title = isError ? `Error | ${appName}` : `Not found | ${appName}`;
+    document.title = isError
+      ? `Error | ${APP_NAME}`
+      : `Not found | ${APP_NAME}`;
   }, [isError]);
 
   return (

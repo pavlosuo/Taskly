@@ -1,7 +1,7 @@
 "use client";
 import { createContext, useContext, useState, ReactNode } from "react";
-import { Lightbox } from "@/shared/components/Lightbox";
-import { MediaItemPublic } from "@shared/types";
+import { Lightbox } from "@/components/shared/Lightbox";
+import { MediaItemPublic } from "shared/types";
 
 interface LightboxContextType {
   setLightbox: (items: { items: MediaItemPublic[]; index: number }) => void;

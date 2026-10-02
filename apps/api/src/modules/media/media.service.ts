@@ -1,7 +1,7 @@
 import { ObjectId } from "mongodb";
 import fs from "fs/promises";
 import { IServer, User } from "@/types";
-import { ServiceResult } from "@shared/types";
+import { ServiceResult } from "shared/types";
 import { filePath } from "@/utils";
 import { MediaItemBack, ChatBack, MessageBack } from "@/types";
 import { NEXT_PUBLIC_API_URL } from "@/env";
@@ -123,7 +123,9 @@ export class MediaService {
   async serveFile(
     id: string,
     user?: User | null,
-  ): Promise<ServiceResult<{ filePath: string; mimeType: string }>> {
+  ): Promise<
+    ServiceResult<{ filePath: string; mimeType: string; fileSize: number }>
+  > {
     try {
       const db = await this.server.getDb();
       const item = await db
@@ -138,7 +140,7 @@ export class MediaService {
         return {
           success: true,
           status: 200,
-          data: { filePath: fp, mimeType: item.mimeType },
+          data: { filePath: fp, mimeType: item.mimeType, fileSize: item.size },
         };
       }
 
@@ -146,11 +148,11 @@ export class MediaService {
         return { success: false, status: 401, message: "Unauthorized." };
       }
 
-      if (user._id.toString() === item.ownerId.toString()) {
+      if (user._id.equals(item.ownerId)) {
         return {
           success: true,
           status: 200,
-          data: { filePath: fp, mimeType: item.mimeType },
+          data: { filePath: fp, mimeType: item.mimeType, fileSize: item.size },
         };
       }
 
@@ -179,7 +181,7 @@ export class MediaService {
       return {
         success: true,
         status: 200,
-        data: { filePath: fp, mimeType: item.mimeType },
+        data: { filePath: fp, mimeType: item.mimeType, fileSize: item.size },
       };
     } catch (e) {
       console.error("Serve file error:", e);

@@ -1,4 +1,4 @@
-import { Tag } from "@shared/types";
+import { Tag } from "shared/types";
 
 export type TaskStatus = "open" | "assigned" | "completed" | "cancelled";
 
@@ -52,7 +52,7 @@ export interface TaskCreateForm {
   certificates: Tag[];
   budget: TaskBudget;
   location: Location;
-  deadline: Date;
+  deadline?: Date;
 }
 
 export type TaskUpdateForm = Partial<TaskCreateForm>;

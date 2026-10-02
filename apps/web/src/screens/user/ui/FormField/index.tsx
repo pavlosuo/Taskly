@@ -1,23 +1,29 @@
 "use client";
-import type { ReactNode } from "react";
-import { Label } from "@/components/ui/label";
+import { ReactNode } from "react";
+import { Label } from "@/components/shared/Label";
+import { FieldError } from "@/components/shared/FieldError";
 
 export function FormField({
   label,
   hint,
   children,
+  error,
+  htmlFor,
 }: {
   label: string;
   hint?: string;
   children: ReactNode;
+  error?: string;
+  htmlFor?: string;
 }) {
   return (
     <div className="form-group">
-      <Label className="text-sm font-medium mb-1.5 block text-foreground">
+      <Label error={!!error} htmlFor={htmlFor}>
         {label}
       </Label>
       {children}
-      {hint && <p className="text-xs text-warning mt-1.5">{hint}</p>}
+      <FieldError message={error} />
+      {!error && <FieldError message={hint} hint />}
     </div>
   );
 }

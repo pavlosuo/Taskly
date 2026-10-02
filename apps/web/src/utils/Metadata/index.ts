@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import { appName } from "@shared/data";
+import { APP_NAME } from "shared/data";
 
 type MetadataInput = {
   title: string;
@@ -8,7 +8,7 @@ type MetadataInput = {
 
 export function getMetaData({ title, description }: MetadataInput): Metadata {
   return {
-    title: `${title} | ${appName}`,
+    title: `${title} | ${APP_NAME}`,
     description,
   };
 }

@@ -1,4 +1,4 @@
-import { PolicyData } from "@shared/types";
+import { PolicyData } from "shared/types";
 import parse from "html-react-parser";
 import { formatDate } from "@/utils/formatDate";
 

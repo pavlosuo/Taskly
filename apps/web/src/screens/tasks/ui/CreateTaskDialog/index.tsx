@@ -12,28 +12,28 @@ import {
   Loader2,
   Plus,
   ClipboardList,
-  MapPinned,
   CalendarClock,
   ListChecks,
 } from "lucide-react";
 import { useTasks } from "@/providers/TaskProvider";
-import { TaskCreateForm } from "@shared/types";
-import { Input, PriceInput } from "@/shared/components/Input";
-import { TagInput } from "@/shared/components/TagInput";
-import { Label } from "@/components/ui/label";
+import { Input, PriceInput, TagInput } from "@/components/shared/Input";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { taskCreateSchema } from "@shared/schemas";
-import { axiosApi } from "api/index";
-import { DatePicker } from "@/shared/components/DatePicker";
+import { taskCreateSchema, ZodErrors, TaskCreateForm } from "shared/index";
+import { axiosApi } from "@/api/index";
+import { DatePicker } from "@/components/shared/DatePicker";
 import { Textarea } from "@/components/ui/textarea";
-import { LocationPicker } from "@/shared/components/LocationPicker";
+import { LocationPicker } from "@/components/shared/LocationPicker";
 import { SectionLabel } from "@/screens/tasks/ui";
+import { getAxiosError } from "@/utils/getAxiosError";
+import { FieldError } from "@/components/shared/FieldError";
+import { Label } from "@/components/shared/Label";
+import clsx from "clsx";
 
 const INITIAL_STATE: TaskCreateForm = {
   title: "",
   description: "",
-  deadline: new Date(),
+  deadline: undefined,
   budget: {
     amount: 0,
     negotiable: false,
@@ -51,22 +51,33 @@ export const CreateTaskDialog = () => {
   const [open, setOpen] = useState(false);
   const { createTask, isLoading } = useTasks();
   const [form, setForm] = useState<TaskCreateForm>(INITIAL_STATE);
-  const [error, setError] = useState<string | null>(null);
+  const [errors, setErrors] = useState<ZodErrors<TaskCreateForm>>({});
 
   const handleUpdate = <K extends keyof TaskCreateForm>(
-    key: K,
+    field: K,
     value: TaskCreateForm[K],
   ) => {
-    setForm((prev) => ({ ...prev, [key]: value }));
+    setForm((prev) => ({ ...prev, [field]: value }));
+    setErrors((p) => ({ ...p, [field]: undefined, general: undefined }));
   };
 
   const handleSubmit = async (e: FormEvent) => {
     try {
       e.preventDefault();
-      setError(null);
+      setErrors({});
       const parsed = taskCreateSchema.safeParse(form);
       if (!parsed.success) {
-        setError(parsed.error.issues[0].message);
+        const { fieldErrors, formErrors } = parsed.error.flatten();
+        setErrors({
+          title: fieldErrors?.title?.[0],
+          description: fieldErrors?.description?.[0],
+          skills: fieldErrors?.skills?.[0],
+          certificates: fieldErrors?.certificates?.[0],
+          budget: fieldErrors?.budget?.[0],
+          location: fieldErrors?.location?.[0],
+          deadline: fieldErrors?.deadline?.[0],
+          general: formErrors[0],
+        });
         return;
       }
       await createTask({
@@ -80,8 +91,10 @@ export const CreateTaskDialog = () => {
       });
       setForm(INITIAL_STATE);
       setOpen(false);
-    } catch {
-      setError("Failed to create the task. Please try again.");
+    } catch (e) {
+      setErrors({
+        general: getAxiosError(e),
+      });
     }
   };
 
@@ -115,47 +128,70 @@ export const CreateTaskDialog = () => {
           <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
             <div className="flex flex-col gap-5">
               <SectionLabel icon={ClipboardList}>Task details</SectionLabel>
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="title">Task title</Label>
+              <div className="form-group">
+                <Label error={!!errors.title} htmlFor="title">
+                  Task title
+                </Label>
                 <Input
                   name="title"
                   value={form.title}
                   onChange={(e) => handleUpdate("title", e.target.value)}
                   placeholder="e.g. Assemble an IKEA wardrobe"
+                  error={errors.title}
                 />
+                <FieldError message={errors.title} />
               </div>
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="description">Description</Label>
+              <div className="form-group">
+                <Label error={!!errors.description} htmlFor="description">
+                  Description
+                </Label>
                 <Textarea
                   id="description"
                   value={form.description}
                   onChange={(e) => handleUpdate("description", e.target.value)}
                   placeholder="Describe what needs to be done, the scope of work, and any important details."
                   rows={8}
-                  className="resize-none"
+                  className={clsx(
+                    "resize-none",
+                    errors.description
+                      ? "border-destructive focus-visible:ring-destructive/75"
+                      : "border-border",
+                  )}
+                />
+                <FieldError message={errors.description} />
+              </div>
+              <div className="form-group">
+                <Label error={!!errors.location} htmlFor="location-search">
+                  Location
+                </Label>
+                <LocationPicker
+                  value={form.location}
+                  onChange={(location) => handleUpdate("location", location)}
+                  error={errors.location}
                 />
               </div>
-              <SectionLabel icon={MapPinned}>Location</SectionLabel>
-              <LocationPicker
-                value={form.location}
-                onChange={(location) => handleUpdate("location", location)}
-              />
             </div>
             <div className="flex flex-col gap-5">
               <SectionLabel icon={CalendarClock}>
                 Schedule & budget
               </SectionLabel>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="deadline">Deadline</Label>
+                <div className="form-group">
+                  <Label error={!!errors.deadline} htmlFor="deadline">
+                    Deadline
+                  </Label>
                   <DatePicker
                     onChange={(date) => handleUpdate("deadline", date)}
                     value={form.deadline}
                     className="w-full"
+                    error={errors.deadline}
                   />
+                  <FieldError message={errors.deadline} />
                 </div>
-                <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="amount">Budget</Label>
+                <div className="form-group">
+                  <Label error={!!errors.budget} htmlFor="amount">
+                    Budget
+                  </Label>
                   <PriceInput
                     name="amount"
                     value={form.budget?.amount || 0}
@@ -166,7 +202,9 @@ export const CreateTaskDialog = () => {
                       })
                     }
                     placeholder="Optional"
+                    error={errors.budget}
                   />
+                  <FieldError message={errors.budget} />
                 </div>
               </div>
               <div className="flex items-center justify-between gap-4 rounded-xl border border-border bg-muted/30 px-3.5 py-3">
@@ -195,6 +233,7 @@ export const CreateTaskDialog = () => {
                 onChange={(v) => handleUpdate("skills", v)}
                 placeholder="Search or add a skill..."
                 name="skills"
+                error={errors.skills}
                 searchFn={async (search: string) => {
                   const { data } = await axiosApi.searchSkills(search);
                   return data.items.map((skill) => ({
@@ -216,6 +255,7 @@ export const CreateTaskDialog = () => {
                 onChange={(v) => handleUpdate("certificates", v)}
                 placeholder="Search or add a certificate..."
                 name="certificates"
+                error={errors.certificates}
                 searchFn={async (search: string) => {
                   const { data } = await axiosApi.searchCertificates(search);
                   return data.items.map((certificate) => ({
@@ -234,7 +274,9 @@ export const CreateTaskDialog = () => {
             </div>
           </div>
           <div className="mt-8 border-t border-border pt-5">
-            {error && <p className="mb-4 text-sm text-red">{error}</p>}
+            {errors.general && (
+              <p className="mb-4 text-xs text-destructive">{errors.general}</p>
+            )}
             <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
               <Button
                 type="button"

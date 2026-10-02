@@ -12,8 +12,9 @@ import {
   AuthResponse,
   RegisterForm,
   UpdateProfileForm,
-} from "@shared/types";
-import { axiosApi } from "api/index";
+  ChangePasswordForm,
+} from "shared/types";
+import { axiosApi } from "@/api/index";
 import { redirect } from "next/navigation";
 
 interface UserContextType {
@@ -33,10 +34,7 @@ interface UserContextType {
   resetPassword: (token: string, password: string) => Promise<void>;
   updateProfile: (payload: UpdateProfileForm) => Promise<void>;
   deactivateAccount: () => Promise<void>;
-  changePassword: (payload: {
-    oldPassword: string;
-    newPassword: string;
-  }) => Promise<void>;
+  changePassword: (payload: ChangePasswordForm) => Promise<void>;
 }
 
 interface UserProviderProps {

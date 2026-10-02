@@ -1,7 +1,7 @@
 import { Screens } from "@/screens";
 import { getMetaData } from "@/utils/Metadata";
-import { getServerApi } from "api/server";
-import { FloatingSettings } from "@/shared/components/FloatingSettings";
+import { getServerApi } from "@/api/server";
+import { FloatingSettings } from "@/components/shared/FloatingSettings";
 
 export const metadata = getMetaData({
   title: "Privacy",

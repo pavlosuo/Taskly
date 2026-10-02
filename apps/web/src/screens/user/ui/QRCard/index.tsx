@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { QrCode, ArrowUpRight } from "lucide-react";
 import { useUser } from "@/providers/UserProvider";
-import { QRCode } from "@/shared/components/QRCode";
+import { QRCode } from "@/components/shared/QRCode";
 import { SectionCard } from "@/screens/user/ui";
 
 export function QRCard() {

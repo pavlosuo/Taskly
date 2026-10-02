@@ -2,11 +2,11 @@
 import { FC, useState } from "react";
 import Link from "next/link";
 import { Trash2, Paperclip } from "lucide-react";
-import { ChatWithMember } from "@shared/types";
+import { ChatWithMember } from "shared/types";
 import { useChats } from "@/providers/ChatProvider";
-import { ImageDisplay } from "@/shared/components/MediaPicker";
+import { ImageDisplay } from "@/components/shared/MediaPicker";
 import { useModal } from "@/providers/ModalProvider";
-import { OnlineStatus } from "@/shared/components/OnlineStatus";
+import { OnlineStatus } from "@/components/shared/OnlineStatus";
 import { Marker, MarkerContent } from "@/components/ui/marker";
 import { useTheme } from "@/providers/ThemeProvider";
 import clsx from "clsx";
@@ -107,7 +107,7 @@ export const ChatListItem: FC<{ chat: ChatWithMember }> = ({ chat }) => {
       <button
         onClick={handleDelete}
         disabled={isDeleting}
-        className="shrink-0 p-2 rounded-full opacity-0 group-hover:opacity-100 hover:bg-border transition-opacity text-grey hover:text-red"
+        className="shrink-0 p-2 rounded-full opacity-0 group-hover:opacity-100 hover:bg-border transition-opacity text-grey hover:text-destructive"
         aria-label="Delete chat"
       >
         <Trash2 className="w-4 h-4" />

@@ -1,7 +1,7 @@
 import { IServer } from "@/types";
-import { ServiceResult } from "@shared/types";
-import { publicProfileCertificateSchema } from "@shared/schemas";
-import { bigFirstLetter } from "@shared/utils";
+import { ServiceResult } from "shared/types";
+import { publicProfileCertificateSchema } from "shared/schemas";
+import { bigFirstLetter } from "shared/utils";
 
 export class CertificatesService {
   constructor(private server: IServer) {}
