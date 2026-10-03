@@ -6,7 +6,12 @@
     "dev": "pnpm --parallel -r run dev",
     "dev:web": "pnpm --filter @taskly/web dev",
     "dev:api": "pnpm --filter @taskly/api dev",
-    "build": "pnpm -r run build",
+    "build": "pnpm --parallel -r run build",
+    "build:web": "pnpm --filter @taskly/web build",
+    "build:api": "pnpm --filter @taskly/api build",
+    "start": "pnpm --parallel -r run start",
+    "start:web": "pnpm --filter @taskly/web start",
+    "start:api": "pnpm --filter @taskly/api start",
     "format": "prettier --write .",
     "lint": "pnpm --filter @taskly/web lint && pnpm --filter @taskly/api lint"
   },

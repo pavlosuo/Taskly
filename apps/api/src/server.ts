@@ -7,6 +7,9 @@ import {
   SMTP_USER,
   SMTP_PASS,
   NODE_ENV,
+  PORT_API,
+  CLIENT_URL,
+  NEXT_PUBLIC_API_URL,
 } from "@/env";
 import { MongoClient, ServerApiVersion, ObjectId, Db } from "mongodb";
 import { Response, Request, NextFunction } from "express";
@@ -22,7 +25,6 @@ import { parseCookieHeader } from "@/utils";
 dns.setServers(["1.1.1.1", "1.0.0.1"]);
 
 export class Server implements IServer {
-  readonly time = 15 * 60 * 1000;
   readonly port: number;
   private _client: MongoClient | null = null;
   private _dbPromise: Promise<Db> | null = null;
@@ -289,9 +291,11 @@ export class Server implements IServer {
   }
 
   async start() {
+    if (!MONGODB_URI || !JWT_SECRET || !CLIENT_URL || !NEXT_PUBLIC_API_URL)
+      throw new Error("Missing env variables");
     await this.indexesConfig();
     this.initSockets(createApp(this).listen(this.port));
   }
 }
 
-new Server(5050).start().catch(console.error);
+new Server(Number(PORT_API)).start().catch(console.error);

@@ -22,7 +22,10 @@ export const Tiptap = ({
     immediatelyRender: false,
     onUpdate,
   });
-  const parsedContent = useMemo(() => (value ? parseSafeHtml(value) : null), [value]);
+  const parsedContent = useMemo(
+    () => (value ? parseSafeHtml(value) : null),
+    [value],
+  );
   return (
     <div
       className={clsx(

@@ -10,6 +10,7 @@ import * as THREE from "three";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { PerspectiveCamera } from "@react-three/drei";
 import { degToRad } from "three/src/math/MathUtils.js";
+import clsx from "clsx";
 
 function extendMaterial(BaseMaterial, cfg) {
   const physical = THREE.ShaderLib.physical;
@@ -58,8 +59,16 @@ function extendMaterial(BaseMaterial, cfg) {
   return mat;
 }
 
-const CanvasWrapper = ({ children }) => (
-  <Canvas dpr={[1, 2]} frameloop="always" className="beams-container">
+const CanvasWrapper = ({ children, onCreated, isReady }) => (
+  <Canvas
+    dpr={[1, 2]}
+    frameloop="always"
+    className={clsx(
+      "relative w-full h-full transition-opacity duration-500",
+      isReady ? "opacity-100" : "opacity-0",
+    )}
+    onCreated={() => onCreated?.()}
+  >
     {children}
   </Canvas>
 );
@@ -161,6 +170,8 @@ export const Beams = ({
   scale = 0.2,
   rotation = 0,
   lightMode = false,
+  isReady = false,
+  onCreated = () => {},
 }) => {
   const meshRef = useRef(null);
   const beamMaterial = useMemo(
@@ -228,7 +239,7 @@ export const Beams = ({
   );
 
   return (
-    <CanvasWrapper>
+    <CanvasWrapper onCreated={onCreated} isReady={isReady}>
       <group rotation={[0, 0, degToRad(rotation)]}>
         <PlaneNoise
           ref={meshRef}

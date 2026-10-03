@@ -3,6 +3,8 @@ import dotenv from "dotenv";
 
 dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
 
+export const PORT = process.env.PORT || "3000";
+export const PORT_API = process.env.PORT_API || "5050";
 export const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "";
 export const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "";
 export const ADMIN_USERNAME = process.env.ADMIN_USERNAME || "admin";

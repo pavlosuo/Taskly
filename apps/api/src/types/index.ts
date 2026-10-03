@@ -71,7 +71,6 @@ export interface TaskResponseBack extends Omit<
 }
 
 export interface IServer {
-  readonly time: number;
   mailer: Transporter | null;
   emitToUser(userId: ObjectId, event: string, payload: unknown): void;
   getIO(): SocketIOServer;

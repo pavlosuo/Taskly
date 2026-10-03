@@ -11,11 +11,12 @@ export function usersRoutes(server: IServer): Router {
   router.post("/phone/verify-otp", server.requireAuth(), ctrl.verifyPhoneOtp);
   router.post("/email/verify-otp", server.requireAuth(), ctrl.verifyEmailOtp);
   router.put("/password", server.requireAuth(), ctrl.changePassword);
-  router.post(
-    "/get-user-for-profile-page",
+  router.get("/search", server.requireAuth(), searchLimiter, ctrl.search);
+  router.get(
+    "/by-username/:username",
     server.optionalAuth(),
+    searchLimiter,
     ctrl.getUserForProfilePage,
   );
-  router.get("/search", server.requireAuth(), searchLimiter, ctrl.search);
   return router;
 }

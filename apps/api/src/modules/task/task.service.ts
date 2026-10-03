@@ -666,15 +666,25 @@ export class TaskResponseService {
           message: "taskResponse.message.alreadyProcessed",
         };
       const now = new Date();
-      await db
+      const res = await db
         .collection("taskResponses")
         .updateOne(
-          { _id: response._id },
+          { _id: response._id, status: "pending" },
           { $set: { status: "rejected", updatedAt: now } },
         );
+      if (res.modifiedCount === 0) {
+        return {
+          success: false,
+          status: 409,
+          message: "taskResponse.message.alreadyProcessed",
+        };
+      }
+      await db
+        .collection("tasks")
+        .updateOne({ _id: task._id }, { $inc: { responsesCount: -1 } });
       return { success: true, status: 200 };
     } catch (e) {
-      console.error("Accept task response error:", e);
+      console.error("Decline task response error:", e);
       return {
         success: false,
         status: 500,

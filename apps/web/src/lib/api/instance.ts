@@ -89,9 +89,8 @@ export const methods = (api: AxiosInstance) => {
       api.put<AuthResponse>("/api/users", payload),
 
     getUserForProfilePage: (username: string) =>
-      api.post<{ user: PublicProfileUser | null; accessReason: AccessReason }>(
-        "/api/users/get-user-for-profile-page",
-        { username },
+      api.get<{ user: PublicProfileUser | null; accessReason?: AccessReason }>(
+        `/api/users/by-username/${encodeURIComponent(username)}`,
       ),
 
     deactivateAccount: () => api.delete<CommonResponse>("/api/users"),

@@ -76,7 +76,11 @@ export class UsersController {
   };
 
   getUserForProfilePage = async (req: Request, res: Response) => {
-    const result = await this.service.getUserForProfilePage(req.user, req.body);
+    const username = Array.isArray(req.params.username)
+      ? req.params.username[0]
+      : req.params.username;
+    const result = await this.service.getUserForProfilePage(req.user, username);
+    res.setHeader("Cache-Control", "private, no-store");
     if (!result.success)
       return res.status(result.status).json({
         success: false,

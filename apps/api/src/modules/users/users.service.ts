@@ -45,7 +45,6 @@ export class UsersService {
           status: 400,
           message: parsed.error.issues[0].message,
         };
-
       const {
         username,
         fullName,
@@ -68,7 +67,7 @@ export class UsersService {
           return {
             success: false,
             status: 400,
-            message: "Username already taken.",
+            message: "user.username.exists",
           };
         updates.username = username;
         if (user?.role !== "admin")
@@ -83,7 +82,7 @@ export class UsersService {
           return {
             success: false,
             status: 400,
-            message: "Email already in use.",
+            message: "user.email.exists",
           };
         updates.newEmail = email;
       }
@@ -202,7 +201,6 @@ export class UsersService {
         if (languages !== undefined) {
           for (const lang of languages) {
             const langParsed = publicProfileLangSchema.safeParse(lang);
-
             if (!langParsed.success) {
               return {
                 success: false,
@@ -220,7 +218,6 @@ export class UsersService {
 
           const toRemove = oldLangs.filter((old) => {
             if (!old.certificate?.media) return false;
-
             const newLang = newLangs.find((n) => n.value === old.value);
 
             return (
@@ -324,7 +321,7 @@ export class UsersService {
         return {
           success: true,
           status: 200,
-          data: { message: "Nothing to update." },
+          data: { message: "user.nothingToUpdate" },
         };
       await users.updateOne({ _id: user._id }, { $set: updates });
       const updated = await users.findOne({ _id: user._id });
@@ -464,14 +461,14 @@ export class UsersService {
         .findOne<{ passwordHash: string }>({ _id: user._id });
 
       if (!dbUser)
-        return { success: false, status: 404, message: "User not found." };
+        return { success: false, status: 404, message: "user.message.notFound" };
 
       const isValid = await bcrypt.compare(oldPassword, dbUser.passwordHash);
       if (!isValid)
         return {
           success: false,
           status: 401,
-          message: "Current password is incorrect.",
+          message: "password.oldInvalid",
         };
 
       const sameAsOld = await bcrypt.compare(newPassword, dbUser.passwordHash);
@@ -479,7 +476,7 @@ export class UsersService {
         return {
           success: false,
           status: 400,
-          message: "New password must differ from the current password.",
+          message: "password.newSameAsOld",
         };
 
       const passwordHash = await bcrypt.hash(newPassword, 10);
@@ -502,74 +499,79 @@ export class UsersService {
 
   async getUserForProfilePage(
     userRequest: User | undefined,
-    body: { username: string },
+    usernameRequest: string,
   ): Promise<ServiceResult> {
     try {
-      const username = body?.username?.trim();
+      const username = usernameRequest?.trim();
       if (!username) {
         return {
           success: false,
           status: 400,
-          message: "Username is required.",
+          message: "user.username.missing",
         };
       }
+
       const db = await this.server.getDb();
-      const user = await db.collection("users").findOne<User>({
-        username,
-      });
+
+      const user = await db.collection("users").findOne<User>(
+        { username },
+        {
+          projection: {
+            username: 1,
+            role: 1,
+            createdAt: 1,
+            lastSeenAt: 1,
+            "profile.fullName": 1,
+            "profile.avatar": 1,
+            "profile.initials": 1,
+            publicProfile: 1,
+            "settings.checkboxes": 1,
+          },
+        },
+      );
+
       if (!user || user.role === "admin") {
-        return {
-          success: false,
-          status: 404,
-          message: "User not found.",
-        };
+        return { success: false, status: 404, message: "user.message.notFound" };
       }
-      const isOwner = userRequest?._id?.equals(user._id);
+
+      const isOwner = !!userRequest?._id?.equals(user._id);
       const isAdmin = userRequest?.role === "admin";
-      if (user.settings?.checkboxes?.privateProfile && !isOwner && !isAdmin) {
-        return {
-          success: false,
-          status: 403,
-          message: "Forbidden",
-        };
+      const isPrivate = !!user.settings?.checkboxes?.privateProfile;
+
+      if (isPrivate && !isOwner && !isAdmin) {
+        return { success: false, status: 404, message: "user.message.notFound" };
       }
+
+      const hideLastSeen = !!user.settings?.checkboxes?.noOnlineStatus;
+
+      const doc = stripMediaFields({
+        _id: user._id.toString(),
+        username: user.username,
+        role: user.role,
+        createdAt: user.createdAt,
+        ...(hideLastSeen ? {} : { lastSeenAt: user.lastSeenAt }),
+        profile: {
+          fullName: user.profile?.fullName ?? "",
+          avatar: user.profile?.avatar ?? null,
+          initials: user.profile?.initials ?? "",
+        },
+        publicProfile: user.publicProfile,
+      }) as PublicProfileUser;
+
       const accessReason = isOwner
         ? "same-account"
         : isAdmin
           ? "admin"
           : "public";
 
-      const doc = stripMediaFields({
-        _id: user._id.toString(),
-        lastSeenAt: user.lastSeenAt,
-        username: user.username,
-        role: user.role,
-        createdAt: user.createdAt,
-        profile: {
-          fullName: user.profile.fullName,
-          avatar: user.profile.avatar,
-          initials: user.profile.initials,
-        },
-        publicProfile: user.publicProfile,
-      } as PublicProfileUser);
-
       return {
         success: true,
         status: 200,
-        data: {
-          user: doc,
-          ...(user.settings?.checkboxes?.privateProfile
-            ? { accessReason }
-            : {}),
-        },
+        data: { user: doc, ...(isPrivate ? { accessReason } : {}) },
       };
     } catch (error) {
       console.error("Get user by username error:", error);
-      return {
-        success: false,
-        status: 500,
-        message: "errors.server",
-      };
+      return { success: false, status: 500, message: "errors.server" };
     }
   }
 
@@ -589,6 +591,8 @@ export class UsersService {
           {
             _id: { $ne: currentUser._id },
             username: { $regex: escapeRegex(query), $options: "i" },
+            role: { $ne: "admin" },
+            "settings.checkboxes.privateProfile": { $ne: true },
           },
           {
             projection: {
@@ -606,7 +610,7 @@ export class UsersService {
         _id: u._id.toString(),
         username: u.username,
         fullName: u.profile?.fullName ?? "",
-        avatar: u.profile?.avatar ?? null,
+        avatar: stripMediaFields(u.profile?.avatar ?? null),
         initials: u.profile?.initials ?? "",
       }));
 
