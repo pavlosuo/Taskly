@@ -6,6 +6,7 @@ import { useTheme } from "@/providers/ThemeProvider";
 import { useEffect } from "react";
 import { APP_NAME } from "shared/data";
 import { useUser } from "@/providers/UserProvider";
+import clsx from "clsx";
 
 export const Main = ({ type = "error" }: { type: "error" | "not-found" }) => {
   const { theme } = useTheme();
@@ -19,7 +20,7 @@ export const Main = ({ type = "error" }: { type: "error" | "not-found" }) => {
   }, [isError]);
 
   return (
-    <section className="relative flex h-screen w-full items-center justify-center overflow-hidden">
+    <section className={clsx("relative flex h-screen w-full items-center justify-center overflow-hidden", theme === "dark" ? "bg-background" : "bg-primary")}>
       <Beams
         beamWidth={3}
         beamHeight={30}

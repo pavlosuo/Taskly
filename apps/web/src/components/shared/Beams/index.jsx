@@ -1,3 +1,4 @@
+"use client";
 import {
   forwardRef,
   useImperativeHandle,
@@ -5,7 +6,6 @@ import {
   useRef,
   useMemo,
 } from "react";
-
 import * as THREE from "three";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { PerspectiveCamera } from "@react-three/drei";
@@ -149,7 +149,7 @@ const noise = `
   }
 `;
 
-const Beams = ({
+export const Beams = ({
   beamWidth = 2,
   beamHeight = 15,
   beamNumber = 12,
@@ -352,5 +352,3 @@ const DirLight = ({ position, color }) => {
     />
   );
 };
-
-export { Beams };

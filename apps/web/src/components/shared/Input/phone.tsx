@@ -1,10 +1,20 @@
 "use client";
 import { useState, useRef, useEffect, useMemo, useCallback, memo } from "react";
-import { countryList, type Country } from "shared/index";
 import clsx from "clsx";
 import { Input } from "@/components/ui/input";
 import { PhoneNumberUtil, AsYouTypeFormatter } from "google-libphonenumber";
 import { startTransition } from "react";
+import { countries } from "country-codes-flags-phone-codes";
+import * as flags from "country-flag-icons/react/3x2";
+
+export const countryList = countries.map((c) => ({
+  name: c.name,
+  code: c.code,
+  dial: c.dialCode,
+  FlagComponent: flags[c.code as keyof typeof flags] ?? null,
+}));
+
+export type Country = (typeof countryList)[number];
 
 const util = PhoneNumberUtil.getInstance();
 const nsnLengthCache = new Map<string, number>();

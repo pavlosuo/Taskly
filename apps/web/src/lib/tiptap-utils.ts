@@ -1,5 +1,5 @@
-import type { Node as PMNode } from "@tiptap/pm/model";
-import type { Transaction } from "@tiptap/pm/state";
+import { Node as PMNode } from "@tiptap/pm/model";
+import { Transaction } from "@tiptap/pm/state";
 import {
   AllSelection,
   NodeSelection,
@@ -12,8 +12,7 @@ import {
   type Editor,
   type NodeWithPos,
 } from "@tiptap/react";
-
-export const MAX_FILE_SIZE = 5 * 1024 * 1024;
+import { MAX_FILE_SIZE } from "shared/data";
 
 export const MAC_SYMBOLS: Record<string, string> = {
   mod: "⌘",
@@ -42,12 +41,6 @@ export const SR_ONLY = {
   whiteSpace: "nowrap",
   borderWidth: 0,
 } as const;
-
-export function cn(
-  ...classes: (string | boolean | undefined | null)[]
-): string {
-  return classes.filter(Boolean).join(" ");
-}
 
 export function isMac(): boolean {
   return (

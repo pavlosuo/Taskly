@@ -2,15 +2,6 @@ $font-family: var(--var-open-sans);
 $font-family-titles: var(--var-arvo);
 $font-family-logo: var(--var-orbitron);
 
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  font-family: $font-family-titles !important;
-}
-
 @mixin respond($breakpoint) {
   @if $breakpoint == xs {
     @media (max-width: 480px) {

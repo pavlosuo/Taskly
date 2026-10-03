@@ -1,7 +1,7 @@
 import { Location, Lang } from "shared/types";
 import { COUNTRY_CODES_LIST } from "shared/data";
 
-const NOMINATIM_BASE = "https://nominatim.openstreetmap.org";
+const BASE = "https://nominatim.openstreetmap.org";
 
 interface Item {
   display_name: string;
@@ -24,7 +24,7 @@ export async function searchAddress(
     limit: "10",
     addressdetails: "1",
   });
-  const res = await fetch(`${NOMINATIM_BASE}/search?${params.toString()}`, {
+  const res = await fetch(`${BASE}/search?${params.toString()}`, {
     signal,
     headers: {
       Accept: "application/json",
@@ -59,7 +59,7 @@ export async function reverseGeocode(
     lon: String(lng),
     format: "jsonv2",
   });
-  const res = await fetch(`${NOMINATIM_BASE}/reverse?${params.toString()}`, {
+  const res = await fetch(`${BASE}/reverse?${params.toString()}`, {
     signal,
     headers: {
       Accept: "application/json",
@@ -68,8 +68,8 @@ export async function reverseGeocode(
   });
   if (!res.ok) throw new Error("errors.reverseGeocode");
   const data = await res.json();
-  if (COUNTRY_CODES_LIST.includes(data.address.country_code.toLowerCase())) {
-    return data.display_name as string;
+  if (!COUNTRY_CODES_LIST.includes(data.address.country_code.toLowerCase())) {
+    throw new Error("errors.countryNotSupported");
   }
-  return "";
+  return data.display_name as string;
 }

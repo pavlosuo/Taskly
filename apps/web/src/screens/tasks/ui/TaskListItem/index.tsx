@@ -1,7 +1,7 @@
 "use client";
 import clsx from "clsx";
 import { Clock, MapPin, MessageSquare } from "lucide-react";
-import { Task, TaskStatus } from "shared/types";
+import { Task } from "shared/types";
 import { formatPrice } from "@/utils/formatPrice";
 
 export const TaskListItem = ({

@@ -1,9 +1,6 @@
-@import "general/mixins.scss";
-@import "general/animations.scss";
-@import "general/elements.scss";
-@import "general/global.scss";
-@import "general/semantic.scss";
-@import "general/typography.scss";
-@import "general/ui.scss";
-@import "general/_keyframe-animations.scss";
-@import "general/_variables.scss";
+@import "./general/mixins.scss";
+@import "./general/animations.scss";
+@import "./general/global.scss";
+@import "./general/typography.scss";
+@import "./general/ui.scss";
+@import "./general/_keyframe-animations.scss";

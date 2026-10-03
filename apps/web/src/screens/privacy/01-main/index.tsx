@@ -1,5 +1,5 @@
 import { PolicyData } from "shared/types";
-import parse from "html-react-parser";
+import parseSafeHtml from "@/utils/parseSafeHtml";
 import { formatDate } from "@/utils/formatDate";
 
 export const Main = ({ data }: { data: PolicyData }) => {
@@ -15,7 +15,7 @@ export const Main = ({ data }: { data: PolicyData }) => {
           )}
         </div>
         <div className="text-wrapper">
-          {data.policyContent && parse(data.policyContent)}
+          {data.policyContent && parseSafeHtml(data.policyContent)}
         </div>
       </div>
     </section>

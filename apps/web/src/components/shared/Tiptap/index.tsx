@@ -4,7 +4,7 @@ import { TextStyleKit } from "@tiptap/extension-text-style";
 import { EditorContent, useEditor, EditorEvents } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { MenuBar, MenuBarSkeleton } from "./MenuBar";
-import parse from "html-react-parser";
+import parseSafeHtml from "@/utils/parseSafeHtml";
 import clsx from "clsx";
 
 export const Tiptap = ({
@@ -22,7 +22,7 @@ export const Tiptap = ({
     immediatelyRender: false,
     onUpdate,
   });
-  const parsedContent = useMemo(() => (value ? parse(value) : null), [value]);
+  const parsedContent = useMemo(() => (value ? parseSafeHtml(value) : null), [value]);
   return (
     <div
       className={clsx(

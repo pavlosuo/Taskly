@@ -1,6 +1,6 @@
 "use client";
 import { ImageDisplay } from "@/components/shared/MediaPicker";
-import parse from "html-react-parser";
+import parseSafeHtml from "@/utils/parseSafeHtml";
 import {
   BadgeCheck,
   CalendarDays,
@@ -213,7 +213,7 @@ export const Main = ({
           <h2 className="text-sm font-semibold text-foreground mb-3">About</h2>
           {p?.bio ? (
             <div className="text-wrapper text-sm text-foreground leading-relaxed">
-              {parse(p.bio)}
+              {parseSafeHtml(p.bio)}
             </div>
           ) : (
             <EmptyState

@@ -19,7 +19,6 @@ export async function authGuard(
   try {
     const axiosApi = await getServerApi();
     const { data } = await axiosApi.me();
-
     user = data?.user ?? null;
   } catch {
     user = null;

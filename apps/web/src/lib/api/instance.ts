@@ -26,8 +26,7 @@ import {
 } from "shared/types";
 import axios, { type AxiosInstance } from "axios";
 
-export const BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5050";
+export const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export function createApi(config?: {
   headers?: Record<string, string>;

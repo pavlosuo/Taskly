@@ -41,7 +41,7 @@ import {
 import { formatPrice } from "@/utils/formatPrice";
 import { Tiptap } from "@/components/shared/Tiptap";
 import clsx from "clsx";
-import parse from "html-react-parser";
+import parseSafeHtml from "@/utils/parseSafeHtml";
 import { TaskerStep } from "@/screens/tasks/types";
 import { getAxiosError } from "@/utils/getAxiosError";
 import {
@@ -434,7 +434,7 @@ const ResponseCard = ({
       </div>
       <ResponseStatusBadge status={status} />
     </div>
-    <div className="text-wrapper">{message ? parse(message) : ""}</div>
+    <div className="text-wrapper">{message ? parseSafeHtml(message) : ""}</div>
     {actions && (
       <div className="flex justify-end gap-2 mt-4 pt-3.5 border-t border-border">
         {actions}
