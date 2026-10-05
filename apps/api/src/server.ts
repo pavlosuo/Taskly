@@ -170,15 +170,18 @@ export class Server implements IServer {
 
   async indexesConfig() {
     const db = await this.getDb();
-    db.collection("skills").createIndex({ label: "text" });
-    db.collection("skills").createIndex({ count: -1 });
-    db.collection("certificates").createIndex({ label: "text" });
-    db.collection("certificates").createIndex({ count: -1 });
-    db.collection("chats").createIndex({ participants: 1 });
-    db.collection("chats").createIndex({ updatedAt: -1 });
-    db.collection("messages").createIndex({ chatId: 1, _id: -1 });
-    db.collection("users").createIndex({ username: 1 });
-    return Promise.resolve();
+    await Promise.all([
+      db.collection("skills").createIndex({ label: "text" }),
+      db.collection("skills").createIndex({ count: -1 }),
+      db.collection("certificates").createIndex({ label: "text" }),
+      db.collection("certificates").createIndex({ count: -1 }),
+      db.collection("chats").createIndex({ participants: 1 }),
+      db.collection("chats").createIndex({ updatedAt: -1 }),
+      db.collection("messages").createIndex({ chatId: 1, _id: -1 }),
+      db.collection("users").createIndex({ username: 1 }),
+      db.collection("tasks").createIndex({ geo: "2dsphere" }),
+      db.collection("tasks").createIndex({ status: 1, createdAt: -1 }),
+    ]);
   }
 
   emitToUser(userId: ObjectId, event: string, payload: unknown) {

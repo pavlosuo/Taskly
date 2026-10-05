@@ -4,21 +4,21 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/providers/ThemeProvider";
 import { useEffect, useState } from "react";
-import { APP_NAME } from "shared/data";
 import { useUser } from "@/providers/UserProvider";
 import clsx from "clsx";
+import { PAGES_META, APP_NAME } from "shared/data";
 
 export const Main = ({ type = "error" }: { type: "error" | "not-found" }) => {
-  const { theme } = useTheme();
+  const { theme, lang } = useTheme();
   const { user } = useUser();
   const [ready, setReady] = useState(false);
   const isError = type === "error";
+  const meta = PAGES_META[type]?.[lang];
 
   useEffect(() => {
-    document.title = isError
-      ? `Error | ${APP_NAME}`
-      : `Not found | ${APP_NAME}`;
-  }, [isError]);
+    if (!meta) return;
+    document.title = meta.title + " | " + APP_NAME;
+  }, [meta, lang]);
 
   return (
     <section
@@ -44,23 +44,21 @@ export const Main = ({ type = "error" }: { type: "error" | "not-found" }) => {
 
       <div className="absolute top-1/2 left-1/2 z-10 flex w-full max-w-xl -translate-x-1/2 -translate-y-1/2 flex-col items-center px-6 text-center text-white">
         <h1 className="text-4xl font-semibold tracking-tight sm:text-6xl">
-          {isError ? "Something went wrong." : "This page got lost."}
+          {meta.title}
         </h1>
         <p className="mt-5 max-w-md text-sm leading-6 text-white/75 sm:text-base">
-          {isError
-            ? "Some things went wrong. Please try again later."
-            : "The page you’re looking for doesn’t exist or has been moved. Let’s get you back on track."}
+          {meta.description}
         </p>
         {!isError && (
           <>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               {user ? (
                 <Button asChild>
-                  <Link href="/profile">Profile</Link>
+                  <Link href="/profile">{PAGES_META.profile[lang].title}</Link>
                 </Button>
               ) : (
                 <Button asChild>
-                  <Link href="/login">Login</Link>
+                  <Link href="/login">{PAGES_META.login[lang].title}</Link>
                 </Button>
               )}
               <Button

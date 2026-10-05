@@ -103,3 +103,16 @@ export type PublicProfileUser = {
   };
   publicProfile: PublicProfile;
 };
+
+export type UpdateProfileForm = Partial<{
+  fullName: string;
+  username: string;
+  phone: string;
+  email: string;
+  payout: Payout;
+  fullPhone: string;
+  code: string;
+  avatar: MediaItem | undefined | null;
+  settings: Partial<UserSettings>;
+  publicProfile: Partial<PublicProfile>;
+}>;

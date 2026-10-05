@@ -30,7 +30,7 @@ export const Tiptap = ({
     <div
       className={clsx(
         "flex flex-col gap-1 text-wrapper",
-        error && "border border-destructive",
+        error && "tiptap-error",
       )}
     >
       {editor ? (
@@ -41,7 +41,7 @@ export const Tiptap = ({
       ) : (
         <>
           <MenuBarSkeleton />
-          <div className="p-6 border border-border">{parsedContent}</div>
+          <div className={clsx("tiptap")}>{parsedContent}</div>
         </>
       )}
     </div>

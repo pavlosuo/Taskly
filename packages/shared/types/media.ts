@@ -16,3 +16,14 @@ export type MediaItemPublic = {
   originalName: string;
   mimeType: string;
 };
+
+export type FilterType =
+  | "all"
+  | "image"
+  | "video"
+  | "audio"
+  | "document"
+  | "other"
+  | "pdf"
+  | "word"
+  | "excel";

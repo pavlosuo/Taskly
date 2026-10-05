@@ -19,6 +19,7 @@ export function SkillsEditor({
       placeholder="Search or add a skill..."
       name="skills"
       error={error}
+      hideErrorLabel
       searchFn={async (search: string) => {
         const { data } = await axiosApi.searchSkills(search);
         return data.items.map((skill) => ({

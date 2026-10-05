@@ -106,7 +106,7 @@ export const MethodToggle = memo(function MethodToggle({
           className={`flex-1 h-8 rounded-md text-sm font-medium transition-colors ${
             method === m
               ? "bg-primary text-white hover:bg-primary/90"
-              : "text-gray hover:text-grey hover:bg-input"
+              : "text-gray hover:text-foreground hover:bg-input"
           }`}
         >
           {m === "phone" ? "Phone" : "Email"}

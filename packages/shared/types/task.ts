@@ -5,6 +5,11 @@ export type TaskStatus = "open" | "assigned" | "completed" | "cancelled";
 export type TaskResponseStatus =
   "pending" | "accepted" | "rejected" | "withdrawn";
 
+export interface GeoPoint {
+  type: "Point";
+  coordinates: [number, number];
+}
+
 export interface Location {
   address: string;
   lat: number;
@@ -52,23 +57,14 @@ export interface TaskCreateForm {
   certificates: Tag[];
   budget: TaskBudget;
   location: Location;
-  deadline?: Date;
+  deadline: Date | null;
 }
 
-export type TaskUpdateForm = Partial<TaskCreateForm>;
-
-//////
-
-export interface TaskListQuery {
-  page?: number;
-  limit?: number;
-  status?: TaskStatus;
-  skill?: string;
-  certificate?: string;
-  q?: string;
-  lat?: number;
-  lng?: number;
-  radiusKm?: number;
+export interface TaskUpdateForm extends Omit<
+  Partial<TaskCreateForm>,
+  "deadline"
+> {
+  deadline: Date;
 }
 
 export interface TaskList {
@@ -94,4 +90,53 @@ export interface TaskResponseItem {
 export interface TaskResponseCreateForm {
   message: string;
   price: number;
+}
+
+export type TaskSort =
+  "newest" | "deadline" | "budget_desc" | "budget_asc" | "distance";
+
+export interface TaskListQuery {
+  page?: number;
+  limit?: number;
+  status?: TaskStatus;
+  skill?: string;
+  certificate?: string;
+  q?: string;
+  lat?: number;
+  lng?: number;
+  radiusKm?: number;
+  minBudget?: number;
+  maxBudget?: number;
+  negotiable?: boolean;
+  sort?: TaskSort;
+  includeMine?: boolean;
+}
+
+export type TasksTab = "all" | "my";
+
+export type TaskerStep = "overview" | "respond";
+
+export interface StatusOption {
+  value: TaskStatusFilter;
+  label: string;
+  count: number;
+}
+
+export type TaskStatusFilter = "all" | TaskStatus;
+
+export interface NearFilter {
+  lat: number;
+  lng: number;
+}
+
+export interface TaskFilters {
+  status: TaskStatusFilter;
+  sort: TaskSort;
+  minBudget: number;
+  maxBudget: number;
+  onlyNegotiable: boolean;
+  skills: Tag[];
+  certificates: Tag[];
+  near: NearFilter | null;
+  radiusKm: number;
 }

@@ -25,14 +25,23 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { axiosApi } from "@/api/index";
-import { MediaItem, ALLOWED_MIME_TYPES } from "shared/index";
+import { MediaItem, ALLOWED_MIME_TYPES, FilterType } from "shared/index";
 import { getAxiosError } from "@/utils/getAxiosError";
 import clsx from "clsx";
-import { getFileType, FilterType, FILTERS } from "@/utils/getFileType";
+import { getFileType } from "@/utils/getFileType";
 import { formatSize } from "@/utils/formatSize";
-import { formatDate } from "@/utils/formatDate";
+import { useFormatDate } from "@/hooks/useFormatDate";
 
 const MAX_FILES_PER_UPLOAD = 25;
+
+export const FILTERS: { value: FilterType; label: string }[] = [
+  { value: "all", label: "All" },
+  { value: "image", label: "Images" },
+  { value: "video", label: "Video" },
+  { value: "audio", label: "Audio" },
+  { value: "document", label: "Documents" },
+  { value: "other", label: "Other" },
+];
 
 export const VideoDisplay = ({ src }: { src: string; className?: string }) => {
   return (
@@ -500,6 +509,8 @@ export function MediaPicker({
     [filtered, anchorIndex],
   );
 
+  const selectedItemDate = useFormatDate(selectedItem?.uploadedAt) || "";
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
@@ -665,7 +676,7 @@ export function MediaPicker({
                   <div>
                     <p className="text-xs text-grey mb-0.5">Uploaded</p>
                     <p className="text-sm text-foreground">
-                      {formatDate(selectedItem.uploadedAt)}
+                      {selectedItemDate}
                     </p>
                   </div>
                   <button

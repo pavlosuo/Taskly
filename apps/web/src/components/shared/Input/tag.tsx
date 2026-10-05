@@ -15,6 +15,7 @@ type TagInputProps = {
   name: string;
   label?: string;
   error?: string;
+  hideErrorLabel?: boolean;
 };
 
 export function TagInput({
@@ -26,6 +27,7 @@ export function TagInput({
   name,
   label,
   error,
+  hideErrorLabel = false,
 }: TagInputProps) {
   const [search, setSearch] = useState("");
   const [suggestions, setSuggestions] = useState<Tag[]>([]);
@@ -123,7 +125,7 @@ export function TagInput({
             }
           }}
         />
-        <FieldError message={error} />
+        {!hideErrorLabel && <FieldError message={error} />}
         {loading && (
           <Loader2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-grey" />
         )}

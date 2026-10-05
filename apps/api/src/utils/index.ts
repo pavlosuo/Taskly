@@ -1,15 +1,10 @@
-import fs from "fs";
 import path from "path";
 import { createHash, randomInt, timingSafeEqual } from "crypto";
-import { PublicUser, MediaItemPublic } from "shared/types";
+import { PublicUser, MediaItemPublic, Tag, GeoPoint } from "shared/types";
 import { User } from "@/types";
 import { ObjectId, WithId, Document } from "mongodb";
-export * from "./limiters";
-export * from "./upload";
-
-export function escapeRegex(s: string) {
-  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
+export * from "@/utils/limiters";
+export * from "@/utils/upload";
 
 export function parseCookieHeader(header: string): Record<string, string> {
   const result: Record<string, string> = {};
@@ -78,42 +73,6 @@ export const safeEqual = (a: string, b: string): boolean => {
 
 export const generateOtp = (): string => randomInt(100000, 1000000).toString();
 
-function getTimestamp() {
-  const now = new Date();
-  return now.toISOString().replace("T", " ").substring(0, 19);
-}
-
-function formatArgs(args: unknown[]) {
-  return args
-    .map((arg) => {
-      if (typeof arg === "object" && arg !== null) {
-        try {
-          return JSON.stringify(arg, null, 2);
-        } catch (e) {
-          return String(arg);
-        }
-      }
-      return String(arg);
-    })
-    .join(" ");
-}
-
-export function log(...args: unknown[]) {
-  const logDir = "./logs";
-  const logPath = path.join(logDir, "log.txt");
-  if (!fs.existsSync(logDir)) {
-    fs.mkdirSync(logDir, { recursive: true });
-  }
-  const timestamp = getTimestamp();
-  const message = formatArgs(args);
-  const logEntry = `[${timestamp}] ${message}\n`;
-  fs.appendFile(logPath, logEntry, "utf8", (err) => {
-    if (err) {
-      console.error("❌ Error writing to log file:", err);
-    }
-  });
-}
-
 export const filePath = (
   filename: string,
   userId: string | ObjectId,
@@ -172,3 +131,37 @@ export function stripMediaFields<T>(input: T): T {
   }
   return input;
 }
+
+export function normalizeTagList(values: Tag[]): Tag[] {
+  const seen = new Set<string>();
+  const result: Tag[] = [];
+  for (const raw of values) {
+    const trimmed = raw.value.trim();
+    const key = trimmed.toLowerCase();
+    if (trimmed && !seen.has(key)) {
+      seen.add(key);
+      result.push(raw);
+    }
+  }
+  return result;
+}
+
+export const escapeRegex = (s: string) =>
+  s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+export const splitList = (value: unknown) =>
+  String(value ?? "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+export const toGeoPoint = (
+  loc?: { lat?: number; lng?: number } | null,
+): GeoPoint | undefined => {
+  const lat = Number(loc?.lat);
+  const lng = Number(loc?.lng);
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return undefined;
+  if (lat === 0 && lng === 0) return undefined;
+  if (Math.abs(lat) > 90 || Math.abs(lng) > 180) return undefined;
+  return { type: "Point", coordinates: [lng, lat] };
+};

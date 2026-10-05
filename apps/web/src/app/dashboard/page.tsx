@@ -5,11 +5,23 @@ import { authGuard } from "@/utils/authGuard";
 import { PolicyDataProvider } from "@/providers/PolicyDataProvider";
 import { getServerApi } from "@/api/server";
 import { AutoLogoutPopup } from "@/components/shared/AutoLogoutPopup";
+import { cookies } from "next/headers";
+import { Lang } from "shared/index";
 
-export const metadata = getMetaData({
-  title: "Dashboard",
-  description: "Dashboard page",
-});
+export async function generateMetadata() {
+  try {
+    const cookieStore = await cookies();
+    const lang = cookieStore.get("lang")?.value as Lang;
+    return getMetaData(
+      {
+        title: "dashboard",
+      },
+      lang,
+    );
+  } catch {
+    return {};
+  }
+}
 
 export default async function Admin() {
   const user = await authGuard(["admin", "tasker", "client"], "/dashboard");
@@ -18,7 +30,7 @@ export default async function Admin() {
   if (user?.role === "admin") {
     return (
       <PolicyDataProvider initialPolicyData={data.data}>
-        <SidebarWrapper title="Dashboard">
+        <SidebarWrapper title="dashboard">
           <main className="page">
             <AutoLogoutPopup />
             <Screens.Admin.Main />

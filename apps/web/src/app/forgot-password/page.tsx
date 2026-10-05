@@ -4,11 +4,23 @@ import { redirect } from "next/navigation";
 import { getServerApi } from "@/api/server";
 import { authGuard } from "@/utils/authGuard";
 import { FloatingSettings } from "@/components/shared/FloatingSettings";
+import { cookies } from "next/headers";
+import { Lang } from "shared/index";
 
-export const metadata = getMetaData({
-  title: "Forgot Password",
-  description: "Forgot Password page",
-});
+export async function generateMetadata() {
+  try {
+    const cookieStore = await cookies();
+    const lang = cookieStore.get("lang")?.value as Lang;
+    return getMetaData(
+      {
+        title: "forgot-password",
+      },
+      lang,
+    );
+  } catch {
+    return {};
+  }
+}
 
 export default async function ForgotPassword({
   searchParams,

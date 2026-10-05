@@ -11,6 +11,7 @@ import {
   ChatLastMessage,
   Task,
   TaskResponse,
+  GeoPoint,
 } from "shared/types";
 import { Server as SocketIOServer } from "socket.io";
 
@@ -58,6 +59,7 @@ export interface TaskBack extends Omit<
   _id: ObjectId;
   clientId: ObjectId;
   assignedTaskerId: ObjectId | null;
+  geo?: GeoPoint;
 }
 
 export interface TaskResponseBack extends Omit<

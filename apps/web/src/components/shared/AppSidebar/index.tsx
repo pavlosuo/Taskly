@@ -13,32 +13,70 @@ import { useUser } from "@/providers/UserProvider";
 import { useMediaPicker } from "@/providers/MediaPickerProvider";
 import { usePathname } from "next/navigation";
 import { Notify } from "@/components/shared/Notify";
-import { APP_NAME } from "shared/data";
+import { APP_NAME, PAGES_META, CHAT_PAGE_META } from "shared/data";
 import clsx from "clsx";
+import { useTheme } from "@/providers/ThemeProvider";
 
 export function AppSidebar() {
   const { user } = useUser();
   const { openPicker } = useMediaPicker();
   const pathname = usePathname();
+  const { lang } = useTheme();
 
   const navItems = (() => {
     if (user?.role === "client") {
       return [
-        { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-        { label: "Tasks", href: "/tasks", icon: ClipboardList },
-        { label: "Chats", href: "/chats", icon: MessageCircle },
+        {
+          label: PAGES_META?.["dashboard"]?.[lang]?.title,
+          href: "/dashboard",
+          icon: LayoutDashboard,
+        },
+        {
+          label: PAGES_META?.["tasks"]?.[lang]?.title,
+          href: "/tasks",
+          icon: ClipboardList,
+        },
+        {
+          label: PAGES_META?.["chats"]?.[lang]?.title,
+          href: "/chats",
+          icon: MessageCircle,
+        },
       ];
     } else if (user?.role === "tasker") {
       return [
-        { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-        { label: "Tasks", href: "/tasks", icon: ClipboardList },
-        { label: "Chats", href: "/chats", icon: MessageCircle },
+        {
+          label: PAGES_META?.["dashboard"]?.[lang]?.title,
+          href: "/dashboard",
+          icon: LayoutDashboard,
+        },
+        {
+          label: PAGES_META?.["tasks"]?.[lang]?.title,
+          href: "/tasks",
+          icon: ClipboardList,
+        },
+        {
+          label: PAGES_META?.["chats"]?.[lang]?.title,
+          href: "/chats",
+          icon: MessageCircle,
+        },
       ];
     } else if (user?.role === "admin") {
       return [
-        { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-        { label: "Stats", href: "/stats", icon: ClipboardList },
-        { label: "Support Tickets", href: "/chats", icon: MessageCircle },
+        {
+          label: PAGES_META?.["dashboard"]?.[lang]?.title,
+          href: "/dashboard",
+          icon: LayoutDashboard,
+        },
+        {
+          label: PAGES_META?.["stats"]?.[lang]?.title,
+          href: "/stats",
+          icon: ClipboardList,
+        },
+        {
+          label: PAGES_META?.["support"]?.[lang]?.title,
+          href: "/chats",
+          icon: MessageCircle,
+        },
       ];
     }
   })();
@@ -97,18 +135,24 @@ export const SidebarWrapper = ({
   children,
   title,
   hiddenTitle,
+  memberName,
 }: {
   children: React.ReactNode;
   title: string;
   hiddenTitle?: boolean;
+  memberName?: string;
 }) => {
+  const { lang } = useTheme();
+  const formattedTitle = memberName
+    ? CHAT_PAGE_META[lang].title(memberName)
+    : PAGES_META?.[title]?.[lang]?.title || title;
   return (
     <SidebarProvider className="bg-muted">
       <AppSidebar />
       <div className="flex-1 gap-2 flex flex-col p-2 h-screen">
         <header className="py-5 px-4 rounded-xl bg-background grid grid-cols-[max-content_1fr_max-content] items-center gap-3">
           <SidebarTrigger className="text-foreground hover:bg-primary hover:text-white" />
-          <span className="text-sm font-medium">{title}</span>
+          <span className="text-sm font-medium">{formattedTitle}</span>
           <Notify />
         </header>
         <div
@@ -119,7 +163,7 @@ export const SidebarWrapper = ({
         >
           {!hiddenTitle && (
             <h1 className="text-2xl font-semibold text-foreground px-4 py-5">
-              {title}
+              {formattedTitle}
             </h1>
           )}
           <div className="w-full h-full overflow-y-auto">{children}</div>

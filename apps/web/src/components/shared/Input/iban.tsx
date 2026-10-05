@@ -1,11 +1,8 @@
 "use client";
 import { useRef } from "react";
 import { Input } from "@/components/ui/input";
-import { startTransition } from "react";
 import clsx from "clsx";
-
-const COUNTRY_PREFIX = "FI";
-const IBAN_DIGIT_LENGTH = 16;
+import { COUNTRY_PREFIX_IBAN, IBAN_DIGIT_LENGTH } from "shared/index";
 
 export function formatIban(iban: string) {
   return iban.replace(/(.{4})/g, "$1 ").trim();
@@ -32,7 +29,7 @@ export function IbanInput({
 >) {
   const inputRef = useRef<HTMLInputElement>(null);
   const digits = digitsOf(value);
-  const display = digits ? formatIban(COUNTRY_PREFIX + digits) : "";
+  const display = digits ? formatIban(COUNTRY_PREFIX_IBAN + digits) : "";
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const el = e.target;
@@ -41,26 +38,27 @@ export function IbanInput({
       .slice(0, cursor)
       .replace(/\D/g, "").length;
     const newDigits = digitsOf(el.value);
-    onChange(newDigits ? COUNTRY_PREFIX + newDigits : "");
-    const newDisplay = newDigits ? formatIban(COUNTRY_PREFIX + newDigits) : "";
+    onChange(newDigits ? COUNTRY_PREFIX_IBAN + newDigits : "");
+    const newDisplay = newDigits
+      ? formatIban(COUNTRY_PREFIX_IBAN + newDigits)
+      : "";
     const targetDigitCount = Math.min(digitsBeforeCursor, newDigits.length);
-    startTransition(() => {
-      const input = inputRef.current;
-      if (!input) return;
-      let seen = 0;
-      let pos = newDisplay.length;
-      for (let i = 0; i < newDisplay.length; i++) {
-        if (/\d/.test(newDisplay[i])) {
-          seen++;
-          if (seen === targetDigitCount) {
-            pos = i + 1;
-            break;
-          }
+
+    const input = inputRef.current;
+    if (!input) return;
+    let seen = 0;
+    let pos = newDisplay.length;
+    for (let i = 0; i < newDisplay.length; i++) {
+      if (/\d/.test(newDisplay[i])) {
+        seen++;
+        if (seen === targetDigitCount) {
+          pos = i + 1;
+          break;
         }
       }
-      if (targetDigitCount === 0) pos = newDisplay.length ? 2 : 0;
-      input.setSelectionRange(pos, pos);
-    });
+    }
+    if (targetDigitCount === 0) pos = newDisplay.length ? 2 : 0;
+    input.setSelectionRange(pos, pos);
   };
 
   const handleBlur = () => {

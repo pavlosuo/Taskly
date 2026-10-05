@@ -322,6 +322,7 @@ export function PublicProfileCard() {
               <Tiptap
                 value={form.bio ?? ""}
                 onUpdate={({ editor }) => handleChange("bio", editor.getHTML())}
+                error={errors.bio}
               />
               <p
                 className={clsx(
@@ -342,9 +343,9 @@ export function PublicProfileCard() {
                     Add skills you have — increases trust with clients.
                   </p>
                   <SkillsEditor
-                    error={errors.skills}
                     value={form.skills ?? []}
                     onChange={(skills) => handleChange("skills", skills)}
+                    error={errors.skills}
                   />
                 </FormField>
                 <div className="h-px bg-border" />
@@ -357,6 +358,7 @@ export function PublicProfileCard() {
                     onChange={(certificates) =>
                       handleChange("certificates", certificates)
                     }
+                    error={errors.certificates}
                   />
                 </FormField>
                 <div className="h-px bg-border" />

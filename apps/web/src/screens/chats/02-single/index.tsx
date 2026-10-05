@@ -11,7 +11,12 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { axiosApi } from "@/api/index";
 import { useChats } from "@/providers/ChatProvider";
-import { Message, ChatWithMember } from "shared/types";
+import {
+  Message,
+  ChatWithMember,
+  CHAT_PAGE_META,
+  APP_NAME,
+} from "shared/index";
 import { ImageDisplay } from "@/components/shared/MediaPicker";
 import { MessageBubble } from "@/screens/chats/ui/MessageBubble";
 import { ChatInput } from "@/screens/chats/ui/ChatInput";
@@ -20,6 +25,7 @@ import { SingleChatProvider } from "@/providers/SingleChatProvider";
 import { useSocket } from "@/providers/SocketProvider";
 import Link from "next/link";
 import { OnlineStatus } from "@/components/shared/OnlineStatus";
+import { useTheme } from "@/providers/ThemeProvider";
 
 export const Single: FC<{
   chat: ChatWithMember;
@@ -41,6 +47,12 @@ export const Single: FC<{
   const didInitialScroll = useRef(false);
   const { socket } = useSocket();
   const isTyping = typingByChat[chatId] ?? false;
+  const { lang } = useTheme();
+
+  useEffect(() => {
+    const texts = CHAT_PAGE_META[lang];
+    document.title = texts.title(chat.member.fullName) + " | " + APP_NAME;
+  }, [lang, chat]);
 
   const loadMore = useCallback(async () => {
     if (!nextCursor || isLoadingMore) return;

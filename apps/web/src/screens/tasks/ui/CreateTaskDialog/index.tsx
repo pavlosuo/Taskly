@@ -33,7 +33,7 @@ import clsx from "clsx";
 const INITIAL_STATE: TaskCreateForm = {
   title: "",
   description: "",
-  deadline: undefined,
+  deadline: null,
   budget: {
     amount: 0,
     negotiable: false,
@@ -65,6 +65,7 @@ export const CreateTaskDialog = () => {
     try {
       e.preventDefault();
       setErrors({});
+      console.log(form);
       const parsed = taskCreateSchema.safeParse(form);
       if (!parsed.success) {
         const { fieldErrors, formErrors } = parsed.error.flatten();
@@ -152,7 +153,7 @@ export const CreateTaskDialog = () => {
                   placeholder="Describe what needs to be done, the scope of work, and any important details."
                   rows={8}
                   className={clsx(
-                    "resize-none",
+                    "resize-none border",
                     errors.description
                       ? "border-destructive focus-visible:ring-destructive/75"
                       : "border-border",
@@ -168,6 +169,9 @@ export const CreateTaskDialog = () => {
                   value={form.location}
                   onChange={(location) => handleUpdate("location", location)}
                   error={errors.location}
+                  onError={(e) => {
+                    setErrors((p) => ({ ...p, location: e }));
+                  }}
                 />
               </div>
             </div>

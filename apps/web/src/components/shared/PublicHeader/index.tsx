@@ -5,10 +5,8 @@ import { EyeOff, ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { UserDropdown } from "@/components/shared/UserDropdown";
 import { useUser } from "@/providers/UserProvider";
-import { AccessReason } from "shared/types";
-import { NAV_LINKS } from "shared/data";
+import { NAV_LINKS, APP_NAME, AccessReason } from "shared/index";
 import { Notify } from "@/components/shared/Notify";
-import { APP_NAME } from "shared/data";
 
 export function PublicHeader({
   accessReason = "public",

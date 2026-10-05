@@ -1,7 +1,10 @@
 import { IServer } from "@/types";
-import { ServiceResult } from "shared/types";
-import { publicProfileCertificateSchema } from "shared/schemas";
-import { bigFirstLetter } from "shared/utils";
+import {
+  publicProfileCertificateSchema,
+  upperSign,
+  ServiceResult,
+} from "shared/index";
+import { escapeRegex } from "@/utils";
 
 export class CertificatesService {
   constructor(private server: IServer) {}
@@ -11,7 +14,9 @@ export class CertificatesService {
       const db = await this.server.getDb();
       const items = await db
         .collection("certificates")
-        .find(q.trim() ? { label: { $regex: q, $options: "i" } } : {})
+        .find(
+          q.trim() ? { label: { $regex: escapeRegex(q), $options: "i" } } : {},
+        )
         .sort({ count: -1 })
         .limit(10)
         .toArray();
@@ -37,7 +42,7 @@ export class CertificatesService {
         };
       const db = await this.server.getDb();
       const normalized = label.trim();
-      const final = bigFirstLetter(normalized);
+      const final = upperSign(normalized);
       const result = await db.collection("certificates").findOneAndUpdate(
         { label: { $regex: `^${final}$`, $options: "i" } },
         {

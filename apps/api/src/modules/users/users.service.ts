@@ -5,7 +5,7 @@ import {
   publicProfileLangSchema,
   publicProfileSkillSchema,
   publicProfileCertificateSchema,
-} from "shared/schemas";
+} from "shared/index";
 import { CLIENT_URL, NODE_ENV } from "@/env";
 import {
   ServiceResult,
@@ -19,6 +19,7 @@ import {
   extractMediaId,
   stripMediaFields,
   escapeRegex,
+  normalizeTagList,
 } from "@/utils";
 import { IServer, User } from "@/types";
 import { MediaService } from "@/modules/media/media.service";
@@ -54,6 +55,8 @@ export class UsersService {
         avatar,
         payout,
         email,
+        settings,
+        publicProfile,
       } = parsed.data;
       const db = await this.server.getDb();
       const users = db.collection("users");
@@ -87,6 +90,7 @@ export class UsersService {
         updates.newEmail = email;
       }
       if (fullName !== undefined) updates["profile.fullName"] = fullName;
+
       if (avatar) {
         await this.mediaService.addPublicSource(avatar._id, user._id, "avatar");
         updates["profile.avatar"] = avatar;
@@ -137,8 +141,8 @@ export class UsersService {
           bankName: payout.bankName,
         };
       }
-      if (parsed.data.settings !== undefined) {
-        const { lang, theme, checkboxes } = parsed.data.settings;
+      if (settings !== undefined) {
+        const { lang, theme, checkboxes } = settings;
         if (lang !== undefined) updates["settings.lang"] = lang;
         if (theme !== undefined) updates["settings.theme"] = theme;
         if (checkboxes !== undefined) {
@@ -158,9 +162,9 @@ export class UsersService {
           res.cookie("lang", lang, cookieOptions);
         }
       }
-      if (parsed.data.publicProfile !== undefined) {
+      if (publicProfile !== undefined) {
         const { bio, languages, skills, certificates, header, introduction } =
-          parsed.data.publicProfile;
+          publicProfile;
 
         if (bio !== undefined) {
           updates["publicProfile.bio"] = bio;
@@ -179,7 +183,8 @@ export class UsersService {
             }
           }
 
-          updates["publicProfile.certificates"] = certificates;
+          updates["publicProfile.certificates"] =
+            normalizeTagList(certificates);
         }
 
         if (skills !== undefined) {
@@ -195,7 +200,7 @@ export class UsersService {
             }
           }
 
-          updates["publicProfile.skills"] = skills;
+          updates["publicProfile.skills"] = normalizeTagList(skills);
         }
 
         if (languages !== undefined) {
@@ -210,7 +215,7 @@ export class UsersService {
             }
           }
 
-          updates["publicProfile.languages"] = languages;
+          updates["publicProfile.languages"] = normalizeTagList(languages);
 
           const oldLangs: PublicProfileLang[] =
             user.publicProfile?.languages ?? [];
@@ -461,7 +466,11 @@ export class UsersService {
         .findOne<{ passwordHash: string }>({ _id: user._id });
 
       if (!dbUser)
-        return { success: false, status: 404, message: "user.message.notFound" };
+        return {
+          success: false,
+          status: 404,
+          message: "user.message.notFound",
+        };
 
       const isValid = await bcrypt.compare(oldPassword, dbUser.passwordHash);
       if (!isValid)
@@ -531,7 +540,11 @@ export class UsersService {
       );
 
       if (!user || user.role === "admin") {
-        return { success: false, status: 404, message: "user.message.notFound" };
+        return {
+          success: false,
+          status: 404,
+          message: "user.message.notFound",
+        };
       }
 
       const isOwner = !!userRequest?._id?.equals(user._id);
@@ -539,7 +552,11 @@ export class UsersService {
       const isPrivate = !!user.settings?.checkboxes?.privateProfile;
 
       if (isPrivate && !isOwner && !isAdmin) {
-        return { success: false, status: 404, message: "user.message.notFound" };
+        return {
+          success: false,
+          status: 404,
+          message: "user.message.notFound",
+        };
       }
 
       const hideLastSeen = !!user.settings?.checkboxes?.noOnlineStatus;

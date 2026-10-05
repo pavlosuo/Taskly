@@ -1,18 +1,282 @@
-import { BankItem, Lang } from "shared/types";
+import {
+  BankItem,
+  TaskStatus,
+  Tag,
+  Lang,
+  TaskSort,
+  TaskFilters,
+  TasksTab,
+} from "shared/index";
 
 export const COUNTRY_CODES_LIST = ["fi"];
+
+export const COUNTRY_PREFIX_IBAN = "FI";
+
+export const IBAN_DIGIT_LENGTH = 16;
 
 export const MAX_FILE_SIZE = 50 * 1024 * 1024;
 
 export const APP_NAME = "Taskly";
 
-export const NAV_LINKS = [
+export const NAV_LINKS: { label: string; href: string }[] = [
   { label: "Find Taskers", href: "/users" },
   { label: "Browse Tasks", href: "/tasks" },
   { label: "Top Taskers", href: "/top" },
   { label: "Leaderboard", href: "/leaderboard" },
   { label: "Statistics", href: "/stats" },
 ];
+
+export const CHAT_PAGE_META: Record<
+  Lang,
+  { title: (name: string) => string; description: (name: string) => string }
+> = {
+  en: {
+    title: (name) => `${name}'s chat`,
+    description: (name) => `Your conversation with ${name}`,
+  },
+  "fi-FI": {
+    title: (name) => `Keskustelu: ${name}`,
+    description: (name) => `Keskustelusi: ${name}`,
+  },
+  "sv-FI": {
+    title: (name) => `${name}s chatt`,
+    description: (name) => `Din konversation med ${name}`,
+  },
+};
+
+export const PAGES_META: Record<
+  string,
+  Record<Lang, { title: string; description: string }>
+> = {
+  "": {
+    en: {
+      title: "Home",
+      description:
+        "Stay connected, manage your conversations, organize your tasks, and keep everything you need in one place.",
+    },
+    "fi-FI": {
+      title: "Etusivu",
+      description:
+        "Pidä yhteyttä, hallitse keskustelujasi, järjestä tehtäväsi ja pidä kaikki tarvitsemasi yhdessä paikassa.",
+    },
+    "sv-FI": {
+      title: "Hem",
+      description:
+        "Håll kontakten, hantera dina konversationer, organisera dina uppgifter och samla allt du behöver på ett ställe.",
+    },
+  },
+
+  account: {
+    en: {
+      title: "Account",
+      description:
+        "Manage your account information, personal preferences, and other settings connected to your account.",
+    },
+    "fi-FI": {
+      title: "Tili",
+      description:
+        "Hallitse tilisi tietoja, henkilökohtaisia asetuksiasi ja muita tiliisi liittyviä asetuksia.",
+    },
+    "sv-FI": {
+      title: "Konto",
+      description:
+        "Hantera din kontoinformation, personliga inställningar och andra inställningar som hör till ditt konto.",
+    },
+  },
+
+  chats: {
+    en: {
+      title: "Chats",
+      description:
+        "View and manage your conversations, keep in touch with others, and easily find your recent messages.",
+    },
+    "fi-FI": {
+      title: "Keskustelut",
+      description:
+        "Katso ja hallitse keskustelujasi, pidä yhteyttä muihin ja löydä viimeisimmät viestisi helposti.",
+    },
+    "sv-FI": {
+      title: "Chattar",
+      description:
+        "Visa och hantera dina konversationer, håll kontakten med andra och hitta enkelt dina senaste meddelanden.",
+    },
+  },
+
+  dashboard: {
+    en: {
+      title: "Dashboard",
+      description:
+        "Get an overview of your activity and quickly access the tools, information, and features you use most.",
+    },
+    "fi-FI": {
+      title: "Hallintapaneeli",
+      description:
+        "Saat yleiskuvan toiminnastasi ja pääset nopeasti käyttämiisi työkaluihin, tietoihin ja ominaisuuksiin.",
+    },
+    "sv-FI": {
+      title: "Instrumentpanel",
+      description:
+        "Få en överblick över din aktivitet och snabb åtkomst till de verktyg, den information och de funktioner du använder mest.",
+    },
+  },
+
+  "forgot-password": {
+    en: {
+      title: "Forgot Password",
+      description:
+        "Reset your password securely and regain access to your account in just a few steps.",
+    },
+    "fi-FI": {
+      title: "Unohtunut salasana",
+      description:
+        "Nollaa salasanasi turvallisesti ja palauta pääsy tilillesi muutamassa vaiheessa.",
+    },
+    "sv-FI": {
+      title: "Glömt lösenord",
+      description:
+        "Återställ ditt lösenord på ett säkert sätt och få tillbaka åtkomsten till ditt konto på några enkla steg.",
+    },
+  },
+
+  login: {
+    en: {
+      title: "Log In",
+      description:
+        "Log in to your account to access your conversations, tasks, profile, and personalized settings.",
+    },
+    "fi-FI": {
+      title: "Kirjaudu sisään",
+      description:
+        "Kirjaudu tilillesi käyttääksesi keskustelujasi, tehtäviäsi, profiiliasi ja henkilökohtaisia asetuksiasi.",
+    },
+    "sv-FI": {
+      title: "Logga in",
+      description:
+        "Logga in på ditt konto för att komma åt dina konversationer, uppgifter, profil och personliga inställningar.",
+    },
+  },
+
+  privacy: {
+    en: {
+      title: "Privacy Policy",
+      description:
+        "Learn how your information is collected, used, stored, and protected, and understand your privacy choices.",
+    },
+    "fi-FI": {
+      title: "Tietosuojakäytäntö",
+      description:
+        "Lue, miten tietojasi kerätään, käytetään, säilytetään ja suojataan sekä millaisia tietosuojaan liittyviä valintoja sinulla on.",
+    },
+    "sv-FI": {
+      title: "Integritetspolicy",
+      description:
+        "Läs om hur dina uppgifter samlas in, används, lagras och skyddas samt vilka val du har när det gäller din integritet.",
+    },
+  },
+
+  profile: {
+    en: {
+      title: "Profile",
+      description:
+        "View and manage your profile, personal information, and the details you choose to share with others.",
+    },
+    "fi-FI": {
+      title: "Profiili",
+      description:
+        "Katso ja hallitse profiiliasi, henkilötietojasi ja tietoja, jotka haluat jakaa muiden kanssa.",
+    },
+    "sv-FI": {
+      title: "Profil",
+      description:
+        "Visa och hantera din profil, personliga information och de uppgifter du väljer att dela med andra.",
+    },
+  },
+
+  register: {
+    en: {
+      title: "Create an Account",
+      description:
+        "Create your account and get started with conversations, tasks, personalized settings, and more.",
+    },
+    "fi-FI": {
+      title: "Luo tili",
+      description:
+        "Luo oma tilisi ja aloita keskustelujen, tehtävien, henkilökohtaisten asetusten ja muiden ominaisuuksien käyttö.",
+    },
+    "sv-FI": {
+      title: "Skapa ett konto",
+      description:
+        "Skapa ditt konto och kom igång med konversationer, uppgifter, personliga inställningar och mer.",
+    },
+  },
+
+  settings: {
+    en: {
+      title: "Settings",
+      description:
+        "Customize your experience, manage your preferences, and control the settings connected to your account.",
+    },
+    "fi-FI": {
+      title: "Asetukset",
+      description:
+        "Mukauta käyttökokemustasi, hallitse asetuksiasi ja säädä tiliisi liittyviä toimintoja.",
+    },
+    "sv-FI": {
+      title: "Inställningar",
+      description:
+        "Anpassa din upplevelse, hantera dina inställningar och kontrollera funktionerna som är kopplade till ditt konto.",
+    },
+  },
+
+  tasks: {
+    en: {
+      title: "Tasks",
+      description:
+        "Create, organize, and manage your tasks so you can keep track of what needs to be done.",
+    },
+    "fi-FI": {
+      title: "Tehtävät",
+      description:
+        "Luo, järjestä ja hallitse tehtäviäsi, jotta pysyt helposti ajan tasalla siitä, mitä pitää tehdä.",
+    },
+    "sv-FI": {
+      title: "Uppgifter",
+      description:
+        "Skapa, organisera och hantera dina uppgifter så att du enkelt kan hålla koll på det som behöver göras.",
+    },
+  },
+
+  error: {
+    en: {
+      title: "Something Went Wrong",
+      description: "An unexpected error occurred. Please try again.",
+    },
+    "fi-FI": {
+      title: "Jokin meni pieleen",
+      description: "Tapahtui odottamaton virhe. Yritä uudelleen.",
+    },
+    "sv-FI": {
+      title: "Något gick fel",
+      description: "Ett oväntat fel inträffade. Försök igen.",
+    },
+  },
+
+  "not-found": {
+    en: {
+      title: "Page Not Found",
+      description:
+        "The page you're looking for doesn't exist or may have been moved.",
+    },
+    "fi-FI": {
+      title: "Sivua ei löytynyt",
+      description: "Etsimääsi sivua ei ole olemassa tai se on ehkä siirretty.",
+    },
+    "sv-FI": {
+      title: "Sidan hittades inte",
+      description: "Sidan du söker finns inte eller kan ha flyttats.",
+    },
+  },
+};
 
 export const FINNISH_BANKS: BankItem[] = [
   { value: "op", label: "OP", src: "/banks/fi-op.svg" },
@@ -38,16 +302,17 @@ export const FINNISH_BANKS: BankItem[] = [
   },
 ];
 
-export const FINNISH_BANKS_VALUES: (typeof FINNISH_BANKS)[number]["value"][] =
-  FINNISH_BANKS.map((b) => b.value);
+export const FINNISH_BANKS_VALUES: BankItem["value"][] = FINNISH_BANKS.map(
+  (b) => b.value,
+);
 
-export const LANGS: { value: Lang; label: string }[] = [
+export const LANGS: Tag[] = [
   { value: "en", label: "general.english" },
   { value: "fi-FI", label: "general.finnish" },
   { value: "sv-FI", label: "general.swedish" },
 ];
 
-export const WORLD_LANGUAGES = [
+export const WORLD_LANGUAGES: Tag[] = [
   { value: "fi", label: "general.finnish" },
   { value: "sv", label: "general.swedish" },
   { value: "en", label: "general.english" },
@@ -142,3 +407,57 @@ export const ALLOWED_MIME_TYPES = new Set([
 ]);
 
 export const EMOJI = ["👀", "😢", "👍", "🔥", "❤️"];
+
+export const TASK_STATUSES: TaskStatus[] = [
+  "open",
+  "assigned",
+  "completed",
+  "cancelled",
+];
+
+export const TASK_SORTS: Record<string, Record<string, 1 | -1>> = {
+  newest: { createdAt: -1, _id: -1 },
+  deadline: { deadline: 1, _id: 1 },
+  budget_desc: { "budget.amount": -1, _id: -1 },
+  budget_asc: { "budget.amount": 1, _id: 1 },
+  distance: { distanceMeters: 1, _id: 1 },
+};
+
+export const EARTH_RADIUS_M = 6378100;
+
+export const TASK_DEFAULT_FILTERS: TaskFilters = {
+  status: "all",
+  sort: "newest",
+  minBudget: 0,
+  maxBudget: 0,
+  onlyNegotiable: false,
+  skills: [],
+  certificates: [],
+  near: null,
+  radiusKm: 20,
+};
+
+export const TASK_RADIUS_OPTIONS = [5, 10, 20, 50, 100];
+
+export const TASK_SORT_OPTIONS: { value: TaskSort; label: string }[] = [
+  { value: "newest", label: "Newest first" },
+  { value: "deadline", label: "Deadline: soonest first" },
+  { value: "budget_desc", label: "Budget: high to low" },
+  { value: "budget_asc", label: "Budget: low to high" },
+  { value: "distance", label: "Nearest first" },
+];
+
+export const TASK_STATUS_LABELS: Record<string, string> = {
+  all: "All",
+  open: "Open",
+  assigned: "In progress",
+  completed: "Completed",
+  cancelled: "Cancelled",
+};
+
+export const TABS: TasksTab[] = ["all", "my"];
+
+export const TAB_LABELS = {
+  all: "general.all",
+  my: "general.my",
+};

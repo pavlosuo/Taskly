@@ -2,7 +2,7 @@
 import clsx from "clsx";
 import { Clock, MapPin, MessageSquare } from "lucide-react";
 import { Task } from "shared/types";
-import { formatPrice } from "@/utils/formatPrice";
+import { useFormatPrice } from "@/hooks/useFormatPrice";
 
 export const TaskListItem = ({
   task,
@@ -17,6 +17,7 @@ export const TaskListItem = ({
     0,
     (task.skills?.length ?? 0) - visibleSkills.length,
   );
+  const price = useFormatPrice(task?.budget?.amount);
   return (
     <button
       type="button"
@@ -69,11 +70,7 @@ export const TaskListItem = ({
         </div>
         <div className="shrink-0 text-right">
           <div className="flex items-center justify-end gap-1 text-base font-semibold tracking-tight text-foreground">
-            {task.budget?.amount ? (
-              <>{formatPrice(task.budget.amount)}</>
-            ) : (
-              "Negotiable"
-            )}
+            {task.budget?.amount ? price : "Negotiable"}
           </div>
           {task.budget?.amount && (
             <span className="text-[11px] text-muted-foreground">

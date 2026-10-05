@@ -4,7 +4,7 @@ import { getMetaData } from "@/utils/Metadata";
 
 export const metadata = getMetaData({
   title: "Error",
-  description: "Error page",
+  description: "An error has occurred.",
 });
 
 export default function Error() {

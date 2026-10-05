@@ -1,7 +1,10 @@
-import { publicProfileSkillSchema } from "shared/schemas";
+import {
+  publicProfileSkillSchema,
+  ServiceResult,
+  upperSign,
+} from "shared/index";
 import { IServer } from "@/types";
-import { ServiceResult } from "shared/types";
-import { bigFirstLetter } from "shared/utils";
+import { escapeRegex } from "@/utils";
 
 export class SkillsService {
   constructor(private server: IServer) {}
@@ -11,7 +14,9 @@ export class SkillsService {
       const db = await this.server.getDb();
       const items = await db
         .collection("skills")
-        .find(q.trim() ? { label: { $regex: q, $options: "i" } } : {})
+        .find(
+          q.trim() ? { label: { $regex: escapeRegex(q), $options: "i" } } : {},
+        )
         .sort({ count: -1 })
         .limit(10)
         .toArray();
@@ -36,7 +41,7 @@ export class SkillsService {
         };
       const db = await this.server.getDb();
       const normalized = label.trim();
-      const final = bigFirstLetter(normalized);
+      const final = upperSign(normalized);
       const result = await db.collection("skills").findOneAndUpdate(
         { label: { $regex: `^${final}$`, $options: "i" } },
         {

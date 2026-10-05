@@ -5,6 +5,8 @@ import { AutoLogoutPopup } from "@/components/shared/AutoLogoutPopup";
 import { authGuard } from "@/utils/authGuard";
 import { getServerApi } from "@/api/server";
 import { notFound } from "next/navigation";
+import { cookies } from "next/headers";
+import { Lang, CHAT_PAGE_META, APP_NAME } from "shared/index";
 
 export async function generateMetadata({
   params,
@@ -17,10 +19,17 @@ export async function generateMetadata({
     const { data } = await axiosApi.getChat(id);
     const { chat } = data;
     if (!chat) return {};
-    return getMetaData({
-      title: `Chat with ${chat.member.fullName}`,
-      description: `Your conversation with ${chat.member.fullName}`,
-    });
+    const cookieStore = await cookies();
+    const lang = (cookieStore.get("lang")?.value as Lang) ?? "en";
+    const texts = CHAT_PAGE_META[lang];
+    const name = chat.member.fullName;
+    return getMetaData(
+      {
+        title: texts.title(name),
+        description: texts.description(name),
+      },
+      lang,
+    );
   } catch {
     return {};
   }
@@ -46,9 +55,17 @@ export default async function Chat({
   } catch {
     notFound();
   }
+  const cookieStore = await cookies();
+  const lang = (cookieStore.get("lang")?.value as Lang) ?? "en";
+  const texts = CHAT_PAGE_META[lang];
+  const name = chat.member.fullName;
   if (!chat) notFound();
   return (
-    <SidebarWrapper hiddenTitle title={`Chat with ${chat.member.fullName}`}>
+    <SidebarWrapper
+      hiddenTitle
+      title={texts.title(name) + " | " + APP_NAME}
+      memberName={name}
+    >
       <main className="page h-full">
         <AutoLogoutPopup />
         <Screens.Chats.Single

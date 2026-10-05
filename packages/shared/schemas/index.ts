@@ -443,7 +443,7 @@ export const taskCreateSchema = z.object({
     .string()
     .trim()
     .min(5, "task.title.tooShort")
-    .max(120, "task.title.tooLong"),
+    .max(80, "task.title.tooLong"),
   description: z
     .string()
     .min(20, "task.description.tooShort")
@@ -476,7 +476,7 @@ export const taskResponseCreateSchema = z.object({
   message: z
     .string()
     .transform(removeHtml)
-    .refine((value) => value.length >= 1, {
+    .refine((value) => value.length >= 10, {
       message: "task.message.tooShort",
     })
     .refine((value) => value.length <= 1000, {

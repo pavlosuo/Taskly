@@ -1,11 +1,4 @@
-import {
-  PublicUser,
-  Role,
-  Payout,
-  UserSettings,
-  PublicProfile,
-  MediaItem,
-} from "shared/types";
+import { PublicUser, Role } from "shared/types";
 
 export type LoginForm = {
   email: string;
@@ -35,16 +28,3 @@ export interface CommonResponse {
   success: boolean;
   message?: string;
 }
-
-export type UpdateProfileForm = Partial<{
-  fullName: string;
-  username: string;
-  phone: string;
-  email: string;
-  payout: Payout;
-  fullPhone: string;
-  code: string;
-  avatar: MediaItem | undefined | null;
-  settings: Partial<UserSettings>;
-  publicProfile: Partial<PublicProfile>;
-}>;

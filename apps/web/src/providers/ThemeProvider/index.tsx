@@ -1,5 +1,4 @@
 "use client";
-
 import {
   createContext,
   useCallback,
@@ -10,11 +9,12 @@ import {
   useState,
   ReactNode,
 } from "react";
-import { Lang, Theme } from "shared/types";
+import { Lang, Theme, PAGES_META, APP_NAME } from "shared/index";
 import i18n from "i18next";
 import "@/i18n";
 import { axiosApi } from "@/api/index";
 import { useUser } from "@/providers/UserProvider";
+import { usePathname } from "next/navigation";
 
 interface ThemeContextType {
   lang: Lang;
@@ -23,20 +23,18 @@ interface ThemeContextType {
   changeLang: (lang: Lang) => void;
 }
 
-const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
-
-export const useTheme = () => {
-  const context = useContext(ThemeContext);
-  if (!context) {
-    throw new Error("useTheme must be used within ThemeProvider");
-  }
-  return context;
-};
-
-const CHANNEL_NAME = "theme-sync";
-
 type SyncMessage =
   { type: "theme"; value: Theme } | { type: "lang"; value: Lang };
+
+interface ThemeProviderProps {
+  initialTheme: Theme;
+  initialLang: Lang;
+  children: ReactNode;
+}
+
+const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
+
+const CHANNEL_NAME = "theme-sync";
 
 function isSyncMessage(data: unknown): data is SyncMessage {
   if (typeof data !== "object" || data === null) return false;
@@ -47,11 +45,13 @@ function isSyncMessage(data: unknown): data is SyncMessage {
   );
 }
 
-interface ThemeProviderProps {
-  initialTheme: Theme;
-  initialLang: Lang;
-  children: ReactNode;
-}
+export const useTheme = () => {
+  const context = useContext(ThemeContext);
+  if (!context) {
+    throw new Error("useTheme must be used within ThemeProvider");
+  }
+  return context;
+};
 
 export const ThemeProvider = ({
   children,
@@ -63,10 +63,18 @@ export const ThemeProvider = ({
   const channelRef = useRef<BroadcastChannel | null>(null);
   const { user } = useUser();
   const stateRef = useRef({ lang, theme });
+  const pathname = usePathname();
+  const pageId = pathname.split("/").filter(Boolean).at(-1) ?? "";
 
   useEffect(() => {
     stateRef.current = { lang, theme };
   }, [lang, theme]);
+
+  useEffect(() => {
+    const meta = PAGES_META[pageId]?.[lang];
+    if (!meta) return;
+    document.title = meta.title + " | " + APP_NAME;
+  }, [pageId, lang]);
 
   useEffect(() => {
     const channel = new BroadcastChannel(CHANNEL_NAME);

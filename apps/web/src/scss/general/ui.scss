@@ -20,6 +20,12 @@
   }
 }
 
+.tiptap-error {
+  .tiptap {
+    border-color: var(--destructive) !important;
+  }
+}
+
 .text-wrapper {
   overflow: hidden;
   & > * {

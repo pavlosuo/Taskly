@@ -51,7 +51,6 @@ function Button({
     asChild?: boolean;
   }) {
   const Comp = asChild ? Slot.Root : "button";
-
   return (
     <Comp
       data-slot="button"

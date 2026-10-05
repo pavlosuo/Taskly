@@ -1,126 +1,136 @@
 "use client";
-import { useState, useEffect, startTransition } from "react";
-import { Search, X, Loader2, SlidersHorizontal } from "lucide-react";
-import { axiosApi } from "@/api/index";
-import { Task, TaskListQuery, TaskList } from "shared/types";
+import { useState } from "react";
+import { Briefcase, Loader2, Send } from "lucide-react";
+import clsx from "clsx";
+import { Task, TaskList, TABS, TAB_LABELS } from "shared/index";
 import { useTasks } from "@/providers/TaskProvider";
-import { Input } from "@/components/shared/Input";
-import { TaskerView, TaskListItem } from "@/screens/tasks/ui";
+import {
+  TaskerView,
+  TaskListItem,
+  TaskToolbar,
+  TaskTabs,
+  TaskEmptyState,
+} from "@/screens/tasks/ui";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { isFiltered } from "@/utils/tasksUtils";
 
-export const Tasker = ({ allItems, myItems, page, limit, total }: TaskList) => {
-  const { allTasks, myTasks, isLoading, isInitialized } = useTasks();
-  const [query, setQuery] = useState("");
-  const [results, setResults] = useState<Task[] | null>(null);
-  const [isSearching, setIsSearching] = useState(false);
-  const isSearchMode = query.trim().length > 0;
-  const [tab, setTab] = useState<"all" | "my">("all");
-  const tasks =
-    tab === "all"
-      ? isInitialized
-        ? allTasks
-        : allItems
-      : isInitialized
-        ? myTasks
-        : myItems;
+export const Tasker = (initial: TaskList) => {
+  const b = useTasks(initial);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const selectedTask = selectedTaskId
-    ? (tasks.find((t) => t._id === selectedTaskId) ?? null)
-    : null;
-  const list = isSearchMode ? results : tasks;
-
-  useEffect(() => {
-    startTransition(() => {
-      if (query.trim().length === 0) {
-        setResults(null);
-        return;
-      }
-      setIsSearching(true);
-    });
-    const timeout = setTimeout(async () => {
-      try {
-        const params: TaskListQuery = { q: query.trim() };
-        const { data } = await axiosApi.getTasks(params);
-        setResults(data.allItems);
-      } finally {
-        setIsSearching(false);
-      }
-    }, 300);
-    return () => clearTimeout(timeout);
-  }, [query]);
 
   const openTask = (task: Task) => {
     setSelectedTaskId(task._id);
     setDialogOpen(true);
   };
 
-  const handleClear = () => {
-    setQuery("");
-    setResults(null);
-  };
+  const filtered = isFiltered(b.filters, b.query);
+  const isEmpty = b.visible.length === 0;
 
   return (
-    <div className="w-full pb-6 px-4 pt-1">
-      <div className="relative flex items-center gap-2">
-        <div className="relative flex-1">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-grey pointer-events-none" />
-          <Input
-            name="search"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search tasks..."
-            className="pl-10 pr-10"
-          />
-          {query && (
-            <button
-              onClick={handleClear}
-              className="absolute right-3.5 top-1/2 -translate-y-1/2 text-grey hover:text-foreground"
-              aria-label="Clean"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          )}
-        </div>
-        <button
-          className="shrink-0 w-10 h-10 flex items-center justify-center rounded-lg border border-border text-grey hover:text-foreground hover:bg-muted transition-colors"
-          aria-label="Filter"
-        >
-          <SlidersHorizontal className="w-4 h-4" />
-        </button>
-      </div>
-      <div className="pt-2">
-        {(isSearching || (isLoading && !isSearchMode)) &&
-          list?.length === 0 && (
-            <div className="py-10 flex justify-center text-grey">
-              <Loader2 className="w-4 h-4 animate-spin" />
-            </div>
-          )}
-        {!isSearching && isSearchMode && results?.length === 0 && (
-          <p className="py-10 text-center text-sm text-grey">
-            Tasks not found.
+    <div className="w-full px-4 pb-6 pt-1">
+      <div className="flex flex-col gap-4 pb-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm text-grey">
+            Find tasks that match your skills and send an offer
           </p>
-        )}
-        {!isLoading && !isSearchMode && tasks.length === 0 && (
-          <div className="py-16 text-center">
-            <p className="text-sm text-grey">No tasks yet.</p>
-            <p className="text-xs text-grey mt-1">Check again later.</p>
-          </div>
-        )}
-        <div className="flex flex-col w-full mt-4 gap-2">
-          {(list ?? []).map((task) => (
-            <TaskListItem key={task._id} task={task} onClick={openTask} />
-          ))}
+          <TaskTabs
+            tabs={TABS.map((t) => ({
+              value: t,
+              label: TAB_LABELS[t],
+              count: t === "my" ? b.myCount : undefined,
+            }))}
+            value={b.tab}
+            onChange={b.changeTab}
+          />
         </div>
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogContent className="sm:max-w-5xl w-[calc(100%-2rem)] max-h-[85vh] overflow-y-auto gap-0">
-            <TaskerView
-              task={selectedTask}
-              onClose={() => setDialogOpen(false)}
-            />
-          </DialogContent>
-        </Dialog>
+        <TaskToolbar
+          query={b.query}
+          onQueryChange={b.setQuery}
+          isSearching={b.isListLoading && !isEmpty}
+          filters={b.filters}
+          onFiltersChange={b.setFilters}
+          statusOptions={b.statusOptions}
+          placeholder={
+            b.tab === "all" ? "Search open tasks..." : "Search your tasks..."
+          }
+        />
       </div>
+      {b.listError && (
+        <p className="mb-3 text-xs text-destructive">{b.listError}</p>
+      )}
+      {!isEmpty && (
+        <p className="mb-2 text-xs text-grey">
+          Showing {b.shown} of {b.total}
+        </p>
+      )}
+      {isEmpty && b.isListLoading && (
+        <div className="flex justify-center py-10 text-grey">
+          <Loader2 className="h-4 w-4 animate-spin" />
+        </div>
+      )}
+      {isEmpty && !b.isListLoading && (
+        <>
+          {filtered ? (
+            <TaskEmptyState
+              title="No tasks match your search"
+              text="Try a different keyword or loosen the filters."
+              action={
+                <Button variant="outline" size="sm" onClick={b.reset}>
+                  Clear search and filters
+                </Button>
+              }
+            />
+          ) : b.tab === "my" ? (
+            <TaskEmptyState
+              icon={<Send className="h-5 w-5" />}
+              title="No tasks yet"
+              text="Tasks you respond to or get assigned will show up here."
+              action={
+                <Button size="sm" onClick={() => b.changeTab("all")}>
+                  Browse open tasks
+                </Button>
+              }
+            />
+          ) : (
+            <TaskEmptyState
+              icon={<Briefcase className="h-5 w-5" />}
+              title="No open tasks right now"
+              text="New tasks appear here as clients post them. Check again later."
+            />
+          )}
+        </>
+      )}
+      <div
+        className={clsx(
+          "flex w-full flex-col gap-2 transition-opacity",
+          b.isListLoading && !isEmpty && "opacity-60",
+        )}
+      >
+        {b.visible.map((task) => (
+          <TaskListItem key={task._id} task={task} onClick={openTask} />
+        ))}
+      </div>
+      {b.hasMore && (
+        <div className="flex justify-center pt-4">
+          <Button
+            variant="outline"
+            onClick={b.loadMoreTasks}
+            disabled={b.isLoadingMore}
+          >
+            {b.isLoadingMore ? "Loading..." : "Load more"}
+          </Button>
+        </div>
+      )}
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="max-h-[85vh] w-[calc(100%-2rem)] gap-0 overflow-y-auto sm:max-w-5xl">
+          <TaskerView
+            task={b.findTask(selectedTaskId)}
+            onClose={() => setDialogOpen(false)}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

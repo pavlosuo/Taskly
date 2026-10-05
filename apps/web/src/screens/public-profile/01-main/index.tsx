@@ -62,7 +62,7 @@ export const Main = ({
   accessReason,
 }: {
   user: PublicProfileUser;
-  accessReason: AccessReason;
+  accessReason?: AccessReason;
 }) => {
   console.log(user);
   const p = user.publicProfile;

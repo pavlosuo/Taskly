@@ -38,11 +38,9 @@ import {
   TaskStatusBadge,
   ResponseStatusBadge,
 } from "@/screens/tasks/ui";
-import { formatPrice } from "@/utils/formatPrice";
 import { Tiptap } from "@/components/shared/Tiptap";
 import clsx from "clsx";
 import parseSafeHtml from "@/utils/parseSafeHtml";
-import { TaskerStep } from "@/screens/tasks/types";
 import { getAxiosError } from "@/utils/getAxiosError";
 import {
   ZodErrors,
@@ -54,7 +52,9 @@ import {
   removeHtml,
   taskCreateSchema,
   taskResponseCreateSchema,
+  TaskerStep,
 } from "shared/index";
+import { useFormatPrice } from "@/hooks/useFormatPrice";
 
 interface ViewProps {
   task: Task | null;
@@ -69,6 +69,7 @@ const TaskSummary = ({ task }: { task: Task }) => {
   const isLong = description.length > limit;
   const displayedDescription =
     isExpanded || !isLong ? description : description.slice(0, limit) + "...";
+  const price = useFormatPrice(task?.budget?.amount);
   return (
     <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
       <div className="grid grid-cols-1 gap-4">
@@ -108,9 +109,7 @@ const TaskSummary = ({ task }: { task: Task }) => {
           <div className="rounded-xl border border-border bg-muted/30 px-3.5 py-3">
             <p className="text-xs text-muted-foreground mb-1">Budget</p>
             <p className="text-sm font-medium text-foreground">
-              {task.budget?.amount
-                ? `${formatPrice(task.budget.amount)}`
-                : "Negotiable"}
+              {task.budget?.amount ? `${price}` : "Negotiable"}
             </p>
           </div>
           {task.budget?.negotiable && (
@@ -170,7 +169,10 @@ const EditTaskForm = ({
   const handleUpdate = <K extends keyof TaskCreateForm>(
     key: K,
     value: TaskCreateForm[K],
-  ) => setForm((prev) => ({ ...prev, [key]: value }));
+  ) => {
+    setForm((prev) => ({ ...prev, [key]: value }));
+    setErrors((p) => ({ ...p, [key]: undefined, general: undefined }));
+  };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -195,7 +197,7 @@ const EditTaskForm = ({
       await onSaved({
         title: form.title.trim(),
         description: form.description.trim(),
-        deadline: form.deadline,
+        deadline: form.deadline as Date,
         location: form.location,
         skills: form.skills,
         certificates: form.certificates,
@@ -231,26 +233,37 @@ const EditTaskForm = ({
       <div className="grid grid-cols-1 gap-8 md:grid-cols-2 mt-2">
         <div className="flex flex-col gap-5">
           <SectionLabel icon={ClipboardList}>Task details</SectionLabel>
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="edit-title">Task title</Label>
+          <div className="form-group">
+            <Label error={!!errors.title} htmlFor="edit-title">
+              Task title
+            </Label>
             <Input
               name="edit-title"
               value={form.title}
               onChange={(e) => handleUpdate("title", e.target.value)}
               error={errors.title}
             />
+            <FieldError message={errors.title} />
           </div>
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="edit-description">Description</Label>
+          <div className="form-group">
+            <Label error={!!errors.description} htmlFor="edit-description">
+              Description
+            </Label>
             <Textarea
               id="edit-description"
               value={form.description}
               onChange={(e) => handleUpdate("description", e.target.value)}
               rows={8}
-              className="resize-none max-h-75"
+              className={clsx(
+                "resize-none max-h-75",
+                errors.description
+                  ? "border-destructive focus-visible:ring-destructive/75"
+                  : "border-border",
+              )}
             />
+            <FieldError message={errors.description} />
           </div>
-          <div className="flex flex-col gap-1.5">
+          <div className="form-group">
             <SectionLabel icon={MapPinned}>Location</SectionLabel>
             <LocationPicker
               value={form.location}
@@ -262,17 +275,22 @@ const EditTaskForm = ({
         <div className="flex flex-col gap-5">
           <SectionLabel icon={CalendarClock}>Schedule & budget</SectionLabel>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="edit-deadline">Deadline</Label>
+            <div className="form-group">
+              <Label error={!!errors.deadline} htmlFor="edit-deadline">
+                Deadline
+              </Label>
               <DatePicker
                 value={form.deadline}
                 onChange={(date) => handleUpdate("deadline", date)}
                 className="w-full"
                 error={errors.deadline}
               />
+              <FieldError message={errors.deadline} />
             </div>
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="edit-amount">Budget</Label>
+            <div className="form-group">
+              <Label error={!!errors.budget} htmlFor="edit-amount">
+                Budget
+              </Label>
               <PriceInput
                 name="edit-amount"
                 value={form.budget?.amount || 0}
@@ -285,6 +303,7 @@ const EditTaskForm = ({
                 placeholder="Optional"
                 error={errors.budget}
               />
+              <FieldError message={errors.budget} />
             </div>
           </div>
           <div className="flex items-center justify-between gap-4 rounded-xl border border-border bg-muted/30 px-3.5 py-3">
@@ -313,6 +332,7 @@ const EditTaskForm = ({
             value={form.skills}
             onChange={(v) => handleUpdate("skills", v)}
             placeholder="Search or add a skill..."
+            error={errors.skills}
             searchFn={async (search: string) => {
               const { data } = await axiosApi.searchSkills(search);
               return data.items.map((skill) => ({
@@ -331,6 +351,7 @@ const EditTaskForm = ({
             value={form.certificates}
             onChange={(v) => handleUpdate("certificates", v)}
             placeholder="Search or add a certificate..."
+            error={errors.certificates}
             searchFn={async (search: string) => {
               const { data } = await axiosApi.searchCertificates(search);
               return data.items.map((certificate) => ({
@@ -360,6 +381,7 @@ const EditTaskForm = ({
             Cancel
           </Button>
           <Button type="submit" disabled={saving} className="w-full sm:w-auto">
+            {saving && <Loader2 className="h-4 w-4 animate-spin" />}
             Save changes
           </Button>
         </div>
@@ -423,25 +445,30 @@ const ResponseCard = ({
   status: TaskResponseItem["status"];
   message: string;
   actions?: React.ReactNode;
-}) => (
-  <div className="border border-border bg-muted/25 p-4">
-    <div className="flex items-center justify-between gap-3 mb-3.5">
-      <div className="flex items-baseline gap-1.5">
-        <span className="text-xl font-medium text-foreground">
-          {formatPrice(price)}
-        </span>
-        <span className="text-xs text-muted-foreground">offer</span>
+}) => {
+  const priceFormated = useFormatPrice(price);
+  return (
+    <div className="border border-border bg-muted/25 p-4">
+      <div className="flex items-center justify-between gap-3 mb-3.5">
+        <div className="flex items-baseline gap-1.5">
+          <span className="text-xl font-medium text-foreground">
+            {priceFormated}
+          </span>
+          <span className="text-xs text-muted-foreground">offer</span>
+        </div>
+        <ResponseStatusBadge status={status} />
       </div>
-      <ResponseStatusBadge status={status} />
+      <div className="text-wrapper">
+        {message ? parseSafeHtml(message) : ""}
+      </div>
+      {actions && (
+        <div className="flex justify-end gap-2 mt-4 pt-3.5 border-t border-border">
+          {actions}
+        </div>
+      )}
     </div>
-    <div className="text-wrapper">{message ? parseSafeHtml(message) : ""}</div>
-    {actions && (
-      <div className="flex justify-end gap-2 mt-4 pt-3.5 border-t border-border">
-        {actions}
-      </div>
-    )}
-  </div>
-);
+  );
+};
 
 const ResponsesPanel = ({
   responses,
@@ -634,7 +661,7 @@ export const ClientView = ({ task, onClose }: ViewProps) => {
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
             <ClipboardList className="w-5 h-5" />
           </div>
-          <div className="flex-1 min-w-0 pr-8">
+          <div className="flex-1 min-w-0 pr-8 max-w-[60%] md:max-w-[85%]">
             <DialogTitle className="line-clamp-1">{task.title}</DialogTitle>
             <DialogDescription>
               Manage this task and review responses.
@@ -757,7 +784,7 @@ export const TaskerView = ({ task, onClose }: ViewProps) => {
       setMyResponse(response);
     } catch (e) {
       setErrors({
-        message: getAxiosError(e),
+        general: getAxiosError(e),
       });
     } finally {
       setBusy(false);
@@ -787,7 +814,7 @@ export const TaskerView = ({ task, onClose }: ViewProps) => {
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
             <Send className="w-5 h-5" />
           </div>
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0 max-w-[60%] md:max-w-[85%]">
             <DialogTitle className="line-clamp-1">{task.title}</DialogTitle>
             <DialogDescription>
               Review the task and send your response.
@@ -952,9 +979,7 @@ export const TaskerView = ({ task, onClose }: ViewProps) => {
           )}
         </div>
       )}
-      {errors.general && step !== "respond" && (
-        <p className="text-xs text-destructive mt-5">{errors.general}</p>
-      )}
+      <FieldError message={errors.general} />
     </>
   );
 };

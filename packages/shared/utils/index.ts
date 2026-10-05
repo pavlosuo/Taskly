@@ -1,39 +1,37 @@
-import { PasswordStrength, Tag } from "shared/types";
+import { PasswordStrength } from "shared/types";
 
 const CHECKS = [
   {
     key: "hasMinLength",
     test: (p: string) => p.length >= 8,
-    tip: "password.tips.minLength",
+    tip: "password.minLength",
   },
   {
     key: "hasUpper",
     test: (p: string) => /[A-Z]/.test(p),
-    tip: "password.tips.uppercase",
+    tip: "password.uppercase",
   },
   {
     key: "hasLower",
     test: (p: string) => /[a-z]/.test(p),
-    tip: "password.tips.lowercase",
+    tip: "password.lowercase",
   },
   {
     key: "hasNumber",
     test: (p: string) => /[0-9]/.test(p),
-    tip: "password.tips.number",
+    tip: "password.number",
   },
   {
     key: "hasSpecial",
     test: (p: string) => /[^A-Za-z0-9]/.test(p),
-    tip: "password.tips.special",
+    tip: "password.special",
   },
   {
     key: "hasNoSpaces",
     test: (p: string) => !/\s/.test(p),
-    tip: "password.tips.noSpaces",
+    tip: "password.noSpaces",
   },
 ] as const;
-
-type CheckKey = (typeof CHECKS)[number]["key"];
 
 export function validateIban(raw: string) {
   const cleaned = raw.replace(/\s/g, "").toUpperCase();
@@ -56,13 +54,13 @@ export function getPasswordStrength(password?: string): PasswordStrength {
   if (!password) return null;
   const results = Object.fromEntries(
     CHECKS.map((c) => [c.key, c.test(password)]),
-  ) as Record<CheckKey, boolean>;
+  ) as Record<(typeof CHECKS)[number]["key"], boolean>;
   const tips = CHECKS.filter((c) => !results[c.key]).map((c) => c.tip);
   const score = Object.values(results).filter(Boolean).length;
   if (!results.hasMinLength || !results.hasNoSpaces) {
     return {
       label: "password.strength.invalid",
-      color: "text-destructive-600",
+      color: "text-red-600",
       tips,
     };
   }
@@ -89,29 +87,14 @@ export function getPasswordStrength(password?: string): PasswordStrength {
 export function validatePassword(val: string): true | string {
   if (!val) return "password.required";
   for (const check of CHECKS) {
-    if (!check.test(val))
-      return `${check.tip.replace("password.tips.", "password.")}`;
+    if (!check.test(val)) return `${check.tip}`;
   }
   return true;
 }
 
-export function bigFirstLetter(normalized: string) {
+export function upperSign(normalized: string) {
   if (!normalized) return "";
   return normalized[0].toUpperCase() + normalized.slice(1);
-}
-
-export function normalizeTagList(values: Tag[]): Tag[] {
-  const seen = new Set<string>();
-  const result: Tag[] = [];
-  for (const raw of values) {
-    const trimmed = raw.value.trim();
-    const key = trimmed.toLowerCase();
-    if (trimmed && !seen.has(key)) {
-      seen.add(key);
-      result.push(raw);
-    }
-  }
-  return result;
 }
 
 export function removeHtml(str: string) {

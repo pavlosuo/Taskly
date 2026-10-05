@@ -16,7 +16,7 @@ export function DatePicker({
   className,
   error,
 }: {
-  value?: Date;
+  value: Date | null;
   onChange: (date: Date) => void;
   className?: string;
   error?: string;
@@ -42,9 +42,9 @@ export function DatePicker({
       <PopoverContent className="w-auto p-0" align="start">
         <Calendar
           mode="single"
-          selected={date}
+          selected={date ?? undefined}
           onSelect={setDate}
-          defaultMonth={date}
+          defaultMonth={date ?? undefined}
           required
           disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
         />

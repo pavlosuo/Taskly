@@ -1,13 +1,15 @@
-import { ObjectId } from "mongodb";
 import { IServer, User, TaskBack } from "@/types";
-import { ServiceResult } from "shared/types";
+import { ObjectId, Document } from "mongodb";
 import {
+  TASK_STATUSES,
+  TASK_SORTS,
+  EARTH_RADIUS_M,
+  ServiceResult,
   taskCreateSchema,
   taskUpdateSchema,
   taskResponseCreateSchema,
-} from "shared/schemas";
-import { normalizeTagList } from "shared/utils";
-import { Document } from "mongodb";
+} from "shared/index";
+import { normalizeTagList, escapeRegex, splitList, toGeoPoint } from "@/utils";
 
 export class TaskService {
   constructor(private server: IServer) {}
@@ -25,6 +27,7 @@ export class TaskService {
     try {
       const db = await this.server.getDb();
       const now = new Date();
+      const geo = toGeoPoint(data.location);
       const doc: Omit<TaskBack, "_id"> = {
         clientId: user._id,
         title: data.title,
@@ -37,6 +40,7 @@ export class TaskService {
           lat: data.location.lat,
           lng: data.location.lng,
         },
+        ...(geo && { geo }),
         deadline: data.deadline,
         status: "open",
         assignedTaskerId: null,
@@ -45,100 +49,165 @@ export class TaskService {
         updatedAt: now,
       };
       const result = await db.collection("tasks").insertOne(doc);
+      const { geo: _geo, ...publicDoc } = doc;
       return {
         success: true,
         status: 201,
-        data: { task: { _id: result.insertedId, ...doc } },
+        data: { task: { _id: result.insertedId, ...publicDoc } },
       };
     } catch (e) {
       console.error("Create task error:", e);
-      return {
-        success: false,
-        status: 500,
-        message: "errors.server",
-      };
+      return { success: false, status: 500, message: "errors.server" };
     }
   }
 
   async getAll(query: Record<string, any>, user: User): Promise<ServiceResult> {
     try {
       const db = await this.server.getDb();
+      const tasks = db.collection("tasks");
       const page = Math.max(1, Number(query.page) || 1);
-      const limit = Math.min(50, Number(query.limit) || 25);
-      const filter: Record<string, any> = { status: query.status ?? "open" };
-
-      if (query.skill) {
-        const skills = String(query.skill)
-          .split(",")
-          .map((s) => s.trim())
-          .filter(Boolean);
-        if (skills.length) filter.skills = { $in: skills };
+      const limit = Math.min(50, Math.max(1, Number(query.limit) || 25));
+      const filter: Record<string, any> = {
+        status: TASK_STATUSES.includes(query.status) ? query.status : "open",
+      };
+      const skills = splitList(query.skill);
+      if (skills.length) filter["skills.value"] = { $in: skills };
+      const certs = splitList(query.certificate);
+      if (certs.length) filter["certificates.value"] = { $in: certs };
+      const q = String(query.q ?? "")
+        .trim()
+        .slice(0, 100);
+      if (q) {
+        const rx = { $regex: escapeRegex(q), $options: "i" };
+        filter.$or = [{ title: rx }, { description: rx }];
+      }
+      const minBudget = Number(query.minBudget);
+      const maxBudget = Number(query.maxBudget);
+      if (minBudget > 0 || maxBudget > 0) {
+        filter["budget.amount"] = {
+          ...(minBudget > 0 && { $gte: minBudget }),
+          ...(maxBudget > 0 && { $lte: maxBudget }),
+        };
       }
 
-      if (query.certificate) {
-        const certs = String(query.certificate)
-          .split(",")
-          .map((s) => s.trim())
-          .filter(Boolean);
-        if (certs.length) filter.certificates = { $in: certs };
+      if (String(query.negotiable) === "true") {
+        filter["budget.negotiable"] = true;
       }
 
-      if (query.q) {
-        filter.$or = [
-          { title: { $regex: query.q, $options: "i" } },
-          { description: { $regex: query.q, $options: "i" } },
-        ];
-      }
+      const lat = Number(query.lat);
+      const lng = Number(query.lng);
+      const hasGeo =
+        query.lat !== undefined &&
+        query.lng !== undefined &&
+        Number.isFinite(lat) &&
+        Number.isFinite(lng) &&
+        Math.abs(lat) <= 90 &&
+        Math.abs(lng) <= 180;
+      const radiusMeters =
+        Math.min(500, Math.max(1, Number(query.radiusKm) || 20)) * 1000;
 
-      let allItems: Document[] = [];
+      const sortKey =
+        query.sort === "distance"
+          ? hasGeo
+            ? "distance"
+            : "newest"
+          : TASK_SORTS[query.sort]
+            ? query.sort
+            : "newest";
+      const sort = TASK_SORTS[sortKey];
 
-      if (query.lat && query.lng) {
-        const radiusMeters = (Number(query.radiusKm) || 20) * 1000;
-        allItems = await db
-          .collection("tasks")
+      let allItems: Document[];
+      let total: number;
+
+      if (hasGeo) {
+        allItems = await tasks
           .aggregate([
             {
               $geoNear: {
-                near: {
-                  type: "Point",
-                  coordinates: [Number(query.lng), Number(query.lat)],
-                },
+                near: { type: "Point", coordinates: [lng, lat] },
+                key: "geo",
                 distanceField: "distanceMeters",
                 maxDistance: radiusMeters,
                 query: filter,
                 spherical: true,
               },
             },
-            { $sort: { createdAt: -1 } },
+            { $sort: sort },
             { $skip: (page - 1) * limit },
             { $limit: limit },
+            { $project: { geo: 0 } },
           ])
           .toArray();
+
+        total = await tasks.countDocuments({
+          ...filter,
+          geo: {
+            $geoWithin: {
+              $centerSphere: [[lng, lat], radiusMeters / EARTH_RADIUS_M],
+            },
+          },
+        });
       } else {
-        allItems = await db
-          .collection("tasks")
+        allItems = await tasks
           .find(filter)
-          .sort({ createdAt: -1 })
+          .project({ geo: 0 })
+          .sort(sort)
           .skip((page - 1) * limit)
           .limit(limit)
           .toArray();
+        total = await tasks.countDocuments(filter);
       }
 
       let myItems: Document[] = [];
+      const includeMine = query.includeMine;
 
-      if (user.role === "tasker" || user.role === "client") {
-        myItems = await db
-          .collection("tasks")
-          .find(
-            user.role === "client"
-              ? { clientId: user._id }
-              : { assignedTaskerId: user._id },
-          )
+      if (includeMine && user.role === "client") {
+        myItems = await tasks
+          .find({ clientId: user._id })
+          .project({ geo: 0 })
           .sort({ createdAt: -1 })
           .toArray();
       }
 
-      const total = await db.collection("tasks").countDocuments(filter);
+      if (includeMine && user.role === "tasker") {
+        const [assigned, responses] = await Promise.all([
+          tasks
+            .find({ assignedTaskerId: user._id })
+            .project({ geo: 0 })
+            .toArray(),
+          db
+            .collection("taskResponses")
+            .find({ taskerId: user._id })
+            .project({ taskId: 1, status: 1, price: 1 })
+            .sort({ createdAt: 1 })
+            .toArray(),
+        ]);
+
+        const responded = responses.length
+          ? await tasks
+              .find({ _id: { $in: responses.map((r) => r.taskId) } })
+              .project({ geo: 0 })
+              .toArray()
+          : [];
+
+        const myResponses = new Map(
+          responses.map((r) => [
+            String(r.taskId),
+            { status: r.status, price: r.price },
+          ]),
+        );
+
+        const merged = new Map<string, Document>();
+        [...assigned, ...responded].forEach((t) => {
+          const id = String(t._id);
+          merged.set(id, { ...t, myResponse: myResponses.get(id) });
+        });
+
+        myItems = [...merged.values()].sort(
+          (a, b) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+        );
+      }
 
       return {
         success: true,
@@ -147,11 +216,7 @@ export class TaskService {
       };
     } catch (e) {
       console.error("Get tasks error:", e);
-      return {
-        success: false,
-        status: 500,
-        message: "errors.server",
-      };
+      return { success: false, status: 500, message: "errors.server" };
     }
   }
 
@@ -160,7 +225,7 @@ export class TaskService {
       const db = await this.server.getDb();
       const task = await db
         .collection("tasks")
-        .findOne({ _id: new ObjectId(id) });
+        .findOne({ _id: new ObjectId(id) }, { projection: { geo: 0 } });
       if (!task)
         return {
           success: false,
@@ -230,16 +295,17 @@ export class TaskService {
           address: data.location.address,
           lat: data.location.lat,
           lng: data.location.lng,
-          geo: {
-            type: "Point",
-            coordinates: [data.location.lng, data.location.lat],
-          },
         };
       }
 
-      await db
-        .collection("tasks")
-        .updateOne({ _id: task._id }, { $set: update });
+      const ops: Document = { $set: update };
+      if (data.location !== undefined) {
+        const geo = toGeoPoint(data.location);
+        if (geo) update.geo = geo;
+        else ops.$unset = { geo: "" };
+      }
+
+      await db.collection("tasks").updateOne({ _id: task._id }, ops);
       return { success: true, status: 200 };
     } catch (e) {
       console.error("Update task error:", e);
@@ -314,12 +380,28 @@ export class TaskService {
           message: "task.message.cannotCancel",
         };
 
+      const now = new Date();
       await db
         .collection("tasks")
         .updateOne(
           { _id: task._id },
-          { $set: { status: "cancelled", updatedAt: new Date() } },
+          { $set: { status: "cancelled", updatedAt: now } },
         );
+
+      const rejected = await db
+        .collection("taskResponses")
+        .updateMany(
+          { taskId: task._id, status: "pending" },
+          { $set: { status: "rejected", updatedAt: now } },
+        );
+      if (rejected.modifiedCount > 0) {
+        await db
+          .collection("tasks")
+          .updateOne(
+            { _id: task._id },
+            { $inc: { responsesCount: -rejected.modifiedCount } },
+          );
+      }
       return { success: true, status: 200 };
     } catch (e) {
       console.error("Cancel task error:", e);
@@ -587,20 +669,8 @@ export class TaskResponseService {
         };
 
       const now = new Date();
-      await db
-        .collection("taskResponses")
-        .updateOne(
-          { _id: response._id },
-          { $set: { status: "accepted", updatedAt: now } },
-        );
-      await db
-        .collection("taskResponses")
-        .updateMany(
-          { taskId: task._id, _id: { $ne: response._id }, status: "pending" },
-          { $set: { status: "rejected", updatedAt: now } },
-        );
-      await db.collection("tasks").updateOne(
-        { _id: task._id },
+      const assigned = await db.collection("tasks").updateOne(
+        { _id: task._id, status: "open" },
         {
           $set: {
             status: "assigned",
@@ -609,6 +679,34 @@ export class TaskResponseService {
           },
         },
       );
+      if (assigned.modifiedCount === 0) {
+        return {
+          success: false,
+          status: 409,
+          message: "taskResponse.message.taskAlreadyAssigned",
+        };
+      }
+
+      await db
+        .collection("taskResponses")
+        .updateOne(
+          { _id: response._id },
+          { $set: { status: "accepted", updatedAt: now } },
+        );
+      const rejected = await db
+        .collection("taskResponses")
+        .updateMany(
+          { taskId: task._id, _id: { $ne: response._id }, status: "pending" },
+          { $set: { status: "rejected", updatedAt: now } },
+        );
+      if (rejected.modifiedCount > 0) {
+        await db
+          .collection("tasks")
+          .updateOne(
+            { _id: task._id },
+            { $inc: { responsesCount: -rejected.modifiedCount } },
+          );
+      }
 
       return { success: true, status: 200 };
     } catch (e) {
