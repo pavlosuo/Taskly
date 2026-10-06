@@ -146,7 +146,7 @@ export class Server implements IServer {
       if (!user)
         return res
           .status(401)
-          .json({ success: false, message: "Unauthorized." });
+          .json({ success: false, message: "errors.unauthorized" });
       req.user = user;
       next();
     };
@@ -163,7 +163,29 @@ export class Server implements IServer {
   requireAdmin() {
     return (req: Request, res: Response, next: NextFunction) => {
       if (req?.user?.role !== "admin")
-        return res.status(403).json({ success: false, message: "Forbidden." });
+        return res
+          .status(403)
+          .json({ success: false, message: "errors.forbidden" });
+      next();
+    };
+  }
+
+  requireClient() {
+    return (req: Request, res: Response, next: NextFunction) => {
+      if (req?.user?.role !== "client")
+        return res
+          .status(403)
+          .json({ success: false, message: "errors.forbidden" });
+      next();
+    };
+  }
+
+  requireTasker() {
+    return (req: Request, res: Response, next: NextFunction) => {
+      if (req?.user?.role !== "tasker")
+        return res
+          .status(403)
+          .json({ success: false, message: "errors.forbidden" });
       next();
     };
   }

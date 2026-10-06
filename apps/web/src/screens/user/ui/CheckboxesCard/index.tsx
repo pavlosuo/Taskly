@@ -1,5 +1,5 @@
 "use client";
-import { useState, type ReactNode } from "react";
+import { useState, ReactNode } from "react";
 import { Switch } from "@/components/ui/switch";
 import { useUser } from "@/providers/UserProvider";
 import { getAxiosError } from "@/utils/getAxiosError";

@@ -27,7 +27,7 @@ export class PolicyController {
       ) {
         return res
           .status(400)
-          .json({ success: false, message: "Invalid data." });
+          .json({ success: false, message: "errors.policy.invalid" });
       }
       await this.policyService.updatePolicy({ policyTitle, policyContent });
       return res.json({ success: true });

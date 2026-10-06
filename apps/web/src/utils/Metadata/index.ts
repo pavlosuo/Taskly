@@ -1,13 +1,14 @@
 import { Metadata } from "next";
 import { APP_NAME, PAGES_META, Lang } from "shared/index";
 
-type MetadataInput = {
-  title: string;
-  description?: string;
-};
-
 export function getMetaData(
-  { title, description }: MetadataInput,
+  {
+    title,
+    description,
+  }: {
+    title: string;
+    description?: string;
+  },
   lang: Lang = "en",
 ): Metadata {
   const formattedTitle = PAGES_META?.[title]?.[lang]?.title || title;

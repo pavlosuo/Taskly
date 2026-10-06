@@ -13,9 +13,9 @@ import {
   verifyResetOtpSchema,
   forgotPasswordEmailSchema,
   resetPasswordSchema,
+  ServiceResult,
 } from "shared/index";
 import { IServer, User } from "@/types";
-import { ServiceResult } from "shared/types";
 import jwt from "jsonwebtoken";
 import { ObjectId } from "mongodb";
 import { hashToken } from "@/utils";

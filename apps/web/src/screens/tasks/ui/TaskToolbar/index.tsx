@@ -32,16 +32,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-interface TaskToolbarProps {
-  query: string;
-  onQueryChange: (q: string) => void;
-  isSearching?: boolean;
-  filters: TaskFilters;
-  onFiltersChange: (f: TaskFilters) => void;
-  statusOptions?: StatusOption[];
-  placeholder?: string;
-}
-
 export const TaskTabs = <T extends string>({
   tabs,
   value,
@@ -51,7 +41,7 @@ export const TaskTabs = <T extends string>({
   value: T;
   onChange: (value: T) => void;
 }) => (
-  <div className="inline-flex w-full items-center gap-1 border border-border bg-muted/30 p-1 sm:w-auto">
+  <div className="inline-flex w-full items-center gap-1 border border-border bg-muted/30 p-1 sm:w-auto rounded-full">
     {tabs.map((t) => {
       const active = t.value === value;
       return (
@@ -60,7 +50,7 @@ export const TaskTabs = <T extends string>({
           type="button"
           onClick={() => onChange(t.value)}
           className={clsx(
-            "flex flex-1 items-center justify-center gap-2 px-4 py-1.5 text-sm font-medium transition-colors sm:flex-none",
+            "rounded-full flex flex-1 items-center justify-center gap-2 px-4 py-1.5 text-sm font-medium transition-colors sm:flex-none",
             active
               ? "bg-background text-foreground shadow-sm"
               : "text-muted-foreground hover:text-foreground",
@@ -70,7 +60,7 @@ export const TaskTabs = <T extends string>({
           {t.count !== undefined && (
             <span
               className={clsx(
-                "px-1.5 text-[11px] font-semibold tabular-nums",
+                "px-1.5 text-[11px] font-semibold tabular-nums rounded-full",
                 active
                   ? "bg-primary text-primary-foreground"
                   : "bg-foreground/10 text-muted-foreground",
@@ -93,7 +83,15 @@ export const TaskToolbar = ({
   onFiltersChange,
   statusOptions = [],
   placeholder = "Search by title or description...",
-}: TaskToolbarProps) => {
+}: {
+  query: string;
+  onQueryChange: (q: string) => void;
+  isSearching?: boolean;
+  filters: TaskFilters;
+  onFiltersChange: (f: TaskFilters) => void;
+  statusOptions?: StatusOption[];
+  placeholder?: string;
+}) => {
   const [panelOpen, setPanelOpen] = useState(false);
   const [locating, setLocating] = useState(false);
   const [geoError, setGeoError] = useState("");
@@ -179,7 +177,7 @@ export const TaskToolbar = ({
           <SlidersHorizontal className="h-4 w-4" />
           <span className="hidden sm:inline">Filters</span>
           {activeCount > 0 && (
-            <span className="flex h-4.5 min-w-4.5 items-center justify-center bg-primary px-1 text-[10px] font-semibold text-primary-foreground">
+            <span className="rounded-full flex h-4.5 min-w-4.5 items-center justify-center bg-primary px-1 text-[10px] font-semibold text-primary-foreground">
               {activeCount}
             </span>
           )}
@@ -195,7 +193,7 @@ export const TaskToolbar = ({
                 type="button"
                 onClick={() => patch("status", s.value)}
                 className={clsx(
-                  "flex shrink-0 items-center gap-1.5 border px-3 py-1 text-xs font-medium transition-colors",
+                  "flex rounded-full shrink-0 items-center gap-1.5 border px-3 py-1 text-xs font-medium transition-colors",
                   active
                     ? "border-primary bg-primary text-primary-foreground"
                     : "border-border text-muted-foreground hover:bg-muted hover:text-foreground",
@@ -216,7 +214,7 @@ export const TaskToolbar = ({
         </div>
       )}
       {panelOpen && (
-        <div className="animate-in fade-in-0 slide-in-from-top-1 grid grid-cols-1 gap-4 rounded-xl border border-border bg-muted/30 p-4 duration-200 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 rounded-xl border border-border bg-muted/30 p-4 sm:grid-cols-2 lg:grid-cols-4">
           <div className="form-group">
             <Label htmlFor="filter-sort">Sort by</Label>
             <Select

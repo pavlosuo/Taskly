@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { SkillsController } from "@/modules/skills/skills.controller";
 import { IServer } from "@/types";
-import { searchLimiter } from "@/utils/limiters";
+import { searchLimiter } from "@/utils";
 
 export function skillsRoutes(server: IServer): Router {
   const router = Router();

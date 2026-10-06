@@ -19,8 +19,7 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { Landmark, Plus, SquarePen } from "lucide-react";
-import { FINNISH_BANKS } from "shared/data";
-import { payoutSchema, Payout, ZodErrors } from "shared/index";
+import { payoutSchema, Payout, ZodErrors, FINNISH_BANKS } from "shared/index";
 import { IbanInput, formatIban } from "@/components/shared/Input";
 import { useUser } from "@/providers/UserProvider";
 import { getAxiosError } from "@/utils/getAxiosError";

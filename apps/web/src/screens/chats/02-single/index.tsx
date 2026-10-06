@@ -51,6 +51,7 @@ export const Single: FC<{
 
   useEffect(() => {
     const texts = CHAT_PAGE_META[lang];
+    if (!texts) return;
     document.title = texts.title(chat.member.fullName) + " | " + APP_NAME;
   }, [lang, chat]);
 

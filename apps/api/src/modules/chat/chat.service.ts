@@ -463,7 +463,7 @@ export class ChatService {
       if (!msg)
         return { success: false, status: 404, message: "Message not found." };
       if (!msg.senderId.equals(user._id)) {
-        return { success: false, status: 403, message: "Forbidden." };
+        return { success: false, status: 403, message: "errors.forbidden" };
       }
       const now = new Date();
       await db
@@ -510,7 +510,7 @@ export class ChatService {
       if (!msg)
         return { success: false, status: 404, message: "Message not found." };
       if (!msg.senderId.equals(user._id)) {
-        return { success: false, status: 403, message: "Forbidden." };
+        return { success: false, status: 403, message: "errors.forbidden" };
       }
       await db.collection("messages").deleteOne({ _id: msg._id });
       await this.recomputeLastMessage(chat._id);

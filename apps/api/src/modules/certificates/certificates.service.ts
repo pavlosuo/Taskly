@@ -44,7 +44,7 @@ export class CertificatesService {
       const normalized = label.trim();
       const final = upperSign(normalized);
       const result = await db.collection("certificates").findOneAndUpdate(
-        { label: { $regex: `^${final}$`, $options: "i" } },
+        { label: { $regex: `^${escapeRegex(final)}$`, $options: "i" } },
         {
           $inc: { count: 1 },
           $setOnInsert: {

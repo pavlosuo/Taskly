@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { MediaController } from "./media.controller";
+import { MediaController } from "@/modules/media/media.controller";
 import { upload } from "@/utils";
 import { IServer } from "@/types";
 

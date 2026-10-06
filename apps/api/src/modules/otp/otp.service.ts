@@ -1,22 +1,13 @@
 import { ObjectId } from "mongodb";
 import { generateOtp, safeEqual } from "@/utils";
-import { OtpChannel, OtpPurpose, ServiceResult } from "shared/types";
-import { sendOtpSchema } from "shared/schemas";
-import { IServer, User } from "@/types";
-
-interface SendOtpParams {
-  userId: ObjectId;
-  purpose: OtpPurpose;
-  channel: OtpChannel;
-  destination: string;
-}
-
-type ConsumeResult =
-  | { ok: true; record: SendOtpParams }
-  | { ok: false; status: number; message: string };
+import { OtpPurpose, ServiceResult, sendOtpSchema } from "shared/index";
+import { IServer, User, SendOtpParams, ConsumeResult } from "@/types";
 
 export class OtpService {
-  constructor(private server: IServer) {}
+  private timeForOtp: number;
+  constructor(private server: IServer) {
+    this.timeForOtp = 15 * 60 * 1000;
+  }
 
   async dispatch(
     user: User | undefined,
@@ -36,7 +27,11 @@ export class OtpService {
 
       if (data.purpose === "verify-email") {
         if (!user)
-          return { success: false, status: 401, message: "Unauthorized." };
+          return {
+            success: false,
+            status: 401,
+            message: "errors.unauthorized",
+          };
         const destination = user.newEmail ?? user.email;
         return this.send({
           userId: user._id,
@@ -48,7 +43,11 @@ export class OtpService {
 
       if (data.purpose === "verify-phone") {
         if (!user)
-          return { success: false, status: 401, message: "Unauthorized." };
+          return {
+            success: false,
+            status: 401,
+            message: "errors.unauthorized",
+          };
         const destination =
           user.profile?.newFullPhone ?? user.profile?.fullPhone;
         if (!destination)
@@ -91,7 +90,7 @@ export class OtpService {
   }: SendOtpParams): Promise<ServiceResult> {
     try {
       const code = generateOtp();
-      const expiresAt = new Date(Date.now() + this.server.time);
+      const expiresAt = new Date(Date.now() + this.timeForOtp);
       const db = await this.server.getDb();
 
       await db.collection("users").updateOne(

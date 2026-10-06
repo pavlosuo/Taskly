@@ -5,9 +5,9 @@ import {
   useState,
   useEffect,
   ReactNode,
+  startTransition
 } from "react";
 import { useSocket } from "@/providers/SocketProvider";
-import { startTransition } from "react";
 
 interface PresenceContextType {
   onlineUserIds: Set<string>;

@@ -57,13 +57,12 @@ export default async function Chat({
   }
   const cookieStore = await cookies();
   const lang = (cookieStore.get("lang")?.value as Lang) ?? "en";
-  const texts = CHAT_PAGE_META[lang];
   const name = chat.member.fullName;
   if (!chat) notFound();
   return (
     <SidebarWrapper
       hiddenTitle
-      title={texts.title(name) + " | " + APP_NAME}
+      title={CHAT_PAGE_META[lang].title(name) + " | " + APP_NAME}
       memberName={name}
     >
       <main className="page h-full">

@@ -5,14 +5,12 @@ import {
   publicProfileLangSchema,
   publicProfileSkillSchema,
   publicProfileCertificateSchema,
-} from "shared/index";
-import { CLIENT_URL, NODE_ENV } from "@/env";
-import {
   ServiceResult,
   PublicProfileUser,
   PublicProfileLang,
   ChatMemberPreview,
-} from "shared/types";
+} from "shared/index";
+import { CLIENT_URL, NODE_ENV } from "@/env";
 import { OtpService } from "@/modules/otp/otp.service";
 import {
   toPublicUser,

@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { CertificatesController } from "@/modules/certificates/certificates.controller";
 import { IServer } from "@/types";
-import { searchLimiter } from "@/utils/limiters";
+import { searchLimiter } from "@/utils";
 
 export function certificatesRoutes(server: IServer): Router {
   const router = Router();

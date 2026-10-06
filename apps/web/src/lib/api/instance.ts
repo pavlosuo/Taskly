@@ -24,7 +24,7 @@ import {
   TaskResponseItem,
   TaskResponseCreateForm,
 } from "shared/types";
-import axios, { type AxiosInstance } from "axios";
+import axios, { AxiosInstance } from "axios";
 
 export const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 

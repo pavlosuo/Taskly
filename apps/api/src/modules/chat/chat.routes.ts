@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { ChatController } from "./chat.controller";
+import { ChatController } from "@/modules/chat/chat.controller";
 import { IServer } from "@/types";
 
 export function chatRoutes(server: IServer): Router {

@@ -667,7 +667,6 @@ export class TaskResponseService {
           status: 409,
           message: "taskResponse.message.alreadyProcessed",
         };
-
       const now = new Date();
       const assigned = await db.collection("tasks").updateOne(
         { _id: task._id, status: "open" },

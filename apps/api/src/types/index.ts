@@ -12,8 +12,20 @@ import {
   Task,
   TaskResponse,
   GeoPoint,
+  OtpChannel,
 } from "shared/types";
 import { Server as SocketIOServer } from "socket.io";
+
+export interface SendOtpParams {
+  userId: ObjectId;
+  purpose: OtpPurpose;
+  channel: OtpChannel;
+  destination: string;
+}
+
+export type ConsumeResult =
+  | { ok: true; record: SendOtpParams }
+  | { ok: false; status: number; message: string };
 
 export interface User extends Omit<PublicUser, "_id"> {
   _id: ObjectId;
@@ -93,6 +105,16 @@ export interface IServer {
     next: NextFunction,
   ) => Promise<void>;
   requireAdmin(): (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => void | Response;
+  requireTasker(): (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => void | Response;
+  requireClient(): (
     req: Request,
     res: Response,
     next: NextFunction,

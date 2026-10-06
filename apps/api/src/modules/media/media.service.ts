@@ -1,9 +1,8 @@
 import { ObjectId } from "mongodb";
 import fs from "fs/promises";
-import { IServer, User } from "@/types";
 import { ServiceResult } from "shared/types";
 import { filePath } from "@/utils";
-import { MediaItemBack, ChatBack, MessageBack } from "@/types";
+import { MediaItemBack, ChatBack, MessageBack, IServer, User } from "@/types";
 import { NEXT_PUBLIC_API_URL } from "@/env";
 
 export class MediaService {
@@ -19,8 +18,8 @@ export class MediaService {
         size: file.size,
         mimeType: file.mimetype,
         uploadedAt: new Date(),
-        publicSources: [] as string[],
-        chatIds: [] as ObjectId[],
+        publicSources: [],
+        chatIds: [],
       };
       const result = await db.collection("media").insertOne(doc);
       const url = `${NEXT_PUBLIC_API_URL}/api/media/${result.insertedId}/file`;
@@ -145,7 +144,7 @@ export class MediaService {
       }
 
       if (!user) {
-        return { success: false, status: 401, message: "Unauthorized." };
+        return { success: false, status: 401, message: "errors.unauthorized" };
       }
 
       if (user._id.equals(item.ownerId)) {
@@ -162,7 +161,7 @@ export class MediaService {
         .toArray();
 
       if (messages.length === 0) {
-        return { success: false, status: 403, message: "Forbidden." };
+        return { success: false, status: 403, message: "errors.forbidden" };
       }
 
       const chatIds = [
@@ -175,7 +174,7 @@ export class MediaService {
       });
 
       if (!hasAccess) {
-        return { success: false, status: 403, message: "Forbidden." };
+        return { success: false, status: 403, message: "errors.forbidden" };
       }
 
       return {

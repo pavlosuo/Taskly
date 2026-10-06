@@ -43,7 +43,7 @@ export class SkillsService {
       const normalized = label.trim();
       const final = upperSign(normalized);
       const result = await db.collection("skills").findOneAndUpdate(
-        { label: { $regex: `^${final}$`, $options: "i" } },
+        { label: { $regex: `^${escapeRegex(final)}$`, $options: "i" } },
         {
           $inc: { count: 1 },
           $setOnInsert: { label: final, createdAt: new Date() },

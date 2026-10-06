@@ -61,7 +61,7 @@ export const Tasker = (initial: TaskList) => {
         <p className="mb-3 text-xs text-destructive">{b.listError}</p>
       )}
       {!isEmpty && (
-        <p className="mb-2 text-xs text-grey">
+        <p className="mb-4 text-xs text-grey">
           Showing {b.shown} of {b.total}
         </p>
       )}

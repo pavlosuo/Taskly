@@ -6,11 +6,6 @@ export function policyRoutes(server: IServer): Router {
   const router = Router();
   const ctrl = new PolicyController(server);
   router.get("/", ctrl.getPolicy);
-  router.put(
-    "/",
-    server.requireAuth(),
-    server.requireAdmin(),
-    ctrl.updatePolicy,
-  );
+  router.put("/", server.requireAdmin(), ctrl.updatePolicy);
   return router;
 }
