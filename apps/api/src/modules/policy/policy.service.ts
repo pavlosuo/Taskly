@@ -5,37 +5,31 @@ export class PolicyService {
   constructor(private server: IServer) {}
 
   async getPolicy(): Promise<PolicyData> {
-    try {
-      const db = await this.server.getDb();
-      const doc = await db.collection("settings").findOne({ key: "policy" });
-      return doc?.data;
-    } catch (e) {
-      console.error("Get policy error:", e);
-      return {
-        policyContent: "",
-        policyTitle: "",
-        updatedAt: new Date(),
-      };
-    }
+    const db = await this.server.getDb();
+    const doc = await db.collection("settings").findOne({ key: "policy" });
+    const data = doc?.data;
+    if (!data) return { translations: {} };
+    if (data.translations) return data;
+    const { policyTitle = "", policyContent = "", updatedAt } = data;
+    return {
+      translations: { en: { policyTitle, policyContent } },
+      updatedAt,
+    };
   }
 
-  async updatePolicy(data: PolicyData): Promise<void> {
-    try {
-      const db = await this.server.getDb();
-      await db.collection("settings").updateOne(
-        { key: "policy" },
-        {
-          $set: {
-            data: {
-              ...data,
-              updatedAt: new Date(),
-            },
+  async updatePolicy(data: Pick<PolicyData, "translations">): Promise<void> {
+    const db = await this.server.getDb();
+    await db.collection("settings").updateOne(
+      { key: "policy" },
+      {
+        $set: {
+          data: {
+            translations: data.translations,
+            updatedAt: new Date(),
           },
         },
-        { upsert: true },
-      );
-    } catch (e) {
-      console.error("Update policy error:", e);
-    }
+      },
+      { upsert: true },
+    );
   }
 }

@@ -1,5 +1,6 @@
 "use client";
 import { useState, ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Search,
   X,
@@ -42,31 +43,32 @@ export const TaskTabs = <T extends string>({
   onChange: (value: T) => void;
 }) => (
   <div className="inline-flex w-full items-center gap-1 border border-border bg-muted/30 p-1 sm:w-auto rounded-full">
-    {tabs.map((t) => {
-      const active = t.value === value;
+    {tabs.map((tab) => {
+      const active = tab.value === value;
       return (
         <button
-          key={t.value}
+          key={tab.value}
           type="button"
-          onClick={() => onChange(t.value)}
+          aria-pressed={active}
+          onClick={() => onChange(tab.value)}
           className={clsx(
             "rounded-full flex flex-1 items-center justify-center gap-2 px-4 py-1.5 text-sm font-medium transition-colors sm:flex-none",
             active
-              ? "bg-background text-foreground shadow-sm"
-              : "text-muted-foreground hover:text-foreground",
+              ? "bg-background text-foreground border border-primary"
+              : "text-grey hover:text-foreground border border-transparent",
           )}
         >
-          {t.label}
-          {t.count !== undefined && (
+          {tab.label}
+          {tab.count !== undefined && (
             <span
               className={clsx(
-                "px-1.5 text-[11px] font-semibold tabular-nums rounded-full",
+                "text-xs font-semibold tabular-nums rounded-full w-4 h-4",
                 active
                   ? "bg-primary text-primary-foreground"
-                  : "bg-foreground/10 text-muted-foreground",
+                  : "bg-foreground/10 text-grey",
               )}
             >
-              {t.count}
+              {tab.count}
             </span>
           )}
         </button>
@@ -82,7 +84,7 @@ export const TaskToolbar = ({
   filters,
   onFiltersChange,
   statusOptions = [],
-  placeholder = "Search by title or description...",
+  placeholder,
 }: {
   query: string;
   onQueryChange: (q: string) => void;
@@ -92,9 +94,10 @@ export const TaskToolbar = ({
   statusOptions?: StatusOption[];
   placeholder?: string;
 }) => {
+  const { t } = useTranslation("tasks");
   const [panelOpen, setPanelOpen] = useState(false);
   const [locating, setLocating] = useState(false);
-  const [geoError, setGeoError] = useState("");
+  const [geoError, setGeoError] = useState<string>();
   const activeCount = countActiveFilters(filters);
 
   const patch = <K extends keyof TaskFilters>(key: K, value: TaskFilters[K]) =>
@@ -102,11 +105,11 @@ export const TaskToolbar = ({
 
   const locate = () => {
     if (!navigator.geolocation) {
-      setGeoError("Your browser doesn't support geolocation.");
+      setGeoError("toolbar.geo.unsupported");
       return;
     }
     setLocating(true);
-    setGeoError("");
+    setGeoError(undefined);
     navigator.geolocation.getCurrentPosition(
       ({ coords }) => {
         setLocating(false);
@@ -119,9 +122,7 @@ export const TaskToolbar = ({
       (err) => {
         setLocating(false);
         setGeoError(
-          err.code === 1
-            ? "Location access was denied. Allow it in your browser settings."
-            : "Couldn't get your location. Try again.",
+          err.code === 1 ? "toolbar.geo.denied" : "toolbar.geo.failed",
         );
       },
       { timeout: 10000, maximumAge: 60000 },
@@ -139,25 +140,32 @@ export const TaskToolbar = ({
     <div className="flex flex-col gap-3">
       <div className="flex items-center gap-2">
         <div className="relative flex-1">
-          <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-grey" />
+          <Search
+            aria-hidden="true"
+            className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-grey"
+          />
           <Input
             name="search"
             value={query}
             onChange={(e) => onQueryChange(e.target.value)}
-            placeholder={placeholder}
+            placeholder={placeholder ?? t("toolbar.searchDefault")}
+            aria-label={t("toolbar.search")}
             className="pl-10 pr-10"
           />
           {isSearching ? (
-            <Loader2 className="absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-grey" />
+            <Loader2
+              aria-hidden="true"
+              className="absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-grey"
+            />
           ) : (
             query && (
               <button
                 type="button"
                 onClick={() => onQueryChange("")}
                 className="absolute right-3.5 top-1/2 -translate-y-1/2 text-grey hover:text-foreground"
-                aria-label="Clear search"
+                aria-label={t("toolbar.clearSearch")}
               >
-                <X className="h-4 w-4" />
+                <X aria-hidden="true" className="h-4 w-4" />
               </button>
             )
           )}
@@ -166,7 +174,7 @@ export const TaskToolbar = ({
           type="button"
           onClick={() => setPanelOpen((p) => !p)}
           aria-expanded={panelOpen}
-          aria-label="Filters"
+          aria-label={t("toolbar.filters")}
           className={clsx(
             "flex h-10 shrink-0 items-center gap-2 rounded-lg border px-3 text-sm transition-colors",
             panelOpen || activeCount > 0
@@ -174,10 +182,10 @@ export const TaskToolbar = ({
               : "border-border text-grey hover:bg-muted hover:text-foreground",
           )}
         >
-          <SlidersHorizontal className="h-4 w-4" />
-          <span className="hidden sm:inline">Filters</span>
+          <SlidersHorizontal aria-hidden="true" className="h-4 w-4" />
+          <span className="hidden sm:inline">{t("toolbar.filters")}</span>
           {activeCount > 0 && (
-            <span className="rounded-full flex h-4.5 min-w-4.5 items-center justify-center bg-primary px-1 text-[10px] font-semibold text-primary-foreground">
+            <span className="rounded-full flex h-4.5 min-w-4.5 items-center justify-center bg-primary px-1 text-xs font-semibold text-primary-foreground">
               {activeCount}
             </span>
           )}
@@ -191,12 +199,13 @@ export const TaskToolbar = ({
               <button
                 key={s.value}
                 type="button"
+                aria-pressed={active}
                 onClick={() => patch("status", s.value)}
                 className={clsx(
                   "flex rounded-full shrink-0 items-center gap-1.5 border px-3 py-1 text-xs font-medium transition-colors",
                   active
                     ? "border-primary bg-primary text-primary-foreground"
-                    : "border-border text-muted-foreground hover:bg-muted hover:text-foreground",
+                    : "border-border text-grey hover:bg-muted hover:text-foreground",
                 )}
               >
                 {s.label}
@@ -216,12 +225,13 @@ export const TaskToolbar = ({
       {panelOpen && (
         <div className="grid grid-cols-1 gap-4 rounded-xl border border-border bg-muted/30 p-4 sm:grid-cols-2 lg:grid-cols-4">
           <div className="form-group">
-            <Label htmlFor="filter-sort">Sort by</Label>
+            <Label htmlFor="filter-sort">{t("toolbar.sortBy")}</Label>
             <Select
               value={filters.sort}
               onValueChange={(s) => patch("sort", s as TaskSort)}
             >
               <SelectTrigger
+                aria-label={t("toolbar.sortBy")}
                 className={clsx(
                   "h-10 text-sm relative placeholder:text-grey w-full",
                 )}
@@ -240,27 +250,30 @@ export const TaskToolbar = ({
             </Select>
           </div>
           <div className="form-group">
-            <Label htmlFor="filter-min">Budget from</Label>
+            <Label htmlFor="filter-min">{t("toolbar.budgetFrom")}</Label>
             <PriceInput
               name="filter-min"
               value={filters.minBudget}
               onChange={(n) => patch("minBudget", n)}
-              placeholder="Any"
+              placeholder={t("toolbar.any")}
             />
           </div>
           <div className="form-group">
-            <Label htmlFor="filter-max">Budget up to</Label>
+            <Label htmlFor="filter-max">{t("toolbar.budgetTo")}</Label>
             <PriceInput
               name="filter-max"
               value={filters.maxBudget}
               onChange={(n) => patch("maxBudget", n)}
-              placeholder="Any"
+              placeholder={t("toolbar.any")}
             />
           </div>
           <div className="flex items-end">
             <div className="flex h-10 w-full items-center justify-between gap-3 rounded-lg border border-border px-3">
-              <span className="text-sm text-foreground">Negotiable only</span>
+              <span className="text-sm text-foreground">
+                {t("toolbar.negotiableOnly")}
+              </span>
               <Switch
+                aria-label={t("toolbar.negotiableOnly")}
                 checked={filters.onlyNegotiable}
                 onCheckedChange={(v) => patch("onlyNegotiable", v)}
               />
@@ -268,11 +281,11 @@ export const TaskToolbar = ({
           </div>
           <div className="sm:col-span-2">
             <TagInput
-              label="Skills"
+              label={t("toolbar.skills.label")}
               name="filter-skills"
               value={filters.skills}
               onChange={(v) => patch("skills", v)}
-              placeholder="Any of these skills..."
+              placeholder={t("toolbar.skills.placeholder")}
               searchFn={async (search: string) => {
                 const { data } = await axiosApi.searchSkills(search);
                 return data.items.map((s) => ({
@@ -284,11 +297,11 @@ export const TaskToolbar = ({
           </div>
           <div className="sm:col-span-2">
             <TagInput
-              label="Certificates"
+              label={t("toolbar.certificates.label")}
               name="filter-certificates"
               value={filters.certificates}
               onChange={(v) => patch("certificates", v)}
-              placeholder="Any of these certificates..."
+              placeholder={t("toolbar.certificates.placeholder")}
               searchFn={async (search: string) => {
                 const { data } = await axiosApi.searchCertificates(search);
                 return data.items.map((c) => ({
@@ -302,15 +315,15 @@ export const TaskToolbar = ({
             {filters.near ? (
               <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-2 border border-primary/20 bg-primary/5 py-1.5 pl-4 pr-1.5">
                 <span className="flex items-center gap-2 text-sm font-medium text-primary">
-                  <LocateFixed className="h-4 w-4" />
-                  Within
+                  <LocateFixed aria-hidden="true" className="h-4 w-4" />
+                  {t("toolbar.within")}
                 </span>
                 <Select
-                  aria-label="Search radius"
                   value={filters.radiusKm.toString()}
                   onValueChange={(s) => patch("radiusKm", Number(s))}
                 >
                   <SelectTrigger
+                    aria-label={t("toolbar.radius")}
                     className={clsx(
                       "text-sm relative placeholder:text-grey border border-primary/20 bg-primary/5",
                     )}
@@ -320,21 +333,21 @@ export const TaskToolbar = ({
                   <SelectContent className="bg-background">
                     {TASK_RADIUS_OPTIONS.map((r) => (
                       <SelectItem key={r} value={r.toString()}>
-                        {r} km
+                        {t("toolbar.km", { value: r })}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-                <span className="text-sm text-muted-foreground">
-                  of your location
+                <span className="text-sm text-grey">
+                  {t("toolbar.ofLocation")}
                 </span>
                 <button
                   type="button"
                   onClick={clearNear}
-                  aria-label="Remove location filter"
-                  className="flex h-8 w-8 items-center justify-center text-muted-foreground transition-colors hover:bg-primary/10 hover:text-foreground"
+                  aria-label={t("toolbar.removeLocation")}
+                  className="flex h-8 w-8 items-center justify-center text-grey transition-colors hover:bg-primary/10 hover:text-foreground"
                 >
-                  <X className="h-4 w-4" />
+                  <X aria-hidden="true" className="h-4 w-4" />
                 </button>
               </div>
             ) : (
@@ -346,16 +359,19 @@ export const TaskToolbar = ({
                 className="px-4"
               >
                 {locating ? (
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  <Loader2
+                    aria-hidden="true"
+                    className="h-3.5 w-3.5 animate-spin"
+                  />
                 ) : (
-                  <LocateFixed className="h-3.5 w-3.5" />
+                  <LocateFixed aria-hidden="true" className="h-3.5 w-3.5" />
                 )}
-                Tasks near me
+                {t("toolbar.nearMe")}
               </Button>
             )}
             {geoError && (
               <p role="alert" className="text-center text-xs text-destructive">
-                {geoError}
+                {t(geoError)}
               </p>
             )}
           </div>
@@ -371,8 +387,8 @@ export const TaskToolbar = ({
                   })
                 }
               >
-                <RotateCcw className="h-3.5 w-3.5" />
-                Reset filters
+                <RotateCcw aria-hidden="true" className="h-3.5 w-3.5" />
+                {t("toolbar.reset")}
               </Button>
             </div>
           )}
@@ -395,7 +411,7 @@ export const TaskEmptyState = ({
 }) => (
   <div className="flex flex-col items-center gap-3 py-16 text-center">
     <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-      {icon ?? <SearchX className="h-5 w-5" />}
+      {icon ?? <SearchX aria-hidden="true" className="h-5 w-5" />}
     </div>
     <div>
       <p className="text-sm font-medium text-foreground">{title}</p>

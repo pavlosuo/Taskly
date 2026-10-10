@@ -8,6 +8,7 @@ import {
   startTransition,
 } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslation, Trans } from "react-i18next";
 import { ArrowLeft } from "lucide-react";
 import { axiosApi } from "@/api/index";
 import { useChats } from "@/providers/ChatProvider";
@@ -25,13 +26,17 @@ import { SingleChatProvider } from "@/providers/SingleChatProvider";
 import { useSocket } from "@/providers/SocketProvider";
 import Link from "next/link";
 import { OnlineStatus } from "@/components/shared/OnlineStatus";
+import { FieldError } from "@/components/shared/FieldError";
 import { useTheme } from "@/providers/ThemeProvider";
+import { getAxiosError } from "@/utils/getAxiosError";
+import { Button } from "@/components/ui/button";
 
 export const Single: FC<{
   chat: ChatWithMember;
   messages?: Message[] | null;
   nextCursor?: string | null;
 }> = ({ chat, messages: initialMessages, nextCursor: initialNextCursor }) => {
+  const { t } = useTranslation(["chats", "common", "errors"]);
   const router = useRouter();
   const { upsertChat, activeChat, setActiveChat, typingByChat } = useChats();
   const displayChat = activeChat ?? chat;
@@ -42,12 +47,14 @@ export const Single: FC<{
   );
   const [isLoadingInitial, setIsLoadingInitial] = useState(!initialMessages);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [error, setError] = useState<string>();
   const scrollRef = useRef<HTMLDivElement>(null);
   const topSentinelRef = useRef<HTMLDivElement>(null);
   const didInitialScroll = useRef(false);
   const { socket } = useSocket();
   const isTyping = typingByChat[chatId] ?? false;
   const { lang } = useTheme();
+  const [loadMoreFailed, setLoadMoreFailed] = useState(false);
 
   useEffect(() => {
     const texts = CHAT_PAGE_META[lang];
@@ -56,23 +63,35 @@ export const Single: FC<{
   }, [lang, chat]);
 
   const loadMore = useCallback(async () => {
-    if (!nextCursor || isLoadingMore) return;
+    if (!nextCursor || isLoadingMore || loadMoreFailed) return;
     setIsLoadingMore(true);
     const container = scrollRef.current;
     const prevScrollHeight = container?.scrollHeight ?? 0;
-    const { data } = await axiosApi.getMessages(chatId, nextCursor);
-    setMessages((prev) => [...data.items, ...prev]);
-    setNextCursor(data.nextCursor);
-    startTransition(() => {
-      if (container) {
-        container.scrollTop = container.scrollHeight - prevScrollHeight;
-      }
-    });
-    setIsLoadingMore(false);
-  }, [chatId, nextCursor, isLoadingMore]);
+    try {
+      const { data } = await axiosApi.getMessages(chatId, nextCursor);
+      setMessages((prev) => [...data.items, ...prev]);
+      setNextCursor(data.nextCursor);
+      startTransition(() => {
+        if (container) {
+          container.scrollTop = container.scrollHeight - prevScrollHeight;
+        }
+      });
+    } catch (err) {
+      setError(getAxiosError(err));
+      setLoadMoreFailed(true);
+    } finally {
+      setIsLoadingMore(false);
+    }
+  }, [chatId, nextCursor, isLoadingMore, loadMoreFailed]);
+
+  const appendMessage = useCallback((message: Message) => {
+    setMessages((prev) =>
+      prev.some((m) => m._id === message._id) ? prev : [...prev, message],
+    );
+  }, []);
 
   const handleMessageSent = (message: Message) => {
-    setMessages((prev) => [...prev, message]);
+    appendMessage(message);
     startTransition(() => {
       if (scrollRef.current) {
         scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -109,13 +128,20 @@ export const Single: FC<{
     startTransition(() => {
       setIsLoadingInitial(true);
     });
-    axiosApi.getMessages(chatId).then(({ data }) => {
-      if (cancelled) return;
-      setMessages(data.items);
-      setNextCursor(data.nextCursor);
-      setIsLoadingInitial(false);
-      didInitialScroll.current = false;
-    });
+    axiosApi
+      .getMessages(chatId)
+      .then(({ data }) => {
+        if (cancelled) return;
+        setMessages(data.items);
+        setNextCursor(data.nextCursor);
+        didInitialScroll.current = false;
+      })
+      .catch((err) => {
+        if (!cancelled) setError(getAxiosError(err));
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoadingInitial(false);
+      });
     return () => {
       cancelled = true;
     };
@@ -152,9 +178,7 @@ export const Single: FC<{
   useEffect(() => {
     if (!socket) return;
     const handleNew = ({ message }: { message: Message }) => {
-      setMessages((prev) => {
-        return [...prev, message];
-      });
+      appendMessage(message);
       axiosApi.markChatRead(chatId).catch(() => {});
       upsertChat({
         ...chat,
@@ -197,7 +221,7 @@ export const Single: FC<{
       socket.off("message:deleted", handleDeleted);
       socket.off("chat:read", handleRead);
     };
-  }, [socket, chatId, chat, upsertChat]);
+  }, [socket, chatId, chat, upsertChat, appendMessage]);
 
   return (
     <SingleChatProvider
@@ -211,11 +235,12 @@ export const Single: FC<{
       <div className="flex flex-col w-full h-full">
         <div className="flex items-center gap-3 py-3.5 px-4 border-b border-border shrink-0">
           <button
+            type="button"
             onClick={() => router.push("/chats")}
             className="p-1.5 -ml-1.5 rounded-full hover:bg-muted text-grey"
-            aria-label="Back"
+            aria-label={t("common:actions.back")}
           >
-            <ArrowLeft className="w-5 h-5" />
+            <ArrowLeft aria-hidden="true" className="w-5 h-5" />
           </button>
           <div className="relative shrink-0">
             {chat.member.avatar ? (
@@ -267,16 +292,48 @@ export const Single: FC<{
           className="flex-1 overflow-y-auto flex w-full flex-col py-6 px-2 md:py-12 md:px-6"
         >
           <div ref={topSentinelRef} />
+          {loadMoreFailed && (
+            <div className="py-2 flex flex-col items-center gap-1">
+              <FieldError role="alert" message={error} />
+              <Button
+                type="button"
+                onClick={() => {
+                  setError(undefined);
+                  setLoadMoreFailed(false);
+                }}
+                size="sm"
+                className="mt-1"
+              >
+                {t("common:actions.retry")}
+              </Button>
+            </div>
+          )}
           {isLoadingInitial && (
-            <div className="py-8 text-center text-sm text-grey">Loading...</div>
+            <div role="status" className="py-8 text-center text-sm text-grey">
+              {t("room.loading")}
+            </div>
+          )}
+          {!isLoadingInitial && !error && messages.length === 0 && (
+            <p className="py-8 text-center text-sm text-grey">
+              {t("room.empty")}
+            </p>
           )}
           {!isLoadingInitial &&
             messages.map((m) => <MessageBubble key={m._id} message={m} />)}
+          <FieldError
+            role="alert"
+            message={loadMoreFailed ? undefined : error}
+            className="text-center mt-2"
+          />
           {isTyping && (
             <Marker role="status" className="mt-4">
               <MarkerContent className="shimmer">
-                <span className="font-medium">{chat.member.fullName}</span> is
-                typing...
+                <Trans
+                  i18nKey="typing"
+                  ns="chats"
+                  values={{ name: chat.member.fullName }}
+                  components={{ bold: <span className="font-medium" /> }}
+                />
               </MarkerContent>
             </Marker>
           )}

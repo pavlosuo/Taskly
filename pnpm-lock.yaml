@@ -149,6 +149,9 @@ importers:
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
+      cn:
+        specifier: ^0.4.0
+        version: 0.4.0
       country-codes-flags-phone-codes:
         specifier: ^1.1.1
         version: 1.1.1
@@ -182,6 +185,9 @@ importers:
       next:
         specifier: ^16.3.8
         version: 16.3.8(@babel/core@7.29.7)(@types/node@20.19.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(sass@1.101.0)
+      next-themes:
+        specifier: ^0.4.6
+        version: 0.4.6(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       qrcode.react:
         specifier: ^4.2.0
         version: 4.2.0(react@19.2.3)
@@ -209,6 +215,9 @@ importers:
       socket.io-client:
         specifier: ^4.8.3
         version: 4.8.3
+      sonner:
+        specifier: ^2.0.8
+        version: 2.0.8(@types/react@19.2.17)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       swiper:
         specifier: ^14.2.0
         version: 14.2.0
@@ -4787,6 +4796,14 @@ packages:
       }
     engines: { node: ">=6" }
 
+  cn@0.4.0:
+    resolution:
+      {
+        integrity: sha512-qOAeUhPwPzBxx6jaeQdo646XIKliKHc2j1ZF7Ngb1o0pJZKH5gq8FkA0aVdUdPFUDXNXyUCXpCtoJISo6dhizg==,
+      }
+    engines: { node: ">=20" }
+    hasBin: true
+
   code-block-writer@13.0.3:
     resolution:
       {
@@ -7495,6 +7512,15 @@ packages:
       }
     engines: { node: ">= 0.6" }
 
+  next-themes@0.4.6:
+    resolution:
+      {
+        integrity: sha512-pZvgD5L0IEvX5/9GWyHMf3m8BKiVQwsCMHfoFosXtXBMnaS0ZnIJ9ST4b4NqLVKDEm8QBxoNNGNaBv2JNF6XNA==,
+      }
+    peerDependencies:
+      react: ^16.8 || ^17 || ^18 || ^19 || ^19.0.0-rc
+      react-dom: ^16.8 || ^17 || ^18 || ^19 || ^19.0.0-rc
+
   next@16.3.8:
     resolution:
       {
@@ -8912,6 +8938,19 @@ packages:
         integrity: sha512-2Dd78bqzzjE6KPkD5fHZmDAKRNe3J15q+YHDrIsy9WEkqttc7GY+kT9OBLSMaPbQaEd0x1BjcmtMtXkfpc+T5A==,
       }
     engines: { node: ">=10.2.0" }
+
+  sonner@2.0.8:
+    resolution:
+      {
+        integrity: sha512-UM/ByIoFra8yzV75n1o0Puu0bw5U/9UNnDacrJNspekBewIfsQ3D6ez1nvlWpt7aTsO6rujQtifBpycwIivqlg==,
+      }
+    peerDependencies:
+      "@types/react": ^18.0.0 || ^19.0.0
+      react: ^18.0.0 || ^19.0.0 || ^19.0.0-rc
+      react-dom: ^18.0.0 || ^19.0.0 || ^19.0.0-rc
+    peerDependenciesMeta:
+      "@types/react":
+        optional: true
 
   sort-css-media-queries@2.2.0:
     resolution:
@@ -12711,6 +12750,8 @@ snapshots:
 
   clsx@2.1.1: {}
 
+  cn@0.4.0: {}
+
   code-block-writer@13.0.3: {}
 
   codem-isoboxer@0.3.10: {}
@@ -14446,6 +14487,11 @@ snapshots:
 
   negotiator@1.0.0: {}
 
+  next-themes@0.4.6(react-dom@19.2.3(react@19.2.3))(react@19.2.3):
+    dependencies:
+      react: 19.2.3
+      react-dom: 19.2.3(react@19.2.3)
+
   next@16.3.8(@babel/core@7.29.7)(@types/node@20.19.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(sass@1.101.0):
     dependencies:
       "@next/env": 16.3.8
@@ -15535,6 +15581,13 @@ snapshots:
       - bufferutil
       - supports-color
       - utf-8-validate
+
+  sonner@2.0.8(@types/react@19.2.17)(react-dom@19.2.3(react@19.2.3))(react@19.2.3):
+    dependencies:
+      react: 19.2.3
+      react-dom: 19.2.3(react@19.2.3)
+    optionalDependencies:
+      "@types/react": 19.2.17
 
   sort-css-media-queries@2.2.0: {}
 

@@ -23,7 +23,7 @@ export class CertificatesService {
       return { success: true, status: 200, data: { items } };
     } catch (e) {
       console.error("Search certificates error:", e);
-      return { success: false, status: 500, message: "errors.server" };
+      return { success: false, status: 500, message: "general.unknown" };
     }
   }
 
@@ -58,7 +58,7 @@ export class CertificatesService {
       return { success: true, status: 200, data: result };
     } catch (e) {
       console.error("Upsert certificate error:", e);
-      return { success: false, status: 500, message: "errors.server" };
+      return { success: false, status: 500, message: "general.unknown" };
     }
   }
 }

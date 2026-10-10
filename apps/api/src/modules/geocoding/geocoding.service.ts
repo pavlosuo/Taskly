@@ -71,7 +71,7 @@ export class GeocodingService {
       return {
         success: false,
         status: 500,
-        message: "errors.server",
+        message: "general.unknown",
       };
     }
   }
@@ -134,7 +134,7 @@ export class GeocodingService {
       return {
         success: false,
         status: 500,
-        message: "errors.server",
+        message: "general.unknown",
       };
     }
   }

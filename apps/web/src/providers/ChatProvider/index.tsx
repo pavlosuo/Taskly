@@ -78,8 +78,8 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
   }, []);
 
   const deleteChat = useCallback(async (chatId: string) => {
-    setChats((prev) => prev.filter((c) => c._id !== chatId));
     await axiosApi.deleteChat(chatId);
+    setChats((prev) => prev.filter((c) => c._id !== chatId));
   }, []);
 
   const upsertChat = useCallback((updated: ChatWithMember) => {

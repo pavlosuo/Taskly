@@ -5,8 +5,8 @@ import { Button } from "@/components/ui/button";
 import { useTheme } from "@/providers/ThemeProvider";
 import { useEffect, useState } from "react";
 import { useUser } from "@/providers/UserProvider";
-import clsx from "clsx";
 import { PAGES_META, APP_NAME } from "shared/data";
+import clsx from "clsx";
 
 export const Main = ({ type = "error" }: { type: "error" | "not-found" }) => {
   const { theme, lang } = useTheme();
@@ -41,7 +41,6 @@ export const Main = ({ type = "error" }: { type: "error" | "not-found" }) => {
         onCreated={() => setReady(true)}
         isReady={ready}
       />
-
       <div className="absolute top-1/2 left-1/2 z-10 flex w-full max-w-xl -translate-x-1/2 -translate-y-1/2 flex-col items-center px-6 text-center text-white">
         <h1 className="text-4xl font-semibold tracking-tight sm:text-6xl">
           {meta.title}

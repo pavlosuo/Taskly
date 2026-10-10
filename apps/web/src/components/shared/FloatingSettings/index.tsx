@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Settings, Globe, Moon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -21,6 +22,7 @@ import { LANGS } from "shared/data";
 import { useTheme } from "@/providers/ThemeProvider";
 
 export function FloatingSettings() {
+  const { t } = useTranslation("common");
   const [open, setOpen] = useState(false);
   const { lang, theme, changeLang, changeTheme } = useTheme();
   return (
@@ -31,39 +33,45 @@ export function FloatingSettings() {
         size="icon"
         onClick={() => setOpen(true)}
         className="fixed bottom-5 right-5 z-50 h-10 w-10 rounded-full border-border bg-background shadow-md transition-all hover:scale-105"
-        aria-label="Settings"
+        aria-label={t("settings.title")}
       >
-        <Settings className="h-4 w-4" />
+        <Settings aria-hidden="true" className="h-4 w-4" />
       </Button>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Settings</DialogTitle>
-            <DialogDescription>
-              Customize your language and display theme.
-            </DialogDescription>
+            <DialogTitle>{t("settings.title")}</DialogTitle>
+            <DialogDescription>{t("settings.description")}</DialogDescription>
           </DialogHeader>
           <div className="flex flex-col gap-5 py-2">
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-3">
                 <div className="flex h-9 w-9 items-center justify-center rounded-full bg-muted">
-                  <Globe className="h-4 w-4 text-foreground" />
+                  <Globe
+                    aria-hidden="true"
+                    className="h-4 w-4 text-foreground"
+                  />
                 </div>
                 <div>
                   <p className="text-sm font-medium text-foreground">
-                    Language
+                    {t("settings.language.title")}
                   </p>
-                  <p className="text-xs text-grey">Choose the app language.</p>
+                  <p className="text-xs text-grey">
+                    {t("settings.language.description")}
+                  </p>
                 </div>
               </div>
               <Select value={lang} onValueChange={changeLang}>
-                <SelectTrigger className="w-32 h-9 text-sm">
+                <SelectTrigger
+                  aria-label={t("settings.language.title")}
+                  className="w-32 h-9 text-sm"
+                >
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="bg-background">
                   {LANGS.map((item) => (
                     <SelectItem key={item.value} value={item.value}>
-                      {item.label}
+                      {t(item.label)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -73,18 +81,22 @@ export function FloatingSettings() {
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-3">
                 <div className="flex h-9 w-9 items-center justify-center rounded-full bg-muted">
-                  <Moon className="h-4 w-4 text-foreground" />
+                  <Moon
+                    aria-hidden="true"
+                    className="h-4 w-4 text-foreground"
+                  />
                 </div>
                 <div>
                   <p className="text-sm font-medium text-foreground">
-                    Dark mode
+                    {t("settings.darkMode.title")}
                   </p>
                   <p className="text-xs text-grey">
-                    Switch between light and dark theme.
+                    {t("settings.darkMode.description")}
                   </p>
                 </div>
               </div>
               <Switch
+                aria-label={t("settings.darkMode.title")}
                 checked={theme === "dark"}
                 onCheckedChange={(checked) =>
                   changeTheme(checked ? "dark" : "light")

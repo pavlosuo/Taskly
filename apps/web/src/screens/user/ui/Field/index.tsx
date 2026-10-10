@@ -23,7 +23,7 @@ export function Field({
         {badge && (
           <span
             className={clsx(
-              "inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full font-medium",
+              "inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded-full font-medium",
               badgeOk
                 ? "bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300"
                 : "bg-warning/10 text-warning",
@@ -40,7 +40,7 @@ export function Field({
         {onVerify && (
           <button
             onClick={onVerify}
-            className="text-[11px] font-medium text-primary hover:underline underline-offset-2"
+            className="text-xs font-medium text-primary hover:underline underline-offset-2"
           >
             Verify now
           </button>

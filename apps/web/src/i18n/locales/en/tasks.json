@@ -1,0 +1,204 @@
+{
+  "startTime": "Start time",
+  "endTime": "End time",
+  "pickDate": "Pick date",
+  "general": {
+    "allTasks": "All tasks",
+    "myTasks": "My tasks"
+  },
+  "actions": {
+    "searchAll": "Search open tasks...",
+    "searchMy": "Search my tasks...",
+    "search": "Search tasks..."
+  },
+  "list": {
+    "showing_one": "Showing {{shown}} of {{count}} task",
+    "showing_other": "Showing {{shown}} of {{count}} tasks",
+    "loadMore": "Load more"
+  },
+  "empty": {
+    "noMatches": {
+      "title": "No tasks found",
+      "text": "Try a different keyword or adjust your filters.",
+      "action": "Clear search and filters"
+    }
+  },
+  "tasker": {
+    "title": "Find tasks that match your skills and send an offer.",
+    "empty": {
+      "my": {
+        "title": "No tasks yet",
+        "text": "Tasks you've applied to or been assigned will appear here.",
+        "action": "Browse open tasks"
+      },
+      "open": {
+        "title": "No open tasks right now",
+        "text": "New tasks appear here as clients post them. Check back later."
+      }
+    }
+  },
+  "client": {
+    "title": "Create tasks and manage responses.",
+    "empty": {
+      "my": {
+        "title": "You don't have any tasks yet",
+        "text": "Click \"New task\" to create your first one."
+      },
+      "open": {
+        "title": "No open tasks right now",
+        "text": "Check back later."
+      }
+    }
+  },
+  "create": {
+    "trigger": "New task",
+    "title": "Create a new task",
+    "description": "Give it a clear title, a place and a deadline — taskers will find it in search.",
+    "success": "Task created",
+    "submit": "Create task",
+    "sections": {
+      "details": "Task details",
+      "schedule": "Schedule & budget",
+      "requirements": "Requirements"
+    },
+    "fields": {
+      "title": {
+        "label": "Task title",
+        "placeholder": "e.g. Assemble an IKEA wardrobe"
+      },
+      "description": {
+        "label": "Description",
+        "placeholder": "Describe what needs to be done, the scope of work and any important details."
+      },
+      "location": { "label": "Location" },
+      "deadline": { "label": "Deadline" },
+      "budget": { "label": "Budget", "placeholder": "Optional" },
+      "skills": {
+        "label": "Required skills",
+        "placeholder": "Search or add a skill..."
+      },
+      "certificates": {
+        "label": "Required certificates",
+        "placeholder": "Search or add a certificate..."
+      }
+    },
+    "negotiable": {
+      "title": "Budget is negotiable",
+      "description": "Taskers can suggest their own price"
+    }
+  },
+  "status": {
+    "open": "Open",
+    "assigned": "Assigned",
+    "completed": "Completed",
+    "cancelled": "Cancelled"
+  },
+  "responseStatus": {
+    "pending": "Pending",
+    "accepted": "Accepted",
+    "rejected": "Rejected"
+  },
+  "item": {
+    "negotiable": "Negotiable",
+    "budget": "task budget",
+    "responses_one": "{{count}} response",
+    "responses_other": "{{count}} responses"
+  },
+  "toolbar": {
+    "search": "Search tasks",
+    "searchDefault": "Search by title or description...",
+    "clearSearch": "Clear search",
+    "filters": "Filters",
+    "sortBy": "Sort by",
+    "budgetFrom": "Budget from",
+    "budgetTo": "Budget up to",
+    "any": "Any",
+    "negotiableOnly": "Negotiable only",
+    "skills": {
+      "label": "Skills",
+      "placeholder": "Any of these skills..."
+    },
+    "certificates": {
+      "label": "Certificates",
+      "placeholder": "Any of these certificates..."
+    },
+    "within": "Within",
+    "ofLocation": "of your location",
+    "radius": "Search radius",
+    "km": "{{value}} km",
+    "removeLocation": "Remove location filter",
+    "nearMe": "Tasks near me",
+    "reset": "Reset filters",
+    "geo": {
+      "unsupported": "Your browser doesn't support geolocation.",
+      "denied": "Location access was denied. Allow it in your browser settings.",
+      "failed": "Couldn't get your location. Try again."
+    }
+  },
+  "summary": {
+    "details": "Details",
+    "location": "Location",
+    "schedule": "Schedule & budget",
+    "deadline": "Deadline",
+    "budget": "Budget",
+    "negotiableNote": "Budget is negotiable — the amount above is a starting point.",
+    "skills": "Skills",
+    "certificates": "Certificates",
+    "showMore": "Show more",
+    "showLess": "Show less"
+  },
+  "view": {
+    "description": "Manage this task and review responses.",
+    "actions": {
+      "edit": "Edit",
+      "cancel": "Cancel task",
+      "complete": "Mark completed",
+      "delete": "Delete"
+    },
+    "confirm": {
+      "cancel": "Cancel this task? Pending responses will be rejected.",
+      "delete": "Delete this task permanently? All responses will be deleted too."
+    }
+  },
+  "edit": {
+    "title": "Edit task",
+    "description": "Update the details below and save your changes.",
+    "save": "Save changes"
+  },
+  "responses": {
+    "title": "Responses",
+    "titleWithCount": "Responses ({{count}})",
+    "empty": "No one has responded yet.",
+    "offer": "offer",
+    "accept": "Accept",
+    "reject": "Reject"
+  },
+  "respond": {
+    "description": "Review the task and send your response.",
+    "steps": {
+      "overview": "Overview",
+      "respond": "Respond"
+    },
+    "continue": "Continue to respond",
+    "viewResponse": "View your response",
+    "closed": "This task is no longer accepting responses.",
+    "message": { "label": "Message to the client" },
+    "price": {
+      "label": "Your price",
+      "placeholder": "Enter your price"
+    },
+    "send": "Send response",
+    "withdraw": "Withdraw",
+    "backToOverview": "Back to overview"
+  },
+  "toast": {
+    "updated": "Task updated",
+    "cancelled": "Task cancelled",
+    "completed": "Task marked as completed",
+    "deleted": "Task deleted",
+    "accepted": "Response accepted",
+    "rejected": "Response rejected",
+    "responseSent": "Response sent",
+    "withdrawn": "Response withdrawn"
+  }
+}

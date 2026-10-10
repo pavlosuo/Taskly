@@ -1,6 +1,7 @@
 "use client";
 import { FC, useState, useRef, useEffect } from "react";
 import clsx from "clsx";
+import { useTranslation } from "react-i18next";
 import {
   Check,
   CheckCheck,
@@ -21,6 +22,7 @@ import {
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
 import { ImageDisplay } from "@/components/shared/MediaPicker";
+import { FieldError } from "@/components/shared/FieldError";
 import { useTheme } from "@/providers/ThemeProvider";
 import {
   Popover,
@@ -31,6 +33,13 @@ import { useSingleChat } from "@/providers/SingleChatProvider";
 import { useLightbox } from "@/providers/LightboxProvider";
 import { FileThumbnail } from "@/components/shared/MediaPicker";
 import { useModal } from "@/providers/ModalProvider";
+import { getAxiosError } from "@/utils/getAxiosError";
+
+const formatTime = (value: string | Date, lang: string) =>
+  new Date(value).toLocaleTimeString(lang, {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 
 const Time: FC<{
   message: MessageType;
@@ -38,31 +47,34 @@ const Time: FC<{
   location?: "message" | "image";
   isOwn?: boolean;
 }> = ({ message, className, location = "message", isOwn }) => {
+  const { t } = useTranslation("chats");
   const { lang } = useTheme();
   const { chat } = useSingleChat();
   const isRead = chat ? message.readBy.includes(chat.member._id) : false;
-  const time = new Date(message.createdAt).toLocaleTimeString(lang, {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
   return (
     <span
       className={clsx(
         className,
-        "rounded-full inline-flex gap-1 text-[10px] leading-none whitespace-nowrap",
+        "rounded-full inline-flex gap-1 text-xs leading-none whitespace-nowrap",
         isOwn ? "text-white" : "text-foreground",
         location === "image" && "p-1.5 items-center absolute right-2 bottom-2",
         location === "image" && isOwn && "bg-primary",
         location === "image" && !isOwn && "bg-muted",
       )}
     >
-      {message.edited && <span className="italic">edited</span>}
-      <span>{time}</span>
+      {message.edited && <span className="italic">{t("message.edited")}</span>}
+      <span>{formatTime(message.createdAt, lang)}</span>
       {isOwn &&
         (isRead ? (
-          <CheckCheck className="w-3 h-3" />
+          <>
+            <CheckCheck aria-hidden="true" className="w-3 h-3" />
+            <span className="sr-only">{t("message.read")}</span>
+          </>
         ) : (
-          <Check className="w-3 h-3" />
+          <>
+            <Check aria-hidden="true" className="w-3 h-3" />
+            <span className="sr-only">{t("message.sent")}</span>
+          </>
         ))}
     </span>
   );
@@ -74,6 +86,7 @@ const Reactions: FC<{
   isEditing: boolean;
   handleToggleReaction: (emoji: string) => void;
 }> = ({ message, isOwn, isEditing, handleToggleReaction }) => {
+  const { t } = useTranslation("chats");
   const { user } = useUser();
   const { chat } = useSingleChat();
   const member = chat.member;
@@ -89,8 +102,9 @@ const Reactions: FC<{
   const reactorLabel = (userIds: string[]) => {
     const iReacted = userIds.includes(user?._id ?? "");
     const otherReacted = userIds.includes(member._id);
-    if (iReacted && otherReacted) return `You and ${member.fullName}`;
-    if (iReacted) return "You";
+    if (iReacted && otherReacted)
+      return t("reactions.youAnd", { name: member.fullName });
+    if (iReacted) return t("reactions.you");
     if (otherReacted) return member.fullName;
     return "";
   };
@@ -100,31 +114,35 @@ const Reactions: FC<{
     Object.keys(reactionGroups).length > 0 &&
     !isEditing && (
       <BubbleReactions
-        role="img"
-        aria-label={`Reactions: ${Object.entries(reactionGroups)
-          .map(([emoji, ids]) => `${emoji} (${ids.length})`)
-          .join(", ")}`}
+        role="group"
+        aria-label={t("reactions.label", {
+          list: Object.entries(reactionGroups)
+            .map(([emoji, ids]) => `${emoji} (${ids.length})`)
+            .join(", "),
+        })}
         className={clsx(isOwn ? "bg-primary" : "bg-muted")}
       >
         {Object.entries(reactionGroups).map(([emoji, userIds]) => (
-          <span
+          <button
             key={emoji}
+            type="button"
             title={reactorLabel(userIds)}
+            aria-pressed={userIds.includes(user?._id ?? "")}
             onClick={() => handleToggleReaction(emoji)}
-            className="cursor-pointer select-none inline-flex items-center"
+            className="cursor-pointer select-none inline-flex items-center px-1"
           >
             <span>{emoji}</span>
             {userIds.length > 1 && (
               <span
                 className={clsx(
-                  "text-[9px] -ml-1",
+                  "text-[9px] -ml-0.5",
                   isOwn ? "text-white" : "text-foreground",
                 )}
               >
                 x{userIds.length}
               </span>
             )}
-          </span>
+          </button>
         ))}
       </BubbleReactions>
     )
@@ -135,14 +153,16 @@ const PopoverReactions: FC<{
   isOwn: boolean;
   handleToggleReaction: (emoji: string) => void;
 }> = ({ isOwn, handleToggleReaction }) => {
+  const { t } = useTranslation("chats");
   return (
     <Popover>
       <PopoverTrigger asChild>
         <button
-          className="absolute top-full -translate-y-1/2 left-2 flex items-center justify-center w-6 h-6 rounded-full border border-border bg-background opacity-0 transition-opacity group-hover/bubble:opacity-100"
-          aria-label="React"
+          type="button"
+          className="absolute top-full -translate-y-1/2 left-2 flex items-center justify-center w-6 h-6 rounded-full border border-border bg-background opacity-0 transition-opacity group-hover/bubble:opacity-100 focus-visible:opacity-100"
+          aria-label={t("reactions.add")}
         >
-          <SmilePlus className="w-3 h-3 text-foreground" />
+          <SmilePlus aria-hidden="true" className="w-3 h-3 text-foreground" />
         </button>
       </PopoverTrigger>
       <PopoverContent
@@ -153,6 +173,7 @@ const PopoverReactions: FC<{
         {EMOJI.map((emoji) => (
           <button
             key={emoji}
+            type="button"
             onClick={() => handleToggleReaction(emoji)}
             className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-muted text-base"
           >
@@ -167,6 +188,7 @@ const PopoverReactions: FC<{
 export const MessageBubble: FC<{
   message: MessageType;
 }> = ({ message }) => {
+  const { t } = useTranslation(["chats", "common"]);
   const { user } = useUser();
   const { chat, onMessageUpdate, onMessageDelete } = useSingleChat();
   const member = chat.member;
@@ -175,6 +197,7 @@ export const MessageBubble: FC<{
   const [isEditing, setIsEditing] = useState(false);
   const [draft, setDraft] = useState(message.text ?? "");
   const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState<string>();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const myReaction = message.reactions?.find(
     (r) => r.userId === user?._id,
@@ -190,29 +213,33 @@ export const MessageBubble: FC<{
 
   const cancelEdit = () => {
     setDraft(message.text ?? "");
+    setError(undefined);
     setIsEditing(false);
   };
 
   const saveEdit = async () => {
+    if (isSaving) return;
     const trimmed = draft.trim();
     if (!trimmed || trimmed === message.text) {
-      setIsEditing(false);
-      setDraft(message.text || "");
+      cancelEdit();
       return;
     }
     try {
       setIsSaving(true);
+      setError(undefined);
       const { data } = await axiosApi.editMessage(chatId, message._id, trimmed);
       onMessageUpdate(data.message);
       setDraft(data.message.text || "");
+      setIsEditing(false);
+    } catch (err) {
+      setError(getAxiosError(err));
     } finally {
       setIsSaving(false);
-      setIsEditing(false);
     }
   };
 
   const handleEditKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Enter" && !e.shiftKey) {
+    if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
       e.preventDefault();
       saveEdit();
     }
@@ -220,10 +247,15 @@ export const MessageBubble: FC<{
   };
 
   const handleDelete = async () => {
-    const confirmed = await confirm("Delete this message?");
+    const confirmed = await confirm(t("message.deleteConfirm"));
     if (!confirmed) return;
-    await axiosApi.deleteMessage(chatId, message._id);
-    onMessageDelete(message._id);
+    try {
+      setError(undefined);
+      await axiosApi.deleteMessage(chatId, message._id);
+      onMessageDelete(message._id);
+    } catch (err) {
+      setError(getAxiosError(err));
+    }
   };
 
   const handleToggleReaction = async (emoji: string) => {
@@ -252,7 +284,10 @@ export const MessageBubble: FC<{
   };
 
   const handleCopyText = () => {
-    if (message.text) navigator.clipboard.writeText(message.text);
+    if (!message.text) return;
+    navigator.clipboard
+      .writeText(message.text)
+      .catch(() => setError("general.unknown"));
   };
 
   const bubbleInner = (
@@ -299,25 +334,31 @@ export const MessageBubble: FC<{
                 <textarea
                   ref={textareaRef}
                   value={draft}
-                  onChange={(e) => setDraft(e.target.value)}
+                  onChange={(e) => {
+                    setDraft(e.target.value);
+                    setError(undefined);
+                  }}
                   onKeyDown={handleEditKeyDown}
+                  aria-label={t("message.editLabel")}
                   className="bg-transparent outline-none resize-none text-sm w-full h-full whitespace-pre-wrap wrap-anywhere"
                   name={message._id}
                   id={message._id}
                 />
                 <div className="flex h-5 justify-end gap-3 text-xs absolute bottom-0 right-0 left-0 pointer-events-none">
                   <button
+                    type="button"
                     onClick={cancelEdit}
                     className="opacity-50 hover:opacity-100 pointer-events-auto"
                   >
-                    Cancel
+                    {t("common:actions.cancel")}
                   </button>
                   <button
+                    type="button"
                     onClick={saveEdit}
                     disabled={isSaving}
                     className="font-medium disabled:opacity-50 pointer-events-auto"
                   >
-                    Save
+                    {t("common:actions.save")}
                   </button>
                 </div>
               </div>
@@ -326,18 +367,13 @@ export const MessageBubble: FC<{
               {isEditing ? draft : message.text}
               <span
                 className={clsx(
-                  "invisible inline-flex gap-1 text-[10px] align-bottom",
-                  isEditing ? "ml-6" : "ml-4",
+                  "invisible inline-flex gap-1 text-xs align-bottom",
+                  isEditing ? "ml-14" : "ml-4",
                 )}
               >
-                {message.edited && <span>edited</span>}
-                <span>
-                  {new Date(message.createdAt).toLocaleTimeString(lang, {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </span>
-                {isOwn && <CheckCheck className="w-3 h-3" />}
+                {message.edited && <span>{t("message.edited")}</span>}
+                <span>{formatTime(message.createdAt, lang)}</span>
+                {isOwn && <CheckCheck aria-hidden="true" className="w-3 h-3" />}
               </span>
             </p>
           </div>
@@ -396,14 +432,14 @@ export const MessageBubble: FC<{
                 <ContextMenuContent className="w-40">
                   {isOwn && message.text && (
                     <ContextMenuItem onClick={() => setIsEditing(true)}>
-                      <Pencil className="w-3.5 h-3.5" />
-                      Edit
+                      <Pencil aria-hidden="true" className="w-3.5 h-3.5" />
+                      {t("message.actions.edit")}
                     </ContextMenuItem>
                   )}
                   {message.text && (
                     <ContextMenuItem onClick={handleCopyText}>
-                      <Copy className="w-3.5 h-3.5" />
-                      Copy text
+                      <Copy aria-hidden="true" className="w-3.5 h-3.5" />
+                      {t("message.actions.copy")}
                     </ContextMenuItem>
                   )}
                   {isOwn && (
@@ -411,14 +447,22 @@ export const MessageBubble: FC<{
                       onClick={handleDelete}
                       className="text-destructive focus:text-destructive hover:bg-destructive hover:text-white"
                     >
-                      <Trash2 className="w-3.5 h-3.5 text-inherit" />
-                      Delete
+                      <Trash2
+                        aria-hidden="true"
+                        className="w-3.5 h-3.5 text-inherit"
+                      />
+                      {t("message.actions.delete")}
                     </ContextMenuItem>
                   )}
                 </ContextMenuContent>
               </ContextMenu>
             )}
           </div>
+          <FieldError
+            role="alert"
+            message={error}
+            className={clsx(isOwn && "text-right")}
+          />
         </MessageContent>
       </Message>
     </>

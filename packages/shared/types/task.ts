@@ -2,8 +2,7 @@ import { Tag } from "shared/types";
 
 export type TaskStatus = "open" | "assigned" | "completed" | "cancelled";
 
-export type TaskResponseStatus =
-  "pending" | "accepted" | "rejected" | "withdrawn";
+export type TaskResponseStatus = "pending" | "accepted" | "rejected";
 
 export interface GeoPoint {
   type: "Point";
@@ -21,6 +20,11 @@ export interface TaskBudget {
   negotiable: boolean;
 }
 
+export type Deadline = {
+  date?: Date;
+  time: string;
+};
+
 export interface Task {
   _id: string;
   clientId: string;
@@ -30,7 +34,7 @@ export interface Task {
   certificates: Tag[];
   budget: TaskBudget;
   location: Location;
-  deadline: Date;
+  deadline: Deadline;
   status: TaskStatus;
   assignedTaskerId: string | null;
   responsesCount: number;
@@ -57,15 +61,10 @@ export interface TaskCreateForm {
   certificates: Tag[];
   budget: TaskBudget;
   location: Location;
-  deadline: Date | null;
+  deadline: Deadline;
 }
 
-export interface TaskUpdateForm extends Omit<
-  Partial<TaskCreateForm>,
-  "deadline"
-> {
-  deadline: Date;
-}
+export interface TaskUpdateForm extends Partial<TaskCreateForm> {}
 
 export interface TaskList {
   allItems: Task[];

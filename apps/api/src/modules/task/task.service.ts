@@ -57,7 +57,7 @@ export class TaskService {
       };
     } catch (e) {
       console.error("Create task error:", e);
-      return { success: false, status: 500, message: "errors.server" };
+      return { success: false, status: 500, message: "general.unknown" };
     }
   }
 
@@ -216,7 +216,7 @@ export class TaskService {
       };
     } catch (e) {
       console.error("Get tasks error:", e);
-      return { success: false, status: 500, message: "errors.server" };
+      return { success: false, status: 500, message: "general.unknown" };
     }
   }
 
@@ -230,7 +230,7 @@ export class TaskService {
         return {
           success: false,
           status: 404,
-          message: "task.message.notFound",
+          message: "task.notFound",
         };
       return { success: true, status: 200, data: { task } };
     } catch (e) {
@@ -238,7 +238,7 @@ export class TaskService {
       return {
         success: false,
         status: 500,
-        message: "errors.server",
+        message: "general.unknown",
       };
     }
   }
@@ -265,19 +265,19 @@ export class TaskService {
         return {
           success: false,
           status: 404,
-          message: "task.message.notFound",
+          message: "task.notFound",
         };
       if (task.clientId.toString() !== user._id.toString())
         return {
           success: false,
           status: 403,
-          message: "task.message.forbidden",
+          message: "general.forbidden",
         };
       if (task.status !== "open")
         return {
           success: false,
           status: 409,
-          message: "task.message.cannotEditAssigned",
+          message: "task.cannotEditAssigned",
         };
 
       const data = parsed.data;
@@ -312,7 +312,7 @@ export class TaskService {
       return {
         success: false,
         status: 500,
-        message: "errors.server",
+        message: "general.unknown",
       };
     }
   }
@@ -327,19 +327,19 @@ export class TaskService {
         return {
           success: false,
           status: 404,
-          message: "task.message.notFound",
+          message: "task.notFound",
         };
       if (task.clientId.toString() !== user._id.toString())
         return {
           success: false,
           status: 403,
-          message: "task.message.forbidden",
+          message: "general.forbidden",
         };
       if (task.status === "assigned")
         return {
           success: false,
           status: 409,
-          message: "task.message.cannotDeleteAssigned",
+          message: "task.cannotDelete",
         };
 
       await db.collection("tasks").deleteOne({ _id: task._id });
@@ -350,7 +350,7 @@ export class TaskService {
       return {
         success: false,
         status: 500,
-        message: "errors.server",
+        message: "general.unknown",
       };
     }
   }
@@ -365,19 +365,19 @@ export class TaskService {
         return {
           success: false,
           status: 404,
-          message: "task.message.notFound",
+          message: "task.notFound",
         };
       if (task.clientId.toString() !== user._id.toString())
         return {
           success: false,
           status: 403,
-          message: "task.message.forbidden",
+          message: "general.forbidden",
         };
       if (task.status === "completed" || task.status === "cancelled")
         return {
           success: false,
           status: 409,
-          message: "task.message.cannotCancel",
+          message: "task.cannotCancel",
         };
 
       const now = new Date();
@@ -408,7 +408,7 @@ export class TaskService {
       return {
         success: false,
         status: 500,
-        message: "errors.server",
+        message: "general.unknown",
       };
     }
   }
@@ -423,19 +423,19 @@ export class TaskService {
         return {
           success: false,
           status: 404,
-          message: "task.message.notFound",
+          message: "task.notFound",
         };
       if (task.clientId.toString() !== user._id.toString())
         return {
           success: false,
           status: 403,
-          message: "task.message.forbidden",
+          message: "general.forbidden",
         };
       if (task.status !== "assigned")
         return {
           success: false,
           status: 409,
-          message: "task.message.cannotComplete",
+          message: "task.cannotComplete",
         };
 
       await db
@@ -450,7 +450,7 @@ export class TaskService {
       return {
         success: false,
         status: 500,
-        message: "errors.server",
+        message: "general.unknown",
       };
     }
   }
@@ -469,7 +469,7 @@ export class TaskResponseService {
       return {
         success: false,
         status: 400,
-        message: "taskResponse.message.invalidData",
+        message: parsed.error.issues[0].message,
       };
     }
     try {
@@ -481,19 +481,19 @@ export class TaskResponseService {
         return {
           success: false,
           status: 404,
-          message: "task.message.notFound",
+          message: "task.notFound",
         };
       if (task.status !== "open")
         return {
           success: false,
           status: 409,
-          message: "taskResponse.message.taskClosed",
+          message: "taskResponse.taskClosed",
         };
       if (task.clientId.toString() === user._id.toString())
         return {
           success: false,
           status: 400,
-          message: "taskResponse.message.ownTask",
+          message: "taskResponse.ownTask",
         };
 
       const existing = await db.collection("taskResponses").findOne({
@@ -504,7 +504,7 @@ export class TaskResponseService {
         return {
           success: false,
           status: 409,
-          message: "taskResponse.message.alreadyResponded",
+          message: "taskResponse.alreadyResponded",
         };
 
       const now = new Date();
@@ -533,7 +533,7 @@ export class TaskResponseService {
       return {
         success: false,
         status: 500,
-        message: "taskResponse.message.serverError",
+        message: "general.unknown",
       };
     }
   }
@@ -548,7 +548,7 @@ export class TaskResponseService {
         return {
           success: false,
           status: 404,
-          message: "task.message.notFound",
+          message: "task.notFound",
         };
       if (task.clientId.toString() !== user._id.toString()) {
         const items = await db
@@ -569,7 +569,7 @@ export class TaskResponseService {
       return {
         success: false,
         status: 500,
-        message: "taskResponse.message.serverError",
+        message: "general.unknown",
       };
     }
   }
@@ -589,19 +589,19 @@ export class TaskResponseService {
         return {
           success: false,
           status: 404,
-          message: "taskResponse.message.notFound",
+          message: "taskResponse.notFound",
         };
       if (response.taskerId.toString() !== user._id.toString())
         return {
           success: false,
           status: 403,
-          message: "taskResponse.message.forbidden",
+          message: "general.forbidden",
         };
       if (response.status !== "pending")
         return {
           success: false,
           status: 409,
-          message: "taskResponse.message.cannotWithdraw",
+          message: "taskResponse.cannotWithdraw",
         };
       await db
         .collection("tasks")
@@ -617,7 +617,7 @@ export class TaskResponseService {
       return {
         success: false,
         status: 500,
-        message: "taskResponse.message.serverError",
+        message: "general.unknown",
       };
     }
   }
@@ -636,19 +636,19 @@ export class TaskResponseService {
         return {
           success: false,
           status: 404,
-          message: "task.message.notFound",
+          message: "task.notFound",
         };
       if (task.clientId.toString() !== user._id.toString())
         return {
           success: false,
           status: 403,
-          message: "taskResponse.message.forbidden",
+          message: "general.forbidden",
         };
       if (task.status !== "open")
         return {
           success: false,
           status: 409,
-          message: "taskResponse.message.taskAlreadyAssigned",
+          message: "taskResponse.taskAlreadyAssigned",
         };
 
       const response = await db.collection("taskResponses").findOne({
@@ -659,13 +659,13 @@ export class TaskResponseService {
         return {
           success: false,
           status: 404,
-          message: "taskResponse.message.notFound",
+          message: "taskResponse.notFound",
         };
       if (response.status !== "pending")
         return {
           success: false,
           status: 409,
-          message: "taskResponse.message.alreadyProcessed",
+          message: "taskResponse.alreadyProcessed",
         };
       const now = new Date();
       const assigned = await db.collection("tasks").updateOne(
@@ -682,7 +682,7 @@ export class TaskResponseService {
         return {
           success: false,
           status: 409,
-          message: "taskResponse.message.taskAlreadyAssigned",
+          message: "taskResponse.taskAlreadyAssigned",
         };
       }
 
@@ -713,7 +713,7 @@ export class TaskResponseService {
       return {
         success: false,
         status: 500,
-        message: "taskResponse.message.serverError",
+        message: "general.unknown",
       };
     }
   }
@@ -732,19 +732,19 @@ export class TaskResponseService {
         return {
           success: false,
           status: 404,
-          message: "task.message.notFound",
+          message: "task.notFound",
         };
       if (task.clientId.toString() !== user._id.toString())
         return {
           success: false,
           status: 403,
-          message: "taskResponse.message.forbidden",
+          message: "general.forbidden",
         };
       if (task.status !== "open")
         return {
           success: false,
           status: 409,
-          message: "taskResponse.message.taskAlreadyAssigned",
+          message: "taskResponse.taskAlreadyAssigned",
         };
       const response = await db.collection("taskResponses").findOne({
         _id: new ObjectId(responseId),
@@ -754,13 +754,13 @@ export class TaskResponseService {
         return {
           success: false,
           status: 404,
-          message: "taskResponse.message.notFound",
+          message: "taskResponse.notFound",
         };
       if (response.status !== "pending")
         return {
           success: false,
           status: 409,
-          message: "taskResponse.message.alreadyProcessed",
+          message: "taskResponse.alreadyProcessed",
         };
       const now = new Date();
       const res = await db
@@ -773,7 +773,7 @@ export class TaskResponseService {
         return {
           success: false,
           status: 409,
-          message: "taskResponse.message.alreadyProcessed",
+          message: "taskResponse.alreadyProcessed",
         };
       }
       await db
@@ -785,7 +785,7 @@ export class TaskResponseService {
       return {
         success: false,
         status: 500,
-        message: "taskResponse.message.serverError",
+        message: "general.unknown",
       };
     }
   }

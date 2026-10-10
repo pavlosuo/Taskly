@@ -10,7 +10,7 @@ import {
   PublicProfileLang,
   ChatMemberPreview,
 } from "shared/index";
-import { CLIENT_URL, NODE_ENV } from "@/env";
+import { CLIENT_URL } from "@/env";
 import { OtpService } from "@/modules/otp/otp.service";
 import {
   toPublicUser,
@@ -23,6 +23,7 @@ import { IServer, User } from "@/types";
 import { MediaService } from "@/modules/media/media.service";
 import { Response, Request } from "express";
 import bcrypt from "bcrypt";
+import { cookieOptions } from "@/utils";
 
 export class UsersService {
   private otpService: OtpService;
@@ -68,7 +69,7 @@ export class UsersService {
           return {
             success: false,
             status: 400,
-            message: "user.username.exists",
+            message: "user.usernameExists",
           };
         updates.username = username;
         if (user?.role !== "admin")
@@ -83,12 +84,11 @@ export class UsersService {
           return {
             success: false,
             status: 400,
-            message: "user.email.exists",
+            message: "user.emailExists",
           };
         updates.newEmail = email;
       }
       if (fullName !== undefined) updates["profile.fullName"] = fullName;
-
       if (avatar) {
         await this.mediaService.addPublicSource(avatar._id, user._id, "avatar");
         updates["profile.avatar"] = avatar;
@@ -127,7 +127,7 @@ export class UsersService {
           return {
             success: false,
             status: 400,
-            message: "Phone already in use.",
+            message: "user.phoneExists",
           };
         updates["profile.newFullPhone"] = fullPhone;
         updates["profile.newPhone"] = phone;
@@ -146,13 +146,6 @@ export class UsersService {
         if (checkboxes !== undefined) {
           updates["settings.checkboxes"] = checkboxes;
         }
-        const cookieOptions = {
-          httpOnly: true,
-          secure: NODE_ENV === "production",
-          sameSite: "lax" as const,
-          maxAge: 365 * 24 * 60 * 60 * 1000,
-          path: "/",
-        };
         if (theme) {
           res.cookie("theme", theme, cookieOptions);
         }
@@ -163,11 +156,9 @@ export class UsersService {
       if (publicProfile !== undefined) {
         const { bio, languages, skills, certificates, header, introduction } =
           publicProfile;
-
         if (bio !== undefined) {
           updates["publicProfile.bio"] = bio;
         }
-
         if (certificates !== undefined) {
           for (const cert of certificates) {
             const certParsed = publicProfileCertificateSchema.safeParse(cert);
@@ -335,7 +326,7 @@ export class UsersService {
       };
     } catch (error) {
       console.error("Update profile error:", error);
-      return { success: false, status: 500, message: "errors.server" };
+      return { success: false, status: 500, message: "general.unknown" };
     }
   }
 
@@ -346,7 +337,7 @@ export class UsersService {
       return { success: true, status: 200 };
     } catch (error) {
       console.error("Deactivate account error:", error);
-      return { success: false, status: 500, message: "errors.server" };
+      return { success: false, status: 500, message: "general.unknown" };
     }
   }
 
@@ -398,7 +389,7 @@ export class UsersService {
       };
     } catch (error) {
       console.error("Verify phone OTP error:", error);
-      return { success: false, status: 500, message: "errors.server" };
+      return { success: false, status: 500, message: "general.unknown" };
     }
   }
 
@@ -442,7 +433,7 @@ export class UsersService {
       };
     } catch (error) {
       console.error("Verify email OTP error:", error);
-      return { success: false, status: 500, message: "errors.server" };
+      return { success: false, status: 500, message: "general.unknown" };
     }
   }
 
@@ -467,7 +458,7 @@ export class UsersService {
         return {
           success: false,
           status: 404,
-          message: "user.message.notFound",
+          message: "user.notFound",
         };
 
       const isValid = await bcrypt.compare(oldPassword, dbUser.passwordHash);
@@ -500,7 +491,7 @@ export class UsersService {
       };
     } catch (error) {
       console.error("Change password error:", error);
-      return { success: false, status: 500, message: "errors.server" };
+      return { success: false, status: 500, message: "general.unknown" };
     }
   }
 
@@ -514,7 +505,7 @@ export class UsersService {
         return {
           success: false,
           status: 400,
-          message: "user.username.missing",
+          message: "user.usernameMissing",
         };
       }
 
@@ -541,7 +532,7 @@ export class UsersService {
         return {
           success: false,
           status: 404,
-          message: "user.message.notFound",
+          message: "user.notFound",
         };
       }
 
@@ -553,7 +544,7 @@ export class UsersService {
         return {
           success: false,
           status: 404,
-          message: "user.message.notFound",
+          message: "user.notFound",
         };
       }
 
@@ -586,7 +577,7 @@ export class UsersService {
       };
     } catch (error) {
       console.error("Get user by username error:", error);
-      return { success: false, status: 500, message: "errors.server" };
+      return { success: false, status: 500, message: "general.unknown" };
     }
   }
 
@@ -620,7 +611,6 @@ export class UsersService {
           },
         )
         .toArray();
-
       const items: ChatMemberPreview[] = users.map((u) => ({
         _id: u._id.toString(),
         username: u.username,
@@ -628,11 +618,10 @@ export class UsersService {
         avatar: stripMediaFields(u.profile?.avatar ?? null),
         initials: u.profile?.initials ?? "",
       }));
-
       return { success: true, status: 200, data: { items } };
     } catch (e) {
       console.error("Search users error:", e);
-      return { success: false, status: 500, message: "errors.server" };
+      return { success: false, status: 500, message: "general.unknown" };
     }
   }
 }

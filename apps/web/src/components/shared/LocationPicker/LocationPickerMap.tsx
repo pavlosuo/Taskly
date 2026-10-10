@@ -192,7 +192,7 @@ export const LocationPickerMap = ({
     <div className={clsx("flex flex-col", className)}>
       <div className="flex items-start gap-2">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-grey pointer-events-none" />
           <Input
             name="location-search"
             value={query}
@@ -205,7 +205,7 @@ export const LocationPickerMap = ({
             error={error}
           />
           {isSearching && (
-            <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-muted-foreground" />
+            <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-grey" />
           )}
           {showResults && results.length > 0 && (
             <div className="absolute z-100000 mt-1 w-full rounded-lg border border-border bg-background shadow-lg overflow-hidden">
@@ -216,7 +216,7 @@ export const LocationPickerMap = ({
                   onClick={() => pickResult(result)}
                   className="w-full flex items-start gap-2 px-3 py-2 text-left text-sm hover:bg-muted transition-colors"
                 >
-                  <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0 text-muted-foreground" />
+                  <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0 text-grey" />
                   <span className="line-clamp-2">{result.address}</span>
                 </button>
               ))}
@@ -262,13 +262,13 @@ export const LocationPickerMap = ({
           )}
         </MapContainer>
         {isResolving && (
-          <div className="absolute top-2 right-2 z-100000 bg-background/90 rounded-full px-2.5 py-1 text-xs text-muted-foreground flex items-center gap-1.5 shadow">
+          <div className="absolute top-2 right-2 z-100000 bg-background/90 rounded-full px-2.5 py-1 text-xs text-grey flex items-center gap-1.5 shadow">
             <Loader2 className="w-3 h-3 animate-spin" />
             Resolving address...
           </div>
         )}
       </div>
-      <p className="text-[11px] text-muted-foreground">
+      <p className="text-xs text-grey">
         Click the map to drop a pin, or search an address above · Powered by
         OpenStreetMap
       </p>

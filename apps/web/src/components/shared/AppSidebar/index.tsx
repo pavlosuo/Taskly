@@ -16,12 +16,14 @@ import { Notify } from "@/components/shared/Notify";
 import { APP_NAME, PAGES_META, CHAT_PAGE_META } from "shared/data";
 import clsx from "clsx";
 import { useTheme } from "@/providers/ThemeProvider";
+import { useTranslation } from "react-i18next";
 
 export function AppSidebar() {
   const { user } = useUser();
   const { openPicker } = useMediaPicker();
   const pathname = usePathname();
   const { lang } = useTheme();
+  const { t } = useTranslation(["media"]);
 
   const navItems = (() => {
     if (user?.role === "client") {
@@ -121,7 +123,7 @@ export function AppSidebar() {
               )}
             >
               <ImagePlus className="shrink-0 w-4 h-4" />
-              <span>Media Library</span>
+              <span>{t("title")}</span>
             </button>
           </ul>
         </nav>

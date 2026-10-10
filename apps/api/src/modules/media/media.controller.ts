@@ -143,7 +143,7 @@ export class MediaController {
       if (!res.headersSent) {
         return res.status(500).json({
           success: false,
-          message: "errors.server",
+          message: "general.unknown",
         });
       }
       res.destroy();

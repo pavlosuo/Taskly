@@ -8,6 +8,7 @@ import {
   startTransition,
 } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
+import { useTranslation } from "react-i18next";
 import {
   Upload,
   Trash2,
@@ -22,26 +23,25 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { FieldError } from "@/components/shared/FieldError";
 import { axiosApi } from "@/api/index";
-import { MediaItem, ALLOWED_MIME_TYPES, FilterType } from "shared/index";
+import {
+  MediaItem,
+  ALLOWED_MIME_TYPES,
+  FilterType,
+  MAX_FILES_PER_UPLOAD,
+  FILTERS,
+} from "shared/index";
 import { getAxiosError } from "@/utils/getAxiosError";
 import clsx from "clsx";
 import { getFileType } from "@/utils/getFileType";
 import { formatSize } from "@/utils/formatSize";
 import { useFormatDate } from "@/hooks/useFormatDate";
-
-const MAX_FILES_PER_UPLOAD = 25;
-
-export const FILTERS: { value: FilterType; label: string }[] = [
-  { value: "all", label: "All" },
-  { value: "image", label: "Images" },
-  { value: "video", label: "Video" },
-  { value: "audio", label: "Audio" },
-  { value: "document", label: "Documents" },
-  { value: "other", label: "Other" },
-];
+import { useModal } from "@/providers/ModalProvider";
+import { useTheme } from "@/providers/ThemeProvider";
 
 export const VideoDisplay = ({ src }: { src: string; className?: string }) => {
   return (
@@ -89,10 +89,11 @@ export function FileIcon({
 }) {
   const type = getFileType(mimeType);
   const cls = clsx("text-grey", className);
-  if (type === "video") return <Video className={cls} />;
-  if (type === "audio") return <Music className={cls} />;
-  if (type === "document") return <FileText className={cls} />;
-  return <File className={cls} />;
+  if (type === "video") return <Video aria-hidden="true" className={cls} />;
+  if (type === "audio") return <Music aria-hidden="true" className={cls} />;
+  if (type === "document")
+    return <FileText aria-hidden="true" className={cls} />;
+  return <File aria-hidden="true" className={cls} />;
 }
 
 export function FileThumbnail({
@@ -145,7 +146,7 @@ export function FileThumbnail({
       )}
     >
       <FileIcon mimeType={item.mimeType} className="w-8 h-8" />
-      <p className="text-[10px] text-grey text-center truncate w-full px-1">
+      <p className="text-xs text-grey text-center truncate w-full px-1">
         {item.originalName}
       </p>
     </div>
@@ -165,20 +166,27 @@ export function MediaPicker({
   accept?: FilterType;
   multiple?: boolean;
 }) {
+  const { t } = useTranslation(["media", "common"]);
+  const { confirm } = useModal();
   const [items, setItems] = useState<MediaItem[]>([]);
   const [filter, setFilter] = useState<FilterType>(accept);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [anchorIndex, setAnchorIndex] = useState<number | null>(null);
   const [focusIndex, setFocusIndex] = useState<number>(0);
   const [uploading, setUploading] = useState(false);
+  const [isLoadingMedia, setIsLoadingMedia] = useState(false);
   const [dragOver, setDragOver] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState<{
+    message: string;
+    values?: Record<string, unknown>;
+  } | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
   const [uploadProgress, setUploadProgress] = useState<{
     total: number;
     done: number;
   } | null>(null);
+  const { lang } = useTheme();
 
   const selectedItem =
     selectedIds.size === 1
@@ -187,7 +195,25 @@ export function MediaPicker({
 
   useEffect(() => {
     if (!open) return;
-    axiosApi.getMedia().then(({ data }) => setItems(data.items));
+    let cancelled = false;
+    startTransition(() => {
+      setIsLoadingMedia(true);
+      setError(null);
+    });
+    axiosApi
+      .getMedia()
+      .then(({ data }) => {
+        if (!cancelled) setItems(data.items);
+      })
+      .catch((err) => {
+        if (!cancelled) setError({ message: getAxiosError(err) });
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoadingMedia(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [open]);
 
   useEffect(() => {
@@ -220,60 +246,63 @@ export function MediaPicker({
     setFocusIndex((i) => Math.min(i, Math.max(nextFiltered.length - 1, 0)));
   };
 
-  const uploadFiles = useCallback(async (fileList: FileList | File[]) => {
-    const files = Array.from(fileList);
-    if (files.length === 0) return;
+  const uploadFiles = useCallback(
+    async (fileList: FileList | File[]) => {
+      if (uploading) return;
+      const files = Array.from(fileList);
+      if (files.length === 0) return;
 
-    if (files.length > MAX_FILES_PER_UPLOAD) {
-      setError(
-        `You can upload up to ${MAX_FILES_PER_UPLOAD} files at once (selected ${files.length}).`,
-      );
-      return;
-    }
-
-    const invalid = files.filter((f) => !ALLOWED_MIME_TYPES.has(f.type));
-    if (invalid.length > 0) {
-      setError(
-        invalid.length === 1
-          ? `File type "${invalid[0].type}" is not allowed.`
-          : `${invalid.length} files have an unsupported type and were skipped.`,
-      );
-    }
-
-    const valid = files.filter((f) => ALLOWED_MIME_TYPES.has(f.type));
-    if (valid.length === 0) return;
-    setFilter(getFileType(valid[0].type));
-    setUploading(true);
-    setUploadProgress({ total: valid.length, done: 0 });
-    if (invalid.length === 0) setError("");
-    const uploadedIds: string[] = [];
-    const failed: string[] = [];
-    for (const file of valid) {
-      try {
-        const { data } = await axiosApi.uploadMedia(file);
-        const newItem = data.media;
-        setItems((p) => [newItem, ...p]);
-        uploadedIds.push(newItem._id);
-      } catch {
-        failed.push(file.name);
-      } finally {
-        setUploadProgress((p) => (p ? { ...p, done: p.done + 1 } : p));
+      if (files.length > MAX_FILES_PER_UPLOAD) {
+        setError({
+          message: "upload.tooMany",
+          values: { max: MAX_FILES_PER_UPLOAD, selected: files.length },
+        });
+        return;
       }
-    }
 
-    if (failed.length > 0) {
-      setError(
-        failed.length === 1
-          ? `Failed to upload "${failed[0]}".`
-          : `Failed to upload ${failed.length} files.`,
-      );
-    }
+      const invalid = files.filter((f) => !ALLOWED_MIME_TYPES.has(f.type));
+      if (invalid.length > 0) {
+        setError({
+          message: "upload.unsupported",
+          values: { count: invalid.length, type: invalid[0].type },
+        });
+      }
 
-    setSelectedIds(new Set(uploadedIds));
-    setUploading(false);
-    setUploadProgress(null);
-    if (inputRef.current) inputRef.current.value = "";
-  }, []);
+      const valid = files.filter((f) => ALLOWED_MIME_TYPES.has(f.type));
+      if (valid.length === 0) return;
+      setFilter(getFileType(valid[0].type));
+      setUploading(true);
+      setUploadProgress({ total: valid.length, done: 0 });
+      if (invalid.length === 0) setError(null);
+      const uploadedIds: string[] = [];
+      const failed: string[] = [];
+      for (const file of valid) {
+        try {
+          const { data } = await axiosApi.uploadMedia(file);
+          const newItem = data.media;
+          setItems((p) => [newItem, ...p]);
+          uploadedIds.push(newItem._id);
+        } catch {
+          failed.push(file.name);
+        } finally {
+          setUploadProgress((p) => (p ? { ...p, done: p.done + 1 } : p));
+        }
+      }
+
+      if (failed.length > 0) {
+        setError({
+          message: "upload.failed",
+          values: { count: failed.length, name: failed[0] },
+        });
+      }
+
+      setSelectedIds(new Set(uploadedIds));
+      setUploading(false);
+      setUploadProgress(null);
+      if (inputRef.current) inputRef.current.value = "";
+    },
+    [uploading],
+  );
 
   const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) uploadFiles(e.target.files);
@@ -318,20 +347,32 @@ export function MediaPicker({
     };
   }, []);
 
-  const deleteIds = useCallback(async (ids: string[]) => {
-    if (ids.length === 0) return;
-    try {
-      await Promise.all(ids.map((id) => axiosApi.deleteMedia(id)));
-      setItems((p) => p.filter((i) => !ids.includes(i._id)));
-      setSelectedIds((prev) => {
-        const next = new Set(prev);
-        ids.forEach((id) => next.delete(id));
-        return next;
-      });
-    } catch (e) {
-      setError(getAxiosError(e));
-    }
-  }, []);
+  const deleteIds = useCallback(
+    async (ids: string[]) => {
+      if (ids.length === 0) return;
+      const confirmed = await confirm(
+        t("deleteConfirm", { count: ids.length }),
+      );
+      if (!confirmed) return;
+      const results = await Promise.allSettled(
+        ids.map((id) => axiosApi.deleteMedia(id)),
+      );
+      const deleted = ids.filter((_, i) => results[i].status === "fulfilled");
+      const failure = results.find(
+        (r): r is PromiseRejectedResult => r.status === "rejected",
+      );
+      if (deleted.length > 0) {
+        setItems((p) => p.filter((i) => !deleted.includes(i._id)));
+        setSelectedIds((prev) => {
+          const next = new Set(prev);
+          deleted.forEach((id) => next.delete(id));
+          return next;
+        });
+      }
+      if (failure) setError({ message: getAxiosError(failure.reason) });
+    },
+    [confirm, t],
+  );
 
   const handleDeleteSelected = useCallback(
     (e?: React.MouseEvent) => {
@@ -511,6 +552,14 @@ export function MediaPicker({
 
   const selectedItemDate = useFormatDate(selectedItem?.uploadedAt) || "";
 
+  const emptyText = dragOver
+    ? t("empty.drop")
+    : isLoadingMedia
+      ? t("empty.loading")
+      : items.length === 0
+        ? t("empty.library")
+        : t("empty.category");
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
@@ -528,13 +577,18 @@ export function MediaPicker({
         draggable={false}
       >
         <DialogHeader className="px-5 pt-5 pb-0">
-          <DialogTitle>Media library</DialogTitle>
+          <DialogTitle>{t("title")}</DialogTitle>
+          <DialogDescription className="sr-only">
+            {t("description")}
+          </DialogDescription>
         </DialogHeader>
         <div className="flex items-center justify-between gap-4 px-5 py-3 border-b border-border">
           <div className="flex items-center gap-1 flex-wrap">
             {FILTERS.map((f) => (
               <button
                 key={f.value}
+                type="button"
+                aria-pressed={filter === f.value}
                 onClick={() => handleFilterChange(f.value)}
                 className={clsx(
                   "text-xs px-3 py-1.5 rounded-lg transition-colors",
@@ -543,27 +597,30 @@ export function MediaPicker({
                     : "text-grey hover:text-foreground hover:bg-muted",
                 )}
               >
-                {f.label}
+                {t(f.labelKey)}
               </button>
             ))}
           </div>
           <label
             className={clsx(
               "flex items-center gap-1.5 text-xs font-medium text-primary",
-              "hover:underline underline-offset-2 cursor-pointer transition-opacity whitespace-nowrap",
+              "hover:underline focus-within:underline underline-offset-2 cursor-pointer transition-opacity whitespace-nowrap",
               uploading && "opacity-50 pointer-events-none",
             )}
           >
-            <Upload className="w-3.5 h-3.5 min-w-3.5 min-h-3.5" />
+            <Upload
+              aria-hidden="true"
+              className="w-3.5 h-3.5 min-w-3.5 min-h-3.5"
+            />
             {uploading
               ? uploadProgress
-                ? `Uploading ${uploadProgress.done}/${uploadProgress.total}...`
-                : "Uploading..."
-              : "Upload files"}
+                ? t("upload.progress", uploadProgress)
+                : t("upload.uploading")
+              : t("upload.label")}
             <input
               ref={inputRef}
               type="file"
-              className="hidden"
+              className="sr-only"
               multiple
               accept={[...ALLOWED_MIME_TYPES].join(",")}
               onChange={handleUpload}
@@ -575,25 +632,28 @@ export function MediaPicker({
             className="overflow-y-auto p-4 transition-colors relative w-full"
             onClick={handleBackgroundClick}
           >
-            {dragOver || filtered.length === 0 ? (
-              <div className="h-full flex flex-col items-center justify-center gap-3 text-grey">
+            {dragOver || isLoadingMedia || filtered.length === 0 ? (
+              <div
+                role="status"
+                className="h-full flex flex-col items-center justify-center gap-3 text-grey"
+              >
                 <Upload
+                  aria-hidden="true"
                   className={clsx(
                     "w-10 h-10 opacity-30",
                     dragOver && "opacity-100 text-white",
                   )}
                 />
                 <p className={clsx("text-sm", dragOver && "text-white")}>
-                  {dragOver
-                    ? "Drop to upload"
-                    : items.length === 0
-                      ? "No files yet — drag and drop or upload"
-                      : "No files in this category"}
+                  {emptyText}
                 </p>
               </div>
             ) : (
               <div
                 ref={gridRef}
+                role="listbox"
+                aria-multiselectable={multiple}
+                aria-label={t("title")}
                 className="grid gap-2 grid-cols-2 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 w-full"
               >
                 {filtered.map((item, index) => {
@@ -602,6 +662,9 @@ export function MediaPicker({
                   return (
                     <div
                       key={item._id}
+                      role="option"
+                      aria-selected={isSelected}
+                      aria-label={item.originalName}
                       onClick={(e) => {
                         e.stopPropagation();
                         handleItemClick(item._id, index, e);
@@ -623,7 +686,10 @@ export function MediaPicker({
                       <FileThumbnail item={item} />
                       {isSelected && (
                         <div className="absolute top-1.5 left-1.5 w-5 h-5 rounded-full bg-primary flex items-center justify-center">
-                          <Check className="w-3 h-3 text-white" />
+                          <Check
+                            aria-hidden="true"
+                            className="w-3 h-3 text-white"
+                          />
                         </div>
                       )}
                     </div>
@@ -656,74 +722,88 @@ export function MediaPicker({
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-1 gap-3 p-4 overflow-y-auto flex-1">
                   <div>
-                    <p className="text-xs text-grey mb-0.5">Name</p>
+                    <p className="text-xs text-grey mb-0.5">
+                      {t("details.name")}
+                    </p>
                     <p className="text-sm text-foreground break-all">
                       {selectedItem.originalName}
                     </p>
                   </div>
                   <div>
-                    <p className="text-xs text-grey mb-0.5">Type</p>
+                    <p className="text-xs text-grey mb-0.5">
+                      {t("details.type")}
+                    </p>
                     <p className="text-sm text-foreground">
                       {selectedItem.mimeType}
                     </p>
                   </div>
                   <div>
-                    <p className="text-xs text-grey mb-0.5">Size</p>
+                    <p className="text-xs text-grey mb-0.5">
+                      {t("details.size")}
+                    </p>
                     <p className="text-sm text-foreground">
-                      {formatSize(selectedItem.size)}
+                      {formatSize(selectedItem.size, lang)}
                     </p>
                   </div>
                   <div>
-                    <p className="text-xs text-grey mb-0.5">Uploaded</p>
+                    <p className="text-xs text-grey mb-0.5">
+                      {t("details.uploaded")}
+                    </p>
                     <p className="text-sm text-foreground">
                       {selectedItemDate}
                     </p>
                   </div>
                   <button
+                    type="button"
                     onClick={handleDeleteSelected}
                     className="flex items-center gap-1.5 text-xs text-destructive hover:underline mt-auto pt-2"
                   >
-                    <Trash2 className="w-3.5 h-3.5" />
-                    Delete permanently
+                    <Trash2 aria-hidden="true" className="w-3.5 h-3.5" />
+                    {t("details.delete")}
                   </button>
                 </div>
               </>
             ) : !dragOver && selectedIds.size > 1 ? (
               <div className="flex-1 flex flex-col items-center justify-center p-6 gap-3 text-center">
-                <Check className="w-10 h-10 text-primary" />
+                <Check aria-hidden="true" className="w-10 h-10 text-primary" />
                 <p className="text-sm text-foreground">
-                  {selectedIds.size} files selected
+                  {t("details.selected", { count: selectedIds.size })}
                 </p>
                 <button
+                  type="button"
                   onClick={handleDeleteSelected}
                   className="flex items-center gap-1.5 text-xs text-destructive hover:underline"
                 >
-                  <Trash2 className="w-3.5 h-3.5" />
-                  Delete all selected
+                  <Trash2 aria-hidden="true" className="w-3.5 h-3.5" />
+                  {t("details.deleteAll")}
                 </button>
               </div>
             ) : (
               <div className="flex-1 flex flex-col items-center justify-center p-6 gap-3 text-center">
-                <File className="w-10 h-10 text-grey opacity-30" />
-                <p className="text-xs text-grey">
-                  Select a file to see its details
-                </p>
+                <File
+                  aria-hidden="true"
+                  className="w-10 h-10 text-grey opacity-30"
+                />
+                <p className="text-xs text-grey">{t("details.empty")}</p>
               </div>
             )}
           </div>
         </div>
         <div className="flex justify-end gap-2 px-5 py-3 border-t border-border">
           {error && (
-            <p className="text-xs text-destructive mr-auto self-center">
-              {error}
-            </p>
+            <FieldError
+              role="alert"
+              message={error.message}
+              values={error.values}
+              className="mr-auto self-center mt-0"
+            />
           )}
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
+            {t("common:actions.cancel")}
           </Button>
           {onSelect && (
             <Button onClick={handleConfirm} disabled={handleConfirmDisabled}>
-              Select
+              {t("common:actions.select")}
             </Button>
           )}
         </div>

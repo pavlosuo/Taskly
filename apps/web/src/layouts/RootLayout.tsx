@@ -11,6 +11,7 @@ import { SocketProvider } from "@/providers/SocketProvider";
 import { PresenceProvider } from "@/providers/PresenceProvider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { TaskProvider } from "@/providers/TaskProvider";
+import { Toaster } from "@/components/ui/sonner";
 
 type IRootLayout = {
   user: PublicUser | null;
@@ -25,27 +26,30 @@ export const RootLayout: FC<PropsWithChildren<IRootLayout>> = ({
   initialTheme,
 }) => {
   return (
-    <TooltipProvider>
-      <ModalProvider>
-        <UserProvider initialUser={user}>
-          <SocketProvider>
-            <PresenceProvider>
-              <ThemeProvider
-                initialLang={initialLang}
-                initialTheme={initialTheme}
-              >
-                <MediaPickerProvider>
-                  <ChatProvider>
-                    <TaskProvider>
-                      <LightboxProvider>{children}</LightboxProvider>
-                    </TaskProvider>
-                  </ChatProvider>
-                </MediaPickerProvider>
-              </ThemeProvider>
-            </PresenceProvider>
-          </SocketProvider>
-        </UserProvider>
-      </ModalProvider>
-    </TooltipProvider>
+    <>
+      <TooltipProvider>
+        <ModalProvider>
+          <UserProvider initialUser={user}>
+            <SocketProvider>
+              <PresenceProvider>
+                <ThemeProvider
+                  initialLang={initialLang}
+                  initialTheme={initialTheme}
+                >
+                  <MediaPickerProvider>
+                    <ChatProvider>
+                      <TaskProvider>
+                        <LightboxProvider>{children}</LightboxProvider>
+                      </TaskProvider>
+                    </ChatProvider>
+                  </MediaPickerProvider>
+                </ThemeProvider>
+              </PresenceProvider>
+            </SocketProvider>
+          </UserProvider>
+        </ModalProvider>
+      </TooltipProvider>
+      <Toaster />
+    </>
   );
 };

@@ -6,15 +6,21 @@ import { PhoneNumberUtil, AsYouTypeFormatter } from "google-libphonenumber";
 import { startTransition } from "react";
 import { countries } from "country-codes-flags-phone-codes";
 import * as flags from "country-flag-icons/react/3x2";
+import { useTheme } from "@/providers/ThemeProvider";
 
-export const countryList = countries.map((c) => ({
-  name: c.name,
-  code: c.code,
-  dial: c.dialCode,
-  FlagComponent: flags[c.code as keyof typeof flags] ?? null,
-}));
+type HTMLSVGElement = HTMLElement & SVGElement;
 
-export type Country = (typeof countryList)[number];
+interface ElementAttributes<T>
+  extends React.HTMLAttributes<T>, React.SVGAttributes<T> {}
+
+type Country = {
+  name: string;
+  code: string;
+  dial: string;
+  FlagComponent: (
+    props: ElementAttributes<HTMLSVGElement>,
+  ) => React.JSX.Element;
+};
 
 const util = PhoneNumberUtil.getInstance();
 const nsnLengthCache = new Map<string, number>();
@@ -77,12 +83,17 @@ function getPhonePlaceholder(regionCode: string): string {
 function parsePastedPhone(
   raw: string,
   countryList: Country[],
+  defaultRegion?: string,
 ): { country: Country; nsn: string } | null {
-  const trimmed = raw.trim();
-  const hasIntl = trimmed.startsWith("+") || trimmed.startsWith("00");
-  if (!hasIntl) return null;
+  let trimmed = raw.trim();
+  if (trimmed.startsWith("00")) trimmed = "+" + trimmed.slice(2);
+  const hasIntl = trimmed.startsWith("+");
+  if (!hasIntl && !defaultRegion) return null;
   try {
-    const parsed = util.parseAndKeepRawInput(trimmed, undefined);
+    const parsed = util.parseAndKeepRawInput(
+      trimmed,
+      hasIntl ? undefined : defaultRegion,
+    );
     if (!util.isValidNumber(parsed)) return null;
     const regionCode = util.getRegionCodeForNumber(parsed);
     if (!regionCode) return null;
@@ -191,6 +202,16 @@ export const PhoneInput = memo(function PhoneInput({
   error?: string;
   code?: string;
 }) {
+  const { lang } = useTheme();
+  const countryList = useMemo(() => {
+    const intl = new Intl.DisplayNames([lang], { type: "region" });
+    return countries.map((c) => ({
+      name: intl.of(c.code) ?? "",
+      code: c.code,
+      dial: c.dialCode,
+      FlagComponent: flags[c.code as keyof typeof flags] ?? null,
+    }));
+  }, [lang]);
   const [selected, setSelected] = useState<Country>(() => {
     const initial = code
       ? countryList.find((c: Country) => c.dial === code)
@@ -211,7 +232,6 @@ export const PhoneInput = memo(function PhoneInput({
   const dropdownRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-
   const maxLen = useMemo(() => getNSNMaxLength(selected.code), [selected.code]);
   const placeholder = useMemo(
     () => getPhonePlaceholder(selected.code),
@@ -227,7 +247,7 @@ export const PhoneInput = memo(function PhoneInput({
               c.dial.includes(query),
           )
         : countryList,
-    [query],
+    [query, countryList],
   );
 
   useEffect(() => {
@@ -280,15 +300,33 @@ export const PhoneInput = memo(function PhoneInput({
       setQuery("");
       startTransition(() => inputRef.current?.focus());
     },
-    [applyCountry],
+    [applyCountry, countryList],
   );
 
   const handlePhone = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      const digits = e.target.value.replace(/\D/g, "").slice(0, maxLen);
+      const native = e.nativeEvent as InputEvent;
+      const inputType = native.inputType;
+      const raw = e.target.value;
+
+      const isBulk =
+        inputType === undefined ||
+        inputType === "insertReplacementText" ||
+        inputType === "insertFromPaste" ||
+        inputType === "insertFromDrop";
+
+      if (isBulk) {
+        const parsed = parsePastedPhone(raw, countryList, selected.code);
+        if (parsed) {
+          applyCountry(parsed.country, parsed.nsn);
+          return;
+        }
+      }
+
+      const digits = raw.replace(/\D/g, "").slice(0, maxLen);
       onChange(formatNSN(digits, selected.code));
     },
-    [selected.code, maxLen, onChange],
+    [selected.code, maxLen, onChange, countryList, applyCountry],
   );
 
   const handlePaste = useCallback(
@@ -299,13 +337,29 @@ export const PhoneInput = memo(function PhoneInput({
       e.preventDefault();
       applyCountry(parsed.country, parsed.nsn);
     },
-    [applyCountry],
+    [applyCountry, countryList],
   );
 
   const handleQuery = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => setQuery(e.target.value),
     [],
   );
+
+  useEffect(() => {
+    const el = inputRef.current;
+    if (!el) return;
+    const check = () => {
+      if (!el.matches(":autofill, :-webkit-autofill")) return;
+      const parsed = parsePastedPhone(el.value, countryList, selected.code);
+      if (parsed) applyCountry(parsed.country, parsed.nsn);
+    };
+    const t = setTimeout(check, 300);
+    el.addEventListener("animationstart", check);
+    return () => {
+      clearTimeout(t);
+      el.removeEventListener("animationstart", check);
+    };
+  }, [countryList, selected.code, applyCountry]);
 
   return (
     <div className="flex gap-2">
@@ -314,14 +368,14 @@ export const PhoneInput = memo(function PhoneInput({
           type="button"
           onClick={handleToggle}
           className={clsx(
-            "w-25 flex items-center gap-1.5 h-10 px-3 bg-transparent dark:bg-input/30 border text-sm text-foreground",
+            "w-27 grid grid-cols-[max-content_1fr_max-content] items-center gap-1.5 h-10 px-3 bg-transparent dark:bg-input/30 border text-sm text-foreground",
             error ? "border-destructive" : "border-border",
           )}
         >
           <Flag country={selected} />
-          <span>{selected.dial}</span>
+          <span className="font-medium">{selected.dial}</span>
           <svg
-            className={clsx("w-3 h-3 ml-0.5 transition", {
+            className={clsx("w-3 h-3 min-w-3 min-h-3 transition", {
               "rotate-180": open,
             })}
             viewBox="0 0 12 12"
@@ -336,37 +390,36 @@ export const PhoneInput = memo(function PhoneInput({
             />
           </svg>
         </button>
-        <div
-          className={clsx(
-            "absolute z-50 top-[calc(100%+4px)] left-0 w-64 bg-background border border-border shadow-lg overflow-hidden transition-opacity duration-75",
-            open
-              ? "opacity-100 pointer-events-auto"
-              : "opacity-0 pointer-events-none",
-          )}
-        >
-          <div className="p-2 border-b border-border">
-            <input
-              ref={searchRef}
-              type="text"
-              autoComplete="off"
-              id="phone-search"
-              name="phone-search"
-              placeholder="Search..."
-              value={query}
-              onChange={handleQuery}
-              className="w-full h-8 px-3 bg-input/30 border border-border text-sm"
-            />
+        {open && (
+          <div
+            className={clsx(
+              "absolute z-50 top-[calc(100%+4px)] left-0 w-64 bg-background border border-border shadow-lg overflow-hidden transition-opacity duration-75",
+            )}
+          >
+            <div className="p-2 border-b border-border">
+              <input
+                ref={searchRef}
+                type="text"
+                autoComplete="off"
+                id="phone-search"
+                name="phone-search"
+                placeholder="Search..."
+                value={query}
+                onChange={handleQuery}
+                className="w-full h-8 px-3 bg-input/30 border border-border text-sm"
+              />
+            </div>
+            {filtered.length === 0 ? (
+              <p className="text-center text-sm text-grey py-4">No results</p>
+            ) : (
+              <VirtualList
+                items={filtered}
+                selectedCode={selected.code}
+                onMouseDown={handleListMouseDown}
+              />
+            )}
           </div>
-          {filtered.length === 0 ? (
-            <p className="text-center text-sm text-gray py-4">No results</p>
-          ) : (
-            <VirtualList
-              items={filtered}
-              selectedCode={selected.code}
-              onMouseDown={handleListMouseDown}
-            />
-          )}
-        </div>
+        )}
       </div>
       <Input
         ref={inputRef}
@@ -381,7 +434,6 @@ export const PhoneInput = memo(function PhoneInput({
         onPaste={handlePaste}
         className={clsx(
           "h-10 text-sm placeholder:text-grey",
-
           error
             ? "border-destructive focus-visible:ring-destructive/75"
             : "border-border",

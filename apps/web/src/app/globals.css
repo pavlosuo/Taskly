@@ -151,7 +151,18 @@ html[data-theme="dark"] {
   --chart-5: oklch(0.473 0.137 46.201);
 }
 
+@keyframes autofill-start {
+  from {
+  }
+  to {
+  }
+}
+
 @layer base {
+  input:-webkit-autofill {
+    animation-name: autofill-start;
+  }
+
   :root {
     --scrollbar-track: var(--background);
     --scrollbar-thumb: var(--sidebar-ring);

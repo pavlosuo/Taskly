@@ -1,0 +1,36 @@
+{
+  "title": "Media library",
+  "description": "Choose files from your library or upload new ones",
+  "filters": {
+    "all": "All",
+    "image": "Images",
+    "video": "Video",
+    "audio": "Audio",
+    "document": "Documents",
+    "other": "Other"
+  },
+  "upload": {
+    "label": "Upload files",
+    "uploading": "Uploading...",
+    "progress": "Uploading {{done}}/{{total}}..."
+  },
+  "empty": {
+    "loading": "Loading...",
+    "library": "No files yet — drag and drop or upload",
+    "category": "No files in this category",
+    "drop": "Drop to upload"
+  },
+  "details": {
+    "name": "Name",
+    "type": "Type",
+    "size": "Size",
+    "uploaded": "Uploaded",
+    "empty": "Select a file to see its details",
+    "selected_one": "{{count}} file selected",
+    "selected_other": "{{count}} files selected",
+    "delete": "Delete permanently",
+    "deleteAll": "Delete all selected"
+  },
+  "deleteConfirm_one": "Delete this file permanently?",
+  "deleteConfirm_other": "Delete {{count}} files permanently?"
+}

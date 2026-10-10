@@ -103,20 +103,20 @@ export interface IServer {
     req: Request,
     res: Response,
     next: NextFunction,
-  ) => Promise<void>;
+  ) => Promise<void | Response>;
   requireAdmin(): (
     req: Request,
     res: Response,
     next: NextFunction,
-  ) => void | Response;
+  ) => Promise<void | Response>;
   requireTasker(): (
     req: Request,
     res: Response,
     next: NextFunction,
-  ) => void | Response;
+  ) => Promise<void | Response>;
   requireClient(): (
     req: Request,
     res: Response,
     next: NextFunction,
-  ) => void | Response;
+  ) => Promise<void | Response>;
 }

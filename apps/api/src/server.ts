@@ -146,7 +146,7 @@ export class Server implements IServer {
       if (!user)
         return res
           .status(401)
-          .json({ success: false, message: "errors.unauthorized" });
+          .json({ success: false, message: "general.unauthorized" });
       req.user = user;
       next();
     };
@@ -161,31 +161,37 @@ export class Server implements IServer {
   }
 
   requireAdmin() {
-    return (req: Request, res: Response, next: NextFunction) => {
-      if (req?.user?.role !== "admin")
+    return async (req: Request, res: Response, next: NextFunction) => {
+      const user = await this.getUserFromCookie(req);
+      if (user?.role !== "admin")
         return res
           .status(403)
-          .json({ success: false, message: "errors.forbidden" });
+          .json({ success: false, message: "general.forbidden" });
+      req.user = user;
       next();
     };
   }
 
   requireClient() {
-    return (req: Request, res: Response, next: NextFunction) => {
-      if (req?.user?.role !== "client")
+    return async (req: Request, res: Response, next: NextFunction) => {
+      const user = await this.getUserFromCookie(req);
+      if (user?.role !== "client")
         return res
           .status(403)
-          .json({ success: false, message: "errors.forbidden" });
+          .json({ success: false, message: "general.forbidden" });
+      req.user = user;
       next();
     };
   }
 
   requireTasker() {
-    return (req: Request, res: Response, next: NextFunction) => {
-      if (req?.user?.role !== "tasker")
+    return async (req: Request, res: Response, next: NextFunction) => {
+      const user = await this.getUserFromCookie(req);
+      if (user?.role !== "tasker")
         return res
           .status(403)
-          .json({ success: false, message: "errors.forbidden" });
+          .json({ success: false, message: "general.forbidden" });
+      req.user = user;
       next();
     };
   }
@@ -212,9 +218,7 @@ export class Server implements IServer {
 
   getIO(): SocketIOServer {
     if (!this._io) {
-      throw new Error(
-        "Socket.io server not initialized yet — call initSockets() first.",
-      );
+      throw new Error("general.unknown");
     }
     return this._io;
   }

@@ -1,0 +1,40 @@
+{
+  "roles": {
+    "tasker": "Tasker",
+    "client": "Client"
+  },
+  "verified": "Verified",
+  "memberSince": "Member since {{date}}",
+  "speaks": "Speaks {{languages}}",
+  "hire": "Hire {{name}}",
+  "hireDisabled": {
+    "loggedOut": "Sign in to send a message",
+    "own": "You can't message yourself"
+  },
+  "headerAlt": "Header image",
+  "chips": {
+    "skills_one": "skill",
+    "skills_other": "skills",
+    "certificates_one": "certificate",
+    "certificates_other": "certificates",
+    "languages_one": "language",
+    "languages_other": "languages"
+  },
+  "sections": {
+    "about": "About",
+    "introduction": "Introduction video",
+    "skills": "Skills",
+    "certificates": "Certificates",
+    "languages": "Languages"
+  },
+  "empty": {
+    "bio": "{{name}} hasn't written a bio yet.",
+    "introduction": "{{name}} hasn't added an introduction video yet.",
+    "skills": "No skills added yet.",
+    "certificates": "No certificates added yet.",
+    "languages": "No languages added yet."
+  },
+  "certificate": {
+    "view": "View {{name}} certificate"
+  }
+}

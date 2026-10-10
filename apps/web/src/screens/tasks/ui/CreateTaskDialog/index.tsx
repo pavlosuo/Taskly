@@ -15,6 +15,8 @@ import {
   CalendarClock,
   ListChecks,
 } from "lucide-react";
+import { useToast } from "@/hooks/useToast";
+import { useTranslation } from "react-i18next";
 import { useTasks } from "@/providers/TaskProvider";
 import { Input, PriceInput, TagInput } from "@/components/shared/Input";
 import { Button } from "@/components/ui/button";
@@ -33,7 +35,10 @@ import clsx from "clsx";
 const INITIAL_STATE: TaskCreateForm = {
   title: "",
   description: "",
-  deadline: null,
+  deadline: {
+    date: undefined,
+    time: "",
+  },
   budget: {
     amount: 0,
     negotiable: false,
@@ -48,39 +53,46 @@ const INITIAL_STATE: TaskCreateForm = {
 };
 
 export const CreateTaskDialog = () => {
+  const { t } = useTranslation(["tasks", "common", "errors"]);
   const [open, setOpen] = useState(false);
   const { createTask, isLoading } = useTasks();
   const [form, setForm] = useState<TaskCreateForm>(INITIAL_STATE);
   const [errors, setErrors] = useState<ZodErrors<TaskCreateForm>>({});
+  const toast = useToast();
+
+  const handleOpenChange = (next: boolean) => {
+    setOpen(next);
+    if (!next) setErrors({});
+  };
 
   const handleUpdate = <K extends keyof TaskCreateForm>(
     field: K,
     value: TaskCreateForm[K],
   ) => {
     setForm((prev) => ({ ...prev, [field]: value }));
-    setErrors((p) => ({ ...p, [field]: undefined, general: undefined }));
+    setErrors((p) => ({ ...p, [field]: undefined }));
   };
 
   const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    if (isLoading) return;
+    setErrors({});
+    const parsed = taskCreateSchema.safeParse(form);
+    if (!parsed.success) {
+      const { fieldErrors, formErrors } = parsed.error.flatten();
+      setErrors({
+        title: fieldErrors?.title?.[0],
+        description: fieldErrors?.description?.[0],
+        skills: fieldErrors?.skills?.[0],
+        certificates: fieldErrors?.certificates?.[0],
+        budget: fieldErrors?.budget?.[0],
+        location: fieldErrors?.location?.[0],
+        deadline: fieldErrors?.deadline?.[0],
+      });
+      toast(formErrors[0]);
+      return;
+    }
     try {
-      e.preventDefault();
-      setErrors({});
-      console.log(form);
-      const parsed = taskCreateSchema.safeParse(form);
-      if (!parsed.success) {
-        const { fieldErrors, formErrors } = parsed.error.flatten();
-        setErrors({
-          title: fieldErrors?.title?.[0],
-          description: fieldErrors?.description?.[0],
-          skills: fieldErrors?.skills?.[0],
-          certificates: fieldErrors?.certificates?.[0],
-          budget: fieldErrors?.budget?.[0],
-          location: fieldErrors?.location?.[0],
-          deadline: fieldErrors?.deadline?.[0],
-          general: formErrors[0],
-        });
-        return;
-      }
       await createTask({
         title: form.title.trim(),
         description: form.description.trim(),
@@ -92,65 +104,65 @@ export const CreateTaskDialog = () => {
       });
       setForm(INITIAL_STATE);
       setOpen(false);
-    } catch (e) {
-      setErrors({
-        general: getAxiosError(e),
-      });
+      toast("create.success", "success");
+    } catch (err) {
+      toast(getAxiosError(err));
     }
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button className="gap-1.5">
-          <Plus className="w-4 h-4" />
-          New task
+          <Plus aria-hidden="true" className="w-4 h-4" />
+          {t("create.trigger")}
         </Button>
       </DialogTrigger>
       <DialogContent className="grid grid-cols-1 grid-rows-[max-content_1fr] sm:max-w-5xl w-[calc(100%-2rem)] max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-              <ClipboardList className="w-5 h-5" />
+              <ClipboardList aria-hidden="true" className="w-5 h-5" />
             </div>
             <div>
-              <DialogTitle>Create a new task</DialogTitle>
-              <DialogDescription>
-                Give it a clear title, a place, and a deadline — taskers will
-                find it in search.
-              </DialogDescription>
+              <DialogTitle>{t("create.title")}</DialogTitle>
+              <DialogDescription>{t("create.description")}</DialogDescription>
             </div>
           </div>
         </DialogHeader>
         <form
           onSubmit={handleSubmit}
+          noValidate
           className="w-full grid grid-cols-1 grid-rows-[1fr_max-content]"
         >
           <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
             <div className="flex flex-col gap-5">
-              <SectionLabel icon={ClipboardList}>Task details</SectionLabel>
+              <SectionLabel icon={ClipboardList}>
+                {t("create.sections.details")}
+              </SectionLabel>
               <div className="form-group">
                 <Label error={!!errors.title} htmlFor="title">
-                  Task title
+                  {t("create.fields.title.label")}
                 </Label>
                 <Input
                   name="title"
                   value={form.title}
                   onChange={(e) => handleUpdate("title", e.target.value)}
-                  placeholder="e.g. Assemble an IKEA wardrobe"
+                  placeholder={t("create.fields.title.placeholder")}
                   error={errors.title}
                 />
                 <FieldError message={errors.title} />
               </div>
               <div className="form-group">
                 <Label error={!!errors.description} htmlFor="description">
-                  Description
+                  {t("create.fields.description.label")}
                 </Label>
                 <Textarea
                   id="description"
                   value={form.description}
                   onChange={(e) => handleUpdate("description", e.target.value)}
-                  placeholder="Describe what needs to be done, the scope of work, and any important details."
+                  placeholder={t("create.fields.description.placeholder")}
+                  aria-invalid={!!errors.description}
                   rows={8}
                   className={clsx(
                     "resize-none border",
@@ -163,7 +175,7 @@ export const CreateTaskDialog = () => {
               </div>
               <div className="form-group">
                 <Label error={!!errors.location} htmlFor="location-search">
-                  Location
+                  {t("create.fields.location.label")}
                 </Label>
                 <LocationPicker
                   value={form.location}
@@ -177,12 +189,12 @@ export const CreateTaskDialog = () => {
             </div>
             <div className="flex flex-col gap-5">
               <SectionLabel icon={CalendarClock}>
-                Schedule & budget
+                {t("create.sections.schedule")}
               </SectionLabel>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="form-group">
                   <Label error={!!errors.deadline} htmlFor="deadline">
-                    Deadline
+                    {t("create.fields.deadline.label")}
                   </Label>
                   <DatePicker
                     onChange={(date) => handleUpdate("deadline", date)}
@@ -194,7 +206,7 @@ export const CreateTaskDialog = () => {
                 </div>
                 <div className="form-group">
                   <Label error={!!errors.budget} htmlFor="amount">
-                    Budget
+                    {t("create.fields.budget.label")}
                   </Label>
                   <PriceInput
                     name="amount"
@@ -205,7 +217,7 @@ export const CreateTaskDialog = () => {
                         amount: number,
                       })
                     }
-                    placeholder="Optional"
+                    placeholder={t("create.fields.budget.placeholder")}
                     error={errors.budget}
                   />
                   <FieldError message={errors.budget} />
@@ -214,13 +226,14 @@ export const CreateTaskDialog = () => {
               <div className="flex items-center justify-between gap-4 rounded-xl border border-border bg-muted/30 px-3.5 py-3">
                 <div>
                   <p className="text-sm font-medium text-foreground">
-                    Budget is negotiable
+                    {t("create.negotiable.title")}
                   </p>
-                  <p className="text-xs text-muted-foreground">
-                    Taskers can suggest their own price
+                  <p className="text-xs text-grey">
+                    {t("create.negotiable.description")}
                   </p>
                 </div>
                 <Switch
+                  aria-label={t("create.negotiable.title")}
                   checked={form.budget.negotiable}
                   onCheckedChange={(checked) =>
                     handleUpdate("budget", {
@@ -230,12 +243,14 @@ export const CreateTaskDialog = () => {
                   }
                 />
               </div>
-              <SectionLabel icon={ListChecks}>Requirements</SectionLabel>
+              <SectionLabel icon={ListChecks}>
+                {t("create.sections.requirements")}
+              </SectionLabel>
               <TagInput
-                label="Required skills"
+                label={t("create.fields.skills.label")}
                 value={form.skills}
                 onChange={(v) => handleUpdate("skills", v)}
-                placeholder="Search or add a skill..."
+                placeholder={t("create.fields.skills.placeholder")}
                 name="skills"
                 error={errors.skills}
                 searchFn={async (search: string) => {
@@ -254,10 +269,10 @@ export const CreateTaskDialog = () => {
                 }}
               />
               <TagInput
-                label="Required certificates"
+                label={t("create.fields.certificates.label")}
                 value={form.certificates}
                 onChange={(v) => handleUpdate("certificates", v)}
-                placeholder="Search or add a certificate..."
+                placeholder={t("create.fields.certificates.placeholder")}
                 name="certificates"
                 error={errors.certificates}
                 searchFn={async (search: string) => {
@@ -278,18 +293,15 @@ export const CreateTaskDialog = () => {
             </div>
           </div>
           <div className="mt-8 border-t border-border pt-5">
-            {errors.general && (
-              <p className="mb-4 text-xs text-destructive">{errors.general}</p>
-            )}
             <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => setOpen(false)}
+                onClick={() => handleOpenChange(false)}
                 disabled={isLoading}
                 className="w-full sm:w-auto"
               >
-                Cancel
+                {t("common:actions.cancel")}
               </Button>
               <Button
                 type="submit"
@@ -297,11 +309,14 @@ export const CreateTaskDialog = () => {
                 className="w-full sm:w-auto"
               >
                 {isLoading ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <Loader2
+                    aria-hidden="true"
+                    className="h-4 w-4 animate-spin"
+                  />
                 ) : (
-                  <Plus className="h-4 w-4" />
+                  <Plus aria-hidden="true" className="h-4 w-4" />
                 )}
-                Create task
+                {t("create.submit")}
               </Button>
             </div>
           </div>

@@ -1,10 +1,22 @@
 "use client";
-import { useState, useCallback, memo, createContext, useContext } from "react";
+import {
+  useState,
+  useCallback,
+  useMemo,
+  memo,
+  createContext,
+  useContext,
+  useEffect,
+} from "react";
 import { useRouter } from "next/navigation";
+import { useTranslation } from "react-i18next";
+import clsx from "clsx";
+import { Info, Check } from "lucide-react";
 import { useUser } from "@/providers/UserProvider";
 import { Button } from "@/components/ui/button";
 import { Input, PhoneInput } from "@/components/shared/Input";
-import { Info, Check } from "lucide-react";
+import { FieldError } from "@/components/shared/FieldError";
+import { Label } from "@/components/shared/Label";
 import {
   InputOTP,
   InputOTPGroup,
@@ -19,30 +31,32 @@ import {
   OtpChannel,
   Step,
   ZodErrors,
+  RESET_LINK_TTL_MINUTES,
   getPasswordStrength,
+  RESEND_COOLDOWN_SECONDS,
+  TokenErrorType,
 } from "shared/index";
 import {
   AuthLayout,
   PasswordToggle,
-  BottomLink,
+  RegisterLink,
   MethodToggle,
   Title,
 } from "@/screens/auth/ui";
-import { getAxiosError } from "@/utils/getAxiosError";
-import clsx from "clsx";
-import { useTranslation } from "react-i18next";
-import { FieldError } from "@/components/shared/FieldError";
-import { Label } from "@/components/shared/Label";
+import { usePhoneFields } from "@/hooks/usePhoneFields";
+import { useToast } from "@/hooks/useToast";
 
 export interface ForgotPasswordContextValue {
   step: Step;
   method: OtpChannel;
   phone: string;
+  email: string;
   resetToken: string;
-  tokenError: { title: string; message: string };
+  tokenErrorType: TokenErrorType;
   setStep: (step: Step) => void;
   setMethod: (method: OtpChannel) => void;
   setPhone: (phone: string) => void;
+  setEmail: (email: string) => void;
   setResetToken: (token: string) => void;
   goToEntry: (m?: OtpChannel) => void;
 }
@@ -60,82 +74,76 @@ function useForgotPassword() {
   return ctx;
 }
 
+const HintBox = memo(function HintBox({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const { t } = useTranslation("common");
+  return (
+    <div className="bg-primary/5 px-4 py-3 flex gap-1 flex-col">
+      <div className="flex items-center gap-1">
+        <Info
+          aria-hidden="true"
+          className="w-4 h-4 text-foreground mt-0.5 shrink-0"
+        />
+        <span className="text-sm text-foreground font-semibold">
+          {t("hint.label")}
+        </span>
+      </div>
+      <p className="text-sm text-primary">{children}</p>
+    </div>
+  );
+});
+
+const StatusIcon = memo(function StatusIcon() {
+  return (
+    <div className="w-10 h-10 rounded-full border border-primary flex items-center justify-center">
+      <Check aria-hidden="true" className="w-5 h-5 text-primary" />
+    </div>
+  );
+});
+
 const PhoneStep = memo(function PhoneStep() {
   const { t } = useTranslation("forgotPassword");
-  const { t: tErrors } = useTranslation("errors");
   const { setStep, setPhone, goToEntry } = useForgotPassword();
-  const [error, setError] = useState("");
   const { sendPasswordResetOtp, isLoading } = useUser();
-  const router = useRouter();
-  const [form, setForm] = useState<{
-    phone: string;
-    code: string;
-    fullPhone: string;
-  }>({
-    phone: "",
-    code: "",
-    fullPhone: "",
-  });
-
-  const buildFullPhone = useCallback(
-    (code: string, phone: string) =>
-      `${code ?? ""}${(phone ?? "").replace(/\s/g, "")}`,
-    [],
+  const [error, setError] = useState<string>();
+  const [form, setForm] = useState({ phone: "", code: "", fullPhone: "" });
+  const clearError = useCallback(() => setError(undefined), []);
+  const { handleLocalPhone, handleCodeChange } = usePhoneFields(
+    setForm,
+    clearError,
   );
-
-  const handleLocalPhone = useCallback(
-    (phone: string) => {
-      setError("");
-      setForm((p) => ({
-        ...p,
-        phone,
-        fullPhone: buildFullPhone(p.code, phone),
-      }));
-    },
-    [buildFullPhone],
-  );
-
-  const handleCodeChange = useCallback(
-    (code: string) => {
-      setError("");
-      setForm((p) => ({
-        ...p,
-        code,
-        fullPhone: buildFullPhone(code, p.phone),
-      }));
-    },
-    [buildFullPhone],
-  );
+  const toast = useToast();
 
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
       e.preventDefault();
-      const fullPhone = form.fullPhone;
       const result = sendResetOtpSchema.safeParse({
-        fullPhone,
+        fullPhone: form.fullPhone,
       });
       if (!result.success) {
         const { fieldErrors, formErrors } = result.error.flatten();
-        setError(fieldErrors.fullPhone?.[0] ?? formErrors[0]);
+        setError(fieldErrors.fullPhone?.[0]);
+        toast(formErrors[0]);
         return;
       }
       try {
-        await sendPasswordResetOtp(fullPhone);
-        setPhone(fullPhone);
+        await sendPasswordResetOtp(form.fullPhone);
+        setPhone(form.fullPhone);
         setStep("otp");
-      } catch (err) {
-        setError(getAxiosError(err));
-      }
+      } catch {}
     },
-    [form, setStep, setPhone, sendPasswordResetOtp],
+    [form.fullPhone, setStep, setPhone, sendPasswordResetOtp, toast],
   );
 
   return (
     <>
-      <Title>{t("phone.title")}</Title>
-      <p className="text-sm text-gray mb-6">{t("phone.subtitle")}</p>
+      <Title>{t("entry.title")}</Title>
+      <p className="text-sm text-grey mb-6">{t("phone.subtitle")}</p>
       <MethodToggle method="phone" onChange={(m) => goToEntry(m)} />
-      <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+      <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-5">
         <div className="form-group">
           <Label error={!!error} htmlFor="phone">
             {t("phone.label")}
@@ -147,29 +155,24 @@ const PhoneStep = memo(function PhoneStep() {
             setCode={handleCodeChange}
             id="phone"
           />
-          <FieldError message={error ? tErrors(error) : ""} />
+          <FieldError message={error} />
         </div>
         <Button type="submit" disabled={isLoading}>
           {isLoading ? t("phone.submit.loading") : t("phone.submit.idle")}
         </Button>
       </form>
-      <BottomLink
-        text={t("bottomLink.text")}
-        label={t("bottomLink.label")}
-        onClick={() => router.push("/register")}
-      />
+      <RegisterLink />
     </>
   );
 });
 
 const EmailStep = memo(function EmailStep() {
-  const { t: tErrors } = useTranslation("errors");
   const { t } = useTranslation("forgotPassword");
-  const { setStep, goToEntry } = useForgotPassword();
-  const [email, setEmail] = useState("");
-  const [error, setError] = useState("");
+  const { setStep, setEmail: saveEmail, goToEntry } = useForgotPassword();
   const { sendPasswordResetLink, isLoading } = useUser();
-  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [error, setError] = useState<string>();
+  const toast = useToast();
 
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
@@ -177,25 +180,25 @@ const EmailStep = memo(function EmailStep() {
       const result = forgotPasswordEmailSchema.safeParse({ email });
       if (!result.success) {
         const { fieldErrors, formErrors } = result.error.flatten();
-        setError(fieldErrors.email?.[0] ?? formErrors[0]);
+        setError(fieldErrors.email?.[0]);
+        toast(formErrors[0]);
         return;
       }
       try {
         await sendPasswordResetLink(email);
+        saveEmail(email);
         setStep("email-sent");
-      } catch (err) {
-        setError(getAxiosError(err));
-      }
+      } catch {}
     },
-    [email, setStep, sendPasswordResetLink],
+    [email, setStep, saveEmail, sendPasswordResetLink, toast],
   );
 
   return (
     <>
-      <Title>{t("email.title")}</Title>
-      <p className="text-sm text-gray mb-6">{t("email.subtitle")}</p>
+      <Title>{t("entry.title")}</Title>
+      <p className="text-sm text-grey mb-6">{t("email.subtitle")}</p>
       <MethodToggle method="email" onChange={(m) => goToEntry(m)} />
-      <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+      <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-5">
         <div className="form-group">
           <Label htmlFor="email" error={!!error}>
             {t("email.label")}
@@ -209,20 +212,16 @@ const EmailStep = memo(function EmailStep() {
             value={email}
             onChange={(e) => {
               setEmail(e.target.value);
-              setError("");
+              setError(undefined);
             }}
           />
-          <FieldError message={error ? tErrors(error) : ""} />
+          <FieldError message={error} />
         </div>
         <Button type="submit" disabled={isLoading}>
           {isLoading ? t("email.submit.loading") : t("email.submit.idle")}
         </Button>
       </form>
-      <BottomLink
-        text={t("bottomLink.text")}
-        label={t("bottomLink.label")}
-        onClick={() => router.push("/register")}
-      />
+      <RegisterLink />
     </>
   );
 });
@@ -230,11 +229,18 @@ const EmailStep = memo(function EmailStep() {
 const OtpStep = memo(function OtpStep() {
   const { t } = useTranslation("forgotPassword");
   const { phone, setStep, setResetToken } = useForgotPassword();
-  const [digits, setDigits] = useState("");
-  const [error, setError] = useState("");
-  const { t: tErrors } = useTranslation("errors");
   const { sendPasswordResetOtp, verifyPasswordResetOtp, isLoading } = useUser();
-  const router = useRouter();
+  const [digits, setDigits] = useState("");
+  const [error, setError] = useState<string>();
+  const [resent, setResent] = useState(false);
+  const [cooldown, setCooldown] = useState(RESEND_COOLDOWN_SECONDS);
+  const toast = useToast();
+
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const timer = setTimeout(() => setCooldown((c) => c - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [cooldown]);
 
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
@@ -242,42 +248,46 @@ const OtpStep = memo(function OtpStep() {
       const result = otpSchema.safeParse({ otp: digits });
       if (!result.success) {
         const { fieldErrors, formErrors } = result.error.flatten();
-        setError(fieldErrors.otp?.[0] ?? formErrors[0]);
+        setError(fieldErrors.otp?.[0]);
+        toast(formErrors[0]);
         return;
       }
       try {
         const resetToken = await verifyPasswordResetOtp(phone, digits);
         setResetToken(resetToken);
         setStep("new-password");
-      } catch (err) {
-        setError(getAxiosError(err));
-      }
+      } catch {}
     },
-    [digits, phone, setStep, setResetToken, verifyPasswordResetOtp],
+    [digits, phone, setStep, setResetToken, verifyPasswordResetOtp, toast],
   );
 
   const handleResend = useCallback(async () => {
+    if (cooldown > 0) return;
     setDigits("");
-    setError("");
+    setError(undefined);
+    setResent(false);
     try {
       await sendPasswordResetOtp(phone);
-    } catch (err) {
-      setError(getAxiosError(err));
-    }
-  }, [phone, sendPasswordResetOtp]);
+      setResent(true);
+      setCooldown(RESEND_COOLDOWN_SECONDS);
+    } catch {}
+  }, [cooldown, phone, sendPasswordResetOtp]);
 
   return (
     <>
-      <Title>{t("otp.title")}</Title>
-      <p className="text-sm text-gray mb-8">{t("otp.subtitle")}</p>
-      <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+      <Title>{t("otp.title", { phone })}</Title>
+      <p className="text-sm text-grey mb-8">{t("otp.subtitle")}</p>
+      <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-3">
         <div className="form-group">
           <InputOTP
             maxLength={6}
             value={digits}
+            aria-label={t("otp.label")}
+            aria-invalid={!!error}
             onChange={(v) => {
               setDigits(v);
-              setError("");
+              setError(undefined);
+              setResent(false);
             }}
           >
             <InputOTPGroup className="*:data-[slot=input-otp-slot]:h-10 *:data-[slot=input-otp-slot]:w-12 *:data-[slot=input-otp-slot]:text-xl">
@@ -286,52 +296,62 @@ const OtpStep = memo(function OtpStep() {
               ))}
             </InputOTPGroup>
           </InputOTP>
-          <FieldError message={error ? tErrors(error) : ""} />
+          <FieldError message={error} />
+          {resent && (
+            <p role="status" className="text-xs mt-1 text-success">
+              {t("otp.resent", { phone })}
+            </p>
+          )}
         </div>
-        <p className="text-sm text-gray">
+        <p className="text-sm text-grey">
           {t("otp.resendText")}{" "}
-          <button
-            type="button"
-            onClick={handleResend}
-            className="text-primary hover:text-primary/90 font-medium hover:underline"
-          >
-            {t("otp.resendLink")}
-          </button>
+          {cooldown > 0 ? (
+            <span>{t("otp.resendIn", { seconds: cooldown })}</span>
+          ) : (
+            <button
+              type="button"
+              onClick={handleResend}
+              className="text-primary hover:text-primary/90 font-medium hover:underline"
+            >
+              {t("otp.resendLink")}
+            </button>
+          )}
         </p>
         <Button type="submit" disabled={isLoading || digits.length < 6}>
           {isLoading ? t("otp.submit.loading") : t("otp.submit.idle")}
         </Button>
       </form>
-      <BottomLink
-        text={t("bottomLink.text")}
-        label={t("bottomLink.label")}
-        onClick={() => router.push("/register")}
-      />
+      <RegisterLink />
     </>
   );
 });
 
 const EmailSentStep = memo(function EmailSentStep() {
   const { t } = useTranslation("forgotPassword");
+  const { email, goToEntry } = useForgotPassword();
   const router = useRouter();
   return (
     <div className="flex flex-col gap-5">
-      <div className="w-10 h-10 rounded-full border border-primary flex items-center justify-center">
-        <Check className="w-5 h-5 text-primary" />
-      </div>
+      <StatusIcon />
       <div className="form-group">
         <Title>{t("emailSent.title")}</Title>
-        <p className="text-sm text-gray">{t("emailSent.subtitle")}</p>
+        <p className="text-sm text-grey">
+          {t("emailSent.subtitle", {
+            email,
+            minutes: RESET_LINK_TTL_MINUTES,
+          })}
+        </p>
       </div>
-      <div className="bg-primary/5 px-4 py-3 flex gap-1 flex-col">
-        <div className="flex items-center gap-1 color">
-          <Info className="w-4 h-4 text-foreground mt-0.5 shrink-0" />
-          <span className="text-sm text-foreground font-semibold">
-            {t("hint.label")}
-          </span>
-        </div>
-        <p className="text-sm text-primary">{t("emailSent.hint")}</p>
-      </div>
+      <HintBox>
+        {t("emailSent.hint")}{" "}
+        <button
+          type="button"
+          onClick={() => goToEntry("email")}
+          className="font-medium underline hover:text-primary/90"
+        >
+          {t("emailSent.tryAgain")}
+        </button>
+      </HintBox>
       <Button onClick={() => router.push("/login")}>
         {t("emailSent.backToLogin")}
       </Button>
@@ -340,9 +360,9 @@ const EmailSentStep = memo(function EmailSentStep() {
 });
 
 const NewPasswordStep = memo(function NewPasswordStep() {
-  const { t } = useTranslation("forgotPassword");
+  const { t } = useTranslation(["forgotPassword", "errors"]);
   const { resetToken, setStep } = useForgotPassword();
-  const { t: tErrors } = useTranslation("errors");
+  const { resetPassword, isLoading } = useUser();
   const [form, setForm] = useState<NewPasswordForm>({
     password: "",
     confirm: "",
@@ -350,14 +370,13 @@ const NewPasswordStep = memo(function NewPasswordStep() {
   const [show, setShow] = useState({ password: false, confirm: false });
   const [errors, setErrors] = useState<ZodErrors<NewPasswordForm>>({});
   const strength = getPasswordStrength(form.password);
-  const { resetPassword, isLoading } = useUser();
-  const router = useRouter();
+  const toast = useToast();
 
   const handleChange = useCallback(
     (field: keyof NewPasswordForm) =>
       (e: React.ChangeEvent<HTMLInputElement>) => {
         setForm((p) => ({ ...p, [field]: e.target.value }));
-        setErrors((p) => ({ ...p, [field]: undefined }));
+        setErrors((p) => ({ ...p, [field]: undefined, general: undefined }));
       },
     [],
   );
@@ -371,86 +390,70 @@ const NewPasswordStep = memo(function NewPasswordStep() {
         setErrors({
           password: fieldErrors.password?.[0],
           confirm: fieldErrors.confirm?.[0],
-          general: formErrors[0],
         });
+        toast(formErrors[0]);
         return;
       }
       try {
         await resetPassword(resetToken, form.password);
         setStep("success");
-      } catch (err) {
-        setErrors({ general: getAxiosError(err) });
-      }
+      } catch {}
     },
-    [form, resetToken, setStep, resetPassword],
+    [form, resetToken, setStep, resetPassword, toast],
   );
 
   return (
     <>
       <Title>{t("newPassword.title")}</Title>
-      <p className="text-sm text-gray mb-8">{t("newPassword.subtitle")}</p>
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        {(["password", "confirm"] as const).map((field, i) => (
-          <div key={field} className="form-group">
-            <Label htmlFor={field} error={!!errors[field]}>
-              {t(`newPassword.fields.${field}`)}
-            </Label>
-            <div className="relative">
-              <Input
-                error={errors[field]}
-                name={field}
-                type={show[field] ? "text" : "password"}
-                placeholder={t(`newPassword.fields.${field}`)}
-                value={form[field]}
-                onChange={handleChange(field)}
-                className={clsx("pr-10")}
-              />
-              <PasswordToggle
-                show={show[field]}
-                onToggle={() => setShow((p) => ({ ...p, [field]: !p[field] }))}
-              />
+      <p className="text-sm text-grey mb-8">{t("newPassword.subtitle")}</p>
+      <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
+        {(["password", "confirm"] as const).map((field) => {
+          const error = errors[field] as string | undefined;
+          return (
+            <div key={field} className="form-group">
+              <Label htmlFor={field} error={!!error}>
+                {t(`newPassword.fields.${field}.label`)}
+              </Label>
+              <div className="relative">
+                <Input
+                  error={error}
+                  name={field}
+                  autoComplete="new-password"
+                  type={show[field] ? "text" : "password"}
+                  placeholder={t(`newPassword.fields.${field}.placeholder`)}
+                  value={form[field]}
+                  onChange={handleChange(field)}
+                  className="pr-10"
+                />
+                <PasswordToggle
+                  show={show[field]}
+                  onToggle={() =>
+                    setShow((p) => ({ ...p, [field]: !p[field] }))
+                  }
+                />
+              </div>
+              {field === "password" && !error && strength && (
+                <>
+                  <p
+                    className={clsx("text-xs mt-1 font-medium", strength.color)}
+                  >
+                    {t(strength.label, { ns: "errors" })}
+                  </p>
+                  <FieldError hint message={strength.tips[0]} />
+                </>
+              )}
+              <FieldError message={error} />
             </div>
-            {field === "password" && strength && form.password && (
-              <p className={clsx("text-xs mt-1 font-medium", strength.color)}>
-                {tErrors(strength.tips[0] ?? strength.label)}
-              </p>
-            )}
-            {errors["confirm"] && i === 0 && (
-              <FieldError
-                message={errors["confirm"] ? tErrors(errors["confirm"]) : ""}
-              />
-            )}
-            {!errors["confirm"] && (
-              <FieldError
-                message={errors[field] ? tErrors(errors[field]) : ""}
-              />
-            )}
-            <FieldError message={errors[field] ? tErrors(errors[field]) : ""} />
-          </div>
-        ))}
-        <div className="bg-primary/5 px-4 py-3 flex gap-1 flex-col">
-          <div className="flex items-center gap-1 color">
-            <Info className="w-4 h-4 text-foreground mt-0.5 shrink-0" />
-            <span className="text-sm text-foreground font-semibold">
-              {t("hint.label")}
-            </span>
-          </div>
-          <p className="text-sm text-primary">{t("newPassword.hint")}</p>
-        </div>
-        {errors.general && (
-          <p className="text-xs text-destructive">{errors.general}</p>
-        )}
+          );
+        })}
+        <HintBox>{t("newPassword.hint")}</HintBox>
         <Button type="submit" disabled={isLoading}>
           {isLoading
             ? t("newPassword.submit.loading")
             : t("newPassword.submit.idle")}
         </Button>
       </form>
-      <BottomLink
-        text={t("bottomLink.text")}
-        label={t("bottomLink.label")}
-        onClick={() => router.push("/register")}
-      />
+      <RegisterLink />
     </>
   );
 });
@@ -460,12 +463,10 @@ const SuccessStep = memo(function SuccessStep() {
   const router = useRouter();
   return (
     <div className="flex flex-col gap-5">
-      <div className="w-10 h-10 rounded-full border border-primary flex items-center justify-center">
-        <Check className="w-5 h-5 text-primary" />
-      </div>
+      <StatusIcon />
       <div className="form-group">
         <Title>{t("success.title")}</Title>
-        <p className="text-sm text-gray">{t("success.subtitle")}</p>
+        <p className="text-sm text-grey">{t("success.subtitle")}</p>
       </div>
       <Button onClick={() => router.push("/login")}>
         {t("success.signIn")}
@@ -476,13 +477,15 @@ const SuccessStep = memo(function SuccessStep() {
 
 const TokenErrorStep = memo(function TokenErrorStep() {
   const { t } = useTranslation("forgotPassword");
-  const { tokenError, goToEntry } = useForgotPassword();
+  const { tokenErrorType, goToEntry } = useForgotPassword();
   const router = useRouter();
   return (
     <div className="flex flex-col gap-5">
       <div>
-        <Title>{tokenError.title}</Title>
-        <p className="text-sm text-gray">{tokenError.message}</p>
+        <Title>{t(`tokenError.titles.${tokenErrorType}`)}</Title>
+        <p className="text-sm text-grey">
+          {t(`tokenError.messages.${tokenErrorType}`)}
+        </p>
       </div>
       <Button
         onClick={() => {
@@ -509,55 +512,43 @@ export function ForgotPassword({
   error,
 }: {
   initialToken?: string;
-  error?: "expired" | "invalid" | "error";
+  error?: TokenErrorType;
 }) {
-  const { t } = useTranslation("forgotPassword");
-
-  const errorMessages = {
-    expired: t("tokenError.messages.expired"),
-    invalid: t("tokenError.messages.invalid"),
-    error: t("tokenError.messages.error"),
-  };
-
-  const errorTitles = {
-    expired: t("tokenError.titles.expired"),
-    invalid: t("tokenError.titles.invalid"),
-    error: t("tokenError.titles.error"),
-  };
-
   const [step, setStep] = useState<Step>(
     initialToken ? "new-password" : error ? "token-error" : "entry",
   );
   const [method, setMethod] = useState<OtpChannel>("phone");
   const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
   const [resetToken, setResetToken] = useState(initialToken ?? "");
-
-  const tokenError = error
-    ? { title: errorTitles[error], message: errorMessages[error] }
-    : { title: errorTitles["error"], message: errorMessages["error"] };
 
   const goToEntry = useCallback((m: OtpChannel = "phone") => {
     setMethod(m);
     setStep("entry");
   }, []);
 
+  const value = useMemo(
+    () => ({
+      step,
+      method,
+      phone,
+      email,
+      resetToken,
+      tokenErrorType: error ?? "error",
+      setStep,
+      setMethod,
+      setPhone,
+      setEmail,
+      setResetToken,
+      goToEntry,
+    }),
+    [step, method, phone, email, resetToken, error, goToEntry],
+  );
+
   const entryStep = method === "phone" ? <PhoneStep /> : <EmailStep />;
 
   return (
-    <ForgotPasswordContext.Provider
-      value={{
-        step,
-        method,
-        phone,
-        resetToken,
-        tokenError,
-        setStep,
-        setMethod,
-        setPhone,
-        setResetToken,
-        goToEntry,
-      }}
-    >
+    <ForgotPasswordContext.Provider value={value}>
       <AuthLayout>{step === "entry" ? entryStep : STEPS[step]}</AuthLayout>
     </ForgotPasswordContext.Provider>
   );

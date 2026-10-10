@@ -20,11 +20,8 @@ function extendMaterial(BaseMaterial, cfg) {
     uniforms: baseUniforms,
   } = physical;
   const baseDefines = physical.defines ?? {};
-
   const uniforms = THREE.UniformsUtils.clone(baseUniforms);
-
   const defaults = new BaseMaterial(cfg.material || {});
-
   if (defaults.color) uniforms.diffuse.value = defaults.color;
   if ("roughness" in defaults) uniforms.roughness.value = defaults.roughness;
   if ("metalness" in defaults) uniforms.metalness.value = defaults.metalness;

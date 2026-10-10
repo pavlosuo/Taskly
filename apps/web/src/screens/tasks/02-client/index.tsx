@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { ClipboardList, Loader2 } from "lucide-react";
 import clsx from "clsx";
+import { useTranslation } from "react-i18next";
 import { Task, TaskList, TABS, TAB_LABELS } from "shared/index";
 import { useTasks } from "@/providers/TaskProvider";
 import {
@@ -20,6 +21,7 @@ export const Client = (initial: TaskList) => {
   const b = useTasks(initial);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const { t } = useTranslation(["tasks", "common"]);
 
   const openTask = (task: Task) => {
     setSelectedTaskId(task._id);
@@ -28,23 +30,24 @@ export const Client = (initial: TaskList) => {
 
   const filtered = isFiltered(b.filters, b.query);
   const isEmpty = b.visible.length === 0;
+  const emptyKey = b.tab === "my" ? "my" : "open";
 
   return (
     <div className="w-full px-4 pb-6 pt-1">
       <div className="flex flex-col gap-4 pb-4">
-        <div className="flex items-center justify-between gap-3">
-          <p className="text-sm text-grey">Create tasks and manage responses</p>
+        <div className="grid grid-cols-[1fr_max-content_max-content] items-center gap-3">
+          <p className="text-sm text-grey">{t("client.title")}</p>
           <CreateTaskDialog />
+          <TaskTabs
+            tabs={TABS.map((tab) => ({
+              value: tab,
+              label: t(TAB_LABELS[tab]),
+              count: tab === "my" ? b.myCount : undefined,
+            }))}
+            value={b.tab}
+            onChange={b.changeTab}
+          />
         </div>
-        <TaskTabs
-          tabs={TABS.map((t) => ({
-            value: t,
-            label: TAB_LABELS[t],
-            count: t === "my" ? b.myCount : undefined,
-          }))}
-          value={b.tab}
-          onChange={b.changeTab}
-        />
         <TaskToolbar
           query={b.query}
           onQueryChange={b.setQuery}
@@ -52,47 +55,37 @@ export const Client = (initial: TaskList) => {
           filters={b.filters}
           onFiltersChange={b.setFilters}
           statusOptions={b.statusOptions}
-          placeholder="Search tasks..."
+          placeholder={t("actions.search")}
         />
       </div>
-      {b.listError && (
-        <p className="mb-3 text-xs text-destructive">{b.listError}</p>
-      )}
       {!isEmpty && (
         <p className="mb-4 text-xs text-grey">
-          Showing {b.shown} of {b.total}
+          {t("list.showing", { shown: b.shown, count: b.total })}
         </p>
       )}
       {isEmpty && b.isListLoading && (
-        <div className="flex justify-center py-10 text-grey">
-          <Loader2 className="h-4 w-4 animate-spin" />
+        <div role="status" className="flex justify-center py-10 text-grey">
+          <Loader2 aria-hidden="true" className="h-4 w-4 animate-spin" />
+          <span className="sr-only">{t("common:loading")}</span>
         </div>
       )}
       {isEmpty && !b.isListLoading && (
         <>
           {filtered ? (
             <TaskEmptyState
-              title="No tasks match your search"
-              text="Try a different keyword or loosen the filters."
+              title={t("empty.noMatches.title")}
+              text={t("empty.noMatches.text")}
               action={
                 <Button variant="outline" size="sm" onClick={b.reset}>
-                  Clear search and filters
+                  {t("empty.noMatches.action")}
                 </Button>
               }
             />
           ) : (
             <TaskEmptyState
-              icon={<ClipboardList className="h-5 w-5" />}
-              title={
-                b.tab === "my"
-                  ? "You don't have any tasks yet"
-                  : "No open tasks right now"
-              }
-              text={
-                b.tab === "my"
-                  ? 'Click "New task" to create the first one.'
-                  : "Check again later."
-              }
+              icon={<ClipboardList aria-hidden="true" className="h-5 w-5" />}
+              title={t(`client.empty.${emptyKey}.title`)}
+              text={t(`client.empty.${emptyKey}.text`)}
             />
           )}
         </>
@@ -114,7 +107,7 @@ export const Client = (initial: TaskList) => {
             onClick={b.loadMoreTasks}
             disabled={b.isLoadingMore}
           >
-            {b.isLoadingMore ? "Loading..." : "Load more"}
+            {b.isLoadingMore ? t("common:loading") : t("list.loadMore")}
           </Button>
         </div>
       )}

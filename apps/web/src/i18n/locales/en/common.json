@@ -1,3 +1,61 @@
 {
-  "title": "Welcome Back"
+  "appName": "Taskly",
+  "actions": {
+    "back": "Back",
+    "continue": "Continue",
+    "cancel": "Cancel",
+    "select": "Select",
+    "retry": "Try again",
+    "save": "Save",
+    "delete": "Delete",
+    "logout": "Log out"
+  },
+  "aria": {
+    "showPassword": "Show password",
+    "hidePassword": "Hide password"
+  },
+  "hint": {
+    "label": "Hint"
+  },
+  "method": { "phone": "Phone", "email": "Email" },
+  "alt": { "authIllustration": "Authentication illustration" },
+  "auth": {
+    "noAccount": {
+      "text": "Don't have an account yet?",
+      "label": "Create account"
+    },
+    "hasAccount": {
+      "text": "Already have an account?",
+      "label": "Sign in"
+    }
+  },
+  "privacy": {
+    "accept": "I accept the privacy policy",
+    "description": "By clicking this checkbox, you agree to the <policy>privacy policy</policy>"
+  },
+  "status": {
+    "online": "Online",
+    "minutesAgo": "{{count}}m ago",
+    "hoursAgo": "{{count}}h ago",
+    "daysAgo": "{{count}}d ago",
+    "lastSeen": "Last seen {{time}}"
+  },
+  "loading": "Loading...",
+  "general": {
+    "finnish": "Finnish",
+    "english": "English",
+    "swedish": "Swedish"
+  },
+  "settings": {
+    "title": "Settings",
+    "description": "Customize your language and display theme.",
+    "language": {
+      "title": "Language",
+      "description": "Choose the app language."
+    },
+    "darkMode": {
+      "title": "Dark mode",
+      "description": "Switch between light and dark theme."
+    }
+  }
 }

@@ -1,12 +1,17 @@
 import { ObjectId } from "mongodb";
 import { generateOtp, safeEqual } from "@/utils";
-import { OtpPurpose, ServiceResult, sendOtpSchema } from "shared/index";
+import {
+  OtpPurpose,
+  ServiceResult,
+  sendOtpSchema,
+  RESET_LINK_TTL_MINUTES,
+} from "shared/index";
 import { IServer, User, SendOtpParams, ConsumeResult } from "@/types";
 
 export class OtpService {
   private timeForOtp: number;
   constructor(private server: IServer) {
-    this.timeForOtp = 15 * 60 * 1000;
+    this.timeForOtp = RESET_LINK_TTL_MINUTES * 60 * 1000;
   }
 
   async dispatch(
@@ -30,7 +35,7 @@ export class OtpService {
           return {
             success: false,
             status: 401,
-            message: "errors.unauthorized",
+            message: "general.unauthorized",
           };
         const destination = user.newEmail ?? user.email;
         return this.send({
@@ -46,7 +51,7 @@ export class OtpService {
           return {
             success: false,
             status: 401,
-            message: "errors.unauthorized",
+            message: "general.unauthorized",
           };
         const destination =
           user.profile?.newFullPhone ?? user.profile?.fullPhone;
@@ -54,7 +59,7 @@ export class OtpService {
           return {
             success: false,
             status: 400,
-            message: "No phone number set.",
+            message: "otp.missingFullPhone",
           };
         return this.send({
           userId: user._id,
@@ -78,7 +83,7 @@ export class OtpService {
       });
     } catch (error) {
       console.error("Send OTP error:", error);
-      return { success: false, status: 500, message: "errors.server" };
+      return { success: false, status: 500, message: "general.unknown" };
     }
   }
 
@@ -92,7 +97,6 @@ export class OtpService {
       const code = generateOtp();
       const expiresAt = new Date(Date.now() + this.timeForOtp);
       const db = await this.server.getDb();
-
       await db.collection("users").updateOne(
         { _id: userId },
         {
@@ -101,7 +105,6 @@ export class OtpService {
           },
         },
       );
-
       if (channel === "email") {
         await this.server.sendEmail({
           to: destination,
@@ -111,11 +114,10 @@ export class OtpService {
       } else {
         await this.server.sendSms(destination, code);
       }
-
       return { success: true, status: 200 };
     } catch (error) {
       console.error("Send OTP error:", error);
-      return { success: false, status: 500, message: "errors.server" };
+      return { success: false, status: 500, message: "general.unknown" };
     }
   }
 
@@ -128,21 +130,18 @@ export class OtpService {
       const db = await this.server.getDb();
       const user = await db.collection("users").findOne({ _id: userId });
       const record = user?.otps?.[purpose];
-
-      if (!record)
-        return { ok: false, status: 400, message: "No OTP requested." };
+      if (!record) return { ok: false, status: 400, message: "otp.notFound" };
       if (new Date() > new Date(record.expiresAt))
-        return { ok: false, status: 400, message: "OTP expired." };
+        return { ok: false, status: 400, message: "otp.expired" };
       if (!safeEqual(record.code, code))
-        return { ok: false, status: 400, message: "Invalid OTP." };
-
+        return { ok: false, status: 400, message: "otp.invalid" };
       await db
         .collection("users")
         .updateOne({ _id: userId }, { $unset: { [`otps.${purpose}`]: "" } });
       return { ok: true, record };
     } catch (error) {
       console.error("Consume OTP error:", error);
-      return { ok: false, status: 500, message: "errors.server" };
+      return { ok: false, status: 500, message: "general.unknown" };
     }
   }
 }

@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect, useRef, startTransition } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslation } from "react-i18next";
 import { Search, X, Loader2 } from "lucide-react";
 import { axiosApi } from "@/api/index";
 import { ChatMemberPreview, ChatWithMember } from "shared/types";
@@ -8,8 +9,13 @@ import { useChats } from "@/providers/ChatProvider";
 import { ChatListItem } from "@/screens/chats/ui/ChatListItem";
 import { ImageDisplay } from "@/components/shared/MediaPicker";
 import { Input } from "@/components/shared/Input";
+import { getAxiosError } from "@/utils/getAxiosError";
+
+const MIN_QUERY_LENGTH = 2;
+const SEARCH_DEBOUNCE_MS = 300;
 
 export const Main = ({ chats: initialChats }: { chats: ChatWithMember[] }) => {
+  const { t } = useTranslation("chats");
   const router = useRouter();
   const {
     chats: storedChats,
@@ -23,29 +29,45 @@ export const Main = ({ chats: initialChats }: { chats: ChatWithMember[] }) => {
   const [isSearching, setIsSearching] = useState(false);
   const [startingId, setStartingId] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const isSearchMode = query.trim().length > 0;
+  const trimmed = query.trim();
+  const isSearchMode = trimmed.length > 0;
+  const isQueryTooShort = trimmed.length < MIN_QUERY_LENGTH;
 
   useEffect(() => {
-    if (query.trim().length < 2) return;
+    if (trimmed.length < MIN_QUERY_LENGTH) {
+      startTransition(() => {
+        setResults([]);
+        setIsSearching(false);
+      });
+      return;
+    }
+    let cancelled = false;
     startTransition(() => {
       setIsSearching(true);
     });
     const timeout = setTimeout(async () => {
       try {
-        const { data } = await axiosApi.searchUsers(query.trim());
-        setResults(data.items);
+        const { data } = await axiosApi.searchUsers(trimmed);
+        if (!cancelled) setResults(data.items);
+      } catch {
+        if (!cancelled) setResults([]);
       } finally {
-        setIsSearching(false);
+        if (!cancelled) setIsSearching(false);
       }
-    }, 300);
-    return () => clearTimeout(timeout);
-  }, [query]);
+    }, SEARCH_DEBOUNCE_MS);
+    return () => {
+      cancelled = true;
+      clearTimeout(timeout);
+    };
+  }, [trimmed]);
 
   const handleSelect = async (userId: string) => {
+    if (startingId) return;
     try {
       setStartingId(userId);
       const chat = await createChat(userId);
       router.push(`/chats/${chat._id}`);
+    } catch (e) {
     } finally {
       setStartingId(null);
     }
@@ -60,40 +82,46 @@ export const Main = ({ chats: initialChats }: { chats: ChatWithMember[] }) => {
   return (
     <div className="w-full pb-6 px-4 pt-1">
       <div className="relative">
-        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-grey pointer-events-none" />
+        <Search
+          aria-hidden="true"
+          className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-grey pointer-events-none"
+        />
         <Input
           name="search"
           ref={inputRef}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search by username to start a chat..."
+          placeholder={t("search.placeholder")}
+          aria-label={t("search.label")}
           className="pl-10 pr-10"
         />
         {query && (
           <button
+            type="button"
             onClick={handleClear}
             className="absolute right-3.5 top-1/2 -translate-y-1/2 text-grey hover:text-foreground"
-            aria-label="Clear"
+            aria-label={t("search.clear")}
           >
-            <X className="w-4 h-4" />
+            <X aria-hidden="true" className="w-4 h-4" />
           </button>
         )}
       </div>
       {isSearchMode ? (
         <div className="pt-2">
           {isSearching && (
-            <div className="py-10 flex justify-center text-grey">
-              <Loader2 className="w-4 h-4 animate-spin" />
+            <div role="status" className="py-10 flex justify-center text-grey">
+              <Loader2 aria-hidden="true" className="w-4 h-4 animate-spin" />
+              <span className="sr-only">{t("search.searching")}</span>
             </div>
           )}
-          {!isSearching && query.trim().length >= 2 && results.length === 0 && (
-            <p className="py-10 text-center text-sm text-grey">
-              No users found.
+          {!isSearching && !isQueryTooShort && results.length === 0 && (
+            <p role="status" className="py-10 text-center text-sm text-grey">
+              {t("search.noResults")}
             </p>
           )}
-          {!isSearching && query.trim().length < 2 && (
-            <p className="py-10 text-center text-sm text-grey">
-              Keep typing...
+          {!isSearching && isQueryTooShort && (
+            <p role="status" className="py-10 text-center text-sm text-grey">
+              {t("search.keepTyping", { min: MIN_QUERY_LENGTH })}
             </p>
           )}
           <div className="divide-y divide-border">
@@ -101,8 +129,9 @@ export const Main = ({ chats: initialChats }: { chats: ChatWithMember[] }) => {
               results.map((u) => (
                 <button
                   key={u._id}
+                  type="button"
                   onClick={() => handleSelect(u._id)}
-                  disabled={startingId === u._id}
+                  disabled={startingId !== null}
                   className="w-full flex items-center gap-3 py-3 px-2 -mx-2 rounded-lg hover:bg-muted transition-colors disabled:opacity-50 text-left"
                 >
                   {u.avatar ? (
@@ -125,7 +154,10 @@ export const Main = ({ chats: initialChats }: { chats: ChatWithMember[] }) => {
                     <p className="text-xs text-grey truncate">@{u.username}</p>
                   </div>
                   {startingId === u._id && (
-                    <Loader2 className="w-4 h-4 animate-spin text-grey shrink-0" />
+                    <Loader2
+                      aria-hidden="true"
+                      className="w-4 h-4 animate-spin text-grey shrink-0"
+                    />
                   )}
                 </button>
               ))}
@@ -134,16 +166,14 @@ export const Main = ({ chats: initialChats }: { chats: ChatWithMember[] }) => {
       ) : (
         <>
           {isLoading && chats.length === 0 && (
-            <div className="py-16 text-center text-sm text-grey">
-              Loading...
+            <div role="status" className="py-16 text-center text-sm text-grey">
+              {t("list.loading")}
             </div>
           )}
           {!isLoading && chats.length === 0 && (
             <div className="py-16 text-center">
-              <p className="text-sm text-grey">No conversations yet.</p>
-              <p className="text-xs text-grey mt-1">
-                Search for a username above to start one.
-              </p>
+              <p className="text-sm text-grey">{t("list.empty.title")}</p>
+              <p className="text-xs text-grey mt-1">{t("list.empty.hint")}</p>
             </div>
           )}
           <div className="divide-y divide-primary flex flex-col w-full mt-2">

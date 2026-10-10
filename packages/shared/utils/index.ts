@@ -4,34 +4,48 @@ const CHECKS = [
   {
     key: "hasMinLength",
     test: (p: string) => p.length >= 8,
-    tip: "password.minLength",
+    error: "password.minLength",
+    tip: "password.tips.minLength",
   },
   {
     key: "hasUpper",
     test: (p: string) => /[A-Z]/.test(p),
-    tip: "password.uppercase",
+    error: "password.uppercase",
+    tip: "password.tips.uppercase",
   },
   {
     key: "hasLower",
     test: (p: string) => /[a-z]/.test(p),
-    tip: "password.lowercase",
+    error: "password.lowercase",
+    tip: "password.tips.lowercase",
   },
   {
     key: "hasNumber",
     test: (p: string) => /[0-9]/.test(p),
-    tip: "password.number",
+    error: "password.number",
+    tip: "password.tips.number",
   },
   {
     key: "hasSpecial",
     test: (p: string) => /[^A-Za-z0-9]/.test(p),
-    tip: "password.special",
+    error: "password.special",
+    tip: "password.tips.special",
   },
   {
     key: "hasNoSpaces",
     test: (p: string) => !/\s/.test(p),
-    tip: "password.noSpaces",
+    error: "password.noSpaces",
+    tip: "password.tips.noSpaces",
   },
 ] as const;
+
+export function validatePassword(val: string): true | string {
+  if (!val) return "password.required";
+  for (const check of CHECKS) {
+    if (!check.test(val)) return check.error;
+  }
+  return true;
+}
 
 export function validateIban(raw: string) {
   const cleaned = raw.replace(/\s/g, "").toUpperCase();
@@ -82,14 +96,6 @@ export function getPasswordStrength(password?: string): PasswordStrength {
     color: "text-green-600",
     tips: [],
   };
-}
-
-export function validatePassword(val: string): true | string {
-  if (!val) return "password.required";
-  for (const check of CHECKS) {
-    if (!check.test(val)) return `${check.tip}`;
-  }
-  return true;
 }
 
 export function upperSign(normalized: string) {

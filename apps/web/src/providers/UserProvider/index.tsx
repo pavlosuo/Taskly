@@ -9,20 +9,19 @@ import {
 import {
   PublicUser,
   LoginForm,
-  AuthResponse,
   RegisterForm,
   UpdateProfileForm,
   ChangePasswordForm,
 } from "shared/types";
 import { axiosApi } from "@/api/index";
-import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 interface UserContextType {
   user: PublicUser | null;
   isLoading: boolean;
   setUser: (user: PublicUser | null) => void;
-  login: (payload: LoginForm) => Promise<AuthResponse>;
-  register: (payload: RegisterForm) => Promise<AuthResponse>;
+  login: (payload: LoginForm) => Promise<void>;
+  register: (payload: RegisterForm) => Promise<void>;
   logout: () => Promise<void>;
   sendEmailOtp: () => Promise<void>;
   verifyEmailOtp: (otp: string) => Promise<void>;
@@ -50,45 +49,52 @@ export const UserProvider = ({
 }: UserProviderProps) => {
   const [user, setUser] = useState<PublicUser | null>(initialUser);
   const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
-  const login = useCallback(async (payload: LoginForm) => {
-    try {
+  const login = useCallback(
+    async (payload: LoginForm) => {
+      try {
+        setIsLoading(true);
+        const { data } = await axiosApi.login(payload);
+        setUser(data.user);
+        router.push("/");
+      } catch (error) {
+        throw error;
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [router],
+  );
+
+  const register = useCallback(
+    async (payload: RegisterForm) => {
       setIsLoading(true);
-      const { data } = await axiosApi.login(payload);
-      setUser(data.user);
-      return data;
-    } catch (error) {
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  const register = useCallback(async (payload: RegisterForm) => {
-    setIsLoading(true);
-    try {
-      const { data } = await axiosApi.register(payload);
-      setUser(data.user);
-      return data;
-    } catch (error) {
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+      try {
+        const { data } = await axiosApi.register(payload);
+        setUser(data.user);
+        router.push("/profile");
+      } catch (error) {
+        throw error;
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [router],
+  );
 
   const logout = useCallback(async () => {
     try {
       setIsLoading(true);
       await axiosApi.logout();
       setUser(null);
-      redirect("/login");
+      router.push("/login");
     } catch (error) {
       throw error;
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [router]);
 
   const sendEmailOtp = useCallback(async () => {
     try {
@@ -201,13 +207,13 @@ export const UserProvider = ({
       setIsLoading(true);
       await axiosApi.deactivateAccount();
       setUser(null);
-      redirect("/login");
+      router.push("/login");
     } catch (error) {
       throw error;
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [router]);
 
   const changePassword = useCallback(
     async (payload: { oldPassword: string; newPassword: string }) => {

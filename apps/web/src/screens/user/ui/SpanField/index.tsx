@@ -17,7 +17,7 @@ export function SpanField({
       <span>
         {text}
         {subtext && (
-          <span className="text-[10px] text-grey font-normal ml-1.5">
+          <span className="text-xs text-grey font-normal ml-1.5">
             {subtext}
           </span>
         )}

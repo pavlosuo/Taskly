@@ -15,7 +15,7 @@ const BUTTONS = [
 ];
 
 const sep = (key: string) => (
-  <Separator key={key} orientation="vertical" className="h-4 bg-gray mx-0.5" />
+  <Separator key={key} orientation="vertical" className="h-4 bg-grey mx-0.5" />
 );
 
 const btn = (

@@ -23,6 +23,7 @@ import {
   ZodErrors,
   removeHtml,
   publicProfileSchema,
+  MESSAGE_MAX_LENGTH
 } from "shared/index";
 import {
   SectionCard,
@@ -327,12 +328,12 @@ export function PublicProfileCard() {
               <p
                 className={clsx(
                   "text-xs text-right mt-1",
-                  removeHtml(form.bio ?? "").length > 1000
+                  removeHtml(form.bio ?? "").length > MESSAGE_MAX_LENGTH
                     ? "text-destructive"
                     : "text-grey",
                 )}
               >
-                {removeHtml(form.bio ?? "").length}/1000
+                {removeHtml(form.bio ?? "").length}/{MESSAGE_MAX_LENGTH}
               </p>
             </FormField>
             <div className="h-px bg-border" />

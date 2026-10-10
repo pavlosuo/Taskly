@@ -6,7 +6,14 @@ import {
   TaskSort,
   TaskFilters,
   TasksTab,
+  FilterType,
 } from "shared/index";
+
+export const MESSAGE_MAX_LENGTH = 1000;
+
+export const RESEND_COOLDOWN_SECONDS = 60;
+
+export const RESET_LINK_TTL_MINUTES = 15;
 
 export const COUNTRY_CODES_LIST = ["fi"];
 
@@ -276,6 +283,24 @@ export const PAGES_META: Record<
       description: "Sidan du söker finns inte eller kan ha flyttats.",
     },
   },
+
+  help: {
+    en: {
+      title: "Help",
+      description:
+        "Get help with your account, conversations, tasks, or other features.",
+    },
+    "fi-FI": {
+      title: "Ohje",
+      description:
+        "Ota apua tilisi, keskusteluista, tehtävistä tai muista ominaisuuksista.",
+    },
+    "sv-FI": {
+      title: "Hjalp",
+      description:
+        "Få hjalp med ditt konto, konversationer, uppgifter eller andra funktioner.",
+    },
+  },
 };
 
 export const FINNISH_BANKS: BankItem[] = [
@@ -425,6 +450,17 @@ export const TASK_SORTS: Record<string, Record<string, 1 | -1>> = {
 
 export const EARTH_RADIUS_M = 6378100;
 
+export const MAX_FILES_PER_UPLOAD = 25;
+
+export const FILTERS: { value: FilterType; labelKey: string }[] = [
+  { value: "all", labelKey: "filters.all" },
+  { value: "image", labelKey: "filters.image" },
+  { value: "video", labelKey: "filters.video" },
+  { value: "audio", labelKey: "filters.audio" },
+  { value: "document", labelKey: "filters.document" },
+  { value: "other", labelKey: "filters.other" },
+];
+
 export const TASK_DEFAULT_FILTERS: TaskFilters = {
   status: "all",
   sort: "newest",
@@ -458,6 +494,6 @@ export const TASK_STATUS_LABELS: Record<string, string> = {
 export const TABS: TasksTab[] = ["all", "my"];
 
 export const TAB_LABELS = {
-  all: "general.all",
-  my: "general.my",
+  all: "general.allTasks",
+  my: "general.myTasks",
 };

@@ -1,5 +1,7 @@
 "use client";
-import { useEffect, useState, FormEvent, startTransition } from "react";
+import { useEffect, useState, FormEvent } from "react";
+import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import {
   Clock,
   Loader2,
@@ -19,6 +21,7 @@ import {
   ArrowLeft,
 } from "lucide-react";
 import { useTasks } from "@/providers/TaskProvider";
+import { useModal } from "@/providers/ModalProvider";
 import {
   DialogHeader,
   DialogTitle,
@@ -41,7 +44,7 @@ import {
 import { Tiptap } from "@/components/shared/Tiptap";
 import clsx from "clsx";
 import parseSafeHtml from "@/utils/parseSafeHtml";
-import { getAxiosError } from "@/utils/getAxiosError";
+import { useToast } from "@/hooks/useToast";
 import {
   ZodErrors,
   Task,
@@ -53,79 +56,104 @@ import {
   taskCreateSchema,
   taskResponseCreateSchema,
   TaskerStep,
+  MESSAGE_MAX_LENGTH
 } from "shared/index";
 import { useFormatPrice } from "@/hooks/useFormatPrice";
+import { useFormatDate } from "@/hooks/useFormatDate";
+
+const DESCRIPTION_PREVIEW_LENGTH = 320
 
 interface ViewProps {
   task: Task | null;
   onClose: () => void;
 }
 
+const Spinner = ({ className }: { className?: string }) => {
+  const { t } = useTranslation("common");
+  return (
+    <div
+      role="status"
+      className={clsx("flex justify-center py-6 text-grey", className)}
+    >
+      <Loader2 aria-hidden="true" className="w-4 h-4 animate-spin" />
+      <span className="sr-only">{t("loading")}</span>
+    </div>
+  );
+};
+
 const TaskSummary = ({ task }: { task: Task }) => {
-  const limit = 320;
-  const deadline = new Date(task.deadline).toLocaleDateString();
+  const { t } = useTranslation("tasks");
+  const deadline = useFormatDate(task.deadline.date, {
+    month: "long",
+    day: "numeric",
+  });
   const [isExpanded, setIsExpanded] = useState(false);
   const description = task.description ?? "";
-  const isLong = description.length > limit;
+  const isLong = description.length > DESCRIPTION_PREVIEW_LENGTH;
   const displayedDescription =
-    isExpanded || !isLong ? description : description.slice(0, limit) + "...";
+    isExpanded || !isLong
+      ? description
+      : description.slice(0, DESCRIPTION_PREVIEW_LENGTH) + "...";
   const price = useFormatPrice(task?.budget?.amount);
   return (
     <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
       <div className="grid grid-cols-1 gap-4">
         <div className="flex flex-col">
-          <SectionLabel icon={ClipboardList}>Details</SectionLabel>
-          <p className="text-sm text-muted-foreground whitespace-pre-wrap mt-2">
+          <SectionLabel icon={ClipboardList}>
+            {t("summary.details")}
+          </SectionLabel>
+          <p className="text-sm text-grey whitespace-pre-wrap mt-2">
             {displayedDescription}
           </p>
           {isLong && (
             <button
               type="button"
+              aria-expanded={isExpanded}
               onClick={() => setIsExpanded((prev) => !prev)}
               className="text-sm text-primary mt-1 self-end"
             >
-              {isExpanded ? "Show less" : "Show more"}
+              {isExpanded ? t("summary.showLess") : t("summary.showMore")}
             </button>
           )}
         </div>
         <div>
-          <SectionLabel icon={MapPinned}>Location</SectionLabel>
-          <p className="text-sm text-muted-foreground my-2">
-            {task.location.address}
-          </p>
+          <SectionLabel icon={MapPinned}>{t("summary.location")}</SectionLabel>
+          <p className="text-sm text-grey my-2">{task.location.address}</p>
           <LocationPicker value={task.location} disabled />
         </div>
       </div>
       <div className="flex flex-col gap-4">
-        <SectionLabel icon={CalendarClock}>Schedule & budget</SectionLabel>
+        <SectionLabel icon={CalendarClock}>
+          {t("summary.schedule")}
+        </SectionLabel>
         <div className="grid grid-cols-2 gap-x-4 gap-y-2">
           <div className="rounded-xl border border-border bg-muted/30 px-3.5 py-3">
-            <p className="text-xs text-muted-foreground flex items-center gap-1.5 mb-1">
-              <Clock className="w-3.5 h-3.5" />
-              Deadline
+            <p className="text-xs text-grey flex items-center gap-1.5 mb-1">
+              <Clock aria-hidden="true" className="w-3.5 h-3.5" />
+              {t("summary.deadline")}
             </p>
             <p className="text-sm font-medium text-foreground">{deadline}</p>
           </div>
           <div className="rounded-xl border border-border bg-muted/30 px-3.5 py-3">
-            <p className="text-xs text-muted-foreground mb-1">Budget</p>
+            <p className="text-xs text-grey mb-1">{t("summary.budget")}</p>
             <p className="text-sm font-medium text-foreground">
-              {task.budget?.amount ? `${price}` : "Negotiable"}
+              {task.budget?.amount ? price : t("item.negotiable")}
             </p>
           </div>
           {task.budget?.negotiable && (
-            <p className="text-xs text-muted-foreground col-span-2">
-              Budget is negotiable — the amount above is a starting point.
+            <p className="text-xs text-grey col-span-2">
+              {t("summary.negotiableNote")}
             </p>
           )}
         </div>
         {task.skills?.length > 0 && (
           <div>
-            <SectionLabel icon={ListChecks}>Skills</SectionLabel>
+            <SectionLabel icon={ListChecks}>{t("summary.skills")}</SectionLabel>
             <div className="flex flex-wrap gap-1.5 mt-2">
               {task.skills.map((skill) => (
                 <span
                   key={skill.value}
-                  className="rounded-full border border-primary/10 bg-primary/5 px-2.5 py-1 text-[11px] font-medium text-primary"
+                  className="rounded-full border border-primary/10 bg-primary/5 px-2.5 py-1 text-xs font-medium text-primary"
                 >
                   {skill.label}
                 </span>
@@ -135,12 +163,14 @@ const TaskSummary = ({ task }: { task: Task }) => {
         )}
         {task.certificates?.length > 0 && (
           <div>
-            <SectionLabel icon={Award}>Certificates</SectionLabel>
+            <SectionLabel icon={Award}>
+              {t("summary.certificates")}
+            </SectionLabel>
             <div className="flex flex-wrap gap-1.5 mt-2">
               {task.certificates.map((certificate) => (
                 <span
                   key={certificate.value}
-                  className="rounded-full border border-primary/10 bg-primary/5 px-2.5 py-1 text-[11px] font-medium text-primary"
+                  className="rounded-full border border-primary/10 bg-primary/5 px-2.5 py-1 text-xs font-medium text-primary"
                 >
                   {certificate.label}
                 </span>
@@ -162,6 +192,8 @@ const EditTaskForm = ({
   onSaved: (payload: TaskUpdateForm) => Promise<void>;
   onCancel: () => void;
 }) => {
+  const { t } = useTranslation(["tasks", "common"]);
+  const toast = useToast();
   const [form, setForm] = useState<TaskCreateForm>(task);
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState<ZodErrors<TaskCreateForm>>({});
@@ -171,11 +203,12 @@ const EditTaskForm = ({
     value: TaskCreateForm[K],
   ) => {
     setForm((prev) => ({ ...prev, [key]: value }));
-    setErrors((p) => ({ ...p, [key]: undefined, general: undefined }));
+    setErrors((p) => ({ ...p, [key]: undefined }));
   };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    if (saving) return;
     setErrors({});
     const parsed = taskCreateSchema.safeParse(form);
     if (!parsed.success) {
@@ -188,24 +221,20 @@ const EditTaskForm = ({
         skills: fieldErrors?.skills?.[0],
         certificates: fieldErrors?.certificates?.[0],
         budget: fieldErrors?.budget?.[0],
-        general: formErrors[0],
       });
+      toast(formErrors[0]);
       return;
     }
-    setSaving(true);
     try {
+      setSaving(true);
       await onSaved({
         title: form.title.trim(),
         description: form.description.trim(),
-        deadline: form.deadline as Date,
+        deadline: form.deadline,
         location: form.location,
         skills: form.skills,
         certificates: form.certificates,
         budget: form.budget,
-      });
-    } catch (e) {
-      setErrors({
-        general: getAxiosError(e),
       });
     } finally {
       setSaving(false);
@@ -215,27 +244,28 @@ const EditTaskForm = ({
   return (
     <form
       onSubmit={handleSubmit}
+      noValidate
       className="w-full grid grid-cols-1 grid-rows-[1fr_max-content_max-content]"
     >
       <DialogHeader>
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-            <Pencil className="w-5 h-5" />
+            <Pencil aria-hidden="true" className="w-5 h-5" />
           </div>
           <div>
-            <DialogTitle>Edit task</DialogTitle>
-            <DialogDescription>
-              Update the details below and save your changes.
-            </DialogDescription>
+            <DialogTitle>{t("edit.title")}</DialogTitle>
+            <DialogDescription>{t("edit.description")}</DialogDescription>
           </div>
         </div>
       </DialogHeader>
       <div className="grid grid-cols-1 gap-8 md:grid-cols-2 mt-2">
         <div className="flex flex-col gap-5">
-          <SectionLabel icon={ClipboardList}>Task details</SectionLabel>
+          <SectionLabel icon={ClipboardList}>
+            {t("create.sections.details")}
+          </SectionLabel>
           <div className="form-group">
             <Label error={!!errors.title} htmlFor="edit-title">
-              Task title
+              {t("create.fields.title.label")}
             </Label>
             <Input
               name="edit-title"
@@ -247,12 +277,13 @@ const EditTaskForm = ({
           </div>
           <div className="form-group">
             <Label error={!!errors.description} htmlFor="edit-description">
-              Description
+              {t("create.fields.description.label")}
             </Label>
             <Textarea
               id="edit-description"
               value={form.description}
               onChange={(e) => handleUpdate("description", e.target.value)}
+              aria-invalid={!!errors.description}
               rows={8}
               className={clsx(
                 "resize-none max-h-75",
@@ -264,7 +295,9 @@ const EditTaskForm = ({
             <FieldError message={errors.description} />
           </div>
           <div className="form-group">
-            <SectionLabel icon={MapPinned}>Location</SectionLabel>
+            <SectionLabel icon={MapPinned}>
+              {t("create.fields.location.label")}
+            </SectionLabel>
             <LocationPicker
               value={form.location}
               onChange={(location) => handleUpdate("location", location)}
@@ -273,11 +306,13 @@ const EditTaskForm = ({
           </div>
         </div>
         <div className="flex flex-col gap-5">
-          <SectionLabel icon={CalendarClock}>Schedule & budget</SectionLabel>
+          <SectionLabel icon={CalendarClock}>
+            {t("create.sections.schedule")}
+          </SectionLabel>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="form-group">
               <Label error={!!errors.deadline} htmlFor="edit-deadline">
-                Deadline
+                {t("create.fields.deadline.label")}
               </Label>
               <DatePicker
                 value={form.deadline}
@@ -289,18 +324,15 @@ const EditTaskForm = ({
             </div>
             <div className="form-group">
               <Label error={!!errors.budget} htmlFor="edit-amount">
-                Budget
+                {t("create.fields.budget.label")}
               </Label>
               <PriceInput
                 name="edit-amount"
                 value={form.budget?.amount || 0}
                 onChange={(number) =>
-                  handleUpdate("budget", {
-                    ...form.budget,
-                    amount: number,
-                  })
+                  handleUpdate("budget", { ...form.budget, amount: number })
                 }
-                placeholder="Optional"
+                placeholder={t("create.fields.budget.placeholder")}
                 error={errors.budget}
               />
               <FieldError message={errors.budget} />
@@ -309,29 +341,29 @@ const EditTaskForm = ({
           <div className="flex items-center justify-between gap-4 rounded-xl border border-border bg-muted/30 px-3.5 py-3">
             <div>
               <p className="text-sm font-medium text-foreground">
-                Budget is negotiable
+                {t("create.negotiable.title")}
               </p>
-              <p className="text-xs text-muted-foreground">
-                Taskers can suggest their own price
+              <p className="text-xs text-grey">
+                {t("create.negotiable.description")}
               </p>
             </div>
             <Switch
+              aria-label={t("create.negotiable.title")}
               checked={form.budget.negotiable}
               onCheckedChange={(checked) =>
-                handleUpdate("budget", {
-                  ...form.budget,
-                  negotiable: checked,
-                })
+                handleUpdate("budget", { ...form.budget, negotiable: checked })
               }
             />
           </div>
-          <SectionLabel icon={ListChecks}>Requirements</SectionLabel>
+          <SectionLabel icon={ListChecks}>
+            {t("create.sections.requirements")}
+          </SectionLabel>
           <TagInput
-            label="Required skills"
+            label={t("create.fields.skills.label")}
             name="edit-skills"
             value={form.skills}
             onChange={(v) => handleUpdate("skills", v)}
-            placeholder="Search or add a skill..."
+            placeholder={t("create.fields.skills.placeholder")}
             error={errors.skills}
             searchFn={async (search: string) => {
               const { data } = await axiosApi.searchSkills(search);
@@ -346,11 +378,11 @@ const EditTaskForm = ({
             }}
           />
           <TagInput
-            label="Required certificates"
+            label={t("create.fields.certificates.label")}
             name="edit-certificates"
             value={form.certificates}
             onChange={(v) => handleUpdate("certificates", v)}
-            placeholder="Search or add a certificate..."
+            placeholder={t("create.fields.certificates.placeholder")}
             error={errors.certificates}
             searchFn={async (search: string) => {
               const { data } = await axiosApi.searchCertificates(search);
@@ -367,9 +399,6 @@ const EditTaskForm = ({
         </div>
       </div>
       <div className="border-t border-border pt-5 mt-5">
-        {errors.general && (
-          <p className="mb-5 text-xs text-destructive">{errors.general}</p>
-        )}
         <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
           <Button
             type="button"
@@ -378,11 +407,13 @@ const EditTaskForm = ({
             disabled={saving}
             className="w-full sm:w-auto"
           >
-            Cancel
+            {t("common:actions.cancel")}
           </Button>
           <Button type="submit" disabled={saving} className="w-full sm:w-auto">
-            {saving && <Loader2 className="h-4 w-4 animate-spin" />}
-            Save changes
+            {saving && (
+              <Loader2 aria-hidden="true" className="h-4 w-4 animate-spin" />
+            )}
+            {t("edit.save")}
           </Button>
         </div>
       </div>
@@ -397,9 +428,10 @@ const StepTabs = ({
   step: TaskerStep;
   onChange: (step: TaskerStep) => void;
 }) => {
-  const steps: { key: TaskerStep; number: number; label: string }[] = [
-    { key: "overview", number: 1, label: "Overview" },
-    { key: "respond", number: 2, label: "Respond" },
+  const { t } = useTranslation("tasks");
+  const steps: { key: TaskerStep; number: number }[] = [
+    { key: "overview", number: 1 },
+    { key: "respond", number: 2 },
   ];
   return (
     <div className="inline-flex items-center gap-1 self-start rounded-full border border-border bg-muted/30 p-1">
@@ -409,25 +441,27 @@ const StepTabs = ({
           <button
             key={s.key}
             type="button"
+            aria-current={active ? "step" : undefined}
             onClick={() => onChange(s.key)}
             className={clsx(
               "flex items-center gap-1.5 rounded-full p-1.5 pr-2.5 text-sm font-medium transition-colors",
               active
                 ? "bg-background text-foreground shadow-sm"
-                : "text-muted-foreground hover:text-foreground",
+                : "text-grey hover:text-foreground",
             )}
           >
             <span
+              aria-hidden="true"
               className={clsx(
-                "flex h-4.5 w-4.5 items-center justify-center rounded-full text-[10px] font-semibold",
+                "flex h-4.5 w-4.5 items-center justify-center rounded-full text-xs font-semibold",
                 active
                   ? "bg-primary text-primary-foreground"
-                  : "bg-foreground/10 text-muted-foreground",
+                  : "bg-foreground/10 text-grey",
               )}
             >
               {s.number}
             </span>
-            {s.label}
+            {t(`respond.steps.${s.key}`)}
           </button>
         );
       })}
@@ -446,15 +480,16 @@ const ResponseCard = ({
   message: string;
   actions?: React.ReactNode;
 }) => {
-  const priceFormated = useFormatPrice(price);
+  const { t } = useTranslation("tasks");
+  const priceFormatted = useFormatPrice(price);
   return (
     <div className="border border-border bg-muted/25 p-4">
       <div className="flex items-center justify-between gap-3 mb-3.5">
         <div className="flex items-baseline gap-1.5">
           <span className="text-xl font-medium text-foreground">
-            {priceFormated}
+            {priceFormatted}
           </span>
-          <span className="text-xs text-muted-foreground">offer</span>
+          <span className="text-xs text-grey">{t("responses.offer")}</span>
         </div>
         <ResponseStatusBadge status={status} />
       </div>
@@ -485,21 +520,26 @@ const ResponsesPanel = ({
   onAccept: (id: string) => void;
   onReject: (id: string) => void;
 }) => {
+  const { t } = useTranslation("tasks");
   const [open, setOpen] = useState(false);
   const count = responses.length;
   return (
     <div className="border-t border-border py-5 mt-5">
       <button
         type="button"
+        aria-expanded={open}
         onClick={() => setOpen((prev) => !prev)}
         className="flex w-full items-center justify-between gap-2"
       >
         <SectionLabel icon={MessagesSquare}>
-          {count > 0 ? `Responses (${count})` : "Responses"}
+          {count > 0
+            ? t("responses.titleWithCount", { count })
+            : t("responses.title")}
         </SectionLabel>
         <ChevronDown
+          aria-hidden="true"
           className={clsx(
-            "w-4 h-4 text-muted-foreground transition-transform duration-300",
+            "w-4 h-4 text-grey transition-transform duration-300",
             open && "rotate-180",
           )}
         />
@@ -510,15 +550,9 @@ const ResponsesPanel = ({
       >
         <div className="overflow-hidden">
           <div className="pt-3">
-            {loading && (
-              <div className="flex justify-center py-6 text-muted-foreground">
-                <Loader2 className="w-4 h-4 animate-spin" />
-              </div>
-            )}
+            {loading && <Spinner />}
             {!loading && count === 0 && (
-              <p className="text-sm text-muted-foreground">
-                No one has responded yet.
-              </p>
+              <p className="text-sm text-grey">{t("responses.empty")}</p>
             )}
             {count > 0 && (
               <div className="flex flex-col gap-3">
@@ -537,14 +571,14 @@ const ResponsesPanel = ({
                             onClick={() => onReject(response._id)}
                             disabled={busy}
                           >
-                            Reject
+                            {t("responses.reject")}
                           </Button>
                           <Button
                             size="sm"
                             onClick={() => onAccept(response._id)}
                             disabled={busy}
                           >
-                            Accept
+                            {t("responses.accept")}
                           </Button>
                         </>
                       ) : null
@@ -561,6 +595,8 @@ const ResponsesPanel = ({
 };
 
 export const ClientView = ({ task, onClose }: ViewProps) => {
+  const { t } = useTranslation("tasks");
+  const { confirm } = useModal();
   const {
     updateTask,
     cancelTask,
@@ -572,26 +608,20 @@ export const ClientView = ({ task, onClose }: ViewProps) => {
   } = useTasks();
   const [isEditing, setIsEditing] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string>("");
   const [responses, setResponses] = useState<TaskResponseItem[]>([]);
   const [loadingResponses, setLoadingResponses] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
     if (!task) return;
-    startTransition(() => {
+    (async function () {
       setLoadingResponses(true);
-    });
-    getTaskResponses(task._id)
-      .then((items) => {
-        if (!cancelled) setResponses(items);
-      })
-      .catch((e) => {
-        if (!cancelled) setError(getAxiosError(e));
-      })
-      .finally(() => {
-        if (!cancelled) setLoadingResponses(false);
-      });
+      const items = await getTaskResponses(task._id);
+      if (!cancelled) {
+        setResponses(items);
+        setLoadingResponses(false);
+      }
+    })();
     return () => {
       cancelled = true;
     };
@@ -599,47 +629,78 @@ export const ClientView = ({ task, onClose }: ViewProps) => {
 
   if (!task) return null;
 
-  const runAction = async (action: () => Promise<void>) => {
+  const handleAccept = async (responseId: string) => {
+    if (busy) return;
     setBusy(true);
-    setError("");
     try {
-      await action();
-    } catch (e) {
-      setError(getAxiosError(e));
+      await acceptResponse(task._id, responseId);
+      setResponses((prev) =>
+        prev.map((r) => {
+          if (r._id === responseId) return { ...r, status: "accepted" };
+          if (r.status === "pending") return { ...r, status: "rejected" };
+          return r;
+        }),
+      );
+    } catch {
+      return;
     } finally {
       setBusy(false);
     }
   };
 
-  const handleAccept = (responseId: string) =>
-    runAction(async () => {
-      await acceptResponse(task._id, responseId);
-      setResponses((prev) =>
-        prev.map((r) =>
-          r._id === responseId ? { ...r, status: "accepted" } : r,
-        ),
-      );
-    });
-
-  const handleReject = (responseId: string) =>
-    runAction(async () => {
+  const handleReject = async (responseId: string) => {
+    if (busy) return;
+    setBusy(true);
+    try {
       await declineResponse(task._id, responseId);
       setResponses((prev) =>
         prev.map((r) =>
           r._id === responseId ? { ...r, status: "rejected" } : r,
         ),
       );
-    });
+    } catch {
+      return;
+    } finally {
+      setBusy(false);
+    }
+  };
 
-  const handleCancel = () => runAction(() => cancelTask(task._id));
+  const handleCancel = async () => {
+    if (busy || !(await confirm(t("view.confirm.cancel")))) return;
+    setBusy(true);
+    try {
+      await cancelTask(task._id);
+    } catch {
+      return;
+    } finally {
+      setBusy(false);
+    }
+  };
 
-  const handleComplete = () => runAction(() => completeTask(task._id));
+  const handleComplete = async () => {
+    if (busy) return;
+    setBusy(true);
+    try {
+      await completeTask(task._id);
+    } catch {
+      return;
+    } finally {
+      setBusy(false);
+    }
+  };
 
-  const handleDelete = () =>
-    runAction(async () => {
+  const handleDelete = async () => {
+    if (busy || !(await confirm(t("view.confirm.delete")))) return;
+    setBusy(true);
+    try {
       await deleteTask(task._id);
       onClose();
-    });
+    } catch {
+      return;
+    } finally {
+      setBusy(false);
+    }
+  };
 
   if (isEditing) {
     return (
@@ -659,13 +720,11 @@ export const ClientView = ({ task, onClose }: ViewProps) => {
       <DialogHeader className="mb-2">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-            <ClipboardList className="w-5 h-5" />
+            <ClipboardList aria-hidden="true" className="w-5 h-5" />
           </div>
           <div className="flex-1 min-w-0 pr-8 max-w-[60%] md:max-w-[85%]">
             <DialogTitle className="line-clamp-1">{task.title}</DialogTitle>
-            <DialogDescription>
-              Manage this task and review responses.
-            </DialogDescription>
+            <DialogDescription>{t("view.description")}</DialogDescription>
           </div>
           <TaskStatusBadge
             status={task.status}
@@ -690,8 +749,8 @@ export const ClientView = ({ task, onClose }: ViewProps) => {
             onClick={() => setIsEditing(true)}
             disabled={busy}
           >
-            <Pencil className="w-3.5 h-3.5" />
-            Edit
+            <Pencil aria-hidden="true" className="w-3.5 h-3.5" />
+            {t("view.actions.edit")}
           </Button>
         )}
         {(task.status === "open" || task.status === "assigned") && (
@@ -701,14 +760,14 @@ export const ClientView = ({ task, onClose }: ViewProps) => {
             onClick={handleCancel}
             disabled={busy}
           >
-            <Ban className="w-3.5 h-3.5" />
-            Cancel task
+            <Ban aria-hidden="true" className="w-3.5 h-3.5" />
+            {t("view.actions.cancel")}
           </Button>
         )}
         {task.status === "assigned" && (
           <Button size="sm" onClick={handleComplete} disabled={busy}>
-            <CheckCircle2 className="w-3.5 h-3.5" />
-            Mark completed
+            <CheckCircle2 aria-hidden="true" className="w-3.5 h-3.5" />
+            {t("view.actions.complete")}
           </Button>
         )}
         <Button
@@ -718,16 +777,16 @@ export const ClientView = ({ task, onClose }: ViewProps) => {
           onClick={handleDelete}
           disabled={busy}
         >
-          <Trash2 className="w-3.5 h-3.5" />
-          Delete
+          <Trash2 aria-hidden="true" className="w-3.5 h-3.5" />
+          {t("view.actions.delete")}
         </Button>
       </div>
-      <FieldError message={error} />
     </>
   );
 };
 
 export const TaskerView = ({ task, onClose }: ViewProps) => {
+  const { t } = useTranslation(["tasks", "common"]);
   const { respondToTask, withdrawResponse, getTaskResponses } = useTasks();
   const [myResponse, setMyResponse] = useState<TaskResponseItem | null>(null);
   const [loading, setLoading] = useState(true);
@@ -742,22 +801,14 @@ export const TaskerView = ({ task, onClose }: ViewProps) => {
   useEffect(() => {
     let cancelled = false;
     if (!task) return;
-    startTransition(() => {
+    (async function () {
       setLoading(true);
-    });
-    getTaskResponses(task._id)
-      .then((items) => {
-        if (!cancelled) setMyResponse(items[0] ?? null);
-      })
-      .catch((e) => {
-        if (!cancelled)
-          setErrors({
-            general: getAxiosError(e),
-          });
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
+      const items = await getTaskResponses(task._id);
+      if (!cancelled) {
+        setMyResponse(items[0] ?? null);
+        setLoading(false);
+      }
+    })();
     return () => {
       cancelled = true;
     };
@@ -766,59 +817,56 @@ export const TaskerView = ({ task, onClose }: ViewProps) => {
   if (!task) return null;
 
   const handleRespond = async (e: FormEvent) => {
+    e.preventDefault();
+    if (busy) return;
+    setErrors({});
+    const parsed = taskResponseCreateSchema.safeParse(form);
+    if (!parsed.success) {
+      const { fieldErrors, formErrors } = parsed.error.flatten();
+      setErrors({
+        message: fieldErrors.message?.[0],
+        price: fieldErrors.price?.[0],
+      });
+      toast(formErrors[0]);
+      return;
+    }
+    setBusy(true);
     try {
-      e.preventDefault();
-      setErrors({});
-      const parsed = taskResponseCreateSchema.safeParse(form);
-      if (!parsed.success) {
-        const { fieldErrors, formErrors } = parsed.error.flatten();
-        setErrors({
-          message: fieldErrors.message?.[0],
-          price: fieldErrors.price?.[0],
-          general: formErrors[0],
-        });
-        return;
-      }
-      setBusy(true);
       const response = await respondToTask(task._id, form);
       setMyResponse(response);
-    } catch (e) {
-      setErrors({
-        general: getAxiosError(e),
-      });
+    } catch {
+      return;
     } finally {
       setBusy(false);
     }
   };
 
   const handleWithdraw = async () => {
-    if (!myResponse) return;
+    if (!myResponse || busy) return;
     setBusy(true);
-    setErrors({});
     try {
       await withdrawResponse(task._id, myResponse._id);
-      setMyResponse({ ...myResponse, status: "withdrawn" });
-    } catch (e) {
-      setErrors({
-        message: getAxiosError(e),
-      });
+      setMyResponse(null);
+    } catch {
+      return;
     } finally {
       setBusy(false);
     }
   };
+
+  const messageLength = removeHtml(form.message ?? "").length;
+  const canRespond = !loading && task.status === "open" && !myResponse;
 
   return (
     <>
       <DialogHeader className="mb-2">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-            <Send className="w-5 h-5" />
+            <Send aria-hidden="true" className="w-5 h-5" />
           </div>
           <div className="flex-1 min-w-0 max-w-[60%] md:max-w-[85%]">
             <DialogTitle className="line-clamp-1">{task.title}</DialogTitle>
-            <DialogDescription>
-              Review the task and send your response.
-            </DialogDescription>
+            <DialogDescription>{t("respond.description")}</DialogDescription>
             <TaskStatusBadge
               status={task.status}
               className="absolute top-5 right-16"
@@ -837,32 +885,28 @@ export const TaskerView = ({ task, onClose }: ViewProps) => {
               onClick={() => setStep("respond")}
               className="w-full sm:w-auto"
             >
-              {myResponse ? "View your response" : "Continue to respond"}
-              <ArrowRight className="w-4 h-4" />
+              {myResponse ? t("respond.viewResponse") : t("respond.continue")}
+              <ArrowRight aria-hidden="true" className="w-4 h-4" />
             </Button>
           </div>
         </div>
       )}
       {step === "respond" && (
         <div className="flex flex-col gap-5">
-          {loading && (
-            <div className="flex justify-center py-6 text-muted-foreground">
-              <Loader2 className="w-4 h-4 animate-spin" />
-            </div>
-          )}
+          {loading && <Spinner />}
           {!loading && task.status !== "open" && !myResponse && (
-            <p className="text-sm text-muted-foreground py-2">
-              This task is no longer accepting responses.
-            </p>
+            <p className="text-sm text-grey py-2">{t("respond.closed")}</p>
           )}
-          {!loading &&
-          task.status === "open" &&
-          (!myResponse || myResponse.status === "withdrawn") ? (
-            <form onSubmit={handleRespond} className="flex flex-col gap-4">
+          {canRespond && (
+            <form
+              onSubmit={handleRespond}
+              noValidate
+              className="flex flex-col gap-4"
+            >
               <div className="grid grid-cols-1 gap-5 md:grid-cols-[80%_1fr]">
                 <div className="form-group">
                   <Label htmlFor="respond-message" error={!!errors.message}>
-                    Message to the client
+                    {t("respond.message.label")}
                   </Label>
                   <Tiptap
                     value={form.message}
@@ -879,29 +923,26 @@ export const TaskerView = ({ task, onClose }: ViewProps) => {
                   <p
                     className={clsx(
                       "text-xs text-right mt-1",
-                      removeHtml(form.message ?? "").length > 1000
+                      messageLength > MESSAGE_MAX_LENGTH
                         ? "text-destructive"
                         : "text-grey",
                     )}
                   >
-                    {removeHtml(form.message ?? "").length}/1000
+                    {messageLength}/{MESSAGE_MAX_LENGTH}
                   </p>
                 </div>
                 <div className="form-group">
                   <Label htmlFor="price" error={!!errors.price}>
-                    Your price
+                    {t("respond.price.label")}
                   </Label>
                   <PriceInput
                     name="price"
                     value={form.price}
                     onChange={(number) => {
-                      setForm((p) => ({
-                        ...p,
-                        price: number,
-                      }));
+                      setForm((p) => ({ ...p, price: number }));
                       setErrors((p) => ({ ...p, price: undefined }));
                     }}
-                    placeholder="Budget"
+                    placeholder={t("respond.price.placeholder")}
                     error={errors.price}
                   />
                   <FieldError message={errors.price} />
@@ -915,8 +956,8 @@ export const TaskerView = ({ task, onClose }: ViewProps) => {
                   disabled={busy}
                   className="w-full sm:w-auto"
                 >
-                  <ArrowLeft className="w-4 h-4" />
-                  Back
+                  <ArrowLeft aria-hidden="true" className="w-4 h-4" />
+                  {t("common:actions.back")}
                 </Button>
                 <div className="flex flex-col-reverse gap-3 sm:flex-row">
                   <Button
@@ -926,7 +967,7 @@ export const TaskerView = ({ task, onClose }: ViewProps) => {
                     disabled={busy}
                     className="w-full sm:w-auto"
                   >
-                    Close
+                    {t("common:actions.close")}
                   </Button>
                   <Button
                     type="submit"
@@ -934,52 +975,52 @@ export const TaskerView = ({ task, onClose }: ViewProps) => {
                     className="w-full sm:w-auto"
                   >
                     {busy ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <Loader2
+                        aria-hidden="true"
+                        className="w-4 h-4 animate-spin"
+                      />
                     ) : (
-                      <Send className="w-4 h-4" />
+                      <Send aria-hidden="true" className="w-4 h-4" />
                     )}
-                    Send response
+                    {t("respond.send")}
                   </Button>
                 </div>
               </div>
             </form>
-          ) : (
-            !loading &&
-            myResponse && (
-              <>
-                <ResponseCard
-                  price={myResponse.price}
-                  status={myResponse.status}
-                  message={myResponse.message}
-                  actions={
-                    myResponse.status === "pending" ? (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={handleWithdraw}
-                        disabled={busy}
-                      >
-                        Withdraw
-                      </Button>
-                    ) : null
-                  }
-                />
-                <div className="flex justify-start border-t border-border pt-5">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setStep("overview")}
-                  >
-                    <ArrowLeft className="w-4 h-4" />
-                    Back to overview
-                  </Button>
-                </div>
-              </>
-            )
+          )}
+          {!loading && myResponse && (
+            <>
+              <ResponseCard
+                price={myResponse.price}
+                status={myResponse.status}
+                message={myResponse.message}
+                actions={
+                  myResponse.status === "pending" ? (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={handleWithdraw}
+                      disabled={busy}
+                    >
+                      {t("respond.withdraw")}
+                    </Button>
+                  ) : null
+                }
+              />
+              <div className="flex justify-start border-t border-border pt-5">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setStep("overview")}
+                >
+                  <ArrowLeft aria-hidden="true" className="w-4 h-4" />
+                  {t("respond.backToOverview")}
+                </Button>
+              </div>
+            </>
           )}
         </div>
       )}
-      <FieldError message={errors.general} />
     </>
   );
 };

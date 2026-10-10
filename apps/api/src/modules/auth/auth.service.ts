@@ -60,16 +60,26 @@ export class AuthService {
       } = parsed.data;
       const db = await this.server.getDb();
       const users = db.collection("users");
+      const existingName = await users.findOne({ username });
+
+      if (existingName)
+        return {
+          success: false,
+          status: 400,
+          message: "user.usernameExists",
+        };
+
       const existing = await users.findOne({
-        $or: [{ email }, { username }, { "profile.fullPhone": fullPhone }],
+        $or: [{ email }, { "profile.fullPhone": fullPhone }],
       });
 
       if (existing)
         return {
           success: false,
           status: 400,
-          message: "User already exists.",
+          message: "user.unavailableData",
         };
+
       const passwordHash = await bcrypt.hash(password, 10);
 
       const initials = (fullName ?? username ?? "")
@@ -79,7 +89,7 @@ export class AuthService {
         .toUpperCase()
         .slice(0, 2);
 
-      const doc = {
+      const doc: Omit<User, "_id"> = {
         username,
         publicLink: `${CLIENT_URL}/@${username}`,
         email,
@@ -122,7 +132,7 @@ export class AuthService {
           introduction: null,
         },
         passwordHash,
-      } as Omit<User, "_id">;
+      };
       const result = await users.insertOne(doc);
       const fullUser = { _id: result.insertedId, ...doc };
       return {
@@ -132,7 +142,7 @@ export class AuthService {
       };
     } catch (error) {
       console.error("Register error:", error);
-      return { success: false, status: 500, message: "errors.server" };
+      return { success: false, status: 500, message: "general.unknown" };
     }
   }
 
@@ -151,7 +161,7 @@ export class AuthService {
       const users = db.collection("users");
       const existing = await users.findOne({ $or: [{ email }, { username }] });
       if (existing)
-        return { success: false, status: 400, message: "User already exists." };
+        return { success: false, status: 400, message: "user.usernameExists" };
       const passwordHash = await bcrypt.hash(password, 10);
       const doc = {
         email,
@@ -168,7 +178,7 @@ export class AuthService {
       };
     } catch (error) {
       console.error("Register admin error:", error);
-      return { success: false, status: 500, message: "errors.server" };
+      return { success: false, status: 500, message: "general.unknown" };
     }
   }
 
@@ -181,7 +191,6 @@ export class AuthService {
           status: 400,
           message: parsed.error.issues[0].message,
         };
-
       const { email, password } = parsed.data;
       const db = await this.server.getDb();
       const user = (await db
@@ -194,7 +203,7 @@ export class AuthService {
         return {
           success: false,
           status: 401,
-          message: "Invalid email or password.",
+          message: "user.invalidCredentials",
         };
       return {
         success: true,
@@ -203,7 +212,7 @@ export class AuthService {
       };
     } catch (error) {
       console.error("Login error:", error);
-      return { success: false, status: 500, message: "errors.server" };
+      return { success: false, status: 500, message: "general.unknown" };
     }
   }
 
@@ -223,7 +232,7 @@ export class AuthService {
         .collection("users")
         .findOne({ "profile.fullPhone": fullPhone });
       if (!user)
-        return { success: false, status: 400, message: "No OTP requested." };
+        return { success: false, status: 400, message: "otp.notFound" };
 
       const check = await this.otpService.consume(
         user._id,
@@ -246,7 +255,7 @@ export class AuthService {
       return { success: true, status: 200, data: { resetToken } };
     } catch (error) {
       console.error("Verify reset OTP error:", error);
-      return { success: false, status: 500, message: "errors.server" };
+      return { success: false, status: 500, message: "general.unknown" };
     }
   }
 
@@ -283,7 +292,7 @@ export class AuthService {
       return { success: true, status: 200 };
     } catch (error) {
       console.error("Forgot password error:", error);
-      return { success: false, status: 500, message: "errors.server" };
+      return { success: false, status: 500, message: "general.unknown" };
     }
   }
 
@@ -296,7 +305,6 @@ export class AuthService {
           status: 400,
           message: parsed.error.issues[0].message,
         };
-
       const { token, password } = parsed.data;
       let decoded: any;
       try {
@@ -305,7 +313,7 @@ export class AuthService {
         return {
           success: false,
           status: 400,
-          message: "Invalid or expired token.",
+          message: "general.unknown",
         };
       }
       const db = await this.server.getDb();
@@ -317,7 +325,7 @@ export class AuthService {
         return {
           success: false,
           status: 400,
-          message: "Invalid or expired token.",
+          message: "general.unknown",
         };
       const passwordHash = await bcrypt.hash(password, 10);
       await db
@@ -329,7 +337,7 @@ export class AuthService {
       return { success: true, status: 200 };
     } catch (error) {
       console.error("Reset password error:", error);
-      return { success: false, status: 500, message: "errors.server" };
+      return { success: false, status: 500, message: "general.unknown" };
     }
   }
 
@@ -345,7 +353,7 @@ export class AuthService {
         return {
           success: false,
           status: 400,
-          message: "Invalid or expired token.",
+          message: "general.unknown",
           data: { reason },
         };
       }
@@ -358,7 +366,7 @@ export class AuthService {
         return {
           success: false,
           status: 400,
-          message: "Invalid or expired token.",
+          message: "general.unknown",
           data: { reason: "invalid" },
         };
       return { success: true, status: 200 };
@@ -367,7 +375,7 @@ export class AuthService {
       return {
         success: false,
         status: 500,
-        message: "errors.server",
+        message: "general.unknown",
         data: { reason: "error" },
       };
     }

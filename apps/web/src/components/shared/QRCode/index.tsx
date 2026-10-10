@@ -55,7 +55,7 @@ export function QRCode({ url, name }: { url: string; name: string }) {
           includeMargin={true}
         />
       </div>
-      <p className="max-w-55 truncate text-sm text-gray" title={name}>
+      <p className="max-w-55 truncate text-sm text-grey" title={name}>
         {name}
       </p>
       <div className="flex gap-2">

@@ -12,6 +12,7 @@ import {
 } from "react";
 import {
   Task,
+  TaskStatus,
   TaskList,
   TaskCreateForm,
   TaskUpdateForm,
@@ -31,6 +32,8 @@ import { axiosApi } from "@/api/index";
 import { useUser } from "@/providers/UserProvider";
 import { getAxiosError } from "@/utils/getAxiosError";
 import { applyTaskFilters, buildTaskQuery } from "@/utils/tasksUtils";
+import { useTranslation } from "react-i18next";
+import { useToast } from "@/hooks/useToast";
 
 interface FetchOptions {
   includeMine?: boolean;
@@ -58,7 +61,6 @@ interface TaskContextType extends BrowserView {
   isListLoading: boolean;
   isLoadingMore: boolean;
   isInitialized: boolean;
-  listError: string;
   tab: TasksTab;
   query: string;
   filters: TaskFilters;
@@ -140,6 +142,7 @@ const findIn = (lists: Task[][], id: string | null) =>
   id ? (lists.flat().find((t) => t._id === id) ?? null) : null;
 
 export const TaskProvider = ({ children }: TaskProviderProps) => {
+  const { t } = useTranslation(["tasks", "common"]);
   const [allTasks, setAllTasks] = useState<Task[]>([]);
   const [myTasks, setMyTasks] = useState<Task[]>([]);
   const [rawTotal, setRawTotal] = useState(0);
@@ -147,7 +150,6 @@ export const TaskProvider = ({ children }: TaskProviderProps) => {
   const [isFetching, setIsFetching] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
-  const [listError, setListError] = useState("");
   const [tab, setTab] = useState<TasksTab>(TABS[0]);
   const [query, setQuery] = useState("");
   const [filters, setFilters] = useState<TaskFilters>(TASK_DEFAULT_FILTERS);
@@ -162,6 +164,7 @@ export const TaskProvider = ({ children }: TaskProviderProps) => {
   const readyRef = useRef(false);
   const ssrRef = useRef(false);
   const loadedForRef = useRef<string | null>(null);
+  const toast = useToast();
 
   useEffect(() => {
     allRef.current = allTasks;
@@ -173,14 +176,12 @@ export const TaskProvider = ({ children }: TaskProviderProps) => {
       const requestId = ++requestRef.current;
       lastQueryRef.current = q ?? {};
       setIsFetching(true);
-      setListError("");
       try {
         const { data } = await axiosApi.getTasks({
           ...q,
           page: 1,
           includeMine,
         });
-
         if (requestId !== requestRef.current) return;
         setAllTasks(data.allItems);
         if (includeMine) setMyTasks(data.myItems);
@@ -188,9 +189,9 @@ export const TaskProvider = ({ children }: TaskProviderProps) => {
         pageRef.current = data.page;
         readyRef.current = true;
         setIsInitialized(true);
-      } catch (error) {
+      } catch (e) {
         if (requestId === requestRef.current) {
-          setListError(getAxiosError(error));
+          toast(getAxiosError(e));
           readyRef.current = true;
           setIsInitialized(true);
         }
@@ -198,7 +199,7 @@ export const TaskProvider = ({ children }: TaskProviderProps) => {
         if (requestId === requestRef.current) setIsFetching(false);
       }
     },
-    [],
+    [toast],
   );
 
   const hydrate = useCallback((initial: TaskList) => {
@@ -233,13 +234,13 @@ export const TaskProvider = ({ children }: TaskProviderProps) => {
       });
       setRawTotal(data.total);
       pageRef.current = data.page;
-    } catch (error) {
-      setListError(getAxiosError(error));
+    } catch (e) {
+      toast(getAxiosError(e));
     } finally {
       loadingMoreRef.current = false;
       setIsLoadingMore(false);
     }
-  }, []);
+  }, [toast]);
 
   useEffect(() => {
     if (!userId || loadedForRef.current === userId) return;
@@ -334,7 +335,7 @@ export const TaskProvider = ({ children }: TaskProviderProps) => {
     }
   }, []);
 
-  const setStatus = useCallback((id: string, status: Task["status"]) => {
+  const setStatus = useCallback((id: string, status: TaskStatus) => {
     const patch = (t: Task): Task => (t._id === id ? { ...t, status } : t);
     setAllTasks((prev) => prev.map(patch));
     setMyTasks((prev) => prev.map(patch));
@@ -384,7 +385,6 @@ export const TaskProvider = ({ children }: TaskProviderProps) => {
               : t,
           ),
         );
-
         const source = allRef.current.find((t) => t._id === taskId);
         setMyTasks((prev) => {
           if (prev.some((t) => t._id === taskId)) {
@@ -489,7 +489,6 @@ export const TaskProvider = ({ children }: TaskProviderProps) => {
         isListLoading: tab === "all" ? isFetching || !isInitialized : false,
         isLoadingMore,
         isInitialized,
-        listError,
         tab,
         changeTab,
         query,

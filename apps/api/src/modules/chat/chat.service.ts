@@ -212,13 +212,17 @@ export class ChatService {
   ): Promise<ServiceResult> {
     try {
       if (!payload.memberId) {
-        return { success: false, status: 400, message: "memberId required." };
+        return {
+          success: false,
+          status: 400,
+          message: "chat.memberIdRequired",
+        };
       }
       if (payload.memberId === user._id.toString()) {
         return {
           success: false,
           status: 400,
-          message: "Cannot start a chat with yourself.",
+          message: "chat.cannotCreateChatWithSelf",
         };
       }
       const db = await this.server.getDb();
@@ -227,7 +231,7 @@ export class ChatService {
         .collection("users")
         .findOne({ _id: otherId }, { projection: { _id: 1 } });
       if (!otherUser) {
-        return { success: false, status: 404, message: "User not found." };
+        return { success: false, status: 404, message: "chat.memberNotFound" };
       }
       const existing = await db.collection<ChatBack>("chats").findOne({
         participants: { $all: [user._id, otherId], $size: 2 },
@@ -268,7 +272,7 @@ export class ChatService {
       return { success: true, status: 201, data: { chat: enriched } };
     } catch (e) {
       console.error("Create chat error:", e);
-      return { success: false, status: 500, message: "errors.server" };
+      return { success: false, status: 500, message: "general.unknown" };
     }
   }
 
@@ -284,19 +288,20 @@ export class ChatService {
       return { success: true, status: 200, data: { chats: enriched } };
     } catch (e) {
       console.error("Get chats error:", e);
-      return { success: false, status: 500, message: "errors.server" };
+      return { success: false, status: 500, message: "general.unknown" };
     }
   }
 
   async getById(user: User, chatId: string): Promise<ServiceResult> {
     try {
       const chat = await this.assertParticipant(chatId, user._id);
-      if (!chat) return { success: false, status: 404, message: "Not found." };
+      if (!chat)
+        return { success: false, status: 404, message: "chat.notFound" };
       const [enriched] = await this.enrichChats([chat], user._id);
       return { success: true, status: 200, data: { chat: enriched } };
     } catch (e) {
       console.error("Get chat error:", e);
-      return { success: false, status: 500, message: "errors.server" };
+      return { success: false, status: 500, message: "general.unknown" };
     }
   }
 
@@ -304,7 +309,8 @@ export class ChatService {
     try {
       const db = await this.server.getDb();
       const chat = await this.assertParticipant(chatId, user._id);
-      if (!chat) return { success: false, status: 404, message: "Not found." };
+      if (!chat)
+        return { success: false, status: 404, message: "chat.notFound" };
       const newDeletedBy = [
         ...chat.deletedBy.map((id) => id.toString()),
         user._id.toString(),
@@ -323,7 +329,7 @@ export class ChatService {
       return { success: true, status: 200 };
     } catch (e) {
       console.error("Delete chat error:", e);
-      return { success: false, status: 500, message: "errors.server" };
+      return { success: false, status: 500, message: "general.unknown" };
     }
   }
 
@@ -340,7 +346,8 @@ export class ChatService {
   > {
     try {
       const chat = await this.assertParticipant(chatId, user._id);
-      if (!chat) return { success: false, status: 404, message: "Not found." };
+      if (!chat)
+        return { success: false, status: 404, message: "chat.notFound" };
       const db = await this.server.getDb();
       const query: any = { chatId: chat._id };
       if (before) query._id = { $lt: new ObjectId(before) };
@@ -358,7 +365,7 @@ export class ChatService {
       return { success: true, status: 200, data: { items, nextCursor } };
     } catch (e) {
       console.error("Get messages error:", e);
-      return { success: false, status: 500, message: "errors.server" };
+      return { success: false, status: 500, message: "general.unknown" };
     }
   }
 
@@ -369,14 +376,15 @@ export class ChatService {
   ): Promise<ServiceResult> {
     try {
       const chat = await this.assertParticipant(chatId, user._id);
-      if (!chat) return { success: false, status: 404, message: "Not found." };
+      if (!chat)
+        return { success: false, status: 404, message: "chat.notFound" };
       const text = payload.text?.trim() || null;
       const mediaIds = payload.mediaIds ?? [];
       if (!text && mediaIds.length === 0) {
         return {
           success: false,
           status: 400,
-          message: "Message must contain text or media.",
+          message: "chat.message.empty",
         };
       }
       const db = await this.server.getDb();
@@ -409,14 +417,15 @@ export class ChatService {
       return { success: true, status: 201, data: { message } };
     } catch (e) {
       console.error("Send message error:", e);
-      return { success: false, status: 500, message: "errors.server" };
+      return { success: false, status: 500, message: "general.unknown" };
     }
   }
 
   async markRead(user: User, chatId: string): Promise<ServiceResult> {
     try {
       const chat = await this.assertParticipant(chatId, user._id);
-      if (!chat) return { success: false, status: 404, message: "Not found." };
+      if (!chat)
+        return { success: false, status: 404, message: "chat.notFound" };
       const db = await this.server.getDb();
       await db.collection<MessageBack>("messages").updateMany(
         {
@@ -438,7 +447,7 @@ export class ChatService {
       return { success: true, status: 200 };
     } catch (e) {
       console.error("Mark read error:", e);
-      return { success: false, status: 500, message: "errors.server" };
+      return { success: false, status: 500, message: "general.unknown" };
     }
   }
 
@@ -450,10 +459,11 @@ export class ChatService {
   ): Promise<ServiceResult> {
     try {
       const chat = await this.assertParticipant(chatId, user._id);
-      if (!chat) return { success: false, status: 404, message: "Not found." };
+      if (!chat)
+        return { success: false, status: 404, message: "chat.notFound" };
       const trimmed = text?.trim();
       if (!trimmed) {
-        return { success: false, status: 400, message: "Text required." };
+        return { success: false, status: 400, message: "chat.message.noText" };
       }
       const db = await this.server.getDb();
       const msg = await db.collection<MessageBack>("messages").findOne({
@@ -461,9 +471,13 @@ export class ChatService {
         chatId: chat._id,
       });
       if (!msg)
-        return { success: false, status: 404, message: "Message not found." };
+        return {
+          success: false,
+          status: 404,
+          message: "chat.message.notFound",
+        };
       if (!msg.senderId.equals(user._id)) {
-        return { success: false, status: 403, message: "errors.forbidden" };
+        return { success: false, status: 403, message: "general.forbidden" };
       }
       const now = new Date();
       await db
@@ -490,7 +504,7 @@ export class ChatService {
       return { success: true, status: 200, data: { message } };
     } catch (e) {
       console.error("Edit message error:", e);
-      return { success: false, status: 500, message: "errors.server" };
+      return { success: false, status: 500, message: "general.unknown" };
     }
   }
 
@@ -501,16 +515,21 @@ export class ChatService {
   ): Promise<ServiceResult> {
     try {
       const chat = await this.assertParticipant(chatId, user._id);
-      if (!chat) return { success: false, status: 404, message: "Not found." };
+      if (!chat)
+        return { success: false, status: 404, message: "chat.notFound" };
       const db = await this.server.getDb();
       const msg = await db.collection<MessageBack>("messages").findOne({
         _id: new ObjectId(messageId),
         chatId: chat._id,
       });
       if (!msg)
-        return { success: false, status: 404, message: "Message not found." };
+        return {
+          success: false,
+          status: 404,
+          message: "chat.message.notFound",
+        };
       if (!msg.senderId.equals(user._id)) {
-        return { success: false, status: 403, message: "errors.forbidden" };
+        return { success: false, status: 403, message: "general.forbidden" };
       }
       await db.collection("messages").deleteOne({ _id: msg._id });
       await this.recomputeLastMessage(chat._id);
@@ -525,7 +544,7 @@ export class ChatService {
       return { success: true, status: 200 };
     } catch (e) {
       console.error("Delete message error:", e);
-      return { success: false, status: 500, message: "errors.server" };
+      return { success: false, status: 500, message: "general.unknown" };
     }
   }
 
@@ -537,16 +556,25 @@ export class ChatService {
   ): Promise<ServiceResult> {
     try {
       if (EMOJI.indexOf(emoji) === -1)
-        return { success: false, status: 400, message: "Invalid emoji." };
+        return {
+          success: false,
+          status: 400,
+          message: "chat.message.invalidEmoji",
+        };
       const chat = await this.assertParticipant(chatId, user._id);
-      if (!chat) return { success: false, status: 404, message: "Not found." };
+      if (!chat)
+        return { success: false, status: 404, message: "chat.notFound" };
       const db = await this.server.getDb();
       const msg = await db.collection<MessageBack>("messages").findOne({
         _id: new ObjectId(messageId),
         chatId: chat._id,
       });
       if (!msg)
-        return { success: false, status: 404, message: "Message not found." };
+        return {
+          success: false,
+          status: 404,
+          message: "chat.message.notFound",
+        };
       const myReaction = msg.reactions.find((r) => r.userId.equals(user._id));
       const isRemovingSame = myReaction?.emoji === emoji;
       const withoutMine = msg.reactions.filter(
@@ -566,7 +594,7 @@ export class ChatService {
       return { success: true, status: 200, data: { message } };
     } catch (e) {
       console.error("Manage reaction error:", e);
-      return { success: false, status: 500, message: "errors.server" };
+      return { success: false, status: 500, message: "general.unknown" };
     }
   }
 }

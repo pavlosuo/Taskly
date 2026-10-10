@@ -33,7 +33,7 @@ export class MediaService {
       };
     } catch (e) {
       console.error("Upload media error:", e);
-      return { success: false, status: 500, message: "errors.server" };
+      return { success: false, status: 500, message: "general.unknown" };
     }
   }
 
@@ -48,7 +48,7 @@ export class MediaService {
       return { success: true, status: 200, data: { items } };
     } catch (e) {
       console.error("Get media error:", e);
-      return { success: false, status: 500, message: "errors.server" };
+      return { success: false, status: 500, message: "general.unknown" };
     }
   }
 
@@ -59,13 +59,14 @@ export class MediaService {
         _id: new ObjectId(id),
         ownerId: user._id,
       });
-      if (!item) return { success: false, status: 404, message: "Not found." };
+      if (!item)
+        return { success: false, status: 404, message: "media.notFound" };
       await fs.unlink(filePath(item.filename, item.ownerId)).catch(() => {});
       await db.collection("media").deleteOne({ _id: new ObjectId(id) });
       return { success: true, status: 200 };
     } catch (e) {
       console.error("Delete media error:", e);
-      return { success: false, status: 500, message: "errors.server" };
+      return { success: false, status: 500, message: "general.unknown" };
     }
   }
 
@@ -80,7 +81,8 @@ export class MediaService {
         _id: new ObjectId(id),
         ownerId,
       });
-      if (!item) return { success: false, status: 404, message: "Not found." };
+      if (!item)
+        return { success: false, status: 404, message: "media.notFound" };
       await db
         .collection("media")
         .updateOne(
@@ -90,7 +92,7 @@ export class MediaService {
       return { success: true, status: 200 };
     } catch (e) {
       console.error("Add public source error:", e);
-      return { success: false, status: 500, message: "errors.server" };
+      return { success: false, status: 500, message: "general.unknown" };
     }
   }
 
@@ -105,7 +107,8 @@ export class MediaService {
         _id: new ObjectId(id),
         ownerId,
       });
-      if (!item) return { success: false, status: 404, message: "Not found." };
+      if (!item)
+        return { success: false, status: 404, message: "media.notFound" };
       await db
         .collection<MediaItemBack>("media")
         .updateOne({ _id: item._id }, { $pull: { publicSources: source } });
@@ -115,7 +118,7 @@ export class MediaService {
       };
     } catch (e) {
       console.error("Remove public source error:", e);
-      return { success: false, status: 500, message: "errors.server" };
+      return { success: false, status: 500, message: "general.unknown" };
     }
   }
 
@@ -131,7 +134,8 @@ export class MediaService {
         .collection("media")
         .findOne({ _id: new ObjectId(id) });
 
-      if (!item) return { success: false, status: 404, message: "Not found." };
+      if (!item)
+        return { success: false, status: 404, message: "media.notFound" };
 
       const fp = filePath(item.filename, item.ownerId);
 
@@ -144,7 +148,7 @@ export class MediaService {
       }
 
       if (!user) {
-        return { success: false, status: 401, message: "errors.unauthorized" };
+        return { success: false, status: 401, message: "general.unauthorized" };
       }
 
       if (user._id.equals(item.ownerId)) {
@@ -161,7 +165,7 @@ export class MediaService {
         .toArray();
 
       if (messages.length === 0) {
-        return { success: false, status: 403, message: "errors.forbidden" };
+        return { success: false, status: 403, message: "general.forbidden" };
       }
 
       const chatIds = [
@@ -174,7 +178,7 @@ export class MediaService {
       });
 
       if (!hasAccess) {
-        return { success: false, status: 403, message: "errors.forbidden" };
+        return { success: false, status: 403, message: "general.forbidden" };
       }
 
       return {
@@ -184,7 +188,7 @@ export class MediaService {
       };
     } catch (e) {
       console.error("Serve file error:", e);
-      return { success: false, status: 500, message: "errors.server" };
+      return { success: false, status: 500, message: "general.unknown" };
     }
   }
 }

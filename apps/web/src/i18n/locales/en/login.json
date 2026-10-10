@@ -1,5 +1,5 @@
 {
-  "title": "Welcome Back",
+  "title": "Welcome back",
   "subtitle": "Sign in to access your account and manage your dashboard.",
   "email": {
     "label": "Email",
@@ -11,12 +11,7 @@
   },
   "forgotPassword": "Forgot password?",
   "submit": {
-    "idle": "Log in",
+    "idle": "Sign in",
     "loading": "Signing in..."
-  },
-  "divider": "or",
-  "bottomLink": {
-    "text": "Don't have an account yet?",
-    "label": "Create now"
   }
 }

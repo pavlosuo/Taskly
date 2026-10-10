@@ -9,10 +9,12 @@
   },
   "phone": {
     "required": "Phone number is required",
-    "invalid": "Invalid phone number"
+    "invalid": "Invalid phone number",
+    "tooLong": "Phone number is too long"
   },
   "role": {
-    "invalid": "Invalid role"
+    "invalid": "Invalid role",
+    "required": "Please choose how you will use the app"
   },
   "email": {
     "required": "Email is required",
@@ -30,6 +32,8 @@
     "number": "Password must contain at least one number",
     "special": "Password must contain at least one special character",
     "noSpaces": "Password must not contain spaces",
+    "oldInvalid": "Old password is incorrect",
+    "newSameAsOld": "New password must be different from the old one",
     "strength": {
       "invalid": "Invalid password",
       "weak": "Weak password",
@@ -48,7 +52,8 @@
   },
   "confirm": {
     "required": "Please confirm your password",
-    "mismatch": "Passwords do not match"
+    "mismatch": "Passwords do not match",
+    "tooLong": "Password confirmation is too long"
   },
   "username": {
     "required": "Username is required",
@@ -56,12 +61,28 @@
     "tooLong": "Username must be at most 30 characters",
     "invalidChars": "Username may only contain letters, numbers, underscores, dots and dashes",
     "invalidStart": "Username must start with a letter or number",
-    "invalidEnd": "Username must end with a letter or number"
+    "invalidEnd": "Username must end with a letter or number",
+    "invalidSequence": "Username must not contain consecutive dots, dashes or underscores",
+    "alreadyTaken": "Username is already taken"
+  },
+  "user": {
+    "emailExists": "Email is already in use",
+    "usernameExists": "Username is already taken",
+    "phoneExists": "Phone number is already in use",
+    "nothingToUpdate": "Nothing to update",
+    "notFound": "User not found",
+    "usernameMissing": "Please enter username",
+    "invalidCredentials": "Invalid email or password",
+    "unavailableData": "Unable to complete registration. Check your details."
   },
   "otp": {
     "required": "Code is required",
     "invalidLength": "Code must be 6 digits",
-    "digitsOnly": "Code must contain digits only"
+    "digitsOnly": "Code must contain digits only",
+    "missingFullPhone": "Please enter your full phone number",
+    "notFound": "No OTP requested",
+    "expired": "OTP has expired",
+    "invalid": "Invalid OTP"
   },
   "token": {
     "required": "Token is required",
@@ -72,6 +93,73 @@
     "tooShort": "Full name is too short",
     "tooLong": "Full name is too long",
     "invalidChars": "Full name may only contain letters, spaces, hyphens and apostrophes",
-    "missingLastName": "Please enter both first and last name"
+    "missingLastName": "Please enter both first and last name",
+    "invalidSpacing": "Full name must not contain consecutive spaces"
+  },
+  "code": {
+    "required": "Country code is required",
+    "tooLong": "Country code is too long"
+  },
+  "agreementAccepted": { "required": "You must accept the privacy policy" },
+  "upload": {
+    "tooMany": "You can upload up to {{max}} files at once (selected {{selected}}).",
+    "unsupported_one": "File type \"{{type}}\" is not allowed.",
+    "unsupported_other": "{{count}} files have an unsupported type and were skipped.",
+    "failed_one": "Failed to upload \"{{name}}\".",
+    "failed_other": "Failed to upload {{count}} files."
+  },
+  "general": {
+    "unknown": "Something went wrong. Please try again.",
+    "unauthorized": "You are not authorized to perform this action.",
+    "notFound": "The requested resource was not found.",
+    "forbidden": "You are not allowed to perform this action.",
+    "tooManyRequests": "Too many requests. Please try again later.",
+    "serviceUnavailable": "The service is temporarily unavailable. Please try again later."
+  },
+  "policy": {
+    "invalid": "Invalid policy"
+  },
+  "lang": {
+    "invalid": "This language is not supported"
+  },
+  "locale": {
+    "invalid": "This locale is not supported"
+  },
+  "chat": {
+    "memberIdRequired": "Member ID is required",
+    "cannotCreateChatWithSelf": "You cannot create a chat with yourself",
+    "memberNotFound": "Member not found",
+    "notFound": "Chat not found",
+    "message": {
+      "empty": "Message must contain text or media.",
+      "noText": "Message must contain text or media.",
+      "tooLong": "Message is too long",
+      "notFound": "Message not found",
+      "invalidEmoji": "Invalid emoji"
+    }
+  },
+  "media": {
+    "notFound": "Media not found"
+  },
+  "task": {
+    "notFound": "Task not found",
+    "cannotEditAssigned": "Only open tasks can be edited",
+    "cannotDelete": "An assigned task can't be deleted",
+    "cannotCancel": "This task can't be cancelled",
+    "cannotComplete": "Only assigned tasks can be completed",
+    "message": {
+      "tooShort": "Message must be at least 10 characters",
+      "tooLong": "Message must be at most 1000 characters"
+    },
+    "update": { "empty": "Nothing to update" }
+  },
+  "taskResponse": {
+    "notFound": "Response not found",
+    "taskClosed": "This task is no longer open",
+    "ownTask": "You can't respond to your own task",
+    "alreadyResponded": "You have already responded to this task",
+    "cannotWithdraw": "Only pending responses can be withdrawn",
+    "taskAlreadyAssigned": "This task has already been assigned",
+    "alreadyProcessed": "This response has already been processed"
   }
 }

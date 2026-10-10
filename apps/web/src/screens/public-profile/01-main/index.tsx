@@ -1,4 +1,6 @@
 "use client";
+import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { ImageDisplay } from "@/components/shared/MediaPicker";
 import parseSafeHtml from "@/utils/parseSafeHtml";
 import {
@@ -21,16 +23,17 @@ import { VideoPlayer } from "@/components/shared/VideoPlayer";
 import { SpanField } from "@/screens/user/ui/index.tsx";
 import { useLightbox } from "@/providers/LightboxProvider";
 import { OnlineStatus } from "@/components/shared/OnlineStatus";
-import { useTheme } from "@/providers/ThemeProvider";
 import { PublicHeader } from "@/components/shared/PublicHeader";
 import { useRouter } from "next/navigation";
 import { useChats } from "@/providers/ChatProvider";
 import { useUser } from "@/providers/UserProvider";
+import { useTheme } from "@/providers/ThemeProvider";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useFormatDate } from "@/hooks/useFormatDate";
 
 function ScrollChip({
   id,
@@ -64,20 +67,29 @@ export const Main = ({
   user: PublicProfileUser;
   accessReason?: AccessReason;
 }) => {
-  console.log(user);
+  const { t } = useTranslation(["user", "errors"]);
   const p = user.publicProfile;
-  const { setLightbox } = useLightbox();
   const { lang } = useTheme();
+  const { setLightbox } = useLightbox();
   const router = useRouter();
   const { createChat } = useChats();
   const { user: me } = useUser();
+  const [isStarting, setIsStarting] = useState(false);
+  const time = useFormatDate(user.createdAt, {
+    month: "long",
+    year: "numeric",
+  });
   if (!p) return null;
   const hasSkills = !!p?.skills?.length;
   const hasCertificates = !!p?.certificates?.length;
   const hasLanguages = !!p?.languages?.length;
   const hasVideo = !!p?.introduction;
   const hasHeader = !!p?.header;
-  const firstName = user.profile.fullName.split(" ")[0];
+  const isTasker = user.role === "tasker";
+  const showChips =
+    hasLanguages || (isTasker && (hasSkills || hasCertificates));
+  const name = user.profile.fullName;
+  const firstName = name.split(" ")[0];
   const certificateItems: MediaItemPublic[] = (p.certificates ?? [])
     .filter((c) => !!c.media)
     .map((c) => ({
@@ -85,20 +97,29 @@ export const Main = ({
       originalName: c.label,
       mimeType: c.media!.mimeType,
     }));
+  const languagesList = hasLanguages
+    ? new Intl.ListFormat(lang, { style: "short", type: "conjunction" }).format(
+        p.languages!.map((l) => l.label),
+      )
+    : "";
   const isOwnProfile = me && me._id === user._id;
   const isLoggedOut = !me;
   const isDisabled = isLoggedOut || isOwnProfile;
   const disabledReason = isLoggedOut
-    ? "Log in to send a message"
+    ? t("hireDisabled.loggedOut")
     : isOwnProfile
-      ? "You can't message yourself"
+      ? t("hireDisabled.own")
       : null;
 
   const handleSelect = async (userId: string) => {
+    if (isStarting) return;
     try {
+      setIsStarting(true);
       const chat = await createChat(userId);
       router.push(`/chats/${chat._id}`);
-    } catch {}
+    } finally {
+      setIsStarting(false);
+    }
   };
 
   return (
@@ -107,7 +128,7 @@ export const Main = ({
       {hasHeader && (
         <ImageDisplay
           src={p.header!.url}
-          alt="Header image"
+          alt={t("headerAlt")}
           className="h-40 sm:h-52 w-full object-cover relative z-10"
         />
       )}
@@ -117,7 +138,7 @@ export const Main = ({
             {user.profile.avatar ? (
               <ImageDisplay
                 src={user.profile.avatar.url}
-                alt={user.profile.fullName}
+                alt={name}
                 width={88}
                 height={88}
                 className="w-22 h-22 rounded-full object-cover ring-4 ring-primary/10"
@@ -131,32 +152,28 @@ export const Main = ({
           <div className="flex-1 min-w-0">
             <div className="flex flex-wrap items-center gap-2">
               <h1 className="text-xl font-semibold text-foreground truncate">
-                {user.profile.fullName}
+                {name}
               </h1>
-              <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-foreground capitalize">
-                {user.role}
+              <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-foreground">
+                {t(`roles.${user.role}`, { defaultValue: user.role })}
               </span>
               {hasCertificates && (
                 <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
-                  <ShieldCheck className="w-3 h-3" />
-                  Verified
+                  <ShieldCheck aria-hidden="true" className="w-3 h-3" />
+                  {t("verified")}
                 </span>
               )}
             </div>
             <p className="text-sm text-grey mt-0.5">@{user.username}</p>
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 mt-3 text-xs text-grey">
               <span className="inline-flex items-center gap-1.5">
-                <CalendarDays className="w-3.5 h-3.5" />
-                Member since{" "}
-                {new Date(user.createdAt).toLocaleDateString(lang, {
-                  month: "long",
-                  year: "numeric",
-                })}
+                <CalendarDays aria-hidden="true" className="w-3.5 h-3.5" />
+                {t("memberSince", { date: time })}
               </span>
               {hasLanguages && (
                 <span className="inline-flex items-center gap-1.5">
-                  <LanguagesIcon className="w-3.5 h-3.5" />
-                  Speaks {p.languages!.map((l) => l.label).join(", ")}
+                  <LanguagesIcon aria-hidden="true" className="w-3.5 h-3.5" />
+                  {t("speaks", { languages: languagesList })}
                 </span>
               )}
             </div>
@@ -168,8 +185,8 @@ export const Main = ({
                 <TooltipTrigger asChild>
                   <span className="inline-flex" tabIndex={0}>
                     <Button disabled className="pointer-events-none">
-                      <MessageCircle className="w-4 h-4" />
-                      Hire {firstName}
+                      <MessageCircle aria-hidden="true" className="w-4 h-4" />
+                      {t("hire", { name: firstName })}
                     </Button>
                   </span>
                 </TooltipTrigger>
@@ -179,55 +196,63 @@ export const Main = ({
           ) : (
             <div className="shrink-0 sm:self-center grid grid-cols-1 gap-2.5 justify-items-center">
               <OnlineStatus user={user} />
-              <Button onClick={() => handleSelect(user._id)}>
-                <MessageCircle className="w-4 h-4" />
-                Hire {firstName}
+              <Button
+                disabled={isStarting}
+                onClick={() => handleSelect(user._id)}
+              >
+                <MessageCircle aria-hidden="true" className="w-4 h-4" />
+                {t("hire", { name: firstName })}
               </Button>
             </div>
           )}
         </div>
-        {(hasSkills || hasCertificates || hasLanguages) && (
+        {showChips && (
           <div className="flex flex-wrap gap-2 py-5 border-b border-border">
-            {user.role === "tasker" && (
+            {isTasker && (
               <>
                 <ScrollChip
                   id="skills"
-                  label="skills"
+                  label={t("chips.skills", { count: p.skills?.length ?? 0 })}
                   count={p.skills?.length ?? 0}
                 />
                 <ScrollChip
                   id="certificates"
-                  label="certificates"
+                  label={t("chips.certificates", {
+                    count: p.certificates?.length ?? 0,
+                  })}
                   count={p.certificates?.length ?? 0}
                 />
               </>
             )}
             <ScrollChip
               id="languages"
-              label="languages"
+              label={t("chips.languages", { count: p.languages?.length ?? 0 })}
               count={p.languages?.length ?? 0}
             />
           </div>
         )}
         <div id="about" className="py-8 border-b border-border">
-          <h2 className="text-sm font-semibold text-foreground mb-3">About</h2>
+          <h2 className="text-sm font-semibold text-foreground mb-3">
+            {t("sections.about")}
+          </h2>
           {p?.bio ? (
             <div className="text-wrapper text-sm text-foreground leading-relaxed">
               {parseSafeHtml(p.bio)}
             </div>
           ) : (
-            <EmptyState
-              label={`${user.profile.fullName} hasn't written a bio yet.`}
-            />
+            <EmptyState label={t("empty.bio", { name })} />
           )}
         </div>
-        {user.role === "tasker" && (
+        {isTasker && (
           <>
             <div id="introduction" className="py-8 border-b border-border">
               <div className="flex items-center gap-2 mb-3">
-                <TvMinimalPlay className="w-4 h-4 text-primary" />
+                <TvMinimalPlay
+                  aria-hidden="true"
+                  className="w-4 h-4 text-primary"
+                />
                 <h2 className="text-sm font-semibold text-foreground">
-                  Introduction video
+                  {t("sections.introduction")}
                 </h2>
               </div>
               {hasVideo ? (
@@ -238,16 +263,14 @@ export const Main = ({
                   />
                 </div>
               ) : (
-                <EmptyState
-                  label={`${user.profile.fullName} hasn't added an introduction video yet.`}
-                />
+                <EmptyState label={t("empty.introduction", { name })} />
               )}
             </div>
             <div id="skills" className="py-8 border-b border-border">
               <div className="flex items-center gap-2 mb-3">
-                <Drill className="w-4 h-4 text-primary" />
+                <Drill aria-hidden="true" className="w-4 h-4 text-primary" />
                 <h2 className="text-sm font-semibold text-foreground">
-                  Skills
+                  {t("sections.skills")}
                 </h2>
               </div>
               {hasSkills ? (
@@ -257,14 +280,17 @@ export const Main = ({
                   ))}
                 </div>
               ) : (
-                <EmptyState label="No skills added yet." />
+                <EmptyState label={t("empty.skills")} />
               )}
             </div>
             <div id="certificates" className="py-8 border-b border-border">
               <div className="flex items-center gap-2 mb-3">
-                <ShieldCheck className="w-4 h-4 text-primary" />
+                <ShieldCheck
+                  aria-hidden="true"
+                  className="w-4 h-4 text-primary"
+                />
                 <h2 className="text-sm font-semibold text-foreground">
-                  Certificates
+                  {t("sections.certificates")}
                 </h2>
               </div>
               {hasCertificates ? (
@@ -291,12 +317,15 @@ export const Main = ({
                         >
                           <ImageDisplay
                             src={c.media!.url}
-                            alt={c.label}
+                            alt=""
                             className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                           />
                           <div className="absolute inset-x-0 bottom-0 bg-linear-to-t from-black/70 via-black/10 to-transparent p-2.5">
                             <p className="flex items-center gap-1 text-xs font-medium text-white">
-                              <BadgeCheck className="w-3.5 h-3.5 shrink-0" />
+                              <BadgeCheck
+                                aria-hidden="true"
+                                className="w-3.5 h-3.5 shrink-0"
+                              />
                               <span className="truncate">{c.label}</span>
                             </p>
                           </div>
@@ -308,7 +337,10 @@ export const Main = ({
                         key={c.value}
                         className="flex aspect-4/3 flex-col items-center justify-center gap-1.5 rounded-lg border border-border bg-muted px-2 text-center"
                       >
-                        <BadgeCheck className="w-5 h-5 text-primary" />
+                        <BadgeCheck
+                          aria-hidden="true"
+                          className="w-5 h-5 text-primary"
+                        />
                         <span className="text-xs font-medium text-foreground truncate w-full">
                           {c.label}
                         </span>
@@ -317,15 +349,20 @@ export const Main = ({
                   })}
                 </div>
               ) : (
-                <EmptyState label="No certificates added yet." />
+                <EmptyState label={t("empty.certificates")} />
               )}
             </div>
           </>
         )}
         <div id="languages" className="py-8">
           <div className="flex items-center gap-2 mb-3">
-            <LanguagesIcon className="w-4 h-4 text-primary" />
-            <h2 className="text-sm font-semibold text-foreground">Languages</h2>
+            <LanguagesIcon
+              aria-hidden="true"
+              className="w-4 h-4 text-primary"
+            />
+            <h2 className="text-sm font-semibold text-foreground">
+              {t("sections.languages")}
+            </h2>
           </div>
           {hasLanguages ? (
             <div className="flex flex-col gap-2">
@@ -354,17 +391,17 @@ export const Main = ({
                           })
                         }
                         className="shrink-0 border border-primary"
-                        aria-label={`View ${l.label} certificate`}
+                        aria-label={t("certificate.view", { name: l.label })}
                       >
                         <ImageDisplay
                           src={certUrl}
-                          alt={l.label}
+                          alt=""
                           className="w-10 h-10 object-cover hover:opacity-80 transition-opacity"
                         />
                       </button>
                     ) : (
                       <div className="w-10 h-10 border border-primary bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                        <LanguagesIcon className="w-4 h-4" />
+                        <LanguagesIcon aria-hidden="true" className="w-4 h-4" />
                       </div>
                     )}
                     <div className="min-w-0 w-28 shrink-0">
@@ -373,7 +410,10 @@ export const Main = ({
                       </p>
                       <p className="text-xs text-grey">{l.level}</p>
                     </div>
-                    <div className="flex-1 h-1.5 rounded-full bg-border overflow-hidden">
+                    <div
+                      aria-hidden="true"
+                      className="flex-1 h-1.5 rounded-full bg-border overflow-hidden"
+                    >
                       <div
                         className="h-full bg-primary rounded-full"
                         style={{ width: `${pct}%` }}
@@ -384,7 +424,7 @@ export const Main = ({
               })}
             </div>
           ) : (
-            <EmptyState label="No languages added yet." />
+            <EmptyState label={t("empty.languages")} />
           )}
         </div>
       </section>

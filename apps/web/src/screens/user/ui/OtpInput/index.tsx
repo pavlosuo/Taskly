@@ -7,6 +7,7 @@ import {
   InputOTPSlot,
 } from "@/components/ui/input-otp";
 import { FieldError } from "@/components/shared/FieldError";
+import { RESEND_COOLDOWN_SECONDS } from "shared/index";
 
 export function OtpInput({
   onConfirm,
@@ -20,7 +21,7 @@ export function OtpInput({
   error?: string;
 }) {
   const [code, setCode] = useState("");
-  const [resendCooldown, setResendCooldown] = useState(0);
+  const [resendCooldown, setResendCooldown] = useState(RESEND_COOLDOWN_SECONDS);
 
   useEffect(() => {
     if (resendCooldown <= 0) return;
@@ -34,7 +35,7 @@ export function OtpInput({
     if (resendCooldown > 0) return;
     onResend();
     setCode("");
-    setResendCooldown(60);
+    setResendCooldown(RESEND_COOLDOWN_SECONDS);
   };
 
   return (

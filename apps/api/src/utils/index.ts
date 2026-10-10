@@ -5,6 +5,15 @@ import { User } from "@/types";
 import { ObjectId, WithId, Document } from "mongodb";
 export * from "@/utils/limiters";
 export * from "@/utils/upload";
+import { NODE_ENV } from "@/env";
+
+export const cookieOptions = {
+  httpOnly: true,
+  secure: NODE_ENV === "production",
+  sameSite: "lax" as const,
+  maxAge: 365 * 24 * 60 * 60 * 1000,
+  path: "/",
+};
 
 export function parseCookieHeader(header: string): Record<string, string> {
   const result: Record<string, string> = {};

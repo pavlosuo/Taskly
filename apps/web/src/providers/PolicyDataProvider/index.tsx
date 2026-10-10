@@ -8,13 +8,15 @@ import {
 } from "react";
 import { axiosApi } from "@/api/index";
 import { PolicyData } from "shared/types";
+import { getAxiosError } from "@/utils/getAxiosError";
+import { useToast } from "@/hooks/useToast";
+import { useTranslation } from "react-i18next";
 
 interface PolicyDataContextType {
   policyData: PolicyData;
   setPolicyData: React.Dispatch<React.SetStateAction<PolicyData>>;
   savePolicyData: () => Promise<void>;
   loading: boolean;
-  error: string | null;
 }
 
 interface PolicyDataProviderProps {
@@ -26,30 +28,29 @@ const PolicyDataContext = createContext<PolicyDataContextType | null>(null);
 
 export const PolicyDataProvider = ({
   children,
-  initialPolicyData = {
-    policyContent: "",
-    policyTitle: "",
-  },
+  initialPolicyData = { translations: {} },
 }: PolicyDataProviderProps) => {
   const [policyData, setPolicyData] = useState<PolicyData>(initialPolicyData);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { t } = useTranslation("policy");
+  const toast = useToast();
 
   const savePolicyData = useCallback(async () => {
+    if (loading) return;
     setLoading(true);
-    setError(null);
     try {
-      await axiosApi.savePolicyData(policyData);
-    } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : "Unknown error");
+      await axiosApi.savePolicyData({ translations: policyData.translations });
+      toast(t("policy:updated"), "success");
+    } catch (e) {
+      toast(getAxiosError(e));
     } finally {
       setLoading(false);
     }
-  }, [policyData]);
+  }, [policyData.translations, loading, toast, t]);
 
   return (
     <PolicyDataContext.Provider
-      value={{ policyData, setPolicyData, savePolicyData, loading, error }}
+      value={{ policyData, setPolicyData, savePolicyData, loading }}
     >
       {children}
     </PolicyDataContext.Provider>

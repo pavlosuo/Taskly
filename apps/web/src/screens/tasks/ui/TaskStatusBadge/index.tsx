@@ -1,4 +1,5 @@
 "use client";
+import { useTranslation } from "react-i18next";
 import { TaskStatus } from "shared/types";
 import clsx from "clsx";
 
@@ -9,10 +10,11 @@ export const TaskStatusBadge = ({
   status: TaskStatus;
   className?: string;
 }) => {
+  const { t } = useTranslation("tasks");
   return (
     <span
       className={clsx(
-        "rounded-full px-2.5 py-1 text-[11px] font-medium",
+        "rounded-full px-2.5 py-1 text-xs font-medium",
         className,
         {
           "bg-primary/10 text-primary": status === "open",
@@ -22,7 +24,7 @@ export const TaskStatusBadge = ({
         },
       )}
     >
-      {status}
+      {t(`status.${status}`)}
     </span>
   );
 };

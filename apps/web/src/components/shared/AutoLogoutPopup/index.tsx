@@ -170,9 +170,7 @@ export function AutoLogoutPopup() {
           <DialogHeader className="items-center text-center space-y-1">
             <div className="flex items-center gap-1.5">
               <AlertTriangle
-                className={clsx(
-                  "w-4 h-4 transition-colors text-muted-foreground",
-                )}
+                className={clsx("w-4 h-4 transition-colors text-grey")}
               />
               <DialogTitle className="text-base">
                 Are you still there?

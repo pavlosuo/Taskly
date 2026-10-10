@@ -3,7 +3,7 @@ import rateLimit from "express-rate-limit";
 export const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 10,
-  message: { success: false, message: "errors.tooManyRequests" },
+  message: { success: false, message: "general.tooManyRequests" },
   standardHeaders: true,
   legacyHeaders: false,
 });
@@ -11,7 +11,7 @@ export const authLimiter = rateLimit({
 export const globalLimiter = rateLimit({
   windowMs: 60 * 1000,
   max: 50,
-  message: { success: false, message: "errors.tooManyRequests" },
+  message: { success: false, message: "general.tooManyRequests" },
 });
 
 export const otpLimiter = rateLimit({
@@ -21,7 +21,7 @@ export const otpLimiter = rateLimit({
   legacyHeaders: false,
   message: {
     success: false,
-    message: "errors.tooManyRequests",
+    message: "general.tooManyRequests",
   },
 });
 
@@ -32,6 +32,6 @@ export const searchLimiter = rateLimit({
   legacyHeaders: false,
   message: {
     success: false,
-    message: "errors.tooManyRequests",
+    message: "general.tooManyRequests",
   },
 });

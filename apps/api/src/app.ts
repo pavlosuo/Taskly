@@ -1,4 +1,5 @@
-import { NODE_ENV, CLIENT_URL } from "@/env";
+import { CLIENT_URL } from "@/env";
+import { cookieOptions } from "@/utils";
 import express, { Application } from "express";
 import cookieParser from "cookie-parser";
 import cors from "cors";
@@ -14,6 +15,7 @@ import { skillsRoutes } from "@/modules/skills/skills.routes";
 import { certificatesRoutes } from "@/modules/certificates/certificates.routes";
 import { chatRoutes } from "@/modules/chat/chat.routes";
 import { taskRoutes } from "@/modules/task/task.routes";
+import { settingsSchema } from "shared/index";
 
 export function createApp(server: Server): Application {
   const app = express();
@@ -26,7 +28,7 @@ export function createApp(server: Server): Application {
       credentials: true,
     }),
   );
-  // app.use(globalLimiter);
+  app.use(globalLimiter);
   app.use("/api/auth", authRoutes(server));
   app.use("/api/otp", otpRoutes(server));
   app.use("/api/users", usersRoutes(server));
@@ -37,25 +39,34 @@ export function createApp(server: Server): Application {
   app.use("/api/chats", chatRoutes(server));
   app.use("/api/tasks", taskRoutes(server));
   app.post("/api/preferences", (req, res) => {
-    const { theme, lang } = req.body;
-    const cookieOptions = {
-      httpOnly: true,
-      secure: NODE_ENV === "production",
-      sameSite: "lax" as const,
-      maxAge: 365 * 24 * 60 * 60 * 1000,
-      path: "/",
-    };
-    if (theme) {
-      res.cookie("theme", theme, cookieOptions);
+    try {
+      const parsed = settingsSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({
+          success: false,
+          status: 400,
+          message: parsed.error.issues[0].message,
+        });
+      }
+      const { theme, lang } = parsed.data;
+      if (theme) {
+        res.cookie("theme", theme, cookieOptions);
+      }
+      if (lang) {
+        res.cookie("lang", lang, cookieOptions);
+      }
+      return res.json({
+        success: true,
+        theme,
+        lang,
+      });
+    } catch {
+      return res.status(500).json({
+        success: false,
+        status: 500,
+        message: "general.unknown",
+      });
     }
-    if (lang) {
-      res.cookie("lang", lang, cookieOptions);
-    }
-    return res.json({
-      success: true,
-      theme,
-      lang,
-    });
   });
   app.use((req, res) => {
     const data = {
@@ -69,7 +80,7 @@ export function createApp(server: Server): Application {
     res.status(500).json({
       success: false,
       status: 500,
-      message: "errors.server",
+      message: "general.unknown",
     });
   });
   return app;

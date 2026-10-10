@@ -1,7 +1,6 @@
 "use client";
 import Link from "next/link";
 import { useUser } from "@/providers/UserProvider";
-import { useMemo } from "react";
 import {
   ChevronDown,
   SquareUserRound,
@@ -20,6 +19,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ImageDisplay } from "@/components/shared/MediaPicker";
+import { PAGES_META } from "shared/data";
+import { useTranslation } from "react-i18next";
+import { useTheme } from "@/providers/ThemeProvider";
 
 export const UserDropdown = ({
   side = "top",
@@ -31,28 +33,30 @@ export const UserDropdown = ({
   variant?: "default" | "compact";
 }) => {
   const { user, logout } = useUser();
+  const { t } = useTranslation(["user", "common"]);
+  const { lang } = useTheme();
 
-  const menuItems = useMemo(() => {
+  const navItems = (() => {
     if (!user) return null;
     if (user.role === "tasker" || user.role === "client") {
       return [
         {
-          label: "Account",
+          label: PAGES_META?.account?.[lang]?.title,
           icon: ShieldUser,
           href: `/account/`,
         },
         {
-          label: "Profile",
+          label: PAGES_META?.profile?.[lang]?.title,
           icon: SquareUserRound,
           href: `/profile/`,
         },
         {
-          label: "Settings",
+          label: PAGES_META?.settings?.[lang]?.title,
           icon: Settings,
           href: "/settings",
         },
         {
-          label: "Help",
+          label: PAGES_META?.help?.[lang]?.title,
           icon: HelpCircle,
           href: "/help",
         },
@@ -60,18 +64,18 @@ export const UserDropdown = ({
     } else if (user.role === "admin") {
       return [
         {
-          label: "Account",
+          label: PAGES_META?.account?.[lang]?.title,
           icon: ShieldUser,
           href: `/account/`,
         },
         {
-          label: "Settings",
+          label: PAGES_META?.profile?.[lang]?.title,
           icon: Settings,
           href: "/settings",
         },
       ];
     }
-  }, [user]);
+  })();
 
   if (!user) return null;
 
@@ -95,11 +99,11 @@ export const UserDropdown = ({
               <p className="text-sm font-medium text-foreground truncate leading-tight">
                 {user.username}
               </p>
-              <p className="text-xs text-muted-foreground truncate capitalize">
-                {user.role}
+              <p className="text-xs text-grey truncate capitalize">
+                {t(`user:${user.role}`)}
               </p>
             </div>
-            <ChevronDown className="w-4 h-4 text-muted-foreground shrink-0 transition-transform group-data-[state=open]:rotate-180" />
+            <ChevronDown className="w-4 h-4 text-grey shrink-0 transition-transform group-data-[state=open]:rotate-180" />
           </div>
         </DropdownMenuTrigger>
       )}
@@ -131,15 +135,13 @@ export const UserDropdown = ({
             <span className="text-sm font-medium text-foreground">
               {user.profile?.fullName ?? user.username}
             </span>
-            <span className="text-xs text-muted-foreground truncate">
-              {user.email}
-            </span>
+            <span className="text-xs text-grey truncate">{user.email}</span>
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          {menuItems?.length &&
-            menuItems?.map((item) => (
+          {navItems?.length &&
+            navItems?.map((item) => (
               <DropdownMenuItem asChild key={item.label}>
                 <Link
                   href={item.href}
@@ -157,7 +159,9 @@ export const UserDropdown = ({
           className="flex items-center gap-2 cursor-pointer text-destructive focus:text-destructive focus:bg-destructive hover:bg-destructive hover:text-destructive"
         >
           <LogOut size={15} />
-          <span className="truncate font-normal">Log out</span>
+          <span className="truncate font-normal">
+            {t("common:actions.logout")}
+          </span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

@@ -1,0 +1,53 @@
+{
+  "typing": "<bold>{{name}}</bold> is typing...",
+  "search": {
+    "placeholder": "Search by username to start a chat...",
+    "label": "Search users",
+    "clear": "Clear search",
+    "searching": "Searching...",
+    "noResults": "No users found.",
+    "keepTyping": "Type at least {{min}} characters to search"
+  },
+  "list": {
+    "loading": "Loading...",
+    "empty": {
+      "title": "No conversations yet.",
+      "hint": "Search for a username above to start one."
+    },
+    "noMessages": "No messages yet",
+    "attachment": "Attachment",
+    "unread_one": "{{count}} unread message",
+    "unread_other": "{{count}} unread messages",
+    "deleteChat": "Delete chat",
+    "deleteConfirm": "Delete conversation with {{name}}?"
+  },
+  "room": {
+    "loading": "Loading...",
+    "empty": "No messages yet. Say hello!"
+  },
+  "input": {
+    "placeholder": "Message...",
+    "label": "Message",
+    "attach": "Attach file",
+    "send": "Send message",
+    "removeAttachment": "Remove {{name}}"
+  },
+  "message": {
+    "edited": "edited",
+    "read": "Read",
+    "sent": "Sent",
+    "editLabel": "Edit message",
+    "deleteConfirm": "Delete this message?",
+    "actions": {
+      "edit": "Edit",
+      "copy": "Copy text",
+      "delete": "Delete"
+    }
+  },
+  "reactions": {
+    "label": "Reactions: {{list}}",
+    "add": "React",
+    "you": "You",
+    "youAnd": "You and {{name}}"
+  }
+}

@@ -1,6 +1,6 @@
 import { z } from "zod";
 import libphonenumber from "google-libphonenumber";
-import { LANGS, CERF, MAX_FILE_SIZE, FINNISH_BANKS_VALUES } from "shared/data";
+import { LANGS, CERF, MAX_FILE_SIZE, FINNISH_BANKS_VALUES, MESSAGE_MAX_LENGTH } from "shared/data";
 import { removeHtml, validateIban, validatePassword } from "shared/utils";
 import {
   LoginForm,
@@ -17,6 +17,7 @@ import {
   PublicProfileCertificate,
   UserSettings,
   MediaItem,
+  Deadline,
 } from "shared/types";
 
 const phoneUtil = libphonenumber.PhoneNumberUtil.getInstance();
@@ -181,7 +182,7 @@ export const publicProfileLangSchema: z.ZodType<PublicProfileLang> = z.object({
       description: z
         .string()
         .transform(removeHtml)
-        .refine((value) => value.length <= 1000, "language.certificate.tooLong")
+        .refine((value) => value.length <= MESSAGE_MAX_LENGTH, "language.certificate.tooLong")
         .optional(),
     })
     .optional(),
@@ -226,7 +227,7 @@ export const publicProfileSchema: z.ZodType<PublicProfile> = z.object({
   bio: z
     .string()
     .transform(removeHtml)
-    .refine((value) => value.length <= 1000, "bio.tooLong")
+    .refine((value) => value.length <= MESSAGE_MAX_LENGTH, "bio.tooLong")
     .optional(),
   skills: z
     .array(publicProfileSkillSchema)
@@ -244,9 +245,13 @@ export const publicProfileSchema: z.ZodType<PublicProfile> = z.object({
   introduction: mediaItemField.nullable().optional(),
 });
 
-const settingsSchema: z.ZodType<Partial<UserSettings>> = z.object({
-  lang: z.enum(LANGS.map((lang) => lang.value) as [Lang, ...Lang[]]).optional(),
-  theme: z.enum(["light", "dark"] as [Theme, ...Theme[]]).optional(),
+export const settingsSchema: z.ZodType<Partial<UserSettings>> = z.object({
+  lang: z
+    .enum(LANGS.map((lang) => lang.value) as [Lang, ...Lang[]], "lang.invalid")
+    .optional(),
+  theme: z
+    .enum(["light", "dark"] as [Theme, ...Theme[]], "theme.invalid")
+    .optional(),
   checkboxes: z
     .object({
       email: z.boolean().optional(),
@@ -268,11 +273,13 @@ export const registerSchema: z.ZodType<RegisterForm> = z
     username: usernameField,
     fullPhone: phoneField,
     phone: z.string().trim().min(1, "phone.required").max(30, "phone.tooLong"),
-    code: z.string().trim().min(1, "code.required").max(20, "code.tooLong"),
+    code: z.string().trim().min(1, "phone.required").max(20, "phone.tooLong"),
     email: emailField,
     password: passwordField,
     confirm: confirmPasswordField,
-    role: z.enum(["tasker", "client"] as [Role, ...Role[]]),
+    role: z.enum(["tasker", "client"] as [Role, ...Role[]], {
+      message: "role.required",
+    }),
     agreementAccepted: z
       .boolean()
       .refine((val) => val, "agreementAccepted.required"),
@@ -438,6 +445,23 @@ export const taskBudgetSchema = z
     path: ["amount"],
   });
 
+const taskDeadlineSchema: z.ZodType<Deadline> = z.object({
+  date: z.coerce
+    .date()
+    .refine((date) => !Number.isNaN(date.getTime()), "task.date.invalid")
+    .refine((date) => {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      return date >= today;
+    }, "task.date.invalid"),
+  time: z
+    .string()
+    .min(1, "task.time.required")
+    .regex(/^([01]\d|2[0-3]):[0-5]\d:[0-5]\d$/, {
+      message: "task.time.invalid",
+    }),
+});
+
 export const taskCreateSchema = z.object({
   title: z
     .string()
@@ -447,7 +471,7 @@ export const taskCreateSchema = z.object({
   description: z
     .string()
     .min(20, "task.description.tooShort")
-    .max(1000, "task.description.tooLong"),
+    .max(MESSAGE_MAX_LENGTH, "task.description.tooLong"),
   skills: z
     .array(publicProfileSkillSchema)
     .max(15, "task.skills.tooMany")
@@ -458,14 +482,7 @@ export const taskCreateSchema = z.object({
     .default([]),
   budget: taskBudgetSchema,
   location: taskLocationSchema,
-  deadline: z.coerce
-    .date()
-    .refine((date) => !Number.isNaN(date.getTime()), "task.deadline.invalid")
-    .refine((date) => {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      return date >= today;
-    }, "task.deadline.invalid"),
+  deadline: taskDeadlineSchema,
 });
 
 export const taskUpdateSchema = taskCreateSchema
@@ -479,7 +496,7 @@ export const taskResponseCreateSchema = z.object({
     .refine((value) => value.length >= 10, {
       message: "task.message.tooShort",
     })
-    .refine((value) => value.length <= 1000, {
+    .refine((value) => value.length <= MESSAGE_MAX_LENGTH, {
       message: "task.message.tooLong",
     })
     .optional(),

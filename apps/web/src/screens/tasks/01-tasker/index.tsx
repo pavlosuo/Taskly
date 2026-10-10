@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { Briefcase, Loader2, Send } from "lucide-react";
 import clsx from "clsx";
+import { useTranslation } from "react-i18next";
 import { Task, TaskList, TABS, TAB_LABELS } from "shared/index";
 import { useTasks } from "@/providers/TaskProvider";
 import {
@@ -19,6 +20,7 @@ export const Tasker = (initial: TaskList) => {
   const b = useTasks(initial);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const { t } = useTranslation(["tasks", "common"]);
 
   const openTask = (task: Task) => {
     setSelectedTaskId(task._id);
@@ -32,14 +34,12 @@ export const Tasker = (initial: TaskList) => {
     <div className="w-full px-4 pb-6 pt-1">
       <div className="flex flex-col gap-4 pb-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-sm text-grey">
-            Find tasks that match your skills and send an offer
-          </p>
+          <p className="text-sm text-grey">{t("tasker.title")}</p>
           <TaskTabs
-            tabs={TABS.map((t) => ({
-              value: t,
-              label: TAB_LABELS[t],
-              count: t === "my" ? b.myCount : undefined,
+            tabs={TABS.map((tab) => ({
+              value: tab,
+              label: t(TAB_LABELS[tab]),
+              count: tab === "my" ? b.myCount : undefined,
             }))}
             value={b.tab}
             onChange={b.changeTab}
@@ -53,51 +53,49 @@ export const Tasker = (initial: TaskList) => {
           onFiltersChange={b.setFilters}
           statusOptions={b.statusOptions}
           placeholder={
-            b.tab === "all" ? "Search open tasks..." : "Search your tasks..."
+            b.tab === "all" ? t("actions.searchAll") : t("actions.searchMy")
           }
         />
       </div>
-      {b.listError && (
-        <p className="mb-3 text-xs text-destructive">{b.listError}</p>
-      )}
       {!isEmpty && (
         <p className="mb-4 text-xs text-grey">
-          Showing {b.shown} of {b.total}
+          {t("list.showing", { shown: b.shown, count: b.total })}
         </p>
       )}
       {isEmpty && b.isListLoading && (
-        <div className="flex justify-center py-10 text-grey">
-          <Loader2 className="h-4 w-4 animate-spin" />
+        <div role="status" className="flex justify-center py-10 text-grey">
+          <Loader2 aria-hidden="true" className="h-4 w-4 animate-spin" />
+          <span className="sr-only">{t("common:loading")}</span>
         </div>
       )}
       {isEmpty && !b.isListLoading && (
         <>
           {filtered ? (
             <TaskEmptyState
-              title="No tasks match your search"
-              text="Try a different keyword or loosen the filters."
+              title={t("empty.noMatches.title")}
+              text={t("empty.noMatches.text")}
               action={
                 <Button variant="outline" size="sm" onClick={b.reset}>
-                  Clear search and filters
+                  {t("empty.noMatches.action")}
                 </Button>
               }
             />
           ) : b.tab === "my" ? (
             <TaskEmptyState
-              icon={<Send className="h-5 w-5" />}
-              title="No tasks yet"
-              text="Tasks you respond to or get assigned will show up here."
+              icon={<Send aria-hidden="true" className="h-5 w-5" />}
+              title={t("tasker.empty.my.title")}
+              text={t("tasker.empty.my.text")}
               action={
                 <Button size="sm" onClick={() => b.changeTab("all")}>
-                  Browse open tasks
+                  {t("tasker.empty.my.action")}
                 </Button>
               }
             />
           ) : (
             <TaskEmptyState
-              icon={<Briefcase className="h-5 w-5" />}
-              title="No open tasks right now"
-              text="New tasks appear here as clients post them. Check again later."
+              icon={<Briefcase aria-hidden="true" className="h-5 w-5" />}
+              title={t("tasker.empty.open.title")}
+              text={t("tasker.empty.open.text")}
             />
           )}
         </>
@@ -119,7 +117,7 @@ export const Tasker = (initial: TaskList) => {
             onClick={b.loadMoreTasks}
             disabled={b.isLoadingMore}
           >
-            {b.isLoadingMore ? "Loading..." : "Load more"}
+            {b.isLoadingMore ? t("common:loading") : t("list.loadMore")}
           </Button>
         </div>
       )}

@@ -1,13 +1,17 @@
-export type PolicyData = {
-  policyContent: string;
+import { Lang } from "shared/index";
+
+export type PolicyTexts = {
   policyTitle: string;
+  policyContent: string;
+};
+
+export type PolicyData = {
+  translations: Partial<Record<Lang, PolicyTexts>>;
   updatedAt?: Date;
 };
 
 export type ZodErrors<T> = {
   [K in keyof T]?: string;
-} & {
-  general?: string;
 };
 
 export type ServiceResult<T = unknown> = {
