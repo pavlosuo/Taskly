@@ -1,6 +1,7 @@
 "use client";
 import clsx from "clsx";
 import { CheckCircle2, AlertCircle } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export function Field({
   label,
@@ -15,6 +16,7 @@ export function Field({
   badgeOk?: boolean;
   onVerify?: () => void;
 }) {
+  const { t } = useTranslation("profile");
   return (
     <div>
       <p className="text-xs text-foreground mb-1">{label}</p>
@@ -30,9 +32,9 @@ export function Field({
             )}
           >
             {badgeOk ? (
-              <CheckCircle2 className="w-3 h-3" />
+              <CheckCircle2 className="w-3 h-3" aria-hidden />
             ) : (
-              <AlertCircle className="w-3 h-3" />
+              <AlertCircle className="w-3 h-3" aria-hidden />
             )}
             {badge}
           </span>
@@ -42,7 +44,7 @@ export function Field({
             onClick={onVerify}
             className="text-xs font-medium text-primary hover:underline underline-offset-2"
           >
-            Verify now
+            {t("actions.verify")}
           </button>
         )}
       </div>

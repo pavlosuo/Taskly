@@ -102,6 +102,9 @@ export type PublicProfileUser = {
     initials: string;
   };
   publicProfile: PublicProfile;
+  acceptance: {
+    personVerified: boolean;
+  };
 };
 
 export type UpdateProfileForm = Partial<{

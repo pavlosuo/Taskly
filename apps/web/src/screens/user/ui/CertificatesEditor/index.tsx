@@ -1,5 +1,6 @@
 "use client";
-import { useState, useEffect, useRef, startTransition } from "react";
+import { useState, useEffect, startTransition } from "react";
+import { useTranslation } from "react-i18next";
 import { X, Plus, Loader2, BadgeCheck, ImageIcon, Trash2 } from "lucide-react";
 import { Input } from "@/components/shared/Input";
 import { axiosApi } from "@/api/index";
@@ -17,29 +18,35 @@ export function CertificatesEditor({
   onChange: (certs: PublicProfileCertificate[]) => void;
   error?: string;
 }) {
+  const { t } = useTranslation("profile");
   const [search, setSearch] = useState("");
   const [suggestions, setSuggestions] = useState<
     { _id: string; label: string; description?: string }[]
   >([]);
   const [loading, setLoading] = useState(false);
-  const debounceRef = useRef<NodeJS.Timeout>(0 as unknown as NodeJS.Timeout);
   const { openPicker } = useMediaPicker();
 
   useEffect(() => {
-    clearTimeout(debounceRef.current);
     if (!search.trim()) {
       startTransition(() => setSuggestions([]));
       return;
     }
-    debounceRef.current = setTimeout(async () => {
+    let cancelled = false;
+    const timer = setTimeout(async () => {
       setLoading(true);
       try {
         const { data } = await axiosApi.searchCertificates(search);
-        setSuggestions(data.items);
+        if (!cancelled) setSuggestions(data.items);
+      } catch {
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     }, 300);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+      setLoading(false);
+    };
   }, [search]);
 
   const addCertificate = async (label: string, description?: string) => {
@@ -51,7 +58,7 @@ export function CertificatesEditor({
       const { data } = await axiosApi.upsertCertificate(label, description);
       onChange([...value, { value: data._id, label: data.label }]);
     } catch {
-      onChange([...value, { value: label, label }]);
+      return;
     }
     setSearch("");
     setSuggestions([]);
@@ -69,7 +76,7 @@ export function CertificatesEditor({
     (s) => s.label.toLowerCase() === search.toLowerCase(),
   );
 
-  const showAddButton = search.trim() && !exactMatch;
+  const showAddButton = Boolean(search.trim()) && !loading && !exactMatch;
 
   return (
     <div className="flex flex-col gap-3">
@@ -111,7 +118,7 @@ export function CertificatesEditor({
                     type="button"
                     onClick={() => setMedia(cert.value, null)}
                     className="absolute -bottom-2 -right-2 w-6 h-6 z-20 flex items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-sm transition-all duration-150 hover:bg-destructive group-hover:opacity-100"
-                    aria-label="Remove introduction video"
+                    aria-label={t("certificates.removePhoto")}
                   >
                     <Trash2 className="h-3.5 w-3.5" />
                   </button>
@@ -126,7 +133,7 @@ export function CertificatesEditor({
                 </div>
                 {!cert.media && (
                   <p className="text-xs text-grey mt-0.5">
-                    Click image to add photo
+                    {t("certificates.addPhotoHint")}
                   </p>
                 )}
               </div>
@@ -134,6 +141,7 @@ export function CertificatesEditor({
                 type="button"
                 onClick={() => removeCertificate(cert.value)}
                 className="text-grey hover:text-destructive transition-colors shrink-0"
+                aria-label={t("certificates.remove")}
               >
                 <X className="w-4 h-4" />
               </button>
@@ -145,7 +153,7 @@ export function CertificatesEditor({
         <Input
           name="certificate"
           type="text"
-          placeholder="Search or add a certificate..."
+          placeholder={t("certificates.searchPlaceholder")}
           value={search}
           error={error}
           onChange={(e) => setSearch(e.target.value)}
@@ -185,7 +193,10 @@ export function CertificatesEditor({
               className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-dashed border-primary text-primary text-sm hover:bg-primary/5 transition-colors"
             >
               <Plus className="w-4 h-4" />
-              Add &quot;{search.trim()}&quot;
+              {t("certificates.add", {
+                name: search.trim(),
+                interpolation: { escapeValue: false },
+              })}
             </button>
           )}
         </div>

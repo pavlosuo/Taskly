@@ -7,12 +7,16 @@ import {
   useMemo,
   ReactNode,
   useEffect,
+  startTransition,
 } from "react";
 import { ChatWithMember } from "shared/types";
 import { axiosApi } from "@/api/index";
 import { useUser } from "@/providers/UserProvider";
 import { useSocket } from "@/providers/SocketProvider";
 import { useTabNotifications } from "@/hooks/useTabNotifications";
+import { useRun } from "@/hooks/useRun";
+import { useToast } from "@/hooks/useToast";
+import { getAxiosError } from "@/utils/getAxiosError";
 
 interface ChatContextType {
   chats: ChatWithMember[];
@@ -26,7 +30,6 @@ interface ChatContextType {
   deleteChat: (chatId: string) => Promise<void>;
   upsertChat: (chat: ChatWithMember) => void;
   setActiveChat: (chat: ChatWithMember | null) => void;
-  notify: () => void;
 }
 
 interface ChatProviderProps {
@@ -43,6 +46,8 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
   const { socket } = useSocket();
   const [isInitialized, setIsInitialized] = useState(false);
   const [typingByChat, setTypingByChat] = useState<Record<string, boolean>>({});
+  const run = useRun(setIsLoading);
+  const toast = useToast();
 
   const totalUnread = useMemo(
     () =>
@@ -59,28 +64,44 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
       setIsLoading(true);
       const { data } = await axiosApi.getChats();
       setChats(data.chats);
+    } catch (e) {
+      toast(getAxiosError(e));
     } finally {
       setIsLoading(false);
       setIsInitialized(true);
     }
-  }, []);
+  }, [toast]);
 
-  const createChat = useCallback(async (memberId: string) => {
-    const { data } = await axiosApi.createChat(memberId);
-    const chat = data.chat;
-    setChats((prev) => {
-      const exists = prev.some((c) => c._id === chat._id);
-      return exists
-        ? prev.map((c) => (c._id === chat._id ? chat : c))
-        : [chat, ...prev];
-    });
-    return chat;
-  }, []);
+  const createChat = useCallback(
+    (memberId: string) =>
+      run(
+        async () => {
+          const { data } = await axiosApi.createChat(memberId);
+          const chat = data.chat;
+          setChats((prev) => {
+            const exists = prev.some((c) => c._id === chat._id);
+            return exists
+              ? prev.map((c) => (c._id === chat._id ? chat : c))
+              : [chat, ...prev];
+          });
+          return chat;
+        },
+        { loading: false },
+      ),
+    [run],
+  );
 
-  const deleteChat = useCallback(async (chatId: string) => {
-    await axiosApi.deleteChat(chatId);
-    setChats((prev) => prev.filter((c) => c._id !== chatId));
-  }, []);
+  const deleteChat = useCallback(
+    (chatId: string) =>
+      run(
+        async () => {
+          await axiosApi.deleteChat(chatId);
+          setChats((prev) => prev.filter((c) => c._id !== chatId));
+        },
+        { loading: false, success: "chats:toast.deleted" },
+      ),
+    [run],
+  );
 
   const upsertChat = useCallback((updated: ChatWithMember) => {
     setChats((prev) => {
@@ -96,7 +117,11 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
   }, []);
 
   useEffect(() => {
-    if (user) fetchChats();
+    if (user) {
+      startTransition(() => fetchChats());
+    } else {
+      startTransition(() => setChats([]));
+    }
   }, [user, fetchChats]);
 
   useEffect(() => {
@@ -145,7 +170,6 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
         deleteChat,
         upsertChat,
         setActiveChat,
-        notify,
       }}
     >
       {children}

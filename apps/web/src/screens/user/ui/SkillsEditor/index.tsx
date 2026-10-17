@@ -1,7 +1,9 @@
 "use client";
+import { useTranslation } from "react-i18next";
 import { axiosApi } from "@/api/index";
 import { PublicProfileSkill } from "shared/index";
 import { TagInput } from "@/components/shared/Input";
+import { useCallback } from "react";
 
 export function SkillsEditor({
   value,
@@ -12,28 +14,34 @@ export function SkillsEditor({
   onChange: (skills: PublicProfileSkill[]) => void;
   error?: string;
 }) {
+  const { t } = useTranslation("profile");
+
+  const searchFn = useCallback(async (search: string) => {
+    const { data } = await axiosApi.searchSkills(search);
+    return data.items.map((skill) => ({
+      value: skill._id,
+      label: skill.label,
+    }));
+  }, []);
+
+  const createFn = useCallback(async (label: string) => {
+    const { data } = await axiosApi.upsertSkill(label);
+    return {
+      value: data._id,
+      label: data.label,
+    };
+  }, []);
+
   return (
     <TagInput
       value={value}
       onChange={onChange}
-      placeholder="Search or add a skill..."
+      placeholder={t("skills.searchPlaceholder")}
       name="skills"
       error={error}
       hideErrorLabel
-      searchFn={async (search: string) => {
-        const { data } = await axiosApi.searchSkills(search);
-        return data.items.map((skill) => ({
-          value: skill._id,
-          label: skill.label,
-        }));
-      }}
-      createFn={async (label: string) => {
-        const { data } = await axiosApi.upsertSkill(label);
-        return {
-          value: data._id,
-          label: data.label,
-        };
-      }}
+      searchFn={searchFn}
+      createFn={createFn}
     />
   );
 }

@@ -1,11 +1,13 @@
 {
   "iban": {
-    "tooShort": "IBAN is too short",
-    "tooLong": "IBAN is too long",
-    "invalid": "Invalid Finnish IBAN"
+    "required": "IBAN is required",
+    "invalid": "Invalid IBAN"
   },
   "bankName": {
     "invalid": "Please select a valid bank"
+  },
+  "lightbox": {
+    "downloadFailed": "Failed to download file"
   },
   "phone": {
     "required": "Phone number is required",
@@ -86,7 +88,8 @@
   },
   "token": {
     "required": "Token is required",
-    "invalid": "Invalid token"
+    "invalid": "Invalid token",
+    "tooLong": "Token is too long"
   },
   "fullName": {
     "required": "Full name is required",
@@ -99,6 +102,19 @@
   "code": {
     "required": "Country code is required",
     "tooLong": "Country code is too long"
+  },
+  "id": {
+    "required": "ID is required",
+    "invalid": "Invalid ID"
+  },
+  "url": {
+    "required": "URL is required",
+    "invalid": "Invalid URL"
+  },
+  "publicLink": {
+    "required": "Public link is required",
+    "invalid": "Invalid public link",
+    "tooLong": "Public link is too long"
   },
   "agreementAccepted": { "required": "You must accept the privacy policy" },
   "upload": {
@@ -119,8 +135,50 @@
   "policy": {
     "invalid": "Invalid policy"
   },
+  "language": {
+    "value": {
+      "invalid": "Language is invalid"
+    },
+    "label": {
+      "invalid": "Language is invalid"
+    },
+    "level": {
+      "invalid": "Language level is invalid"
+    },
+    "certificate": {
+      "required": "Certificate is required",
+      "tooLong": "Certificate description is too long"
+    }
+  },
+  "certificate": {
+    "value": {
+      "required": "Certificate is required",
+      "tooLong": "Certificate description is too long"
+    },
+    "label": {
+      "required": "Certificate is required",
+      "tooLong": "Certificate description is too long"
+    }
+  },
+  "skill": {
+    "value": {
+      "required": "Skill is required",
+      "tooLong": "Skill description is too long"
+    },
+    "label": {
+      "required": "Skill is required",
+      "tooLong": "Skill description is too long"
+    },
+    "description": {
+      "required": "Skill description is required",
+      "tooLong": "Skill description is too long"
+    }
+  },
   "lang": {
     "invalid": "This language is not supported"
+  },
+  "theme": {
+    "invalid": "This theme is not supported"
   },
   "locale": {
     "invalid": "This locale is not supported"
@@ -139,7 +197,27 @@
     }
   },
   "media": {
-    "notFound": "Media not found"
+    "notFound": "Media not found",
+    "filename": {
+      "required": "Filename is required",
+      "tooLong": "Filename is too long"
+    },
+    "originalName": {
+      "required": "Original name is required",
+      "tooLong": "Original name is too long"
+    },
+    "size": {
+      "invalid": "Size is invalid",
+      "tooLarge": "File size is too large"
+    },
+    "type": {
+      "required": "File type is required",
+      "invalid": "Invalid file type"
+    },
+    "mimeType": {
+      "required": "MIME type is required",
+      "invalid": "Invalid MIME type"
+    }
   },
   "task": {
     "notFound": "Task not found",
@@ -150,6 +228,50 @@
     "message": {
       "tooShort": "Message must be at least 10 characters",
       "tooLong": "Message must be at most 1000 characters"
+    },
+    "date": {
+      "required": "Date is required",
+      "invalid": "Date must be a valid date"
+    },
+    "time": {
+      "required": "Time is required",
+      "invalid": "Time must be a valid time"
+    },
+    "price": {
+      "required": "Price is required",
+      "invalid": "Price must be a valid number",
+      "tooLarge": "Price must be at most 1 000 000"
+    },
+    "title": {
+      "required": "Title is required",
+      "tooShort": "Title must be at least 5 characters",
+      "tooLong": "Title must be at most 100 characters"
+    },
+    "description": {
+      "required": "Description is required",
+      "tooShort": "Description must be at least 20 characters",
+      "tooLong": "Description must be at most 1000 characters"
+    },
+    "skills": {
+      "tooMany": "You can select up to 15 skills"
+    },
+    "certificates": {
+      "tooMany": "You can select up to 15 certificates"
+    },
+    "languages": {
+      "required": "Languages are required at least one language"
+    },
+    "location": {
+      "required": "Location is required",
+      "tooShort": "Location must be at least 3 characters",
+      "tooLong": "Location must be at most 200 characters",
+      "invalidLatitude": "Latitude must be a valid number between -90 and 90",
+      "invalidLongitude": "Longitude must be a valid number between -180 and 180",
+      "unsupported": "Your browser doesn't support geolocation",
+      "denied": "Location access was denied. Allow it in your browser settings",
+      "unavailable": "Your location is unavailable right now",
+      "timeout": "Getting your location took too long. Try again",
+      "unknown": "Couldn't get your location"
     },
     "update": { "empty": "Nothing to update" }
   },

@@ -49,5 +49,8 @@
     "add": "React",
     "you": "You",
     "youAnd": "You and {{name}}"
+  },
+  "toast": {
+    "deleted": "Conversation deleted"
   }
 }

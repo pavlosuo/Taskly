@@ -1,5 +1,42 @@
 {
   "appName": "Taskly",
+  "notify": {
+    "title": "Notifications",
+    "newMessage": "New message in chat",
+    "emptyTitle": "You have no notifications",
+    "emptyDescription": "When you have notifications, they'll appear here."
+  },
+  "popup": {
+    "title": "Are you still there?",
+    "logoutIn": "You will be logged out in",
+    "seconds_one": "{{count}} second.",
+    "seconds_other": "{{count}} seconds.",
+    "continue": "Continue",
+    "logout": "Logout"
+  },
+  "editor": {
+    "bold": "Bold",
+    "italic": "Italic",
+    "strike": "Strikethrough",
+    "code": "Inline code",
+    "clearMarks": "Clear marks",
+    "clearNodes": "Clear nodes",
+    "paragraph": "Paragraph",
+    "h1": "Heading 1",
+    "h2": "Heading 2",
+    "h3": "Heading 3",
+    "h4": "Heading 4",
+    "h5": "Heading 5",
+    "h6": "Heading 6",
+    "bulletList": "• List",
+    "orderedList": "1. List",
+    "codeBlock": "Code block",
+    "blockquote": "Blockquote",
+    "horizontalRule": "Horizontal rule",
+    "hardBreak": "Hard break",
+    "undo": "Undo",
+    "redo": "Redo"
+  },
   "actions": {
     "back": "Back",
     "continue": "Continue",
@@ -8,7 +45,26 @@
     "retry": "Try again",
     "save": "Save",
     "delete": "Delete",
-    "logout": "Log out"
+    "logout": "Log out",
+    "close": "Close"
+  },
+  "header": {
+    "logIn": "Log in",
+    "signUp": "Sign up",
+    "privateProfileAdmin": "This profile is private. You can see it because you're signed in as an admin.",
+    "privateProfileOwner": "This profile is private. You can see it because it's your own profile — other users won't see this page."
+  },
+  "nav": {
+    "users": "Find Taskers",
+    "tasks": "Browse Tasks",
+    "top": "Top Taskers",
+    "leaderboard": "Leaderboard",
+    "stats": "Statistics"
+  },
+  "qrCode": {
+    "copyLink": "Copy link",
+    "copied": "Copied!",
+    "download": "Download Code"
   },
   "aria": {
     "showPassword": "Show password",
@@ -16,6 +72,29 @@
   },
   "hint": {
     "label": "Hint"
+  },
+  "location": {
+    "placeholder": "Search for an address...",
+    "search": "Search address",
+    "locate": "Use my current location",
+    "resolving": "Resolving address...",
+    "hint": "Click the map to drop a pin, or search an address above · Powered by OpenStreetMap"
+  },
+  "lightbox": {
+    "close": "Close",
+    "download": "Download",
+    "previous": "Previous",
+    "next": "Next",
+    "noPreview": "No preview available for this file type"
+  },
+  "tagInput": {
+    "placeholder": "Search or add...",
+    "add": "Add \"{{value}}\"",
+    "remove": "Remove {{name}}"
+  },
+  "phoneNoResult": {
+    "title": "No results",
+    "description": "We couldn't find any results for your search."
   },
   "method": { "phone": "Phone", "email": "Email" },
   "alt": { "authIllustration": "Authentication illustration" },
@@ -40,11 +119,63 @@
     "daysAgo": "{{count}}d ago",
     "lastSeen": "Last seen {{time}}"
   },
-  "loading": "Loading...",
   "general": {
     "finnish": "Finnish",
+    "swedish": "Swedish",
     "english": "English",
-    "swedish": "Swedish"
+    "russian": "Russian",
+    "estonian": "Estonian",
+    "arabic": "Arabic",
+    "somali": "Somali",
+    "french": "French",
+    "german": "German",
+    "spanish": "Spanish",
+    "italian": "Italian",
+    "portuguese": "Portuguese",
+    "polish": "Polish",
+    "ukrainian": "Ukrainian",
+    "chinese": "Chinese",
+    "japanese": "Japanese",
+    "korean": "Korean",
+    "turkish": "Turkish",
+    "persian": "Persian",
+    "hindi": "Hindi",
+    "bengali": "Bengali",
+    "urdu": "Urdu",
+    "vietnamese": "Vietnamese",
+    "thai": "Thai",
+    "dutch": "Dutch",
+    "romanian": "Romanian",
+    "hungarian": "Hungarian",
+    "czech": "Czech",
+    "slovak": "Slovak",
+    "bulgarian": "Bulgarian",
+    "croatian": "Croatian",
+    "serbian": "Serbian",
+    "danish": "Danish",
+    "norwegian": "Norwegian",
+    "lithuanian": "Lithuanian",
+    "latvian": "Latvian",
+    "greek": "Greek",
+    "hebrew": "Hebrew",
+    "indonesian": "Indonesian",
+    "malay": "Malay",
+    "filipino": "Filipino",
+    "swahili": "Swahili",
+    "amharic": "Amharic",
+    "kurdish": "Kurdish",
+    "azerbaijani": "Azerbaijani",
+    "georgian": "Georgian",
+    "armenian": "Armenian",
+    "mongolian": "Mongolian",
+    "kazakh": "Kazakh",
+    "uzbek": "Uzbek",
+    "cerfA1": "A1 — Beginner",
+    "cerfA2": "A2 — Elementary",
+    "cerfB1": "B1 — Intermediate",
+    "cerfB2": "B2 — Upper intermediate",
+    "cerfC1": "C1 — Advanced",
+    "cerfC2": "C2 — Proficient"
   },
   "settings": {
     "title": "Settings",
@@ -57,5 +188,18 @@
       "title": "Dark mode",
       "description": "Switch between light and dark theme."
     }
+  },
+  "videoPlayer": {
+    "settings": "Settings",
+    "speed": "Speed"
+  },
+  "loading": "Loading...",
+  "toast": {
+    "codeSent": "Verification code sent",
+    "emailVerified": "Email verified",
+    "phoneVerified": "Phone number verified",
+    "profileUpdated": "Profile updated",
+    "passwordChanged": "Password changed",
+    "accountDeactivated": "Account deactivated"
   }
 }

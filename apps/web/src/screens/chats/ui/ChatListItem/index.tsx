@@ -35,7 +35,8 @@ export const ChatListItem: FC<{ chat: ChatWithMember }> = ({ chat }) => {
     try {
       setIsDeleting(true);
       await deleteChat(chat._id);
-    } catch (err) {
+    } catch {
+      return;
     } finally {
       setIsDeleting(false);
     }

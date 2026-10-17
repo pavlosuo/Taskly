@@ -1,9 +1,11 @@
 "use client";
+import { useTranslation } from "react-i18next";
 import { AppearanceCard, CheckboxesCard } from "@/screens/user/ui";
 import { Bell, MessageCircle } from "lucide-react";
 import { useUser } from "@/providers/UserProvider";
 
 export function Settings() {
+  const { t } = useTranslation("profile");
   const { user } = useUser();
   return (
     <section className="w-full px-4">
@@ -13,36 +15,36 @@ export function Settings() {
           list={[
             {
               key: "email",
-              label: "Email notifications",
-              desc: "Receive updates via email.",
+              label: t("settings.notifications.email.label"),
+              desc: t("settings.notifications.email.desc"),
             },
             {
               key: "phone",
-              label: "SMS notifications",
-              desc: "Receive updates via sms.",
+              label: t("settings.notifications.phone.label"),
+              desc: t("settings.notifications.phone.desc"),
             },
           ]}
           icon={<Bell className="w-6 h-6 text-background" />}
-          title="Notifications"
-          desc="Receive updates via messages."
+          title={t("settings.notifications.title")}
+          desc={t("settings.notifications.desc")}
         />
         {user?.role !== "admin" && (
           <CheckboxesCard
             list={[
               {
                 key: "privateProfile",
-                label: "Private profile",
-                desc: "Keep your profile private.",
+                label: t("settings.privacy.privateProfile.label"),
+                desc: t("settings.privacy.privateProfile.desc"),
               },
               {
                 key: "noOnlineStatus",
-                label: "Online status",
-                desc: "Hide your online status.",
+                label: t("settings.privacy.noOnlineStatus.label"),
+                desc: t("settings.privacy.noOnlineStatus.desc"),
               },
             ]}
             icon={<MessageCircle className="w-6 h-6 text-background" />}
-            title="Privacy"
-            desc="Keep your profile private."
+            title={t("settings.privacy.title")}
+            desc={t("settings.privacy.desc")}
           />
         )}
       </div>

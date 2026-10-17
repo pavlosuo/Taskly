@@ -27,10 +27,10 @@ import { DatePicker } from "@/components/shared/DatePicker";
 import { Textarea } from "@/components/ui/textarea";
 import { LocationPicker } from "@/components/shared/LocationPicker";
 import { SectionLabel } from "@/screens/tasks/ui";
-import { getAxiosError } from "@/utils/getAxiosError";
 import { FieldError } from "@/components/shared/FieldError";
 import { Label } from "@/components/shared/Label";
 import clsx from "clsx";
+import { useCallback } from "react";
 
 const INITIAL_STATE: TaskCreateForm = {
   title: "",
@@ -104,11 +104,40 @@ export const CreateTaskDialog = () => {
       });
       setForm(INITIAL_STATE);
       setOpen(false);
-      toast("create.success", "success");
-    } catch (err) {
-      toast(getAxiosError(err));
-    }
+    } catch {}
   };
+
+  const searchFn = useCallback(async (search: string) => {
+    const { data } = await axiosApi.searchSkills(search);
+    return data.items.map((skill) => ({
+      value: skill._id,
+      label: skill.label,
+    }));
+  }, []);
+
+  const createFn = useCallback(async (label: string) => {
+    const { data } = await axiosApi.upsertSkill(label);
+    return {
+      value: data._id,
+      label: data.label,
+    };
+  }, []);
+
+  const searchFnCert = useCallback(async (search: string) => {
+    const { data } = await axiosApi.searchCertificates(search);
+    return data.items.map((certificate) => ({
+      value: certificate._id,
+      label: certificate.label,
+    }));
+  }, []);
+
+  const createFnCert = useCallback(async (label: string) => {
+    const { data } = await axiosApi.upsertCertificate(label);
+    return {
+      value: data._id,
+      label: data.label,
+    };
+  }, []);
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -253,20 +282,8 @@ export const CreateTaskDialog = () => {
                 placeholder={t("create.fields.skills.placeholder")}
                 name="skills"
                 error={errors.skills}
-                searchFn={async (search: string) => {
-                  const { data } = await axiosApi.searchSkills(search);
-                  return data.items.map((skill) => ({
-                    value: skill._id,
-                    label: skill.label,
-                  }));
-                }}
-                createFn={async (label: string) => {
-                  const { data } = await axiosApi.upsertSkill(label);
-                  return {
-                    value: data._id,
-                    label: data.label,
-                  };
-                }}
+                searchFn={searchFn}
+                createFn={createFn}
               />
               <TagInput
                 label={t("create.fields.certificates.label")}
@@ -275,20 +292,8 @@ export const CreateTaskDialog = () => {
                 placeholder={t("create.fields.certificates.placeholder")}
                 name="certificates"
                 error={errors.certificates}
-                searchFn={async (search: string) => {
-                  const { data } = await axiosApi.searchCertificates(search);
-                  return data.items.map((certificate) => ({
-                    value: certificate._id,
-                    label: certificate.label,
-                  }));
-                }}
-                createFn={async (label: string) => {
-                  const { data } = await axiosApi.upsertCertificate(label);
-                  return {
-                    value: data._id,
-                    label: data.label,
-                  };
-                }}
+                searchFn={searchFnCert}
+                createFn={createFnCert}
               />
             </div>
           </div>
@@ -311,10 +316,13 @@ export const CreateTaskDialog = () => {
                 {isLoading ? (
                   <Loader2
                     aria-hidden="true"
-                    className="h-4 w-4 animate-spin"
+                    className="h-4 w-4 animate-spin text-foreground"
                   />
                 ) : (
-                  <Plus aria-hidden="true" className="h-4 w-4" />
+                  <Plus
+                    aria-hidden="true"
+                    className="h-4 w-4 text-foreground"
+                  />
                 )}
                 {t("create.submit")}
               </Button>

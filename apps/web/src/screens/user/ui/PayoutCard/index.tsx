@@ -2,6 +2,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import clsx from "clsx";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -22,11 +23,12 @@ import { Landmark, Plus, SquarePen } from "lucide-react";
 import { payoutSchema, Payout, ZodErrors, FINNISH_BANKS } from "shared/index";
 import { IbanInput, formatIban } from "@/components/shared/Input";
 import { useUser } from "@/providers/UserProvider";
-import { getAxiosError } from "@/utils/getAxiosError";
 import { SectionCard, Field, FormField } from "@/screens/user/ui";
-import { FieldError } from "@/components/shared/FieldError";
+import { useToast } from "@/hooks/useToast";
 
 export function PayoutCard() {
+  const { t } = useTranslation("profile");
+  const toast = useToast();
   const { user, isLoading, updateProfile } = useUser();
   const [open, setOpen] = useState(false);
   const [errors, setErrors] = useState<ZodErrors<Payout>>({});
@@ -46,27 +48,25 @@ export function PayoutCard() {
 
   const handleChange = (field: keyof Payout, value: string) => {
     setForm((p) => ({ ...p, [field]: value }));
-    setErrors((p) => ({ ...p, [field]: undefined, general: undefined }));
+    setErrors((p) => ({ ...p, [field]: undefined }));
   };
 
   const handleSave = async () => {
-    setErrors({});
     try {
+      setErrors({});
       const parsed = payoutSchema.safeParse(form);
       if (!parsed.success) {
         const { fieldErrors, formErrors } = parsed.error.flatten();
         setErrors({
           bankName: fieldErrors.bankName?.[0],
           iban: fieldErrors.iban?.[0],
-          general: formErrors[0],
         });
+        toast(formErrors[0]);
         return;
       }
       await updateProfile({ payout: form });
       setOpen(false);
-    } catch (e) {
-      setErrors({ general: getAxiosError(e) });
-    }
+    } catch {}
   };
 
   if (!user) return null;
@@ -78,44 +78,51 @@ export function PayoutCard() {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-4 lg:gap-6 items-start">
       <SectionCard
-        icon={<Landmark className="w-6 h-6 text-background" />}
-        title="Payout details"
-        desc="Where we send your earnings for completed tasks."
+        icon={
+          <Landmark aria-hidden="true" className="w-6 h-6 text-background" />
+        }
+        title={t("payout.title")}
+        desc={t("payout.desc")}
       />
       <div className="border border-border bg-background p-4">
         <div className="flex justify-end mb-4 -mt-1">
           <button
             onClick={openDialog}
+            aria-label={
+              user.payout?.iban ? t("payout.editAria") : t("payout.addAria")
+            }
             className="text-sm font-medium text-primary hover:underline underline-offset-2 flex items-center gap-1 transition-opacity hover:opacity-80"
           >
             {user.payout?.iban ? (
               <>
-                <SquarePen className="w-4 h-4" />
-                <span>Edit</span>
+                <SquarePen aria-hidden="true" className="w-4 h-4" />
+                <span>{t("actions.edit")}</span>
               </>
             ) : (
               <>
-                <Plus className="w-4 h-4" />
-                <span>Add</span>
+                <Plus aria-hidden="true" className="w-4 h-4" />
+                <span>{t("actions.add")}</span>
               </>
             )}
           </button>
         </div>
         {user.payout?.iban ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-6">
-            <Field label="IBAN" value={formatIban(user.payout.iban)} />
-            {bankLabel && <Field label="Bank" value={bankLabel} />}
+            <Field
+              label={t("payout.iban")}
+              value={formatIban(user.payout.iban)}
+            />
+            {bankLabel && <Field label={t("payout.bank")} value={bankLabel} />}
           </div>
         ) : (
           <div className="flex items-center justify-between border border-dashed border-border px-4 py-3">
-            <p className="text-xs text-grey">
-              No payout method added yet — add one to get paid out.
-            </p>
+            <p className="text-xs text-grey">{t("payout.empty")}</p>
             <button
               onClick={openDialog}
+              aria-label={t("payout.addAria")}
               className="text-xs font-medium text-primary hover:underline underline-offset-2 shrink-0 ml-3"
             >
-              Add now
+              {t("payout.addNow")}
             </button>
           </div>
         )}
@@ -123,14 +130,15 @@ export function PayoutCard() {
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-xl overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Edit payout details</DialogTitle>
-            <DialogDescription>
-              We&apos;ll transfer your earnings to this account after each
-              completed task.
-            </DialogDescription>
+            <DialogTitle>{t("payout.dialogTitle")}</DialogTitle>
+            <DialogDescription>{t("payout.dialogDesc")}</DialogDescription>
           </DialogHeader>
           <div className="flex flex-col gap-4 py-2">
-            <FormField label="Bank" htmlFor="bankName" error={errors.bankName}>
+            <FormField
+              label={t("payout.bank")}
+              htmlFor="bankName"
+              error={errors.bankName}
+            >
               <Select
                 value={form.bankName}
                 onValueChange={(value) => handleChange("bankName", value)}
@@ -142,7 +150,7 @@ export function PayoutCard() {
                     errors.bankName && "border-destructive",
                   )}
                 >
-                  <SelectValue placeholder="Select your bank" />
+                  <SelectValue placeholder={t("payout.bankPlaceholder")} />
                 </SelectTrigger>
                 <SelectContent className="w-full bg-background">
                   {FINNISH_BANKS.map((bank) => (
@@ -160,23 +168,26 @@ export function PayoutCard() {
                 </SelectContent>
               </Select>
             </FormField>
-            <FormField label="IBAN" htmlFor="iban" error={errors.iban}>
+            <FormField
+              label={t("payout.iban")}
+              htmlFor="iban"
+              error={errors.iban}
+            >
               <IbanInput
                 id="iban"
                 value={form.iban}
                 onChange={(value) => handleChange("iban", value)}
                 error={errors.iban}
-                className="h-10 text-sm font-mono"
+                className="h-10 text-sm"
               />
             </FormField>
           </div>
-          <FieldError message={errors.general} />
           <DialogFooter>
             <Button variant="outline" onClick={() => setOpen(false)}>
-              Cancel
+              {t("actions.cancel")}
             </Button>
             <Button onClick={handleSave} disabled={isLoading}>
-              {isLoading ? "Saving..." : "Save changes"}
+              {isLoading ? t("actions.saving") : t("actions.save")}
             </Button>
           </DialogFooter>
         </DialogContent>

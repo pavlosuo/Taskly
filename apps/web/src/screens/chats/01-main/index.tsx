@@ -9,7 +9,6 @@ import { useChats } from "@/providers/ChatProvider";
 import { ChatListItem } from "@/screens/chats/ui/ChatListItem";
 import { ImageDisplay } from "@/components/shared/MediaPicker";
 import { Input } from "@/components/shared/Input";
-import { getAxiosError } from "@/utils/getAxiosError";
 
 const MIN_QUERY_LENGTH = 2;
 const SEARCH_DEBOUNCE_MS = 300;
@@ -67,7 +66,8 @@ export const Main = ({ chats: initialChats }: { chats: ChatWithMember[] }) => {
       setStartingId(userId);
       const chat = await createChat(userId);
       router.push(`/chats/${chat._id}`);
-    } catch (e) {
+    } catch {
+      return;
     } finally {
       setStartingId(null);
     }

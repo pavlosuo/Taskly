@@ -88,6 +88,7 @@
     }
   },
   "status": {
+    "all": "All",
     "open": "Open",
     "assigned": "Assigned",
     "completed": "Completed",
@@ -103,6 +104,13 @@
     "budget": "task budget",
     "responses_one": "{{count}} response",
     "responses_other": "{{count}} responses"
+  },
+  "sort": {
+    "newest": "Newest first",
+    "deadline": "Deadline: soonest first",
+    "budget_desc": "Budget: high to low",
+    "budget_asc": "Budget: low to high",
+    "distance": "Nearest first"
   },
   "toolbar": {
     "search": "Search tasks",

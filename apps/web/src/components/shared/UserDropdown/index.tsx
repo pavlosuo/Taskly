@@ -103,7 +103,7 @@ export const UserDropdown = ({
                 {t(`user:${user.role}`)}
               </p>
             </div>
-            <ChevronDown className="w-4 h-4 text-grey shrink-0 transition-transform group-data-[state=open]:rotate-180" />
+            <ChevronDown className="w-4 h-4 text-foreground shrink-0 transition-transform group-data-[state=open]:rotate-180" />
           </div>
         </DropdownMenuTrigger>
       )}
@@ -145,7 +145,7 @@ export const UserDropdown = ({
               <DropdownMenuItem asChild key={item.label}>
                 <Link
                   href={item.href}
-                  className="flex items-center gap-2 cursor-pointer"
+                  className="flex items-center gap-2 cursor-pointer text-foreground"
                 >
                   <item.icon size={15} />
                   <span className="truncate font-normal">{item.label}</span>

@@ -58,7 +58,6 @@ export const formatShortcutKey = (
     const lowerKey = key.toLowerCase();
     return MAC_SYMBOLS[lowerKey] || (capitalize ? key.toUpperCase() : key);
   }
-
   return capitalize ? key.charAt(0).toUpperCase() + key.slice(1) : key;
 };
 
@@ -96,45 +95,29 @@ export const isNodeInSchema = (
 export function focusNextNode(editor: Editor) {
   const { state, view } = editor;
   const { doc, selection } = state;
-
   const nextSel = Selection.findFrom(selection.$to, 1, true);
   if (nextSel) {
     view.dispatch(state.tr.setSelection(nextSel).scrollIntoView());
     return true;
   }
-
   const paragraphType = state.schema.nodes.paragraph;
   if (!paragraphType) {
     console.warn("No paragraph node type found in schema.");
     return false;
   }
-
   const end = doc.content.size;
   const para = paragraphType.create();
   let tr = state.tr.insert(end, para);
-
-  // Place the selection inside the new paragraph
   const $inside = tr.doc.resolve(end + 1);
   tr = tr.setSelection(TextSelection.near($inside)).scrollIntoView();
   view.dispatch(tr);
   return true;
 }
 
-/**
- * Checks if a value is a valid number (not null, undefined, or NaN)
- * @param value - The value to check
- * @returns boolean indicating if the value is a valid number
- */
 export function isValidPosition(pos: number | null | undefined): pos is number {
   return typeof pos === "number" && pos >= 0;
 }
 
-/**
- * Checks if one or more extensions are registered in the Tiptap editor.
- * @param editor - The Tiptap editor instance
- * @param extensionNames - A single extension name or an array of names to check
- * @returns True if at least one of the extensions is available, false otherwise
- */
 export function isExtensionAvailable(
   editor: Editor | null,
   extensionNames: string | string[],
@@ -158,12 +141,6 @@ export function isExtensionAvailable(
   return found;
 }
 
-/**
- * Finds a node at the specified position with error handling
- * @param editor The Tiptap editor instance
- * @param position The position in the document to find the node
- * @returns The node at the specified position, or null if not found
- */
 export function findNodeAtPosition(editor: Editor, position: number) {
   try {
     const node = editor.state.doc.nodeAt(position);
@@ -178,39 +155,22 @@ export function findNodeAtPosition(editor: Editor, position: number) {
   }
 }
 
-/**
- * Finds the position and instance of a node in the document
- * @param props Object containing editor, node (optional), and nodePos (optional)
- * @param props.editor The Tiptap editor instance
- * @param props.node The node to find (optional if nodePos is provided)
- * @param props.nodePos The position of the node to find (optional if node is provided)
- * @returns An object with the position and node, or null if not found
- */
 export function findNodePosition(props: {
   editor: Editor | null;
   node?: PMNode | null;
   nodePos?: number | null;
 }): { pos: number; node: PMNode } | null {
   const { editor, node, nodePos } = props;
-
   if (!editor || !editor.state?.doc) return null;
-
-  // Zero is valid position
   const hasValidNode = node !== undefined && node !== null;
   const hasValidPos = isValidPosition(nodePos);
-
   if (!hasValidNode && !hasValidPos) {
     return null;
   }
-
-  // First search for the node in the document if we have a node
   if (hasValidNode) {
     let foundPos = -1;
     let foundNode: PMNode | null = null;
-
     editor.state.doc.descendants((currentNode, pos) => {
-      // TODO: Needed?
-      // if (currentNode.type && currentNode.type.name === node!.type.name) {
       if (currentNode === node) {
         foundPos = pos;
         foundNode = currentNode;
@@ -223,8 +183,6 @@ export function findNodePosition(props: {
       return { pos: foundPos, node: foundNode };
     }
   }
-
-  // If we have a valid position, use findNodeAtPosition
   if (hasValidPos) {
     const nodeAtPos = findNodeAtPosition(editor, nodePos!);
     if (nodeAtPos) {
@@ -235,13 +193,6 @@ export function findNodePosition(props: {
   return null;
 }
 
-/**
- * Determines whether the current selection contains a node whose type matches
- * any of the provided node type names.
- * @param editor Tiptap editor instance
- * @param nodeTypeNames List of node type names to match against
- * @param checkAncestorNodes Whether to check ancestor node types up the depth chain
- */
 export function isNodeTypeSelected(
   editor: Editor | null,
   nodeTypeNames: string[] = [],
@@ -252,15 +203,12 @@ export function isNodeTypeSelected(
   const { selection } = editor.state;
   if (selection.empty) return false;
 
-  // Direct node selection check
   if (selection instanceof NodeSelection) {
     const selectedNode = selection.node;
     return selectedNode
       ? nodeTypeNames.includes(selectedNode.type.name)
       : false;
   }
-
-  // Depth-based ancestor node check
   if (checkAncestorNodes) {
     const { $from } = selection;
     for (let depth = $from.depth; depth > 0; depth--) {
@@ -274,13 +222,6 @@ export function isNodeTypeSelected(
   return false;
 }
 
-/**
- * Check whether the current selection is fully within nodes
- * whose type names are in the provided `types` list.
- *
- * - NodeSelection → checks the selected node.
- * - Text/AllSelection → ensures all textblocks within [from, to) are allowed.
- */
 export function selectionWithinConvertibleTypes(
   editor: Editor,
   types: string[] = [],
@@ -301,7 +242,7 @@ export function selectionWithinConvertibleTypes(
     state.doc.nodesBetween(selection.from, selection.to, (node) => {
       if (node.isTextblock && !allowed.has(node.type.name)) {
         valid = false;
-        return false; // stop early
+        return false;
       }
       return valid;
     });
@@ -311,31 +252,19 @@ export function selectionWithinConvertibleTypes(
   return false;
 }
 
-/**
- * Handles image upload with progress tracking and abort capability
- * @param file The file to upload
- * @param onProgress Optional callback for tracking upload progress
- * @param abortSignal Optional AbortSignal for cancelling the upload
- * @returns Promise resolving to the URL of the uploaded image
- */
 export const handleImageUpload = async (
   file: File,
   onProgress?: (event: { progress: number }) => void,
   abortSignal?: AbortSignal,
 ): Promise<string> => {
-  // Validate file
   if (!file) {
     throw new Error("No file provided");
   }
-
   if (file.size > MAX_FILE_SIZE) {
     throw new Error(
       `File size exceeds maximum allowed (${MAX_FILE_SIZE / (1024 * 1024)}MB)`,
     );
   }
-
-  // For demo/testing: Simulate upload progress. In production, replace the following code
-  // with your own upload implementation.
   for (let progress = 0; progress <= 100; progress += 10) {
     if (abortSignal?.aborted) {
       throw new Error("Upload cancelled");
@@ -348,19 +277,7 @@ export const handleImageUpload = async (
 };
 
 type ProtocolOptions = {
-  /**
-   * The protocol scheme to be registered.
-   * @default '''
-   * @example 'ftp'
-   * @example 'git'
-   */
   scheme: string;
-
-  /**
-   * If enabled, it allows optional slashes after the protocol.
-   * @default false
-   * @example true
-   */
   optionalSlashes?: boolean;
 };
 
@@ -421,22 +338,10 @@ export function sanitizeUrl(
     if (isAllowedUri(url.href, protocols)) {
       return url.href;
     }
-  } catch {
-    // If URL creation fails, it's considered invalid
-  }
+  } catch {}
   return "#";
 }
 
-/**
- * Update a single attribute on multiple nodes.
- *
- * @param tr - The transaction to mutate
- * @param targets - Array of { node, pos }
- * @param attrName - Attribute key to update
- * @param next - New value OR updater function receiving previous value
- *               Pass `undefined` to remove the attribute.
- * @returns true if at least one node was updated, false otherwise
- */
 export function updateNodesAttr<A extends string = string, V = unknown>(
   tr: Transaction,
   targets: readonly NodeWithPos[],
@@ -448,7 +353,6 @@ export function updateNodesAttr<A extends string = string, V = unknown>(
   let changed = false;
 
   for (const { pos } of targets) {
-    // Always re-read from the transaction's current doc
     const currentNode = tr.doc.nodeAt(pos);
     if (!currentNode) continue;
 
@@ -464,7 +368,6 @@ export function updateNodesAttr<A extends string = string, V = unknown>(
 
     const nextAttrs: Record<string, unknown> = { ...currentNode.attrs };
     if (resolvedNext === undefined) {
-      // Remove the key entirely instead of setting null
       delete nextAttrs[attrName];
     } else {
       nextAttrs[attrName] = resolvedNext;
@@ -477,11 +380,6 @@ export function updateNodesAttr<A extends string = string, V = unknown>(
   return changed;
 }
 
-/**
- * Selects the entire content of the current block node if the selection is empty.
- * If the selection is not empty, it does nothing.
- * @param editor The Tiptap editor instance
- */
 export function selectCurrentBlockContent(editor: Editor) {
   const { selection, doc } = editor.state;
 
@@ -553,7 +451,6 @@ export function getSelectedNodesOfType(
     }
   }
 
-  // Fallback: find parent nodes of allowed types
   const parentNode = findParentNodeClosestToPos($anchor, (node) =>
     allowed.has(node.type.name),
   );

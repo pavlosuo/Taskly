@@ -1,0 +1,161 @@
+{
+  "actions": {
+    "add": "Add",
+    "edit": "Edit",
+    "cancel": "Never mind",
+    "save": "Save changes",
+    "saving": "Saving...",
+    "verify": "Verify now"
+  },
+  "appearance": {
+    "title": "Make it yours",
+    "desc": "Pick your language and set the mood — light or dark.",
+    "language": {
+      "label": "Language",
+      "desc": "The language the app speaks to you in."
+    },
+    "darkMode": {
+      "label": "Dark mode",
+      "desc": "Easy on the eyes after sunset."
+    }
+  },
+  "settings": {
+    "notifications": {
+      "title": "Stay in the loop",
+      "desc": "Choose how we nudge you when something's happening.",
+      "email": {
+        "label": "Email",
+        "desc": "Updates straight to your inbox."
+      },
+      "phone": {
+        "label": "SMS",
+        "desc": "Quick pings right on your phone."
+      }
+    },
+    "privacy": {
+      "title": "Privacy",
+      "desc": "You decide who gets to see you.",
+      "privateProfile": {
+        "label": "Private profile",
+        "desc": "Keep your page to yourself."
+      },
+      "noOnlineStatus": {
+        "label": "Hide online status",
+        "desc": "Browse incognito — nobody sees when you're around."
+      }
+    }
+  },
+  "avatar": {
+    "title": "Show your face",
+    "desc": "Put a face to the name — clients and your public profile will see it.",
+    "change": "Swap photo",
+    "remove": "Remove photo",
+    "hint": "JPG or PNG, up to 10 MB"
+  },
+  "certificates": {
+    "searchPlaceholder": "Search for a certificate or add your own…",
+    "add": "Add “{{name}}”",
+    "addPhotoHint": "Tap the box to show it off with a photo",
+    "removePhoto": "Remove photo",
+    "remove": "Remove certificate"
+  },
+  "languages": {
+    "searchPlaceholder": "Search for a language…",
+    "removeLanguage": "Remove language",
+    "addCertificate": "+ Add a certificate",
+    "removeCertificate": "Remove",
+    "descriptionLabel": "Tell us more (optional)",
+    "descriptionPlaceholder": "What is it? e.g. IELTS 7.5, DELE B2…"
+  },
+  "skills": {
+    "searchPlaceholder": "Search for a skill or add your own…"
+  },
+  "otp": {
+    "hint": "Pop in the 6-digit code we just sent you.",
+    "confirm": "Confirm",
+    "checking": "Checking…",
+    "resendIn": "Resend in {{seconds}}s",
+    "resend": "Send me a new code"
+  },
+  "verify": {
+    "emailTitle": "Confirm your email",
+    "emailDesc": "We sent a code to {{value}}. Type it in below to confirm it's really yours.",
+    "phoneTitle": "Confirm your phone number",
+    "phoneDesc": "We sent a code to {{value}}. Type it in below to confirm it's really yours."
+  },
+  "payout": {
+    "title": "Get paid",
+    "desc": "Tell us where to send your hard-earned money after each finished task.",
+    "iban": "IBAN",
+    "bank": "Bank",
+    "editAria": "Edit payout details",
+    "addAria": "Add payout details",
+    "empty": "No payout method yet — add one and the money can start flowing.",
+    "addNow": "Add it now",
+    "dialogTitle": "Update your payout details",
+    "dialogDesc": "After each completed task, your earnings land in this account.",
+    "bankPlaceholder": "Pick your bank"
+  },
+  "personal": {
+    "title": "The basics",
+    "desc": "Your name, your handle and how we can reach you.",
+    "editAria": "Edit personal information",
+    "fullName": "Full name",
+    "username": "Username",
+    "email": "Email",
+    "phone": "Phone number",
+    "verified": "Verified",
+    "unverified": "Unverified",
+    "emailHint": "New email? We'll ask you to verify it.",
+    "phoneHint": "New number? We'll ask you to verify it.",
+    "dialog": {
+      "formTitle": "Update your info",
+      "formDesc": "Keep your details fresh so clients and we can always reach you.",
+      "emailTitle": "Confirm your new email",
+      "emailDesc": "We sent a code to {{email}}. Type it in below to lock in the change.",
+      "phoneTitle": "Confirm your new phone number",
+      "phoneDesc": "We sent a code to {{phone}}. Type it in below to lock in the change."
+    }
+  },
+  "publicProfile": {
+    "title": "Your storefront",
+    "desc": "What clients see when they stumble upon you on {{appName}}.",
+    "editAria": "Edit public profile",
+    "aboutMe": "About me",
+    "skills": "Skills",
+    "certificates": "Certificates",
+    "languages": "Languages",
+    "noSkills": "No skills yet — show off what you're good at.",
+    "noCertificates": "No certificates yet — got some? Flaunt them.",
+    "noLanguages": "No languages yet — what do you speak?",
+    "headerTitle": "Give your profile a header",
+    "addHeader": "Upload a header image",
+    "removeHeader": "Remove header image",
+    "introTitle": "Add an intro video",
+    "addIntro": "Upload an intro video",
+    "removeIntro": "Remove intro video",
+    "dialogTitle": "Polish your storefront",
+    "dialogDesc": "This is what clients see while browsing taskers — make it count.",
+    "skillsHint": "List what you're great at — clients love a pro with proof.",
+    "certificatesHint": "Got certificates? Add them — clients trust what they can see.",
+    "languagesHint": "Add the languages you speak — it builds trust fast."
+  },
+  "qr": {
+    "title": "Your QR code",
+    "desc": "Print it, post it, show it off — one scan and clients land on your profile.",
+    "viewProfile": "View my profile",
+    "viewProfileAria": "View my profile (opens in a new tab)"
+  },
+  "security": {
+    "title": "Lock it down",
+    "desc": "Refresh your password and decide who gets in.",
+    "changePassword": "Change password",
+    "deactivate": "Deactivate my account",
+    "dialogTitle": "Set a new password",
+    "dialogDesc": "Make it at least 8 characters — the longer, the tougher to crack.",
+    "currentPassword": "Current password",
+    "newPassword": "New password",
+    "confirmPassword": "Type the new one again"
+  },
+  "verifyNow": "Verify now"
+}

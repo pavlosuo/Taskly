@@ -15,6 +15,7 @@ import {
 } from "shared/types";
 import { axiosApi } from "@/api/index";
 import { useRouter } from "next/navigation";
+import { useRun } from "@/hooks/useRun";
 
 interface UserContextType {
   user: PublicUser | null;
@@ -50,183 +51,151 @@ export const UserProvider = ({
   const [user, setUser] = useState<PublicUser | null>(initialUser);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const run = useRun(setIsLoading);
 
   const login = useCallback(
-    async (payload: LoginForm) => {
-      try {
-        setIsLoading(true);
+    (payload: LoginForm) =>
+      run(async () => {
         const { data } = await axiosApi.login(payload);
         setUser(data.user);
         router.push("/");
-      } catch (error) {
-        throw error;
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    [router],
+      }),
+    [run, router],
   );
 
   const register = useCallback(
-    async (payload: RegisterForm) => {
-      setIsLoading(true);
-      try {
+    (payload: RegisterForm) =>
+      run(async () => {
         const { data } = await axiosApi.register(payload);
         setUser(data.user);
         router.push("/profile");
-      } catch (error) {
-        throw error;
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    [router],
+      }),
+    [run, router],
   );
 
-  const logout = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      await axiosApi.logout();
-      setUser(null);
-      router.push("/login");
-    } catch (error) {
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  }, [router]);
+  const logout = useCallback(
+    () =>
+      run(async () => {
+        await axiosApi.logout();
+        setUser(null);
+        router.push("/login");
+      }),
+    [run, router],
+  );
 
-  const sendEmailOtp = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      await axiosApi.sendOtp("verify-email");
-    } catch (error) {
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+  const sendEmailOtp = useCallback(
+    () =>
+      run(
+        async () => {
+          await axiosApi.sendOtp("verify-email");
+        },
+        { success: "common:toast.codeSent" },
+      ),
+    [run],
+  );
 
-  const verifyEmailOtp = useCallback(async (otp: string) => {
-    try {
-      setIsLoading(true);
-      const { data } = await axiosApi.verifyEmailOtp(otp);
-      if (data.user) setUser(data.user);
-    } catch (error) {
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+  const verifyEmailOtp = useCallback(
+    (otp: string) =>
+      run(
+        async () => {
+          const { data } = await axiosApi.verifyEmailOtp(otp);
+          if (data.user) setUser(data.user);
+        },
+        { success: "common:toast.emailVerified" },
+      ),
+    [run],
+  );
 
-  const sendPhoneOtp = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      await axiosApi.sendOtp("verify-phone");
-    } catch (error) {
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+  const sendPhoneOtp = useCallback(
+    () =>
+      run(
+        async () => {
+          await axiosApi.sendOtp("verify-phone");
+        },
+        { success: "common:toast.codeSent" },
+      ),
+    [run],
+  );
 
-  const verifyPhoneOtp = useCallback(async (otp: string) => {
-    try {
-      setIsLoading(true);
-      const { data } = await axiosApi.verifyPhoneOtp(otp);
-      if (data.user) setUser(data.user);
-    } catch (error) {
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+  const verifyPhoneOtp = useCallback(
+    (otp: string) =>
+      run(
+        async () => {
+          const { data } = await axiosApi.verifyPhoneOtp(otp);
+          if (data.user) setUser(data.user);
+        },
+        { success: "common:toast.phoneVerified" },
+      ),
+    [run],
+  );
 
-  const sendPasswordResetOtp = useCallback(async (fullPhone: string) => {
-    try {
-      setIsLoading(true);
-      await axiosApi.sendOtp("reset-password", { fullPhone });
-    } catch (error) {
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+  const sendPasswordResetOtp = useCallback(
+    (fullPhone: string) =>
+      run(async () => {
+        await axiosApi.sendOtp("reset-password", { fullPhone });
+      }),
+    [run],
+  );
 
   const verifyPasswordResetOtp = useCallback(
-    async (fullPhone: string, otp: string) => {
-      try {
-        setIsLoading(true);
+    (fullPhone: string, otp: string) =>
+      run(async () => {
         const { data } = await axiosApi.verifyPasswordResetOtp(fullPhone, otp);
         return data.resetToken;
-      } catch (error) {
-        throw error;
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    [],
+      }),
+    [run],
   );
 
-  const sendPasswordResetLink = useCallback(async (email: string) => {
-    try {
-      setIsLoading(true);
-      await axiosApi.sendPasswordResetLink(email);
-    } catch (error) {
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+  const sendPasswordResetLink = useCallback(
+    (email: string) =>
+      run(async () => {
+        await axiosApi.sendPasswordResetLink(email);
+      }),
+    [run],
+  );
 
-  const resetPassword = useCallback(async (token: string, password: string) => {
-    try {
-      setIsLoading(true);
-      await axiosApi.resetPassword(token, password);
-    } catch (error) {
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+  const resetPassword = useCallback(
+    (token: string, password: string) =>
+      run(async () => {
+        await axiosApi.resetPassword(token, password);
+      }),
+    [run],
+  );
 
-  const updateProfile = useCallback(async (payload: UpdateProfileForm) => {
-    try {
-      setIsLoading(true);
-      const { data } = await axiosApi.updateProfile(payload);
-      if (data.user) setUser(data.user);
-    } catch (error) {
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+  const updateProfile = useCallback(
+    (payload: UpdateProfileForm) =>
+      run(
+        async () => {
+          const { data } = await axiosApi.updateProfile(payload);
+          if (data.user) setUser(data.user);
+        },
+        { success: "common:toast.profileUpdated" },
+      ),
+    [run],
+  );
 
-  const deactivateAccount = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      await axiosApi.deactivateAccount();
-      setUser(null);
-      router.push("/login");
-    } catch (error) {
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  }, [router]);
+  const deactivateAccount = useCallback(
+    () =>
+      run(
+        async () => {
+          await axiosApi.deactivateAccount();
+          setUser(null);
+          router.push("/login");
+        },
+        { success: "common:toast.accountDeactivated" },
+      ),
+    [run, router],
+  );
 
   const changePassword = useCallback(
-    async (payload: { oldPassword: string; newPassword: string }) => {
-      try {
-        setIsLoading(true);
-        await axiosApi.changePassword(payload);
-      } catch (error) {
-        throw error;
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    [],
+    (payload: ChangePasswordForm) =>
+      run(
+        async () => {
+          await axiosApi.changePassword(payload);
+        },
+        { success: "common:toast.passwordChanged" },
+      ),
+    [run],
   );
 
   return (

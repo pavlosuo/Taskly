@@ -56,12 +56,13 @@ import {
   taskCreateSchema,
   taskResponseCreateSchema,
   TaskerStep,
-  MESSAGE_MAX_LENGTH
+  MESSAGE_MAX_LENGTH,
 } from "shared/index";
 import { useFormatPrice } from "@/hooks/useFormatPrice";
 import { useFormatDate } from "@/hooks/useFormatDate";
+import { useCallback } from "react";
 
-const DESCRIPTION_PREVIEW_LENGTH = 320
+const DESCRIPTION_PREVIEW_LENGTH = 320;
 
 interface ViewProps {
   task: Task | null;
@@ -71,11 +72,11 @@ interface ViewProps {
 const Spinner = ({ className }: { className?: string }) => {
   const { t } = useTranslation("common");
   return (
-    <div
-      role="status"
-      className={clsx("flex justify-center py-6 text-grey", className)}
-    >
-      <Loader2 aria-hidden="true" className="w-4 h-4 animate-spin" />
+    <div role="status" className={clsx("flex justify-center py-6", className)}>
+      <Loader2
+        aria-hidden="true"
+        className="w-4 h-4 animate-spin text-foreground"
+      />
       <span className="sr-only">{t("loading")}</span>
     </div>
   );
@@ -129,7 +130,7 @@ const TaskSummary = ({ task }: { task: Task }) => {
         <div className="grid grid-cols-2 gap-x-4 gap-y-2">
           <div className="rounded-xl border border-border bg-muted/30 px-3.5 py-3">
             <p className="text-xs text-grey flex items-center gap-1.5 mb-1">
-              <Clock aria-hidden="true" className="w-3.5 h-3.5" />
+              <Clock aria-hidden="true" className="w-4 h-4 text-foreground" />
               {t("summary.deadline")}
             </p>
             <p className="text-sm font-medium text-foreground">{deadline}</p>
@@ -225,8 +226,8 @@ const EditTaskForm = ({
       toast(formErrors[0]);
       return;
     }
+    setSaving(true);
     try {
-      setSaving(true);
       await onSaved({
         title: form.title.trim(),
         description: form.description.trim(),
@@ -236,10 +237,41 @@ const EditTaskForm = ({
         certificates: form.certificates,
         budget: form.budget,
       });
-    } finally {
-      setSaving(false);
-    }
+    } catch {}
+    setSaving(false);
   };
+
+  const searchFn = useCallback(async (search: string) => {
+    const { data } = await axiosApi.searchSkills(search);
+    return data.items.map((skill) => ({
+      value: skill._id,
+      label: skill.label,
+    }));
+  }, []);
+
+  const createFn = useCallback(async (label: string) => {
+    const { data } = await axiosApi.upsertSkill(label);
+    return {
+      value: data._id,
+      label: data.label,
+    };
+  }, []);
+
+  const searchFnCert = useCallback(async (search: string) => {
+    const { data } = await axiosApi.searchCertificates(search);
+    return data.items.map((certificate) => ({
+      value: certificate._id,
+      label: certificate.label,
+    }));
+  }, []);
+
+  const createFnCert = useCallback(async (label: string) => {
+    const { data } = await axiosApi.upsertCertificate(label);
+    return {
+      value: data._id,
+      label: data.label,
+    };
+  }, []);
 
   return (
     <form
@@ -250,7 +282,7 @@ const EditTaskForm = ({
       <DialogHeader>
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-            <Pencil aria-hidden="true" className="w-5 h-5" />
+            <Pencil aria-hidden="true" className="w-5 h-5 text-foreground" />
           </div>
           <div>
             <DialogTitle>{t("edit.title")}</DialogTitle>
@@ -365,17 +397,8 @@ const EditTaskForm = ({
             onChange={(v) => handleUpdate("skills", v)}
             placeholder={t("create.fields.skills.placeholder")}
             error={errors.skills}
-            searchFn={async (search: string) => {
-              const { data } = await axiosApi.searchSkills(search);
-              return data.items.map((skill) => ({
-                value: skill._id,
-                label: skill.label,
-              }));
-            }}
-            createFn={async (label: string) => {
-              const { data } = await axiosApi.upsertSkill(label);
-              return { value: data._id, label: data.label };
-            }}
+            searchFn={searchFn}
+            createFn={createFn}
           />
           <TagInput
             label={t("create.fields.certificates.label")}
@@ -384,17 +407,8 @@ const EditTaskForm = ({
             onChange={(v) => handleUpdate("certificates", v)}
             placeholder={t("create.fields.certificates.placeholder")}
             error={errors.certificates}
-            searchFn={async (search: string) => {
-              const { data } = await axiosApi.searchCertificates(search);
-              return data.items.map((certificate) => ({
-                value: certificate._id,
-                label: certificate.label,
-              }));
-            }}
-            createFn={async (label: string) => {
-              const { data } = await axiosApi.upsertCertificate(label);
-              return { value: data._id, label: data.label };
-            }}
+            searchFn={searchFnCert}
+            createFn={createFnCert}
           />
         </div>
       </div>
@@ -532,14 +546,12 @@ const ResponsesPanel = ({
         className="flex w-full items-center justify-between gap-2"
       >
         <SectionLabel icon={MessagesSquare}>
-          {count > 0
-            ? t("responses.titleWithCount", { count })
-            : t("responses.title")}
+          {t("responses.title")}
         </SectionLabel>
         <ChevronDown
           aria-hidden="true"
           className={clsx(
-            "w-4 h-4 text-grey transition-transform duration-300",
+            "w-4 h-4 text-foreground transition-transform duration-300",
             open && "rotate-180",
           )}
         />
@@ -605,9 +617,9 @@ export const ClientView = ({ task, onClose }: ViewProps) => {
     acceptResponse,
     getTaskResponses,
     declineResponse,
+    isLoading,
   } = useTasks();
   const [isEditing, setIsEditing] = useState(false);
-  const [busy, setBusy] = useState(false);
   const [responses, setResponses] = useState<TaskResponseItem[]>([]);
   const [loadingResponses, setLoadingResponses] = useState(false);
 
@@ -630,8 +642,7 @@ export const ClientView = ({ task, onClose }: ViewProps) => {
   if (!task) return null;
 
   const handleAccept = async (responseId: string) => {
-    if (busy) return;
-    setBusy(true);
+    if (isLoading) return;
     try {
       await acceptResponse(task._id, responseId);
       setResponses((prev) =>
@@ -641,16 +652,11 @@ export const ClientView = ({ task, onClose }: ViewProps) => {
           return r;
         }),
       );
-    } catch {
-      return;
-    } finally {
-      setBusy(false);
-    }
+    } catch {}
   };
 
   const handleReject = async (responseId: string) => {
-    if (busy) return;
-    setBusy(true);
+    if (isLoading) return;
     try {
       await declineResponse(task._id, responseId);
       setResponses((prev) =>
@@ -658,48 +664,29 @@ export const ClientView = ({ task, onClose }: ViewProps) => {
           r._id === responseId ? { ...r, status: "rejected" } : r,
         ),
       );
-    } catch {
-      return;
-    } finally {
-      setBusy(false);
-    }
+    } catch {}
   };
 
   const handleCancel = async () => {
-    if (busy || !(await confirm(t("view.confirm.cancel")))) return;
-    setBusy(true);
+    if (isLoading || !(await confirm(t("view.confirm.cancel")))) return;
     try {
       await cancelTask(task._id);
-    } catch {
-      return;
-    } finally {
-      setBusy(false);
-    }
+    } catch {}
   };
 
   const handleComplete = async () => {
-    if (busy) return;
-    setBusy(true);
+    if (isLoading) return;
     try {
       await completeTask(task._id);
-    } catch {
-      return;
-    } finally {
-      setBusy(false);
-    }
+    } catch {}
   };
 
   const handleDelete = async () => {
-    if (busy || !(await confirm(t("view.confirm.delete")))) return;
-    setBusy(true);
+    if (isLoading || !(await confirm(t("view.confirm.delete")))) return;
     try {
       await deleteTask(task._id);
       onClose();
-    } catch {
-      return;
-    } finally {
-      setBusy(false);
-    }
+    } catch {}
   };
 
   if (isEditing) {
@@ -737,7 +724,7 @@ export const ClientView = ({ task, onClose }: ViewProps) => {
         responses={responses}
         loading={loadingResponses}
         taskOpen={task.status === "open"}
-        busy={busy}
+        busy={isLoading}
         onAccept={handleAccept}
         onReject={handleReject}
       />
@@ -747,7 +734,7 @@ export const ClientView = ({ task, onClose }: ViewProps) => {
             variant="outline"
             size="sm"
             onClick={() => setIsEditing(true)}
-            disabled={busy}
+            disabled={isLoading}
           >
             <Pencil aria-hidden="true" className="w-3.5 h-3.5" />
             {t("view.actions.edit")}
@@ -758,14 +745,14 @@ export const ClientView = ({ task, onClose }: ViewProps) => {
             variant="outline"
             size="sm"
             onClick={handleCancel}
-            disabled={busy}
+            disabled={isLoading}
           >
             <Ban aria-hidden="true" className="w-3.5 h-3.5" />
             {t("view.actions.cancel")}
           </Button>
         )}
         {task.status === "assigned" && (
-          <Button size="sm" onClick={handleComplete} disabled={busy}>
+          <Button size="sm" onClick={handleComplete} disabled={isLoading}>
             <CheckCircle2 aria-hidden="true" className="w-3.5 h-3.5" />
             {t("view.actions.complete")}
           </Button>
@@ -775,7 +762,7 @@ export const ClientView = ({ task, onClose }: ViewProps) => {
           size="sm"
           className="text-destructive hover:text-destructive"
           onClick={handleDelete}
-          disabled={busy}
+          disabled={isLoading}
         >
           <Trash2 aria-hidden="true" className="w-3.5 h-3.5" />
           {t("view.actions.delete")}
@@ -787,10 +774,10 @@ export const ClientView = ({ task, onClose }: ViewProps) => {
 
 export const TaskerView = ({ task, onClose }: ViewProps) => {
   const { t } = useTranslation(["tasks", "common"]);
-  const { respondToTask, withdrawResponse, getTaskResponses } = useTasks();
+  const { respondToTask, withdrawResponse, getTaskResponses, isLoading } =
+    useTasks();
   const [myResponse, setMyResponse] = useState<TaskResponseItem | null>(null);
   const [loading, setLoading] = useState(true);
-  const [busy, setBusy] = useState(false);
   const [errors, setErrors] = useState<ZodErrors<TaskResponseCreateForm>>({});
   const [step, setStep] = useState<TaskerStep>("overview");
   const [form, setForm] = useState<TaskResponseCreateForm>({
@@ -818,7 +805,7 @@ export const TaskerView = ({ task, onClose }: ViewProps) => {
 
   const handleRespond = async (e: FormEvent) => {
     e.preventDefault();
-    if (busy) return;
+    if (isLoading) return;
     setErrors({});
     const parsed = taskResponseCreateSchema.safeParse(form);
     if (!parsed.success) {
@@ -830,28 +817,18 @@ export const TaskerView = ({ task, onClose }: ViewProps) => {
       toast(formErrors[0]);
       return;
     }
-    setBusy(true);
     try {
       const response = await respondToTask(task._id, form);
       setMyResponse(response);
-    } catch {
-      return;
-    } finally {
-      setBusy(false);
-    }
+    } catch {}
   };
 
   const handleWithdraw = async () => {
-    if (!myResponse || busy) return;
-    setBusy(true);
+    if (!myResponse || isLoading) return;
     try {
       await withdrawResponse(task._id, myResponse._id);
       setMyResponse(null);
-    } catch {
-      return;
-    } finally {
-      setBusy(false);
-    }
+    } catch {}
   };
 
   const messageLength = removeHtml(form.message ?? "").length;
@@ -953,10 +930,13 @@ export const TaskerView = ({ task, onClose }: ViewProps) => {
                   type="button"
                   variant="outline"
                   onClick={() => setStep("overview")}
-                  disabled={busy}
+                  disabled={isLoading}
                   className="w-full sm:w-auto"
                 >
-                  <ArrowLeft aria-hidden="true" className="w-4 h-4" />
+                  <ArrowLeft
+                    aria-hidden="true"
+                    className="w-4 h-4 text-foreground"
+                  />
                   {t("common:actions.back")}
                 </Button>
                 <div className="flex flex-col-reverse gap-3 sm:flex-row">
@@ -964,23 +944,26 @@ export const TaskerView = ({ task, onClose }: ViewProps) => {
                     type="button"
                     variant="outline"
                     onClick={onClose}
-                    disabled={busy}
+                    disabled={isLoading}
                     className="w-full sm:w-auto"
                   >
                     {t("common:actions.close")}
                   </Button>
                   <Button
                     type="submit"
-                    disabled={busy}
+                    disabled={isLoading}
                     className="w-full sm:w-auto"
                   >
-                    {busy ? (
+                    {isLoading ? (
                       <Loader2
                         aria-hidden="true"
-                        className="w-4 h-4 animate-spin"
+                        className="w-4 h-4 animate-spin text-foreground"
                       />
                     ) : (
-                      <Send aria-hidden="true" className="w-4 h-4" />
+                      <Send
+                        aria-hidden="true"
+                        className="w-4 h-4 text-foreground"
+                      />
                     )}
                     {t("respond.send")}
                   </Button>
@@ -1000,7 +983,7 @@ export const TaskerView = ({ task, onClose }: ViewProps) => {
                       size="sm"
                       variant="outline"
                       onClick={handleWithdraw}
-                      disabled={busy}
+                      disabled={isLoading}
                     >
                       {t("respond.withdraw")}
                     </Button>

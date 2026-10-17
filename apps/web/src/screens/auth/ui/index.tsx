@@ -47,6 +47,7 @@ export const PasswordToggle = ({
       type="button"
       onClick={onToggle}
       aria-label={t(show ? "aria.hidePassword" : "aria.showPassword")}
+      aria-pressed={show}
       className="absolute right-3 top-1/2 -translate-y-1/2 text-primary hover:text-primary/90"
     >
       {show ? (

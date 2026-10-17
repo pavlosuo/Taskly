@@ -1,5 +1,6 @@
 "use client";
 import { useState, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input, PhoneInput } from "@/components/shared/Input";
 import {
@@ -19,15 +20,16 @@ import {
   ZodErrors,
 } from "shared/index";
 import { useUser } from "@/providers/UserProvider";
-import { getAxiosError } from "@/utils/getAxiosError";
 import { SectionCard, Field, FormField, OtpInput } from "@/screens/user/ui";
-import { FieldError } from "@/components/shared/FieldError";
+import { useToast } from "@/hooks/useToast";
 
 export function PersonalInfoCard({
   onVerify,
 }: {
   onVerify: (target: OtpChannel | null) => void;
 }) {
+  const { t } = useTranslation("profile");
+  const toast = useToast();
   const {
     user,
     isLoading,
@@ -59,7 +61,7 @@ export function PersonalInfoCard({
 
   const handleChange = (field: keyof UpdateProfileForm, value?: string) => {
     setForm((p) => ({ ...p, [field]: value }));
-    setErrors((p) => ({ ...p, [field]: undefined, general: undefined }));
+    setErrors((p) => ({ ...p, [field]: undefined }));
   };
 
   const openDialog = () => {
@@ -87,8 +89,8 @@ export function PersonalInfoCard({
           fullPhone: fieldErrors.fullPhone?.[0],
           phone: fieldErrors.phone?.[0],
           code: fieldErrors.code?.[0],
-          general: formErrors[0],
         });
+        toast(formErrors[0]);
         return;
       }
       await updateProfile({
@@ -110,11 +112,7 @@ export function PersonalInfoCard({
         return;
       }
       setOpen(false);
-    } catch (e) {
-      setErrors({
-        general: getAxiosError(e),
-      });
-    }
+    } catch {}
   };
 
   const handleConfirmEmail = async (code: string) => {
@@ -122,11 +120,7 @@ export function PersonalInfoCard({
       await verifyEmailOtp(code);
       setOpen(false);
       setStep("form");
-    } catch (e) {
-      setErrors({
-        general: getAxiosError(e),
-      });
-    }
+    } catch {}
   };
 
   const handleConfirmPhone = async (code: string) => {
@@ -134,11 +128,7 @@ export function PersonalInfoCard({
       await verifyPhoneOtp(code);
       setOpen(false);
       setStep("form");
-    } catch (e) {
-      setErrors({
-        general: getAxiosError(e),
-      });
-    }
+    } catch {}
   };
 
   const buildFullPhone = useCallback(
@@ -174,27 +164,37 @@ export function PersonalInfoCard({
   return (
     <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-4 lg:gap-6 items-start">
       <SectionCard
-        icon={<UserIcon className="w-6 h-6 text-background" />}
-        title="Personal information"
-        desc="Manage your basic account details and contact information."
+        icon={
+          <UserIcon aria-hidden="true" className="w-6 h-6 text-background" />
+        }
+        title={t("personal.title")}
+        desc={t("personal.desc")}
       />
       <div className="border border-border bg-background p-4">
         <div className="flex justify-end mb-4 -mt-1">
           <button
             onClick={openDialog}
+            aria-label={t("personal.editAria")}
             className="text-sm font-medium text-primary hover:underline underline-offset-2 flex items-center gap-1 transition-opacity hover:opacity-80"
           >
-            <SquarePen className="w-4 h-4" />
-            <span>Edit</span>
+            <SquarePen aria-hidden="true" className="w-4 h-4" />
+            <span>{t("actions.edit")}</span>
           </button>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-6">
-          <Field label="Full name" value={user.profile?.fullName} />
-          <Field label="Username" value={user.username} />
           <Field
-            label="Email"
+            label={t("personal.fullName")}
+            value={user.profile?.fullName}
+          />
+          <Field label={t("personal.username")} value={user.username} />
+          <Field
+            label={t("personal.email")}
             value={user.email}
-            badge={user.acceptance?.emailVerified ? "Verified" : "Unverified"}
+            badge={
+              user.acceptance?.emailVerified
+                ? t("personal.verified")
+                : t("personal.unverified")
+            }
             badgeOk={user.acceptance?.emailVerified}
             onVerify={
               !user.acceptance?.emailVerified
@@ -203,9 +203,13 @@ export function PersonalInfoCard({
             }
           />
           <Field
-            label="Phone number"
+            label={t("personal.phone")}
             value={user.profile?.fullPhone}
-            badge={user.acceptance?.phoneVerified ? "Verified" : "Unverified"}
+            badge={
+              user.acceptance?.phoneVerified
+                ? t("personal.verified")
+                : t("personal.unverified")
+            }
             badgeOk={user.acceptance?.phoneVerified}
             onVerify={
               !user.acceptance?.phoneVerified
@@ -219,24 +223,29 @@ export function PersonalInfoCard({
         <DialogContent className={clsx(step === "form" && "sm:max-w-xl")}>
           <DialogHeader>
             <DialogTitle>
-              {step === "form" && "Edit personal information"}
-              {step === "verify-email" && "Verify your new email"}
-              {step === "verify-phone" && "Verify your new phone number"}
+              {step === "form" && t("personal.dialog.formTitle")}
+              {step === "verify-email" && t("personal.dialog.emailTitle")}
+              {step === "verify-phone" && t("personal.dialog.phoneTitle")}
             </DialogTitle>
             <DialogDescription>
-              {step === "form" &&
-                "Update your personal details and contact information."}
+              {step === "form" && t("personal.dialog.formDesc")}
               {step === "verify-email" &&
-                `We sent a code to ${form.email}. Enter it below to confirm the change.`}
+                t("personal.dialog.emailDesc", {
+                  email: form.email,
+                  interpolation: { escapeValue: false },
+                })}
               {step === "verify-phone" &&
-                `We sent a code to ${form.fullPhone}. Enter it below to confirm the change.`}
+                t("personal.dialog.phoneDesc", {
+                  phone: form.fullPhone,
+                  interpolation: { escapeValue: false },
+                })}
             </DialogDescription>
           </DialogHeader>
           {step === "form" && (
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 py-2">
                 <FormField
-                  label="Full name"
+                  label={t("personal.fullName")}
                   error={errors.fullName}
                   htmlFor="fullName"
                 >
@@ -249,7 +258,7 @@ export function PersonalInfoCard({
                   />
                 </FormField>
                 <FormField
-                  label="Username"
+                  label={t("personal.username")}
                   error={errors.username}
                   htmlFor="username"
                 >
@@ -262,13 +271,9 @@ export function PersonalInfoCard({
                   />
                 </FormField>
                 <FormField
-                  label="Email"
+                  label={t("personal.email")}
                   htmlFor="email"
-                  hint={
-                    emailChanged
-                      ? "Changing email will require verification."
-                      : undefined
-                  }
+                  hint={emailChanged ? t("personal.emailHint") : undefined}
                   error={errors.email}
                 >
                   <Input
@@ -280,13 +285,9 @@ export function PersonalInfoCard({
                   />
                 </FormField>
                 <FormField
-                  label="Phone number"
+                  label={t("personal.phone")}
                   htmlFor="phone"
-                  hint={
-                    phoneChanged
-                      ? "Changing phone will require verification."
-                      : undefined
-                  }
+                  hint={phoneChanged ? t("personal.phoneHint") : undefined}
                   error={errors.fullPhone}
                 >
                   <PhoneInput
@@ -299,13 +300,12 @@ export function PersonalInfoCard({
                   />
                 </FormField>
               </div>
-              <FieldError message={errors.general} />
               <DialogFooter>
                 <Button variant="outline" onClick={() => setOpen(false)}>
-                  Cancel
+                  {t("actions.cancel")}
                 </Button>
                 <Button onClick={handleSave} disabled={isLoading}>
-                  {isLoading ? "Saving..." : "Save changes"}
+                  {isLoading ? t("actions.saving") : t("actions.save")}
                 </Button>
               </DialogFooter>
             </>
@@ -313,23 +313,21 @@ export function PersonalInfoCard({
           {step === "verify-email" && (
             <OtpInput
               onConfirm={handleConfirmEmail}
-              onResend={() => {
-                sendEmailOtp();
+              onResend={async () => {
+                await sendEmailOtp();
                 setErrors({});
               }}
               isLoading={isLoading}
-              error={errors.general}
             />
           )}
           {step === "verify-phone" && (
             <OtpInput
               onConfirm={handleConfirmPhone}
-              onResend={() => {
-                sendPhoneOtp();
+              onResend={async () => {
+                await sendPhoneOtp();
                 setErrors({});
               }}
               isLoading={isLoading}
-              error={errors.general}
             />
           )}
         </DialogContent>

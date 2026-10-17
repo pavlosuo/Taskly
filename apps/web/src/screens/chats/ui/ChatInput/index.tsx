@@ -7,10 +7,10 @@ import { MediaItem } from "shared/types";
 import { useMediaPicker } from "@/providers/MediaPickerProvider";
 import { useChats } from "@/providers/ChatProvider";
 import { ImageDisplay } from "@/components/shared/MediaPicker";
-import { FieldError } from "@/components/shared/FieldError";
 import { useSingleChat } from "@/providers/SingleChatProvider";
 import { useSocket } from "@/providers/SocketProvider";
 import { getAxiosError } from "@/utils/getAxiosError";
+import { useToast } from "@/hooks/useToast";
 
 const TYPING_STOP_DELAY_MS = 2000;
 
@@ -22,8 +22,8 @@ export const ChatInput = () => {
   const [text, setText] = useState("");
   const [pendingMedia, setPendingMedia] = useState<MediaItem[]>([]);
   const [isSending, setIsSending] = useState(false);
-  const [error, setError] = useState<string>();
   const { socket } = useSocket();
+  const toast = useToast();
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
@@ -42,7 +42,6 @@ export const ChatInput = () => {
 
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setText(e.target.value);
-    setError(undefined);
     socket?.emit("typing:start", {
       chatId: chat._id,
       memberId: chat.member._id,
@@ -61,7 +60,6 @@ export const ChatInput = () => {
       accept: "all",
       multiple: true,
       onSelect: (items) => {
-        setError(undefined);
         setPendingMedia((prev) => [
           ...prev,
           ...items.filter((i) => !prev.some((m) => m._id === i._id)),
@@ -80,7 +78,6 @@ export const ChatInput = () => {
     if (!trimmed && pendingMedia.length === 0) return;
     try {
       setIsSending(true);
-      setError(undefined);
       const { data } = await axiosApi.sendMessage(chat._id, {
         text: trimmed || undefined,
         mediaIds: pendingMedia.map((m) => m._id),
@@ -90,8 +87,8 @@ export const ChatInput = () => {
       setText("");
       setPendingMedia([]);
       fetchChats();
-    } catch (err) {
-      setError(getAxiosError(err));
+    } catch (e) {
+      toast(getAxiosError(e));
     } finally {
       setIsSending(false);
     }
@@ -137,7 +134,6 @@ export const ChatInput = () => {
           ))}
         </div>
       )}
-      <FieldError role="alert" message={error} className="mb-2" />
       <div className="flex items-end gap-2">
         <button
           type="button"

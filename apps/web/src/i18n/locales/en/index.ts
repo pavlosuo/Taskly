@@ -8,6 +8,7 @@ import media from "./media.json";
 import policy from "./policy.json";
 import user from "./user.json";
 import tasks from "./tasks.json";
+import profile from "./profile.json";
 
 const spaces = {
   common,
@@ -20,6 +21,7 @@ const spaces = {
   policy,
   user,
   tasks,
+  profile,
 };
 
 export default spaces;

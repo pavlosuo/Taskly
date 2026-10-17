@@ -9,6 +9,10 @@ import {
   FilterType,
 } from "shared/index";
 
+export const MAX_PRICE = 1_000_000;
+
+export const MAX_LIST_ITEMS = 15;
+
 export const MESSAGE_MAX_LENGTH = 1000;
 
 export const RESEND_COOLDOWN_SECONDS = 60;
@@ -26,11 +30,11 @@ export const MAX_FILE_SIZE = 50 * 1024 * 1024;
 export const APP_NAME = "Taskly";
 
 export const NAV_LINKS: { label: string; href: string }[] = [
-  { label: "Find Taskers", href: "/users" },
-  { label: "Browse Tasks", href: "/tasks" },
-  { label: "Top Taskers", href: "/top" },
-  { label: "Leaderboard", href: "/leaderboard" },
-  { label: "Statistics", href: "/stats" },
+  { label: "nav.users", href: "/users" },
+  { label: "nav.tasks", href: "/tasks" },
+  { label: "nav.top", href: "/top" },
+  { label: "nav.leaderboard", href: "/leaderboard" },
+  { label: "nav.stats", href: "/stats" },
 ];
 
 export const CHAT_PAGE_META: Record<
@@ -457,7 +461,9 @@ export const FILTERS: { value: FilterType; labelKey: string }[] = [
   { value: "image", labelKey: "filters.image" },
   { value: "video", labelKey: "filters.video" },
   { value: "audio", labelKey: "filters.audio" },
-  { value: "document", labelKey: "filters.document" },
+  { value: "pdf", labelKey: "filters.pdf" },
+  { value: "word", labelKey: "filters.word" },
+  { value: "excel", labelKey: "filters.excel" },
   { value: "other", labelKey: "filters.other" },
 ];
 
@@ -476,20 +482,12 @@ export const TASK_DEFAULT_FILTERS: TaskFilters = {
 export const TASK_RADIUS_OPTIONS = [5, 10, 20, 50, 100];
 
 export const TASK_SORT_OPTIONS: { value: TaskSort; label: string }[] = [
-  { value: "newest", label: "Newest first" },
-  { value: "deadline", label: "Deadline: soonest first" },
-  { value: "budget_desc", label: "Budget: high to low" },
-  { value: "budget_asc", label: "Budget: low to high" },
-  { value: "distance", label: "Nearest first" },
+  { value: "newest", label: "sort.newest" },
+  { value: "deadline", label: "sort.deadline" },
+  { value: "budget_desc", label: "sort.budget_desc" },
+  { value: "budget_asc", label: "sort.budget_asc" },
+  { value: "distance", label: "sort.distance" },
 ];
-
-export const TASK_STATUS_LABELS: Record<string, string> = {
-  all: "All",
-  open: "Open",
-  assigned: "In progress",
-  completed: "Completed",
-  cancelled: "Cancelled",
-};
 
 export const TABS: TasksTab[] = ["all", "my"];
 

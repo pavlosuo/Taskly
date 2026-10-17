@@ -25,22 +25,21 @@ import {
   TaskFilters,
   TasksTab,
   TASK_DEFAULT_FILTERS,
-  TASK_STATUS_LABELS,
   TABS,
 } from "shared/index";
 import { axiosApi } from "@/api/index";
 import { useUser } from "@/providers/UserProvider";
 import { getAxiosError } from "@/utils/getAxiosError";
 import { applyTaskFilters, buildTaskQuery } from "@/utils/tasksUtils";
-import { useTranslation } from "react-i18next";
 import { useToast } from "@/hooks/useToast";
+import { useRun } from "@/hooks/useRun";
 
 interface FetchOptions {
   includeMine?: boolean;
 }
 
 interface StatusOption {
-  value: "all" | Task["status"];
+  value: "all" | TaskStatus;
   label: string;
   count: number;
 }
@@ -52,6 +51,10 @@ interface BrowserView {
   shown: number;
   total: number;
   hasMore: boolean;
+}
+
+interface TaskProviderProps {
+  children: ReactNode;
 }
 
 interface TaskContextType extends BrowserView {
@@ -87,10 +90,6 @@ interface TaskContextType extends BrowserView {
   declineResponse: (taskId: string, responseId: string) => Promise<void>;
 }
 
-interface TaskProviderProps {
-  children: ReactNode;
-}
-
 const TaskContext = createContext<TaskContextType | null>(null);
 
 const deriveBrowser = ({
@@ -119,10 +118,10 @@ const deriveBrowser = ({
       query,
     );
     statusOptions = [
-      { value: "all", label: TASK_STATUS_LABELS.all, count: base.length },
+      { value: "all", label: "status.all", count: base.length },
       ...TASK_STATUSES.map((s) => ({
-        value: s as Task["status"],
-        label: TASK_STATUS_LABELS[s],
+        value: s,
+        label: `status.${s}`,
         count: base.filter((t) => t.status === s).length,
       })).filter((o) => o.count > 0 || o.value === filters.status),
     ];
@@ -142,7 +141,6 @@ const findIn = (lists: Task[][], id: string | null) =>
   id ? (lists.flat().find((t) => t._id === id) ?? null) : null;
 
 export const TaskProvider = ({ children }: TaskProviderProps) => {
-  const { t } = useTranslation(["tasks", "common"]);
   const [allTasks, setAllTasks] = useState<Task[]>([]);
   const [myTasks, setMyTasks] = useState<Task[]>([]);
   const [rawTotal, setRawTotal] = useState(0);
@@ -169,6 +167,8 @@ export const TaskProvider = ({ children }: TaskProviderProps) => {
   useEffect(() => {
     allRef.current = allTasks;
   }, [allTasks]);
+
+  const run = useRun(setIsLoading);
 
   const fetchTasks = useCallback(
     async (q?: TaskListQuery, options?: FetchOptions) => {
@@ -287,196 +287,175 @@ export const TaskProvider = ({ children }: TaskProviderProps) => {
     [allTasks, myTasks],
   );
 
-  const createTask = useCallback(async (payload: TaskCreateForm) => {
-    try {
-      setIsLoading(true);
-      const { data } = await axiosApi.createTask(payload);
-      setAllTasks((prev) => [data.task, ...prev]);
-      setMyTasks((prev) => [data.task, ...prev]);
-      setRawTotal((n) => n + 1);
-      return data.task;
-    } catch (error) {
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  const updateTask = useCallback(
-    async (id: string, payload: TaskUpdateForm) => {
-      try {
-        setIsLoading(true);
-        await axiosApi.updateTask(id, payload);
-        const patch = (t: Task) => (t._id === id ? { ...t, ...payload } : t);
-        setAllTasks((prev) => prev.map(patch as (t: Task) => Task));
-        setMyTasks((prev) => prev.map(patch as (t: Task) => Task));
-      } catch (error) {
-        throw error;
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    [],
-  );
-
-  const deleteTask = useCallback(async (id: string) => {
-    try {
-      setIsLoading(true);
-      await axiosApi.deleteTask(id);
-      if (allRef.current.some((t) => t._id === id)) {
-        setRawTotal((n) => Math.max(0, n - 1));
-      }
-      setAllTasks((prev) => prev.filter((t) => t._id !== id));
-      setMyTasks((prev) => prev.filter((t) => t._id !== id));
-    } catch (error) {
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
   const setStatus = useCallback((id: string, status: TaskStatus) => {
     const patch = (t: Task): Task => (t._id === id ? { ...t, status } : t);
     setAllTasks((prev) => prev.map(patch));
     setMyTasks((prev) => prev.map(patch));
   }, []);
 
+  const createTask = useCallback(
+    (payload: TaskCreateForm) =>
+      run(
+        async () => {
+          const { data } = await axiosApi.createTask(payload);
+          setAllTasks((prev) => [data.task, ...prev]);
+          setMyTasks((prev) => [data.task, ...prev]);
+          setRawTotal((n) => n + 1);
+          return data.task;
+        },
+        { success: "tasks:create.success" },
+      ),
+    [run],
+  );
+
+  const updateTask = useCallback(
+    (id: string, payload: TaskUpdateForm) =>
+      run(
+        async () => {
+          await axiosApi.updateTask(id, payload);
+          const patch = (t: Task) => (t._id === id ? { ...t, ...payload } : t);
+          setAllTasks((prev) => prev.map(patch as (t: Task) => Task));
+          setMyTasks((prev) => prev.map(patch as (t: Task) => Task));
+        },
+        { success: "tasks:toast.updated" },
+      ),
+    [run],
+  );
+
+  const deleteTask = useCallback(
+    (id: string) =>
+      run(
+        async () => {
+          await axiosApi.deleteTask(id);
+          if (allRef.current.some((t) => t._id === id)) {
+            setRawTotal((n) => Math.max(0, n - 1));
+          }
+          setAllTasks((prev) => prev.filter((t) => t._id !== id));
+          setMyTasks((prev) => prev.filter((t) => t._id !== id));
+        },
+        { success: "tasks:toast.deleted" },
+      ),
+    [run],
+  );
+
   const cancelTask = useCallback(
-    async (id: string) => {
-      try {
-        setIsLoading(true);
-        await axiosApi.cancelTask(id);
-        setStatus(id, "cancelled");
-      } catch (error) {
-        throw error;
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    [setStatus],
+    (id: string) =>
+      run(
+        async () => {
+          await axiosApi.cancelTask(id);
+          setStatus(id, "cancelled");
+        },
+        { success: "tasks:toast.cancelled" },
+      ),
+    [run, setStatus],
   );
 
   const completeTask = useCallback(
-    async (id: string) => {
-      try {
-        setIsLoading(true);
-        await axiosApi.completeTask(id);
-        setStatus(id, "completed");
-      } catch (error) {
-        throw error;
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    [setStatus],
+    (id: string) =>
+      run(
+        async () => {
+          await axiosApi.completeTask(id);
+          setStatus(id, "completed");
+        },
+        { success: "tasks:toast.completed" },
+      ),
+    [run, setStatus],
   );
 
   const respondToTask = useCallback(
-    async (taskId: string, payload: TaskResponseCreateForm) => {
-      try {
-        setIsLoading(true);
-        const { data } = await axiosApi.createTaskResponse(taskId, payload);
-        const response = data.response;
-        const myResponse = { status: response.status, price: response.price };
-        setAllTasks((prev) =>
-          prev.map((t) =>
-            t._id === taskId
-              ? { ...t, responsesCount: (t.responsesCount ?? 0) + 1 }
-              : t,
-          ),
-        );
-        const source = allRef.current.find((t) => t._id === taskId);
-        setMyTasks((prev) => {
-          if (prev.some((t) => t._id === taskId)) {
-            return prev.map((t) =>
-              t._id === taskId ? { ...t, myResponse } : t,
-            );
-          }
-          return source
-            ? [
-                {
-                  ...source,
-                  responsesCount: (source.responsesCount ?? 0) + 1,
-                  myResponse,
-                },
-                ...prev,
-              ]
-            : prev;
-        });
-        return response;
-      } catch (error) {
-        throw error;
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    [],
+    (taskId: string, payload: TaskResponseCreateForm) =>
+      run(
+        async () => {
+          const { data } = await axiosApi.createTaskResponse(taskId, payload);
+          const response = data.response;
+          const myResponse = { status: response.status, price: response.price };
+          setAllTasks((prev) =>
+            prev.map((t) =>
+              t._id === taskId
+                ? { ...t, responsesCount: (t.responsesCount ?? 0) + 1 }
+                : t,
+            ),
+          );
+          const source = allRef.current.find((t) => t._id === taskId);
+          setMyTasks((prev) => {
+            if (prev.some((t) => t._id === taskId)) {
+              return prev.map((t) =>
+                t._id === taskId ? { ...t, myResponse } : t,
+              );
+            }
+            return source
+              ? [
+                  {
+                    ...source,
+                    responsesCount: (source.responsesCount ?? 0) + 1,
+                    myResponse,
+                  },
+                  ...prev,
+                ]
+              : prev;
+          });
+          return response;
+        },
+        { success: "tasks:toast.responseSent" },
+      ),
+    [run],
   );
 
-  const getTaskResponses = useCallback(async (taskId: string) => {
-    try {
-      setIsLoading(true);
-      const { data } = await axiosApi.getTaskResponses(taskId);
-      return data.items;
-    } catch (error) {
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+  const getTaskResponses = useCallback(
+    (taskId: string) =>
+      run(
+        async () => {
+          const { data } = await axiosApi.getTaskResponses(taskId);
+          return data.items;
+        },
+        { loading: false },
+      ),
+    [run],
+  );
 
   const acceptResponse = useCallback(
-    async (taskId: string, responseId: string) => {
-      try {
-        setIsLoading(true);
-        await axiosApi.acceptTaskResponse(taskId, responseId);
-        setStatus(taskId, "assigned");
-      } catch (error) {
-        throw error;
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    [setStatus],
+    (taskId: string, responseId: string) =>
+      run(
+        async () => {
+          await axiosApi.acceptTaskResponse(taskId, responseId);
+          setStatus(taskId, "assigned");
+        },
+        { success: "tasks:toast.accepted" },
+      ),
+    [run, setStatus],
   );
 
   const declineResponse = useCallback(
-    async (taskId: string, responseId: string) => {
-      try {
-        setIsLoading(true);
-        await axiosApi.declineTaskResponse(taskId, responseId);
-      } catch (error) {
-        throw error;
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    [],
+    (taskId: string, responseId: string) =>
+      run(
+        async () => {
+          await axiosApi.declineTaskResponse(taskId, responseId);
+        },
+        { success: "tasks:toast.rejected" },
+      ),
+    [run],
   );
 
   const withdrawResponse = useCallback(
-    async (taskId: string, responseId: string) => {
-      try {
-        setIsLoading(true);
-        await axiosApi.withdrawTaskResponse(taskId, responseId);
-        setMyTasks((prev) => prev.filter((t) => t._id !== taskId));
-        setAllTasks((prev) =>
-          prev.map((t) =>
-            t._id === taskId
-              ? {
-                  ...t,
-                  responsesCount: Math.max(0, (t.responsesCount ?? 0) - 1),
-                }
-              : t,
-          ),
-        );
-      } catch (error) {
-        throw error;
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    [],
+    (taskId: string, responseId: string) =>
+      run(
+        async () => {
+          await axiosApi.withdrawTaskResponse(taskId, responseId);
+          setMyTasks((prev) => prev.filter((t) => t._id !== taskId));
+          setAllTasks((prev) =>
+            prev.map((t) =>
+              t._id === taskId
+                ? {
+                    ...t,
+                    responsesCount: Math.max(0, (t.responsesCount ?? 0) - 1),
+                  }
+                : t,
+            ),
+          );
+        },
+        { success: "tasks:toast.withdrawn" },
+      ),
+    [run],
   );
 
   return (

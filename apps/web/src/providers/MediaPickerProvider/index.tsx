@@ -7,8 +7,7 @@ import {
   ReactNode,
 } from "react";
 import { MediaPicker } from "@/components/shared/MediaPicker";
-import { MediaItem } from "shared/types";
-import { FilterType } from "@/utils/getFileType";
+import { MediaItem, FilterType } from "shared/types";
 
 type MediaPickerOptions = {
   accept?: FilterType;

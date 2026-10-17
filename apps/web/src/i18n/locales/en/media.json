@@ -6,7 +6,9 @@
     "image": "Images",
     "video": "Video",
     "audio": "Audio",
-    "document": "Documents",
+    "pdf": "PDF",
+    "word": "Word",
+    "excel": "Excel",
     "other": "Other"
   },
   "upload": {

@@ -1,10 +1,12 @@
 import { Input as InputInitial } from "@/components/ui/input";
 import clsx from "clsx";
-import { forwardRef } from "react";
+import { forwardRef, useMemo } from "react";
 import { PhoneInput } from "./phone";
 import { TagInput } from "./tag";
 export * from "./iban";
+import { useTheme } from "@/providers/ThemeProvider";
 export { PhoneInput, TagInput };
+import { MAX_PRICE } from "shared/data";
 
 interface Props {
   name: string;
@@ -82,40 +84,77 @@ interface PriceInputProps {
   onChange: (value: number) => void;
   placeholder?: string;
   className?: string;
+  currency?: string;
   onBlur?: (e: React.FocusEvent<HTMLInputElement>) => void;
   error?: string;
 }
 
 export const PriceInput = forwardRef<HTMLInputElement, PriceInputProps>(
   (
-    { name, value, onChange, placeholder = "Budget", className, onBlur, error },
+    {
+      name,
+      value,
+      onChange,
+      placeholder = "Budget",
+      className,
+      currency = "EUR",
+      onBlur,
+      error,
+    },
     ref,
   ) => {
+    const { lang } = useTheme();
+
+    const { formatter, symbol, symbolFirst } = useMemo(() => {
+      const parts = new Intl.NumberFormat(lang, {
+        style: "currency",
+        currency,
+        maximumFractionDigits: 0,
+      }).formatToParts(1);
+
+      const currencyIdx = parts.findIndex((p) => p.type === "currency");
+      const integerIdx = parts.findIndex((p) => p.type === "integer");
+
+      return {
+        formatter: new Intl.NumberFormat(lang, { maximumFractionDigits: 0 }),
+        symbol: parts[currencyIdx]?.value ?? currency,
+        symbolFirst: currencyIdx < integerIdx,
+      };
+    }, [lang, currency]);
+
     const sanitize = (raw: string): number => {
-      let digits = raw.replace(/[^\d]/g, "");
-      digits = digits.replace(/^0+(?=\d)/, "");
-      return digits === "" ? 0 : Number(digits);
+      const digits = raw.replace(/\D/g, "").replace(/^0+(?=\d)/, "");
+      return digits === "" ? 0 : Math.min(Number(digits), MAX_PRICE);
     };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const numeric = sanitize(e.target.value);
-      onChange(numeric);
+      onChange(sanitize(e.target.value));
     };
 
     return (
-      <Input
-        ref={ref}
-        name={name}
-        type="text"
-        inputMode="numeric"
-        pattern="[0-9]*"
-        value={value}
-        onChange={handleChange}
-        onBlur={onBlur}
-        placeholder={placeholder}
-        className={className}
-        error={error}
-      />
+      <div className="relative">
+        <Input
+          ref={ref}
+          name={name}
+          type="text"
+          inputMode="numeric"
+          value={value ? formatter.format(value) : ""}
+          onChange={handleChange}
+          onBlur={onBlur}
+          placeholder={placeholder}
+          className={clsx(symbolFirst ? "pl-8" : "pr-8", className)}
+          error={error}
+        />
+        <span
+          aria-hidden
+          className={clsx(
+            "pointer-events-none absolute top-1/2 -translate-y-1/2 text-sm text-foreground",
+            symbolFirst ? "left-3" : "right-3",
+          )}
+        >
+          {symbol}
+        </span>
+      </div>
     );
   },
 );

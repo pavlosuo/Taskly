@@ -54,8 +54,8 @@ export const TaskTabs = <T extends string>({
           className={clsx(
             "rounded-full flex flex-1 items-center justify-center gap-2 px-4 py-1.5 text-sm font-medium transition-colors sm:flex-none",
             active
-              ? "bg-background text-foreground border border-primary"
-              : "text-grey hover:text-foreground border border-transparent",
+              ? "bg-primary text-white border border-primary"
+              : "text-grey hover:text-foreground border border-border",
           )}
         >
           {tab.label}
@@ -64,7 +64,7 @@ export const TaskTabs = <T extends string>({
               className={clsx(
                 "text-xs font-semibold tabular-nums rounded-full w-4 h-4",
                 active
-                  ? "bg-primary text-primary-foreground"
+                  ? "bg-foreground text-background"
                   : "bg-foreground/10 text-grey",
               )}
             >
@@ -208,7 +208,7 @@ export const TaskToolbar = ({
                     : "border-border text-grey hover:bg-muted hover:text-foreground",
                 )}
               >
-                {s.label}
+                {t(s.label)}
                 <span
                   className={clsx(
                     "tabular-nums",
@@ -243,7 +243,7 @@ export const TaskToolbar = ({
                   (o) => o.value !== "distance" || filters.near,
                 ).map((o) => (
                   <SelectItem key={o.value} value={o.value}>
-                    {o.label}
+                    {t(o.label)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -361,10 +361,10 @@ export const TaskToolbar = ({
                 {locating ? (
                   <Loader2
                     aria-hidden="true"
-                    className="h-3.5 w-3.5 animate-spin"
+                    className="h-3 w-3 animate-spin"
                   />
                 ) : (
-                  <LocateFixed aria-hidden="true" className="h-3.5 w-3.5" />
+                  <LocateFixed aria-hidden="true" className="h-3 w-3" />
                 )}
                 {t("toolbar.nearMe")}
               </Button>
@@ -387,7 +387,7 @@ export const TaskToolbar = ({
                   })
                 }
               >
-                <RotateCcw aria-hidden="true" className="h-3.5 w-3.5" />
+                <RotateCcw aria-hidden="true" className="h-3 w-3" />
                 {t("toolbar.reset")}
               </Button>
             </div>

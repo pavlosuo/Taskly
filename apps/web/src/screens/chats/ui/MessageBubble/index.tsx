@@ -22,7 +22,6 @@ import {
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
 import { ImageDisplay } from "@/components/shared/MediaPicker";
-import { FieldError } from "@/components/shared/FieldError";
 import { useTheme } from "@/providers/ThemeProvider";
 import {
   Popover,
@@ -34,6 +33,7 @@ import { useLightbox } from "@/providers/LightboxProvider";
 import { FileThumbnail } from "@/components/shared/MediaPicker";
 import { useModal } from "@/providers/ModalProvider";
 import { getAxiosError } from "@/utils/getAxiosError";
+import { useToast } from "@/hooks/useToast";
 
 const formatTime = (value: string | Date, lang: string) =>
   new Date(value).toLocaleTimeString(lang, {
@@ -197,7 +197,6 @@ export const MessageBubble: FC<{
   const [isEditing, setIsEditing] = useState(false);
   const [draft, setDraft] = useState(message.text ?? "");
   const [isSaving, setIsSaving] = useState(false);
-  const [error, setError] = useState<string>();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const myReaction = message.reactions?.find(
     (r) => r.userId === user?._id,
@@ -206,6 +205,7 @@ export const MessageBubble: FC<{
   const { setLightbox } = useLightbox();
   const { lang } = useTheme();
   const { confirm } = useModal();
+  const toast = useToast();
 
   useEffect(() => {
     if (isEditing) textareaRef.current?.focus();
@@ -213,7 +213,6 @@ export const MessageBubble: FC<{
 
   const cancelEdit = () => {
     setDraft(message.text ?? "");
-    setError(undefined);
     setIsEditing(false);
   };
 
@@ -226,13 +225,12 @@ export const MessageBubble: FC<{
     }
     try {
       setIsSaving(true);
-      setError(undefined);
       const { data } = await axiosApi.editMessage(chatId, message._id, trimmed);
       onMessageUpdate(data.message);
       setDraft(data.message.text || "");
       setIsEditing(false);
-    } catch (err) {
-      setError(getAxiosError(err));
+    } catch (e) {
+      toast(getAxiosError(e));
     } finally {
       setIsSaving(false);
     }
@@ -250,11 +248,10 @@ export const MessageBubble: FC<{
     const confirmed = await confirm(t("message.deleteConfirm"));
     if (!confirmed) return;
     try {
-      setError(undefined);
       await axiosApi.deleteMessage(chatId, message._id);
       onMessageDelete(message._id);
-    } catch (err) {
-      setError(getAxiosError(err));
+    } catch (e) {
+      toast(getAxiosError(e));
     }
   };
 
@@ -285,9 +282,7 @@ export const MessageBubble: FC<{
 
   const handleCopyText = () => {
     if (!message.text) return;
-    navigator.clipboard
-      .writeText(message.text)
-      .catch(() => setError("general.unknown"));
+    navigator.clipboard.writeText(message.text).catch(() => {});
   };
 
   const bubbleInner = (
@@ -336,7 +331,6 @@ export const MessageBubble: FC<{
                   value={draft}
                   onChange={(e) => {
                     setDraft(e.target.value);
-                    setError(undefined);
                   }}
                   onKeyDown={handleEditKeyDown}
                   aria-label={t("message.editLabel")}
@@ -458,11 +452,6 @@ export const MessageBubble: FC<{
               </ContextMenu>
             )}
           </div>
-          <FieldError
-            role="alert"
-            message={error}
-            className={clsx(isOwn && "text-right")}
-          />
         </MessageContent>
       </Message>
     </>

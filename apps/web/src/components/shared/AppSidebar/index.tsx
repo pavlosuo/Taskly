@@ -92,7 +92,7 @@ export function AppSidebar() {
         >
           {APP_NAME}
         </Link>
-        <nav>
+        <nav role="navigation">
           <ul className="flex flex-col gap-1">
             {navItems &&
               navItems.map(({ label, href, icon: Icon }) => {

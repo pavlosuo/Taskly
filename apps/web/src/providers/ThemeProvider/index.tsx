@@ -58,9 +58,12 @@ export const ThemeProvider = ({
   initialTheme,
   initialLang,
 }: ThemeProviderProps) => {
-  if (i18n.language !== initialLang) {
-    i18n.changeLanguage(initialLang);
-  }
+  useEffect(() => {
+    if (i18n.language !== initialLang) {
+      i18n.changeLanguage(initialLang);
+    }
+  }, [initialLang]);
+
   const [lang, setLang] = useState<Lang>(initialLang);
   const [theme, setTheme] = useState<Theme>(initialTheme);
   const channelRef = useRef<BroadcastChannel | null>(null);

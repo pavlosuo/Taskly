@@ -1,4 +1,5 @@
 "use client";
+import { useTranslation } from "react-i18next";
 import { Globe } from "lucide-react";
 import {
   Select,
@@ -13,23 +14,22 @@ import { useTheme } from "@/providers/ThemeProvider";
 import { SectionCard } from "@/screens/user/ui";
 
 export function AppearanceCard() {
+  const { t } = useTranslation(["profile", "common"]);
   const { lang, changeTheme, theme, changeLang } = useTheme();
   return (
     <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-4 lg:gap-6 items-start">
       <SectionCard
         icon={<Globe className="w-6 h-6 text-background" />}
-        title="Appearance"
-        desc="Choose your language and display theme."
+        title={t("appearance.title")}
+        desc={t("appearance.desc")}
       />
       <div className="border border-border bg-background p-4 flex flex-col gap-5">
         <div className="flex items-center justify-between gap-4">
           <div>
             <p className="text-sm font-medium text-foreground mb-0.5">
-              Language
+              {t("appearance.language.label")}
             </p>
-            <p className="text-xs text-grey">
-              Choose the app display language.
-            </p>
+            <p className="text-xs text-grey">{t("appearance.language.desc")}</p>
           </div>
           <Select value={lang} onValueChange={changeLang}>
             <SelectTrigger className="w-36 h-9 text-sm relative">
@@ -38,7 +38,7 @@ export function AppearanceCard() {
             <SelectContent className="bg-background">
               {LANGS.map((l) => (
                 <SelectItem key={l.value} value={l.value}>
-                  {l.label}
+                  {t(`common:${l.label}`)}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -48,13 +48,12 @@ export function AppearanceCard() {
         <div className="flex items-center justify-between gap-4">
           <div>
             <p className="text-sm font-medium text-foreground mb-0.5">
-              Dark mode
+              {t("appearance.darkMode.label")}
             </p>
-            <p className="text-xs text-grey">
-              Switch between light and dark theme.
-            </p>
+            <p className="text-xs text-grey">{t("appearance.darkMode.desc")}</p>
           </div>
           <Switch
+            aria-label={t("appearance.darkMode.label")}
             checked={theme === "dark"}
             onCheckedChange={(checked) =>
               changeTheme(checked ? "dark" : "light")

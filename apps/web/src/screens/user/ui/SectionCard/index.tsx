@@ -12,7 +12,10 @@ export function SectionCard({
 }) {
   return (
     <div className="border border-border bg-background p-4">
-      <div className="w-12 h-12 bg-foreground flex items-center justify-center mb-3">
+      <div
+        aria-hidden="true"
+        className="w-12 h-12 bg-foreground flex items-center justify-center mb-3"
+      >
         {icon}
       </div>
       <p className="text-sm font-medium text-foreground mb-1">{title}</p>

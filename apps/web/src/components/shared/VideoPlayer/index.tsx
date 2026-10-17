@@ -1,5 +1,6 @@
 "use client";
 import { type ComponentProps, forwardRef, type ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import {
   CaptionsOffIcon,
   CaptionsOnIcon,
@@ -122,6 +123,7 @@ function VolumePopover(): ReactNode {
 }
 
 function SettingsMenu(): ReactNode {
+  const { t } = useTranslation("common");
   const playbackRate = usePlaybackRateOptions();
   const hasPlaybackRate = playbackRate?.state.availability === "available";
   if (!hasPlaybackRate) return null;
@@ -131,7 +133,7 @@ function SettingsMenu(): ReactNode {
         <Tooltip.Trigger
           render={
             <Menu.Trigger
-              aria-label="Settings"
+              aria-label={t("videoPlayer.settings")}
               className="media-button--settings"
               render={<Button />}
             >
@@ -140,7 +142,7 @@ function SettingsMenu(): ReactNode {
           }
         />
         <Tooltip.Popup className="media-surface media-tooltip">
-          <Tooltip.Label>Settings</Tooltip.Label>
+          <Tooltip.Label>{t("videoPlayer.settings")}</Tooltip.Label>
         </Tooltip.Popup>
       </Tooltip.Root>
       <Menu.Content className="media-surface media-popover media-menu media-menu--settings">
@@ -152,7 +154,7 @@ function SettingsMenu(): ReactNode {
                 render={(props) => (
                   <div {...props}>
                     <SpeedIcon className="media-icon" />
-                    <span>Speed</span>
+                    <span>{t("videoPlayer.speed")}</span>
                     <span className="media-menu__hint">
                       <bdi dir="auto" className="media-menu__hint-label">
                         {playbackRate.selectedLabel}
@@ -165,12 +167,12 @@ function SettingsMenu(): ReactNode {
               <Menu.Content className="media-menu__panel">
                 <Menu.Item className="media-menu__back">
                   <MenuChevron flipped />
-                  Speed
+                  {t("videoPlayer.speed")}
                 </Menu.Item>
                 <Menu.Separator className="media-menu__separator" />
                 <PlaybackRateRadioGroup
                   className="media-menu__group"
-                  aria-label="Speed"
+                  aria-label={t("videoPlayer.speed")}
                   renderItem={(props, item) => (
                     <Menu.RadioItem {...props} className="media-menu__item">
                       <bdi dir="auto">{item.label}</bdi>

@@ -7,6 +7,7 @@ import { startTransition } from "react";
 import { countries } from "country-codes-flags-phone-codes";
 import * as flags from "country-flag-icons/react/3x2";
 import { useTheme } from "@/providers/ThemeProvider";
+import { useTranslation } from "react-i18next";
 
 type HTMLSVGElement = HTMLElement & SVGElement;
 
@@ -203,6 +204,8 @@ export const PhoneInput = memo(function PhoneInput({
   code?: string;
 }) {
   const { lang } = useTheme();
+  const { t } = useTranslation("common");
+
   const countryList = useMemo(() => {
     const intl = new Intl.DisplayNames([lang], { type: "region" });
     return countries.map((c) => ({
@@ -212,6 +215,7 @@ export const PhoneInput = memo(function PhoneInput({
       FlagComponent: flags[c.code as keyof typeof flags] ?? null,
     }));
   }, [lang]);
+
   const [selected, setSelected] = useState<Country>(() => {
     const initial = code
       ? countryList.find((c: Country) => c.dial === code)
@@ -410,7 +414,14 @@ export const PhoneInput = memo(function PhoneInput({
               />
             </div>
             {filtered.length === 0 ? (
-              <p className="text-center text-sm text-grey py-4">No results</p>
+              <>
+                <p className="text-center text-sm text-grey py-4">
+                  {t("phoneNoResult.title")}
+                </p>
+                <p className="text-center text-xs text-grey/70 pb-4">
+                  {t("phoneNoResult.description")}
+                </p>
+              </>
             ) : (
               <VirtualList
                 items={filtered}

@@ -38,8 +38,8 @@ export function CalendarWithTime({
   const { lang } = useTheme();
   const { t } = useTranslation("tasks");
   return (
-    <Card size="sm" className="w-100">
-      <CardContent className="gap-2 flex flex-row">
+    <Card>
+      <CardContent>
         <Calendar
           mode="single"
           selected={value?.date ?? undefined}
@@ -55,19 +55,14 @@ export function CalendarWithTime({
             <FieldLabel htmlFor="time-end">{t("endTime")}</FieldLabel>
             <InputGroup>
               <InputGroupInput
-                onChange={(e) =>
-                  onChange({
-                    ...value,
-                    time: e.target.value,
-                  })
-                }
                 id="time-end"
                 type="time"
-                step="1"
+                value={value?.time ?? ""}
+                onChange={(e) => onChange({ ...value, time: e.target.value })}
                 className="appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
               />
               <InputGroupAddon>
-                <Clock2Icon className="text-grey" />
+                <Clock2Icon className="text-foreground" />
               </InputGroupAddon>
             </InputGroup>
           </Field>
@@ -92,12 +87,12 @@ export function DatePicker({
   const { t } = useTranslation("tasks");
   return (
     <Popover>
-      <PopoverTrigger className="w-full" asChild>
+      <PopoverTrigger className="w-full bg-transparent" asChild>
         <Button
           variant={"outline"}
           data-empty={!value}
           className={clsx(
-            "h-10 text-sm justify-between gap-2 text-left",
+            "h-10 text-sm justify-between gap-2 text-left transition-none",
             className,
             error
               ? "border-destructive focus-visible:ring-destructive/75"

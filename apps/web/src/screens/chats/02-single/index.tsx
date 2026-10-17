@@ -76,8 +76,8 @@ export const Single: FC<{
           container.scrollTop = container.scrollHeight - prevScrollHeight;
         }
       });
-    } catch (err) {
-      setError(getAxiosError(err));
+    } catch (e) {
+      setError(getAxiosError(e));
       setLoadMoreFailed(true);
     } finally {
       setIsLoadingMore(false);

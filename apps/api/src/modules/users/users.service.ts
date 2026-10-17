@@ -524,6 +524,7 @@ export class UsersService {
             "profile.initials": 1,
             publicProfile: 1,
             "settings.checkboxes": 1,
+            "acceptance.personVerified": 1,
           },
         },
       );
@@ -562,6 +563,9 @@ export class UsersService {
           initials: user.profile?.initials ?? "",
         },
         publicProfile: user.publicProfile,
+        acceptance: {
+          personVerified: !!user.acceptance?.personVerified,
+        },
       }) as PublicProfileUser;
 
       const accessReason = isOwner

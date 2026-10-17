@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useChats } from "@/providers/ChatProvider";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,27 +13,39 @@ import { useTheme } from "@/providers/ThemeProvider";
 import Link from "next/link";
 import { ImageDisplay } from "@/components/shared/MediaPicker";
 import { formatListTime } from "@/utils/formatListTime";
+import { ChatWithMember } from "shared/types";
+
+type MessageNotification = {
+  id: string;
+  type: "message" | "system";
+  title: string;
+  description?: string;
+  time?: string;
+  url: string;
+  chat?: ChatWithMember;
+};
 
 export const Notify = () => {
+  const { t } = useTranslation("common");
   const { totalUnread, chats } = useChats();
   const { lang } = useTheme();
 
-  const unreadChats = chats
+  const unreadChats: MessageNotification[] = chats
     .filter((chat) => chat.unreadCount > 0)
     .map((c) => {
       const time = formatListTime(c?.lastMessage?.createdAt || "", lang);
       return {
         id: c._id,
         type: "message",
-        title: `New message in chat`,
-        description: c.lastMessage?.text,
+        title: t("notify.newMessage"),
+        description: c.lastMessage?.text || "",
         time: time,
         url: `/chats/${c._id}`,
         chat: c,
       };
     });
 
-  const notifications = [...unreadChats];
+  const notifications: MessageNotification[] = [...unreadChats];
 
   return (
     <DropdownMenu>
@@ -42,7 +55,7 @@ export const Notify = () => {
           variant="outline"
           size="icon"
           className="relative h-10 w-10 rounded-full border-border bg-background"
-          aria-label="Notifications"
+          aria-label={t("notify.title")}
         >
           <Bell className="h-4 w-4" />
           {totalUnread > 0 && (
@@ -54,7 +67,7 @@ export const Notify = () => {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-80 p-0">
         <DropdownMenuLabel className="px-4 py-3">
-          Notifications
+          {t("notify.title")}
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <div className="max-h-96 overflow-y-auto">
@@ -64,7 +77,7 @@ export const Notify = () => {
                 <>
                   <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10">
                     {notification.type === "message" ? (
-                      notification.chat.member.avatar ? (
+                      notification?.chat?.member.avatar ? (
                         <ImageDisplay
                           src={notification.chat.member.avatar.url}
                           alt={notification.chat.member.fullName}
@@ -74,7 +87,7 @@ export const Notify = () => {
                         />
                       ) : (
                         <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
-                          {notification.chat.member.initials}
+                          {notification?.chat?.member.initials}
                         </div>
                       )
                     ) : (
@@ -96,7 +109,6 @@ export const Notify = () => {
                   </div>
                 </>
               );
-
               return notification.url ? (
                 <Link
                   href={notification.url}
@@ -117,9 +129,9 @@ export const Notify = () => {
           ) : (
             <div className="px-4 py-10 text-center">
               <Bell className="mx-auto mb-2 h-8 w-8 text-grey" />
-              <p className="text-sm font-medium">You have no notifications</p>
+              <p className="text-sm font-medium">{t("notify.emptyTitle")}</p>
               <p className="mt-1 text-xs text-grey">
-                {"When you have notifications, they'll appear here."}
+                {t("notify.emptyDescription")}
               </p>
             </div>
           )}

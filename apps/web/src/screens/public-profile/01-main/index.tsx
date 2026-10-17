@@ -27,13 +27,14 @@ import { PublicHeader } from "@/components/shared/PublicHeader";
 import { useRouter } from "next/navigation";
 import { useChats } from "@/providers/ChatProvider";
 import { useUser } from "@/providers/UserProvider";
-import { useTheme } from "@/providers/ThemeProvider";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useFormatDate } from "@/hooks/useFormatDate";
+import { useToast } from "@/hooks/useToast";
+import { getAxiosError } from "@/utils/getAxiosError";
 
 function ScrollChip({
   id,
@@ -69,7 +70,7 @@ export const Main = ({
 }) => {
   const { t } = useTranslation(["user", "errors"]);
   const p = user.publicProfile;
-  const { lang } = useTheme();
+  const toast = useToast();
   const { setLightbox } = useLightbox();
   const router = useRouter();
   const { createChat } = useChats();
@@ -98,9 +99,7 @@ export const Main = ({
       mimeType: c.media!.mimeType,
     }));
   const languagesList = hasLanguages
-    ? new Intl.ListFormat(lang, { style: "short", type: "conjunction" }).format(
-        p.languages!.map((l) => l.label),
-      )
+    ? p.languages!.map((l) => l.label).join(", ")
     : "";
   const isOwnProfile = me && me._id === user._id;
   const isLoggedOut = !me;
@@ -117,6 +116,8 @@ export const Main = ({
       setIsStarting(true);
       const chat = await createChat(userId);
       router.push(`/chats/${chat._id}`);
+    } catch (e) {
+      toast(getAxiosError(e));
     } finally {
       setIsStarting(false);
     }
@@ -157,7 +158,7 @@ export const Main = ({
               <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-foreground">
                 {t(`roles.${user.role}`, { defaultValue: user.role })}
               </span>
-              {hasCertificates && (
+              {user.acceptance.personVerified && (
                 <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
                   <ShieldCheck aria-hidden="true" className="w-3 h-3" />
                   {t("verified")}

@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { ImageDisplay } from "@/components/shared/MediaPicker";
 import { X, ChevronLeft, ChevronRight, Download, Loader2 } from "lucide-react";
 import { MediaItemPublic } from "shared/types";
@@ -7,24 +8,35 @@ import { getFileType } from "@/utils/getFileType";
 import { VideoPlayer } from "@/components/shared/VideoPlayer";
 import { FileIcon } from "@/components/shared/MediaPicker";
 import clsx from "clsx";
+import { useToast } from "@/hooks/useToast";
 
-type Props = {
+export function Lightbox({
+  items,
+  index,
+  onClose,
+  onIndexChange,
+}: {
   items: MediaItemPublic[];
   index: number;
   onClose: () => void;
   onIndexChange: (index: number) => void;
-};
-
-export function Lightbox({ items, index, onClose, onIndexChange }: Props) {
+}) {
+  const { t } = useTranslation(["common", "errors"]);
+  const toast = useToast();
   const current = items[index];
-  const type = getFileType(current.mimeType);
-  const isPreviewAble =
-    type === "image" || type === "video" || type === "pdf" || type === "audio";
   const [isDownloading, setIsDownloading] = useState(false);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
+      if (items.length < 2) return;
+      const target = e.target;
+      if (
+        target instanceof HTMLElement &&
+        target.closest(".media-default-skin, audio, video, input, textarea")
+      ) {
+        return;
+      }
       if (e.key === "ArrowRight") onIndexChange((index + 1) % items.length);
       if (e.key === "ArrowLeft")
         onIndexChange((index - 1 + items.length) % items.length);
@@ -33,12 +45,26 @@ export function Lightbox({ items, index, onClose, onIndexChange }: Props) {
     return () => window.removeEventListener("keydown", onKey);
   }, [index, items.length, onClose, onIndexChange]);
 
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, []);
+
+  if (!current) return null;
+
+  const type = getFileType(current.mimeType);
+  const isPreviewAble =
+    type === "image" || type === "video" || type === "pdf" || type === "audio";
+
   const handleDownload = async () => {
     if (isDownloading) return;
     try {
       setIsDownloading(true);
       const res = await fetch(current.url, { credentials: "include" });
-      if (!res.ok) throw new Error(`Download failed: ${res.status}`);
+      if (!res.ok) throw new Error(String(res.status));
       const blob = await res.blob();
       const blobUrl = URL.createObjectURL(blob);
       const link = document.createElement("a");
@@ -47,7 +73,9 @@ export function Lightbox({ items, index, onClose, onIndexChange }: Props) {
       document.body.appendChild(link);
       link.click();
       link.remove();
-      URL.revokeObjectURL(blobUrl);
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+    } catch {
+      toast(t("errors:lightbox.downloadFailed"));
     } finally {
       setIsDownloading(false);
     }
@@ -62,11 +90,10 @@ export function Lightbox({ items, index, onClose, onIndexChange }: Props) {
         type="button"
         onClick={onClose}
         className="z-10 absolute right-4 top-4 rounded-full bg-white/10 p-2 text-white hover:bg-white/20"
-        aria-label="Close"
+        aria-label={t("lightbox.close")}
       >
         <X className="w-5 h-5" />
       </button>
-
       <button
         type="button"
         onClick={(e) => {
@@ -75,7 +102,7 @@ export function Lightbox({ items, index, onClose, onIndexChange }: Props) {
         }}
         disabled={isDownloading}
         className="z-10 absolute right-16 top-4 rounded-full bg-white/10 p-2 text-white hover:bg-white/20 disabled:opacity-50"
-        aria-label="Download"
+        aria-label={t("lightbox.download")}
       >
         {isDownloading ? (
           <Loader2 className="w-4 h-4 animate-spin" />
@@ -91,12 +118,11 @@ export function Lightbox({ items, index, onClose, onIndexChange }: Props) {
             onIndexChange((index - 1 + items.length) % items.length);
           }}
           className="z-10 absolute left-2 sm:left-6 top-1/2 -translate-y-1/2 rounded-full bg-white/10 p-2 text-white hover:bg-white/20"
-          aria-label="Previous"
+          aria-label={t("lightbox.previous")}
         >
           <ChevronLeft className="w-6 h-6" />
         </button>
       )}
-
       <div
         className="flex h-full max-w-full flex-col items-center justify-center overflow-hidden"
         onClick={(e) => e.stopPropagation()}
@@ -123,7 +149,7 @@ export function Lightbox({ items, index, onClose, onIndexChange }: Props) {
           {type === "pdf" && (
             <iframe
               src={current.url}
-              className="w-full h-full rounded-lg bg-white"
+              className="w-full h-full rounded-[12px] bg-white"
               title={current.originalName}
             />
           )}
@@ -148,7 +174,7 @@ export function Lightbox({ items, index, onClose, onIndexChange }: Props) {
                 )}
               />
               <p className="text-xs text-white/50 text-center">
-                No preview available for this file type
+                {t("lightbox.noPreview")}
               </p>
               <button
                 type="button"
@@ -161,22 +187,20 @@ export function Lightbox({ items, index, onClose, onIndexChange }: Props) {
                 ) : (
                   <Download className="w-4 h-4" />
                 )}
-                Download
+                {t("lightbox.download")}
               </button>
             </div>
           )}
         </div>
-
         <p className="mt-4 text-sm font-medium text-white max-w-100 truncate">
           {current.originalName}
         </p>
         {items.length > 1 && (
           <p className="mt-1 text-xs text-white/60">
-            {index + 1} / {items.length}
+            {index + 1}/{items.length}
           </p>
         )}
       </div>
-
       {items.length > 1 && (
         <button
           type="button"
@@ -185,7 +209,7 @@ export function Lightbox({ items, index, onClose, onIndexChange }: Props) {
             onIndexChange((index + 1) % items.length);
           }}
           className="z-10 absolute right-2 sm:right-6 top-1/2 -translate-y-1/2 rounded-full bg-white/10 p-2 text-white hover:bg-white/20"
-          aria-label="Next"
+          aria-label={t("lightbox.next")}
         >
           <ChevronRight className="w-6 h-6" />
         </button>

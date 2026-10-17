@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useTranslation } from "react-i18next";
 import { EyeOff, ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { UserDropdown } from "@/components/shared/UserDropdown";
@@ -13,6 +14,7 @@ export function PublicHeader({
 }: {
   accessReason?: AccessReason;
 }) {
+  const { t } = useTranslation("common");
   const { user } = useUser();
   const pathname = usePathname();
   return (
@@ -22,7 +24,10 @@ export function PublicHeader({
           <Link href="/" className="logo shrink-0">
             {APP_NAME}
           </Link>
-          <nav className="hidden md:flex items-center gap-1 overflow-x-auto">
+          <nav
+            role="navigation"
+            className="hidden md:flex items-center gap-1 overflow-x-auto"
+          >
             {NAV_LINKS.map((item) => {
               const isActive =
                 pathname === item.href || pathname?.startsWith(`${item.href}/`);
@@ -36,7 +41,7 @@ export function PublicHeader({
                       : "text-grey hover:text-foreground hover:bg-muted"
                   }`}
                 >
-                  {item.label}
+                  {t(item.label)}
                 </Link>
               );
             })}
@@ -51,16 +56,19 @@ export function PublicHeader({
           ) : (
             <div className="flex items-center gap-2">
               <Button variant="secondary" asChild>
-                <Link href="/login">Log in</Link>
+                <Link href="/login">{t("header.logIn")}</Link>
               </Button>
               <Button asChild>
-                <Link href="/register">Sign up</Link>
+                <Link href="/register">{t("header.signUp")}</Link>
               </Button>
             </div>
           )}
         </div>
       </div>
-      <nav className="md:hidden flex items-center gap-1 px-4 pb-2 overflow-x-auto">
+      <nav
+        role="navigation"
+        className="md:hidden flex items-center gap-1 px-4 pb-2 overflow-x-auto"
+      >
         {NAV_LINKS.map((item) => {
           const isActive =
             pathname === item.href || pathname?.startsWith(`${item.href}/`);
@@ -94,8 +102,8 @@ export function PublicHeader({
           )}
           <span>
             {accessReason === "admin"
-              ? "This profile is private. You can see it because you're signed in as an admin."
-              : "This profile is private. You can see it because it's your own profile — other users won't see this page."}
+              ? t("header.privateProfileAdmin")
+              : t("header.privateProfileOwner")}
           </span>
         </div>
       )}

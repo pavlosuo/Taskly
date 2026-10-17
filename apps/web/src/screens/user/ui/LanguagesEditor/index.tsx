@@ -1,5 +1,6 @@
 "use client";
 import { useState, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { X } from "lucide-react";
 import { Input } from "@/components/shared/Input";
 import { WORLD_LANGUAGES, CERF_LEVELS } from "shared/data";
@@ -8,6 +9,7 @@ import clsx from "clsx";
 import { ImageDisplay } from "@/components/shared/MediaPicker";
 import { Button } from "@/components/ui/button";
 import { useMediaPicker } from "@/providers/MediaPickerProvider";
+import { normalizeSpecial } from "@/utils/normalizeSpecial";
 
 export function LanguagesEditor({
   value,
@@ -18,15 +20,18 @@ export function LanguagesEditor({
   onChange: (langs: PublicProfileLang[]) => void;
   error?: string;
 }) {
+  const { t } = useTranslation(["profile", "common"]);
   const [search, setSearch] = useState("");
   const { openPicker } = useMediaPicker();
 
   const filtered = useMemo(() => {
-    if (!search.trim()) return WORLD_LANGUAGES.slice(0, 8);
+    const query = normalizeSpecial(search);
+    if (!query) return WORLD_LANGUAGES.slice(0, 8);
     return WORLD_LANGUAGES.filter((l) =>
-      l.label.toLowerCase().includes(search.toLowerCase()),
+      normalizeSpecial(t(`common:${l.label}`)).includes(query),
     ).slice(0, 8);
-  }, [search]);
+  }, [search, t]);
+
   const selectedValues = value.map((l) => l.value);
 
   const addLang = (lang: (typeof WORLD_LANGUAGES)[number]) => {
@@ -54,14 +59,15 @@ export function LanguagesEditor({
             >
               <div className="flex items-center justify-between">
                 <p className="text-sm font-medium text-foreground">
-                  {lang.label}
+                  {t(`common:${lang.label}`)}
                 </p>
                 <button
                   type="button"
                   onClick={() => removeLang(lang.value)}
                   className="text-grey hover:text-destructive transition-colors"
+                  aria-label={t("languages.removeLanguage")}
                 >
-                  <X className="w-4 h-4" />
+                  <X className="w-4 h-4" aria-hidden="true" />
                 </button>
               </div>
               <div className="flex flex-wrap gap-1">
@@ -75,6 +81,9 @@ export function LanguagesEditor({
                         lvl.value as PublicProfileLang["level"],
                       )
                     }
+                    title={t(`common:${lvl.label}`)}
+                    aria-label={t(`common:${lvl.label}`)}
+                    aria-pressed={lang.level === lvl.value}
                     className={clsx(
                       "text-xs px-2 py-0.5 rounded-full border transition-colors",
                       lang.level === lvl.value
@@ -107,7 +116,7 @@ export function LanguagesEditor({
                       }}
                       className="text-xs absolute top-2.5 left-2.5"
                     >
-                      Remove
+                      {t("languages.removeCertificate")}
                     </Button>
                   </div>
                 ) : (
@@ -135,17 +144,17 @@ export function LanguagesEditor({
                       })
                     }
                   >
-                    + Add certificate
+                    {t("languages.addCertificate")}
                   </button>
                 )}
               </div>
               {lang.certificate ? (
                 <div className="flex flex-col gap-2">
                   <label htmlFor={lang.value} className="text-xs text-grey">
-                    Description (optional)
+                    {t("languages.descriptionLabel")}
                   </label>
                   <Input
-                    placeholder="Describe a language certificate..."
+                    placeholder={t("languages.descriptionPlaceholder")}
                     value={lang.certificate?.description || ""}
                     onChange={(e) => {
                       onChange(
@@ -171,7 +180,7 @@ export function LanguagesEditor({
         </div>
       )}
       <Input
-        placeholder="Search language..."
+        placeholder={t("languages.searchPlaceholder")}
         value={search}
         onChange={(e) => setSearch(e.target.value)}
         name="search"
@@ -193,7 +202,7 @@ export function LanguagesEditor({
                   : "border-border text-foreground hover:border-primary/50 bg-background",
               )}
             >
-              {lang.label}
+              {t(`common:${lang.label}`)}
             </button>
           );
         })}

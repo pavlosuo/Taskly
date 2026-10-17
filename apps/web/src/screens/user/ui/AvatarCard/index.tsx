@@ -1,25 +1,27 @@
 "use client";
-import { Plus, Trash2 } from "lucide-react";
+import { Camera, Trash2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { useUser } from "@/providers/UserProvider";
 import { useMediaPicker } from "@/providers/MediaPickerProvider";
 import { ImageDisplay } from "@/components/shared/MediaPicker";
 import { SectionCard } from "@/screens/user/ui";
 
 export function AvatarCard() {
+  const { t } = useTranslation("profile");
   const { user, updateProfile } = useUser();
   const { openPicker } = useMediaPicker();
   if (!user) return null;
   return (
     <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-4 lg:gap-6 items-start">
       <SectionCard
-        icon={<Plus className="w-6 h-6 text-background" />}
-        title="Profile photo"
-        desc="Your avatar shown to clients and on your public profile."
+        icon={<Camera className="w-6 h-6 text-background" aria-hidden />}
+        title={t("avatar.title")}
+        desc={t("avatar.desc")}
       />
       <div className="border border-border bg-background p-4">
         <div className="flex items-center gap-4">
           {user.profile?.avatar ? (
-            <div className="w-16 h-16 rounded-full object-cover relative">
+            <div className="w-16 h-16 rounded-full relative">
               <ImageDisplay
                 src={user.profile.avatar.url}
                 alt={user.profile.fullName}
@@ -32,10 +34,10 @@ export function AvatarCard() {
                     avatar: null,
                   })
                 }
-                className="absolute right-0 bottom-0 z-20 flex h-6 w-6 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-sm transition-all duration-150 hover:bg-destructive group-hover:opacity-100"
-                aria-label="Remove introduction video"
+                className="absolute right-0 bottom-0 z-20 flex h-6 w-6 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-sm transition-all duration-150 hover:bg-destructive"
+                aria-label={t("avatar.remove")}
               >
-                <Trash2 className="h-3.5 w-3.5" />
+                <Trash2 className="h-3 w-3" aria-hidden />
               </button>
             </div>
           ) : (
@@ -48,18 +50,18 @@ export function AvatarCard() {
               onClick={() =>
                 openPicker({
                   accept: "image",
-                  onSelect: (item) => {
+                  onSelect: (items) => {
                     updateProfile({
-                      avatar: item[0],
+                      avatar: items[0],
                     });
                   },
                 })
               }
               className="text-sm font-medium text-primary hover:underline underline-offset-2 cursor-pointer"
             >
-              Change photo
+              {t("avatar.change")}
             </button>
-            <p className="text-xs text-grey mt-0.5">JPG, PNG — max 10MB</p>
+            <p className="text-xs text-grey mt-0.5">{t("avatar.hint")}</p>
           </div>
         </div>
       </div>

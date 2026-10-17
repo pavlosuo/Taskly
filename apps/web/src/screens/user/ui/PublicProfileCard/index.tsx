@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import clsx from "clsx";
+import { useTranslation } from "react-i18next";
 import parseSafeHtml from "@/utils/parseSafeHtml";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,7 +15,6 @@ import {
 import { Star, BadgeCheck, Upload, Trash2, SquarePen } from "lucide-react";
 import { useMediaPicker } from "@/providers/MediaPickerProvider";
 import { useUser } from "@/providers/UserProvider";
-import { getAxiosError } from "@/utils/getAxiosError";
 import { ImageDisplay } from "@/components/shared/MediaPicker";
 import { Tiptap } from "@/components/shared/Tiptap";
 import { VideoPlayer } from "@/components/shared/VideoPlayer";
@@ -23,7 +23,7 @@ import {
   ZodErrors,
   removeHtml,
   publicProfileSchema,
-  MESSAGE_MAX_LENGTH
+  MESSAGE_MAX_LENGTH,
 } from "shared/index";
 import {
   SectionCard,
@@ -33,9 +33,10 @@ import {
   CertificatesEditor,
   SkillsEditor,
 } from "@/screens/user/ui";
-import { FieldError } from "@/components/shared/FieldError";
+import { useToast } from "@/hooks/useToast";
 
 export function PublicProfileCard() {
+  const { t } = useTranslation(["profile", "common"]);
   const { isOpen } = useMediaPicker();
   const { user, updateProfile, isLoading } = useUser();
   const [open, setOpen] = useState(false);
@@ -49,6 +50,7 @@ export function PublicProfileCard() {
   const { openPicker } = useMediaPicker();
   const hasHeader = Boolean(user?.publicProfile?.header);
   const hasIntroduction = Boolean(user?.publicProfile?.introduction);
+  const toast = useToast();
 
   const openDialog = () => {
     setForm({
@@ -66,7 +68,7 @@ export function PublicProfileCard() {
     value: PublicProfile[K],
   ) => {
     setForm((p) => ({ ...p, [field]: value }));
-    setErrors((p) => ({ ...p, [field]: undefined, general: undefined }));
+    setErrors((p) => ({ ...p, [field]: undefined }));
   };
 
   const handleSave = async () => {
@@ -80,17 +82,15 @@ export function PublicProfileCard() {
           skills: fieldErrors.skills?.[0],
           certificates: fieldErrors.certificates?.[0],
           languages: fieldErrors.languages?.[0],
-          general: formErrors[0],
         });
+        toast(formErrors[0]);
         return;
       }
       await updateProfile({
         publicProfile: { ...user?.publicProfile, ...parsed.data },
       });
       setOpen(false);
-    } catch (e) {
-      setErrors({ general: getAxiosError(e) });
-    }
+    } catch {}
   };
 
   if (!user) return null;
@@ -100,23 +100,26 @@ export function PublicProfileCard() {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-4 lg:gap-6 items-start">
       <SectionCard
-        icon={<Star className="w-6 h-6 text-background" />}
-        title="Public profile"
-        desc="What clients see when they find you on Taskly."
+        icon={<Star aria-hidden="true" className="w-6 h-6 text-background" />}
+        title={t("publicProfile.title")}
+        desc={t("publicProfile.desc", { appName: t("common:appName") })}
       />
       <div className="border border-border bg-background p-4">
         <div className="flex justify-end mb-4 -mt-1">
           <button
             onClick={openDialog}
+            aria-label={t("publicProfile.editAria")}
             className="text-sm font-medium text-primary hover:underline underline-offset-2 flex items-center gap-1"
           >
-            <SquarePen className="w-4 h-4" />
-            <span>Edit</span>
+            <SquarePen aria-hidden="true" className="w-4 h-4" />
+            <span>{t("actions.edit")}</span>
           </button>
         </div>
         <div className="flex flex-col gap-5">
           <div>
-            <p className="text-xs text-grey mb-1">About me</p>
+            <p className="text-xs text-grey mb-1">
+              {t("publicProfile.aboutMe")}
+            </p>
             <div className="text-wrapper">
               {p?.bio ? parseSafeHtml(p?.bio) : "—"}
             </div>
@@ -125,7 +128,9 @@ export function PublicProfileCard() {
           {user.role === "tasker" && (
             <>
               <div>
-                <p className="text-xs text-grey mb-2">Skills</p>
+                <p className="text-xs text-grey mb-2">
+                  {t("publicProfile.skills")}
+                </p>
                 {p?.skills?.length ? (
                   <div className="flex flex-wrap gap-1.5">
                     {p.skills.map((s) => (
@@ -133,18 +138,27 @@ export function PublicProfileCard() {
                     ))}
                   </div>
                 ) : (
-                  <p className="text-sm text-grey">No skills added yet.</p>
+                  <p className="text-sm text-grey">
+                    {t("publicProfile.noSkills")}
+                  </p>
                 )}
               </div>
               <div className="h-px bg-border" />
               <div>
-                <p className="text-xs text-grey mb-2">Certificates</p>
+                <p className="text-xs text-grey mb-2">
+                  {t("publicProfile.certificates")}
+                </p>
                 {p?.certificates?.length ? (
                   <div className="flex flex-wrap gap-1.5">
                     {p.certificates.map((c) => {
                       return (
                         <SpanField
-                          icon={<BadgeCheck className="w-3.5 h-3.5" />}
+                          icon={
+                            <BadgeCheck
+                              aria-hidden="true"
+                              className="w-3.5 h-3.5"
+                            />
+                          }
                           text={c.label}
                           key={c.value}
                         />
@@ -153,7 +167,7 @@ export function PublicProfileCard() {
                   </div>
                 ) : (
                   <p className="text-sm text-grey">
-                    No certificates added yet.
+                    {t("publicProfile.noCertificates")}
                   </p>
                 )}
               </div>
@@ -161,21 +175,25 @@ export function PublicProfileCard() {
             </>
           )}
           <div>
-            <p className="text-xs text-grey mb-2">Languages</p>
+            <p className="text-xs text-grey mb-2">
+              {t("publicProfile.languages")}
+            </p>
             {p?.languages?.length ? (
               <div className="flex flex-wrap gap-1.5">
                 {p.languages.map((l) => (
-                  <SpanField key={l.value} text={l.label} />
+                  <SpanField key={l.value} text={t(`common:${l.label}`)} />
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-grey">No languages added yet.</p>
+              <p className="text-sm text-grey">
+                {t("publicProfile.noLanguages")}
+              </p>
             )}
           </div>
           <div className="h-px bg-border" />
           <div>
             <p className="text-xs text-grey mb-2">
-              Add a header for your profile
+              {t("publicProfile.headerTitle")}
             </p>
             <div
               className={clsx(
@@ -204,9 +222,9 @@ export function PublicProfileCard() {
                       })
                     }
                     className="absolute bottom-3 right-3 flex h-8 w-8 items-center justify-center rounded-full bg-black/40 text-white opacity-0 backdrop-blur-sm transition-all duration-150 hover:bg-destructive group-hover:opacity-100"
-                    aria-label="Remove header image"
+                    aria-label={t("publicProfile.removeHeader")}
                   >
-                    <Trash2 className="h-4 w-4" />
+                    <Trash2 aria-hidden="true" className="h-4 w-4" />
                   </button>
                 </>
               ) : (
@@ -228,9 +246,11 @@ export function PublicProfileCard() {
                   className="flex h-full w-full flex-col items-center justify-center gap-2 text-foreground"
                 >
                   <span className="flex h-10 w-10 items-center justify-center rounded-full bg-muted">
-                    <Upload className="h-5 w-5" />
+                    <Upload aria-hidden="true" className="h-5 w-5" />
                   </span>
-                  <span className="text-sm font-medium">Add header image</span>
+                  <span className="text-sm font-medium">
+                    {t("publicProfile.addHeader")}
+                  </span>
                 </button>
               )}
             </div>
@@ -240,7 +260,7 @@ export function PublicProfileCard() {
               <div className="h-px bg-border" />
               <div>
                 <p className="text-xs text-grey mb-2">
-                  Add a introduction video
+                  {t("publicProfile.introTitle")}
                 </p>
                 <div
                   className={clsx(
@@ -267,9 +287,9 @@ export function PublicProfileCard() {
                           })
                         }
                         className="absolute right-3 top-3 z-20 flex h-8 w-8 items-center justify-center rounded-full bg-black/40 text-white opacity-0 backdrop-blur-sm transition-all duration-150 hover:bg-destructive group-hover:opacity-100"
-                        aria-label="Remove introduction video"
+                        aria-label={t("publicProfile.removeIntro")}
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <Trash2 aria-hidden="true" className="h-4 w-4" />
                       </button>
                     </div>
                   ) : (
@@ -291,10 +311,10 @@ export function PublicProfileCard() {
                       className="flex h-full w-full flex-col items-center justify-center gap-2 text-foreground"
                     >
                       <span className="flex h-10 w-10 items-center justify-center rounded-full bg-muted">
-                        <Upload className="h-5 w-5" />
+                        <Upload aria-hidden="true" className="h-5 w-5" />
                       </span>
                       <span className="text-sm font-medium">
-                        Add introduction video
+                        {t("publicProfile.addIntro")}
                       </span>
                     </button>
                   )}
@@ -313,13 +333,17 @@ export function PublicProfileCard() {
       >
         <DialogContent className="sm:max-w-5xl w-[calc(100%-2rem)] max-h-[85vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Edit public profile</DialogTitle>
+            <DialogTitle>{t("publicProfile.dialogTitle")}</DialogTitle>
             <DialogDescription>
-              This is what clients see when they browse taskers.
+              {t("publicProfile.dialogDesc")}
             </DialogDescription>
           </DialogHeader>
           <div className="flex flex-col gap-5 py-2">
-            <FormField label="About me" htmlFor="bio" error={errors.bio}>
+            <FormField
+              label={t("publicProfile.aboutMe")}
+              htmlFor="bio"
+              error={errors.bio}
+            >
               <Tiptap
                 value={form.bio ?? ""}
                 onUpdate={({ editor }) => handleChange("bio", editor.getHTML())}
@@ -339,9 +363,12 @@ export function PublicProfileCard() {
             <div className="h-px bg-border" />
             {user.role === "tasker" && (
               <>
-                <FormField label="Skills" error={errors.skills}>
+                <FormField
+                  label={t("publicProfile.skills")}
+                  error={errors.skills}
+                >
                   <p className="text-xs text-grey mb-2">
-                    Add skills you have — increases trust with clients.
+                    {t("publicProfile.skillsHint")}
                   </p>
                   <SkillsEditor
                     value={form.skills ?? []}
@@ -350,9 +377,12 @@ export function PublicProfileCard() {
                   />
                 </FormField>
                 <div className="h-px bg-border" />
-                <FormField label="Certificates" error={errors.certificates}>
+                <FormField
+                  label={t("publicProfile.certificates")}
+                  error={errors.certificates}
+                >
                   <p className="text-xs text-grey mb-2">
-                    Add certificates you hold — increases trust with clients.
+                    {t("publicProfile.certificatesHint")}
                   </p>
                   <CertificatesEditor
                     value={form.certificates ?? []}
@@ -365,9 +395,12 @@ export function PublicProfileCard() {
                 <div className="h-px bg-border" />
               </>
             )}
-            <FormField label="Languages" error={errors.languages}>
+            <FormField
+              label={t("publicProfile.languages")}
+              error={errors.languages}
+            >
               <p className="text-xs text-grey mb-2">
-                Add languages you speak — increases trust with clients.
+                {t("publicProfile.languagesHint")}
               </p>
               <LanguagesEditor
                 value={form.languages ?? []}
@@ -376,13 +409,12 @@ export function PublicProfileCard() {
               />
             </FormField>
           </div>
-          <FieldError message={errors.general} />
           <DialogFooter>
             <Button variant="outline" onClick={() => setOpen(false)}>
-              Cancel
+              {t("actions.cancel")}
             </Button>
             <Button onClick={handleSave} disabled={isLoading}>
-              {isLoading ? "Saving..." : "Save changes"}
+              {isLoading ? t("actions.saving") : t("actions.save")}
             </Button>
           </DialogFooter>
         </DialogContent>
