@@ -1,6 +1,5 @@
 "use client";
 import { useState, useCallback } from "react";
-import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import clsx from "clsx";
 import { CalendarCheck, UserPlus, ArrowLeftToLine } from "lucide-react";
@@ -24,7 +23,6 @@ import {
   LoginLink,
   Title,
 } from "@/screens/auth/ui";
-import { getAxiosError } from "@/utils/getAxiosError";
 import { usePhoneFields } from "@/hooks/usePhoneFields";
 import { useToast } from "@/hooks/useToast";
 

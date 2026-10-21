@@ -9,7 +9,6 @@ import { useModal } from "@/providers/ModalProvider";
 import { OnlineStatus } from "@/components/shared/OnlineStatus";
 import { Marker, MarkerContent } from "@/components/ui/marker";
 import { useTheme } from "@/providers/ThemeProvider";
-import { getAxiosError } from "@/utils/getAxiosError";
 import { formatListTime } from "@/utils/formatListTime";
 import Link from "next/link";
 import clsx from "clsx";

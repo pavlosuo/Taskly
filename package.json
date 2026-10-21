@@ -2,6 +2,7 @@
   "name": "taskly-monorepo",
   "private": true,
   "packageManager": "pnpm@9.0.0",
+  "type": "module",
   "scripts": {
     "dev": "pnpm --parallel -r run dev",
     "dev:web": "pnpm --filter @taskly/web dev",
@@ -13,10 +14,14 @@
     "start:web": "pnpm --filter @taskly/web start",
     "start:api": "pnpm --filter @taskly/api start",
     "format": "prettier --write .",
-    "lint": "pnpm --filter @taskly/web lint && pnpm --filter @taskly/api lint"
+    "lint": "pnpm --filter @taskly/web lint && pnpm --filter @taskly/api lint",
+    "zip": "node zip-project.js"
   },
   "devDependencies": {
-    "typescript": "5.9.3",
-    "@types/node": "20.19.0"
+    "@types/node": "20.19.0",
+    "typescript": "5.9.3"
+  },
+  "dependencies": {
+    "archiver": "^8.0.0"
   }
 }
