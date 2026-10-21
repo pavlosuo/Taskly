@@ -35,7 +35,7 @@ async function createZip() {
   });
   archive.on("error", (err) => {
     throw err;
-  })
+  });
   const closePromise = new Promise((resolve, reject) => {
     output.on("close", resolve);
     output.on("error", reject);
