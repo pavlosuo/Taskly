@@ -1,4 +1,4 @@
-import { Db, ObjectId } from "mongodb";
+import { Db, ObjectId, MongoClient } from "mongodb";
 import { Response, Request, NextFunction } from "express";
 import { Transporter } from "nodemailer";
 import {
@@ -119,4 +119,5 @@ export interface IServer {
     res: Response,
     next: NextFunction,
   ) => Promise<void | Response>;
+  getClient(): MongoClient;
 }

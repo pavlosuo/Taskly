@@ -23,7 +23,7 @@ export async function generateMetadata() {
   }
 }
 
-export default async function Admin() {
+export default async function Dashboard() {
   const user = await authGuard(["admin", "tasker", "client"], "/dashboard");
   const axiosApi = await getServerApi();
   const { data } = await axiosApi.getPolicyData();

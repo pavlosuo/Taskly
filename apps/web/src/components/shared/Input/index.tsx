@@ -111,10 +111,8 @@ export const PriceInput = forwardRef<HTMLInputElement, PriceInputProps>(
         currency,
         maximumFractionDigits: 0,
       }).formatToParts(1);
-
       const currencyIdx = parts.findIndex((p) => p.type === "currency");
       const integerIdx = parts.findIndex((p) => p.type === "integer");
-
       return {
         formatter: new Intl.NumberFormat(lang, { maximumFractionDigits: 0 }),
         symbol: parts[currencyIdx]?.value ?? currency,

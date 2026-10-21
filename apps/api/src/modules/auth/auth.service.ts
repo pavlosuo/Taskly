@@ -344,7 +344,7 @@ export class AuthService {
   async verifyPasswordResetToken(token: unknown): Promise<ServiceResult> {
     try {
       if (!token || typeof token !== "string")
-        return { success: false, status: 400, message: "Token is required." };
+        return { success: false, status: 400, message: "token.required" };
       let decoded: any;
       try {
         decoded = jwt.verify(token, JWT_SECRET || "");

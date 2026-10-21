@@ -37,7 +37,8 @@ export class TaskController {
 
   async getOne(req: Request, res: Response) {
     const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
-    const result = await this.service.getOne(id);
+    const user = req.user;
+    const result = await this.service.getOne(user, id);
     if (!result.success)
       return res
         .status(result.status)

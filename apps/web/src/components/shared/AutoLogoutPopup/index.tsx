@@ -207,7 +207,7 @@ export function AutoLogoutPopup() {
           <DialogHeader className="items-center text-center space-y-1">
             <div className="flex items-center gap-1.5">
               <AlertTriangle className="w-4 h-4 text-foreground" aria-hidden />
-              <DialogTitle className="text-base">
+              <DialogTitle className="text-foreground">
                 {t("popup.title")}
               </DialogTitle>
             </div>

@@ -1,7 +1,6 @@
 import { IServer, User, TaskBack } from "@/types";
 import { ObjectId, Document } from "mongodb";
 import {
-  TASK_STATUSES,
   TASK_SORTS,
   EARTH_RADIUS_M,
   ServiceResult,
@@ -9,12 +8,21 @@ import {
   taskUpdateSchema,
   taskResponseCreateSchema,
 } from "shared/index";
-import { normalizeTagList, escapeRegex, splitList, toGeoPoint } from "@/utils";
+import {
+  normalizeTagList,
+  escapeRegex,
+  splitList,
+  toGeoPoint,
+  toObjectId,
+} from "@/utils";
 
 export class TaskService {
   constructor(private server: IServer) {}
 
   async create(user: User, payload: unknown): Promise<ServiceResult> {
+    if (user.role !== "client") {
+      return { success: false, status: 403, message: "general.forbidden" };
+    }
     const parsed = taskCreateSchema.safeParse(payload);
     if (!parsed.success) {
       return {
@@ -67,9 +75,7 @@ export class TaskService {
       const tasks = db.collection("tasks");
       const page = Math.max(1, Number(query.page) || 1);
       const limit = Math.min(50, Math.max(1, Number(query.limit) || 25));
-      const filter: Record<string, any> = {
-        status: TASK_STATUSES.includes(query.status) ? query.status : "open",
-      };
+      const filter: Record<string, any> = { status: "open" };
       const skills = splitList(query.skill);
       if (skills.length) filter["skills.value"] = { $in: skills };
       const certs = splitList(query.certificate);
@@ -159,7 +165,8 @@ export class TaskService {
       }
 
       let myItems: Document[] = [];
-      const includeMine = query.includeMine;
+      const includeMine =
+        String(query.includeMine) === "true" || query.includeMine === "1";
 
       if (includeMine && user.role === "client") {
         myItems = await tasks
@@ -220,26 +227,39 @@ export class TaskService {
     }
   }
 
-  async getOne(id: string): Promise<ServiceResult> {
+  async getOne(user: User, id: string): Promise<ServiceResult> {
+    const _id = toObjectId(id);
+    if (!_id) {
+      return { success: false, status: 404, message: "task.notFound" };
+    }
     try {
       const db = await this.server.getDb();
       const task = await db
         .collection("tasks")
-        .findOne({ _id: new ObjectId(id) }, { projection: { geo: 0 } });
-      if (!task)
-        return {
-          success: false,
-          status: 404,
-          message: "task.notFound",
-        };
+        .findOne({ _id }, { projection: { geo: 0 } });
+      if (!task) {
+        return { success: false, status: 404, message: "task.notFound" };
+      }
+      if (task.status !== "open") {
+        const isParty =
+          task.clientId.toString() === user._id.toString() ||
+          task.assignedTaskerId?.toString() === user._id.toString();
+        if (!isParty) {
+          const responded = await db
+            .collection("taskResponses")
+            .findOne(
+              { taskId: task._id, taskerId: user._id },
+              { projection: { _id: 1 } },
+            );
+          if (!responded) {
+            return { success: false, status: 404, message: "task.notFound" };
+          }
+        }
+      }
       return { success: true, status: 200, data: { task } };
     } catch (e) {
       console.error("Get task error:", e);
-      return {
-        success: false,
-        status: 500,
-        message: "general.unknown",
-      };
+      return { success: false, status: 500, message: "general.unknown" };
     }
   }
 
@@ -248,6 +268,10 @@ export class TaskService {
     id: string,
     payload: unknown,
   ): Promise<ServiceResult> {
+    const _id = toObjectId(id);
+    if (!_id) {
+      return { success: false, status: 404, message: "task.notFound" };
+    }
     const parsed = taskUpdateSchema.safeParse(payload);
     if (!parsed.success) {
       return {
@@ -258,27 +282,20 @@ export class TaskService {
     }
     try {
       const db = await this.server.getDb();
-      const task = await db
-        .collection("tasks")
-        .findOne({ _id: new ObjectId(id) });
-      if (!task)
-        return {
-          success: false,
-          status: 404,
-          message: "task.notFound",
-        };
-      if (task.clientId.toString() !== user._id.toString())
-        return {
-          success: false,
-          status: 403,
-          message: "general.forbidden",
-        };
-      if (task.status !== "open")
+      const task = await db.collection("tasks").findOne({ _id });
+      if (!task) {
+        return { success: false, status: 404, message: "task.notFound" };
+      }
+      if (task.clientId.toString() !== user._id.toString()) {
+        return { success: false, status: 403, message: "general.forbidden" };
+      }
+      if (task.status !== "open") {
         return {
           success: false,
           status: 409,
           message: "task.cannotEditAssigned",
         };
+      }
 
       const data = parsed.data;
       const update: Record<string, any> = { updatedAt: new Date() };
@@ -305,153 +322,138 @@ export class TaskService {
         else ops.$unset = { geo: "" };
       }
 
-      await db.collection("tasks").updateOne({ _id: task._id }, ops);
+      const res = await db
+        .collection("tasks")
+        .updateOne({ _id: task._id, status: "open" }, ops);
+      if (res.matchedCount === 0) {
+        return {
+          success: false,
+          status: 409,
+          message: "task.cannotEditAssigned",
+        };
+      }
       return { success: true, status: 200 };
     } catch (e) {
       console.error("Update task error:", e);
-      return {
-        success: false,
-        status: 500,
-        message: "general.unknown",
-      };
+      return { success: false, status: 500, message: "general.unknown" };
     }
   }
 
   async delete(user: User, id: string): Promise<ServiceResult> {
+    const _id = toObjectId(id);
+    if (!_id) {
+      return { success: false, status: 404, message: "task.notFound" };
+    }
+    const session = this.server.getClient().startSession();
     try {
       const db = await this.server.getDb();
-      const task = await db
-        .collection("tasks")
-        .findOne({ _id: new ObjectId(id) });
-      if (!task)
-        return {
-          success: false,
-          status: 404,
-          message: "task.notFound",
-        };
-      if (task.clientId.toString() !== user._id.toString())
-        return {
-          success: false,
-          status: 403,
-          message: "general.forbidden",
-        };
-      if (task.status === "assigned")
-        return {
-          success: false,
-          status: 409,
-          message: "task.cannotDelete",
-        };
-
-      await db.collection("tasks").deleteOne({ _id: task._id });
-      await db.collection("taskResponses").deleteMany({ taskId: task._id });
+      await session.withTransaction(async () => {
+        const task = await db.collection("tasks").findOne({ _id }, { session });
+        if (!task) throw { status: 404, message: "task.notFound" };
+        if (task.clientId.toString() !== user._id.toString())
+          throw { status: 403, message: "general.forbidden" };
+        const deletable =
+          task.status === "open" ||
+          (task.status === "cancelled" && !task.assignedTaskerId);
+        if (!deletable) throw { status: 409, message: "task.cannotDelete" };
+        const res = await db
+          .collection("tasks")
+          .deleteOne({ _id: task._id, status: task.status }, { session });
+        if (res.deletedCount === 0)
+          throw { status: 409, message: "task.cannotDelete" };
+        await db
+          .collection("taskResponses")
+          .deleteMany({ taskId: task._id }, { session });
+      });
       return { success: true, status: 200 };
-    } catch (e) {
+    } catch (e: any) {
+      if (e?.status) {
+        return { success: false, status: e.status, message: e.message };
+      }
       console.error("Delete task error:", e);
-      return {
-        success: false,
-        status: 500,
-        message: "general.unknown",
-      };
+      return { success: false, status: 500, message: "general.unknown" };
+    } finally {
+      await session.endSession();
     }
   }
 
   async cancel(user: User, id: string): Promise<ServiceResult> {
+    const _id = toObjectId(id);
+    if (!_id) {
+      return { success: false, status: 404, message: "task.notFound" };
+    }
+    const session = this.server.getClient().startSession();
     try {
       const db = await this.server.getDb();
-      const task = await db
-        .collection("tasks")
-        .findOne({ _id: new ObjectId(id) });
-      if (!task)
-        return {
-          success: false,
-          status: 404,
-          message: "task.notFound",
-        };
-      if (task.clientId.toString() !== user._id.toString())
-        return {
-          success: false,
-          status: 403,
-          message: "general.forbidden",
-        };
-      if (task.status === "completed" || task.status === "cancelled")
-        return {
-          success: false,
-          status: 409,
-          message: "task.cannotCancel",
-        };
+      await session.withTransaction(async () => {
+        const task = await db.collection("tasks").findOne({ _id }, { session });
+        if (!task) throw { status: 404, message: "task.notFound" };
+        if (task.clientId.toString() !== user._id.toString())
+          throw { status: 403, message: "general.forbidden" };
+        if (task.status !== "open" && task.status !== "assigned")
+          throw { status: 409, message: "task.cannotCancel" };
 
-      const now = new Date();
-      await db
-        .collection("tasks")
-        .updateOne(
-          { _id: task._id },
-          { $set: { status: "cancelled", updatedAt: now } },
-        );
-
-      const rejected = await db
-        .collection("taskResponses")
-        .updateMany(
-          { taskId: task._id, status: "pending" },
-          { $set: { status: "rejected", updatedAt: now } },
-        );
-      if (rejected.modifiedCount > 0) {
-        await db
-          .collection("tasks")
-          .updateOne(
-            { _id: task._id },
-            { $inc: { responsesCount: -rejected.modifiedCount } },
+        const now = new Date();
+        const rejected = await db
+          .collection("taskResponses")
+          .updateMany(
+            { taskId: task._id, status: "pending" },
+            { $set: { status: "rejected", updatedAt: now } },
+            { session },
           );
-      }
+        const res = await db.collection("tasks").updateOne(
+          { _id: task._id, status: { $in: ["open", "assigned"] } },
+          {
+            $set: { status: "cancelled", updatedAt: now },
+            $inc: { responsesCount: -rejected.modifiedCount },
+          },
+          { session },
+        );
+        if (res.modifiedCount === 0)
+          throw { status: 409, message: "task.cannotCancel" };
+      });
       return { success: true, status: 200 };
-    } catch (e) {
+    } catch (e: any) {
+      if (e?.status) {
+        return { success: false, status: e.status, message: e.message };
+      }
       console.error("Cancel task error:", e);
-      return {
-        success: false,
-        status: 500,
-        message: "general.unknown",
-      };
+      return { success: false, status: 500, message: "general.unknown" };
+    } finally {
+      await session.endSession();
     }
   }
 
   async complete(user: User, id: string): Promise<ServiceResult> {
+    const _id = toObjectId(id);
+    if (!_id) {
+      return { success: false, status: 404, message: "task.notFound" };
+    }
     try {
       const db = await this.server.getDb();
-      const task = await db
-        .collection("tasks")
-        .findOne({ _id: new ObjectId(id) });
-      if (!task)
-        return {
-          success: false,
-          status: 404,
-          message: "task.notFound",
-        };
-      if (task.clientId.toString() !== user._id.toString())
-        return {
-          success: false,
-          status: 403,
-          message: "general.forbidden",
-        };
-      if (task.status !== "assigned")
-        return {
-          success: false,
-          status: 409,
-          message: "task.cannotComplete",
-        };
-
-      await db
+      const task = await db.collection("tasks").findOne({ _id });
+      if (!task) {
+        return { success: false, status: 404, message: "task.notFound" };
+      }
+      if (task.clientId.toString() !== user._id.toString()) {
+        return { success: false, status: 403, message: "general.forbidden" };
+      }
+      if (task.status !== "assigned") {
+        return { success: false, status: 409, message: "task.cannotComplete" };
+      }
+      const res = await db
         .collection("tasks")
         .updateOne(
-          { _id: task._id },
+          { _id: task._id, status: "assigned" },
           { $set: { status: "completed", updatedAt: new Date() } },
         );
+      if (res.modifiedCount === 0) {
+        return { success: false, status: 409, message: "task.cannotComplete" };
+      }
       return { success: true, status: 200 };
     } catch (e) {
       console.error("Complete task error:", e);
-      return {
-        success: false,
-        status: 500,
-        message: "general.unknown",
-      };
+      return { success: false, status: 500, message: "general.unknown" };
     }
   }
 }
@@ -464,6 +466,13 @@ export class TaskResponseService {
     taskId: string,
     payload: unknown,
   ): Promise<ServiceResult> {
+    if (user.role !== "tasker") {
+      return { success: false, status: 403, message: "general.forbidden" };
+    }
+    const _taskId = toObjectId(taskId);
+    if (!_taskId) {
+      return { success: false, status: 404, message: "task.notFound" };
+    }
     const parsed = taskResponseCreateSchema.safeParse(payload);
     if (!parsed.success) {
       return {
@@ -472,105 +481,116 @@ export class TaskResponseService {
         message: parsed.error.issues[0].message,
       };
     }
+    const session = this.server.getClient().startSession();
     try {
       const db = await this.server.getDb();
-      const task = await db
-        .collection("tasks")
-        .findOne({ _id: new ObjectId(taskId) });
-      if (!task)
-        return {
-          success: false,
-          status: 404,
-          message: "task.notFound",
-        };
-      if (task.status !== "open")
-        return {
-          success: false,
-          status: 409,
-          message: "taskResponse.taskClosed",
-        };
-      if (task.clientId.toString() === user._id.toString())
-        return {
-          success: false,
-          status: 400,
-          message: "taskResponse.ownTask",
-        };
+      let response: Document | null = null;
+      await session.withTransaction(async () => {
+        const task = await db
+          .collection("tasks")
+          .findOne({ _id: _taskId }, { session });
+        if (!task) throw { status: 404, message: "task.notFound" };
+        if (task.status !== "open")
+          throw { status: 409, message: "taskResponse.taskClosed" };
+        if (task.clientId.toString() === user._id.toString())
+          throw { status: 400, message: "taskResponse.ownTask" };
 
-      const existing = await db.collection("taskResponses").findOne({
-        taskId: task._id,
-        taskerId: user._id,
+        const existing = await db
+          .collection("taskResponses")
+          .findOne({ taskId: task._id, taskerId: user._id }, { session });
+        if (existing)
+          throw { status: 409, message: "taskResponse.alreadyResponded" };
+
+        const now = new Date();
+        const doc = {
+          taskId: task._id,
+          clientId: task.clientId,
+          taskerId: user._id,
+          message: parsed.data.message,
+          price: parsed.data.price,
+          status: "pending" as const,
+          createdAt: now,
+          updatedAt: now,
+        };
+        const result = await db
+          .collection("taskResponses")
+          .insertOne(doc, { session });
+        const bumped = await db
+          .collection("tasks")
+          .updateOne(
+            { _id: task._id, status: "open" },
+            { $inc: { responsesCount: 1 } },
+            { session },
+          );
+        if (bumped.modifiedCount === 0)
+          throw { status: 409, message: "taskResponse.taskClosed" };
+        response = { _id: result.insertedId, ...doc };
       });
-      if (existing)
+      return { success: true, status: 201, data: { response } };
+    } catch (e: any) {
+      if (e?.status) {
+        return { success: false, status: e.status, message: e.message };
+      }
+      if (e?.code === 11000) {
         return {
           success: false,
           status: 409,
           message: "taskResponse.alreadyResponded",
         };
-
-      const now = new Date();
-      const doc = {
-        taskId: task._id,
-        clientId: task.clientId,
-        taskerId: user._id,
-        message: parsed.data.message,
-        price: parsed.data.price,
-        status: "pending" as const,
-        createdAt: now,
-        updatedAt: now,
-      };
-      const result = await db.collection("taskResponses").insertOne(doc);
-      await db
-        .collection("tasks")
-        .updateOne({ _id: task._id }, { $inc: { responsesCount: 1 } });
-
-      return {
-        success: true,
-        status: 201,
-        data: { response: { _id: result.insertedId, ...doc } },
-      };
-    } catch (e) {
+      }
       console.error("Create task response error:", e);
-      return {
-        success: false,
-        status: 500,
-        message: "general.unknown",
-      };
+      return { success: false, status: 500, message: "general.unknown" };
+    } finally {
+      await session.endSession();
     }
   }
 
   async getForTask(user: User, taskId: string): Promise<ServiceResult> {
+    const _taskId = toObjectId(taskId);
+    if (!_taskId) {
+      return { success: false, status: 404, message: "task.notFound" };
+    }
     try {
       const db = await this.server.getDb();
-      const task = await db
-        .collection("tasks")
-        .findOne({ _id: new ObjectId(taskId) });
-      if (!task)
-        return {
-          success: false,
-          status: 404,
-          message: "task.notFound",
-        };
-      if (task.clientId.toString() !== user._id.toString()) {
-        const items = await db
-          .collection("taskResponses")
-          .find({ taskId: task._id, taskerId: user._id })
-          .sort({ createdAt: -1 })
-          .toArray();
-        return { success: true, status: 200, data: { items } };
+      const task = await db.collection("tasks").findOne({ _id: _taskId });
+      if (!task) {
+        return { success: false, status: 404, message: "task.notFound" };
       }
-      const items = await db
+
+      const filter =
+        task.clientId.toString() === user._id.toString()
+          ? { taskId: task._id }
+          : { taskId: task._id, taskerId: user._id };
+
+      const taskResponses = await db
         .collection("taskResponses")
-        .find({ taskId: task._id })
+        .find(filter)
         .sort({ createdAt: -1 })
         .toArray();
+
+      const items = await Promise.all(
+        taskResponses.map(async (r) => {
+          const user = (await db
+            .collection("users")
+            .findOne({ _id: r.taskerId })) as User;
+          return {
+            ...r,
+            tasker: {
+              username: user.username,
+              avatar: user?.profile?.avatar,
+              initials: user?.profile?.initials,
+              publicLink: user?.settings?.checkboxes.privateProfile
+                ? null
+                : user?.publicLink,
+            },
+          };
+        }),
+      );
+
       return { success: true, status: 200, data: { items } };
     } catch (e) {
       console.error("Get task responses error:", e);
-      return {
-        success: false,
-        status: 500,
-        message: "general.unknown",
-      };
+      return { success: false, status: 500, message: "general.unknown" };
     }
   }
 
@@ -579,46 +599,46 @@ export class TaskResponseService {
     taskId: string,
     responseId: string,
   ): Promise<ServiceResult> {
+    const _taskId = toObjectId(taskId);
+    const _responseId = toObjectId(responseId);
+    if (!_taskId || !_responseId) {
+      return { success: false, status: 404, message: "taskResponse.notFound" };
+    }
+    const session = this.server.getClient().startSession();
     try {
       const db = await this.server.getDb();
-      const response = await db.collection("taskResponses").findOne({
-        _id: new ObjectId(responseId),
-        taskId: new ObjectId(taskId),
-      });
-      if (!response)
-        return {
-          success: false,
-          status: 404,
-          message: "taskResponse.notFound",
-        };
-      if (response.taskerId.toString() !== user._id.toString())
-        return {
-          success: false,
-          status: 403,
-          message: "general.forbidden",
-        };
-      if (response.status !== "pending")
-        return {
-          success: false,
-          status: 409,
-          message: "taskResponse.cannotWithdraw",
-        };
-      await db
-        .collection("tasks")
-        .updateOne(
-          { _id: new ObjectId(taskId) },
-          { $inc: { responsesCount: -1 } },
-        );
-      await db.collection("taskResponses").deleteOne({ _id: response._id });
+      await session.withTransaction(async () => {
+        const response = await db
+          .collection("taskResponses")
+          .findOne({ _id: _responseId, taskId: _taskId }, { session });
+        if (!response) throw { status: 404, message: "taskResponse.notFound" };
+        if (response.taskerId.toString() !== user._id.toString())
+          throw { status: 403, message: "general.forbidden" };
+        if (response.status !== "pending")
+          throw { status: 409, message: "taskResponse.cannotWithdraw" };
 
+        const res = await db
+          .collection("taskResponses")
+          .deleteOne({ _id: response._id, status: "pending" }, { session });
+        if (res.deletedCount === 0)
+          throw { status: 409, message: "taskResponse.cannotWithdraw" };
+        await db
+          .collection("tasks")
+          .updateOne(
+            { _id: _taskId },
+            { $inc: { responsesCount: -1 } },
+            { session },
+          );
+      });
       return { success: true, status: 200 };
-    } catch (e) {
+    } catch (e: any) {
+      if (e?.status) {
+        return { success: false, status: e.status, message: e.message };
+      }
       console.error("Withdraw task response error:", e);
-      return {
-        success: false,
-        status: 500,
-        message: "general.unknown",
-      };
+      return { success: false, status: 500, message: "general.unknown" };
+    } finally {
+      await session.endSession();
     }
   }
 
@@ -627,94 +647,74 @@ export class TaskResponseService {
     taskId: string,
     responseId: string,
   ): Promise<ServiceResult> {
+    const _taskId = toObjectId(taskId);
+    if (!_taskId) {
+      return { success: false, status: 404, message: "task.notFound" };
+    }
+    const _responseId = toObjectId(responseId);
+    if (!_responseId) {
+      return { success: false, status: 404, message: "taskResponse.notFound" };
+    }
+    const session = this.server.getClient().startSession();
     try {
       const db = await this.server.getDb();
-      const task = await db
-        .collection("tasks")
-        .findOne({ _id: new ObjectId(taskId) });
-      if (!task)
-        return {
-          success: false,
-          status: 404,
-          message: "task.notFound",
-        };
-      if (task.clientId.toString() !== user._id.toString())
-        return {
-          success: false,
-          status: 403,
-          message: "general.forbidden",
-        };
-      if (task.status !== "open")
-        return {
-          success: false,
-          status: 409,
-          message: "taskResponse.taskAlreadyAssigned",
-        };
+      await session.withTransaction(async () => {
+        const tasks = db.collection("tasks");
+        const responses = db.collection("taskResponses");
+        const task = await tasks.findOne({ _id: _taskId }, { session });
+        if (!task) throw { status: 404, message: "task.notFound" };
+        if (task.clientId.toString() !== user._id.toString())
+          throw { status: 403, message: "general.forbidden" };
+        if (task.status !== "open")
+          throw { status: 409, message: "taskResponse.taskAlreadyAssigned" };
 
-      const response = await db.collection("taskResponses").findOne({
-        _id: new ObjectId(responseId),
-        taskId: task._id,
-      });
-      if (!response)
-        return {
-          success: false,
-          status: 404,
-          message: "taskResponse.notFound",
-        };
-      if (response.status !== "pending")
-        return {
-          success: false,
-          status: 409,
-          message: "taskResponse.alreadyProcessed",
-        };
-      const now = new Date();
-      const assigned = await db.collection("tasks").updateOne(
-        { _id: task._id, status: "open" },
-        {
-          $set: {
-            status: "assigned",
-            assignedTaskerId: response.taskerId,
-            updatedAt: now,
-          },
-        },
-      );
-      if (assigned.modifiedCount === 0) {
-        return {
-          success: false,
-          status: 409,
-          message: "taskResponse.taskAlreadyAssigned",
-        };
-      }
-
-      await db
-        .collection("taskResponses")
-        .updateOne(
-          { _id: response._id },
-          { $set: { status: "accepted", updatedAt: now } },
+        const response = await responses.findOne(
+          { _id: _responseId, taskId: task._id },
+          { session },
         );
-      const rejected = await db
-        .collection("taskResponses")
-        .updateMany(
+        if (!response) throw { status: 404, message: "taskResponse.notFound" };
+        if (response.status !== "pending")
+          throw { status: 409, message: "taskResponse.alreadyProcessed" };
+
+        const now = new Date();
+        const accepted = await responses.updateOne(
+          { _id: response._id, status: "pending" },
+          { $set: { status: "accepted", updatedAt: now } },
+          { session },
+        );
+        if (accepted.modifiedCount === 0)
+          throw { status: 409, message: "taskResponse.alreadyProcessed" };
+
+        const rejected = await responses.updateMany(
           { taskId: task._id, _id: { $ne: response._id }, status: "pending" },
           { $set: { status: "rejected", updatedAt: now } },
+          { session },
         );
-      if (rejected.modifiedCount > 0) {
-        await db
-          .collection("tasks")
-          .updateOne(
-            { _id: task._id },
-            { $inc: { responsesCount: -rejected.modifiedCount } },
-          );
-      }
 
+        const assigned = await tasks.updateOne(
+          { _id: task._id, status: "open" },
+          {
+            $set: {
+              status: "assigned",
+              assignedTaskerId: response.taskerId,
+              updatedAt: now,
+            },
+            $inc: { responsesCount: -rejected.modifiedCount },
+          },
+          { session },
+        );
+        if (assigned.modifiedCount === 0)
+          throw { status: 409, message: "taskResponse.taskAlreadyAssigned" };
+      });
       return { success: true, status: 200 };
-    } catch (e) {
+    } catch (e: any) {
+      if (e?.status) {
+        return { success: false, status: e.status, message: e.message };
+      }
       console.error("Accept task response error:", e);
-      return {
-        success: false,
-        status: 500,
-        message: "general.unknown",
-      };
+      return { success: false, status: 500, message: "general.unknown" };
+    } finally {
+      await session.endSession();
     }
   }
 
@@ -723,70 +723,60 @@ export class TaskResponseService {
     taskId: string,
     responseId: string,
   ): Promise<ServiceResult> {
+    const _taskId = toObjectId(taskId);
+    if (!_taskId) {
+      return { success: false, status: 404, message: "task.notFound" };
+    }
+    const _responseId = toObjectId(responseId);
+    if (!_responseId) {
+      return { success: false, status: 404, message: "taskResponse.notFound" };
+    }
+    const session = this.server.getClient().startSession();
     try {
       const db = await this.server.getDb();
-      const task = await db
-        .collection("tasks")
-        .findOne({ _id: new ObjectId(taskId) });
-      if (!task)
-        return {
-          success: false,
-          status: 404,
-          message: "task.notFound",
-        };
-      if (task.clientId.toString() !== user._id.toString())
-        return {
-          success: false,
-          status: 403,
-          message: "general.forbidden",
-        };
-      if (task.status !== "open")
-        return {
-          success: false,
-          status: 409,
-          message: "taskResponse.taskAlreadyAssigned",
-        };
-      const response = await db.collection("taskResponses").findOne({
-        _id: new ObjectId(responseId),
-        taskId: task._id,
+      await session.withTransaction(async () => {
+        const task = await db
+          .collection("tasks")
+          .findOne({ _id: _taskId }, { session });
+        if (!task) throw { status: 404, message: "task.notFound" };
+        if (task.clientId.toString() !== user._id.toString())
+          throw { status: 403, message: "general.forbidden" };
+        if (task.status !== "open")
+          throw { status: 409, message: "taskResponse.taskAlreadyAssigned" };
+
+        const response = await db
+          .collection("taskResponses")
+          .findOne({ _id: _responseId, taskId: task._id }, { session });
+        if (!response) throw { status: 404, message: "taskResponse.notFound" };
+        if (response.status !== "pending")
+          throw { status: 409, message: "taskResponse.alreadyProcessed" };
+
+        const res = await db
+          .collection("taskResponses")
+          .updateOne(
+            { _id: response._id, status: "pending" },
+            { $set: { status: "rejected", updatedAt: new Date() } },
+            { session },
+          );
+        if (res.modifiedCount === 0)
+          throw { status: 409, message: "taskResponse.alreadyProcessed" };
+        await db
+          .collection("tasks")
+          .updateOne(
+            { _id: task._id },
+            { $inc: { responsesCount: -1 } },
+            { session },
+          );
       });
-      if (!response)
-        return {
-          success: false,
-          status: 404,
-          message: "taskResponse.notFound",
-        };
-      if (response.status !== "pending")
-        return {
-          success: false,
-          status: 409,
-          message: "taskResponse.alreadyProcessed",
-        };
-      const now = new Date();
-      const res = await db
-        .collection("taskResponses")
-        .updateOne(
-          { _id: response._id, status: "pending" },
-          { $set: { status: "rejected", updatedAt: now } },
-        );
-      if (res.modifiedCount === 0) {
-        return {
-          success: false,
-          status: 409,
-          message: "taskResponse.alreadyProcessed",
-        };
-      }
-      await db
-        .collection("tasks")
-        .updateOne({ _id: task._id }, { $inc: { responsesCount: -1 } });
       return { success: true, status: 200 };
-    } catch (e) {
+    } catch (e: any) {
+      if (e?.status) {
+        return { success: false, status: e.status, message: e.message };
+      }
       console.error("Decline task response error:", e);
-      return {
-        success: false,
-        status: 500,
-        message: "general.unknown",
-      };
+      return { success: false, status: 500, message: "general.unknown" };
+    } finally {
+      await session.endSession();
     }
   }
 }

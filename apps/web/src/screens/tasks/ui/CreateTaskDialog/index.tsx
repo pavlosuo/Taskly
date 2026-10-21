@@ -208,6 +208,9 @@ export const CreateTaskDialog = () => {
                 </Label>
                 <LocationPicker
                   value={form.location}
+                  onInputChange={() =>
+                    setErrors((p) => ({ ...p, location: undefined }))
+                  }
                   onChange={(location) => handleUpdate("location", location)}
                   error={errors.location}
                   onError={(e) => {

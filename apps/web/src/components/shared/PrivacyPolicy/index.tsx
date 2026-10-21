@@ -49,7 +49,7 @@ export const PrivacyPolicyAdmin = () => {
               "h-8 px-3 rounded-md text-sm font-medium transition-colors",
               lang === l.value
                 ? "bg-primary text-white hover:bg-primary/90"
-                : "text-grey hover:text-foreground hover:bg-input",
+                : "text-grey hover:text-foreground hover:bg-muted",
             )}
           >
             {t(l.label)}

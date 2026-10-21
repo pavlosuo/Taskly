@@ -5,6 +5,7 @@ import {
   useRef,
   useState,
   startTransition,
+  use,
 } from "react";
 import {
   MapContainer,
@@ -60,6 +61,7 @@ export const LocationPickerMap = ({
   disabled = false,
   error,
   onError,
+  onInputChange,
 }: {
   value: Location;
   onChange?: (location: Location) => void;
@@ -67,6 +69,7 @@ export const LocationPickerMap = ({
   disabled?: boolean;
   error?: string;
   onError?: (string: string) => void;
+  onInputChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }) => {
   const { t } = useTranslation("common");
   const { lang } = useTheme();
@@ -200,6 +203,7 @@ export const LocationPickerMap = ({
             name="location-search"
             value={query}
             onChange={(e) => {
+              onInputChange?.(e);
               setQuery(e.target.value);
               setShowResults(true);
             }}
@@ -221,7 +225,7 @@ export const LocationPickerMap = ({
                   key={`${result.lat}-${result.lng}-${i}`}
                   type="button"
                   onClick={() => pickResult(result)}
-                  className="w-full flex items-start gap-2 px-3 py-2 text-foreground text-left text-sm hover:bg-muted transition-colors"
+                  className="w-full flex items-start gap-2 px-3 py-2 text-left text-sm hover:bg-muted transition-colors"
                 >
                   <MapPin
                     aria-hidden="true"
@@ -242,7 +246,7 @@ export const LocationPickerMap = ({
           onClick={locateMe}
           disabled={isLocating || isResolving}
           aria-label={t("location.locate")}
-          className="w-10 h-10 bg-transparent text-foreground hover:bg-muted"
+          className="w-10 h-10 bg-transparent hover:bg-muted"
         >
           {isLocating ? (
             <Loader2

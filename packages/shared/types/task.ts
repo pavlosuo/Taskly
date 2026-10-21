@@ -1,4 +1,4 @@
-import { Tag } from "shared/types";
+import { Tag, MediaItem } from "shared/types";
 
 export type TaskStatus = "open" | "assigned" | "completed" | "cancelled";
 
@@ -84,6 +84,12 @@ export interface TaskResponseItem {
   status: TaskResponseStatus;
   createdAt: Date;
   updatedAt: Date;
+  tasker: {
+    username: string;
+    avatar: MediaItem | undefined | null;
+    initials: string;
+    publicLink: string;
+  };
 }
 
 export interface TaskResponseCreateForm {

@@ -15,6 +15,12 @@ export const cookieOptions = {
   path: "/",
 };
 
+export const toObjectId = (value: unknown): ObjectId | null => {
+  if (ObjectId.isValid(value as string) && typeof value === "string")
+    return new ObjectId(value);
+  return null;
+};
+
 export function parseCookieHeader(header: string): Record<string, string> {
   const result: Record<string, string> = {};
   for (const part of header.split(";")) {

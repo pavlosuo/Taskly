@@ -61,6 +61,8 @@ import {
 import { useFormatPrice } from "@/hooks/useFormatPrice";
 import { useFormatDate } from "@/hooks/useFormatDate";
 import { useCallback } from "react";
+import { ImageDisplay } from "@/components/shared/MediaPicker";
+import Link from "next/link";
 
 const DESCRIPTION_PREVIEW_LENGTH = 320;
 
@@ -488,33 +490,94 @@ const ResponseCard = ({
   status,
   message,
   actions,
+  tasker,
 }: {
   price: number;
   status: TaskResponseItem["status"];
   message: string;
   actions?: React.ReactNode;
+  tasker?: TaskResponseItem["tasker"];
 }) => {
   const { t } = useTranslation("tasks");
   const priceFormatted = useFormatPrice(price);
   return (
-    <div className="border border-border bg-muted/25 p-4">
-      <div className="flex items-center justify-between gap-3 mb-3.5">
-        <div className="flex items-baseline gap-1.5">
-          <span className="text-xl font-medium text-foreground">
-            {priceFormatted}
-          </span>
-          <span className="text-xs text-grey">{t("responses.offer")}</span>
-        </div>
-        <ResponseStatusBadge status={status} />
-      </div>
-      <div className="text-wrapper">
-        {message ? parseSafeHtml(message) : ""}
-      </div>
-      {actions && (
-        <div className="flex justify-end gap-2 mt-4 pt-3.5 border-t border-border">
-          {actions}
+    <div className="rounded-xl border border-border bg-card p-4 sm:p-5">
+      {tasker &&
+        (tasker.publicLink ? (
+          <Link
+            href={tasker.publicLink}
+            className="mb-4 flex items-center gap-3"
+          >
+            <div className="flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary/10 text-sm font-semibold text-primary ring-1 ring-border">
+              {tasker.avatar ? (
+                <ImageDisplay
+                  src={tasker.avatar.url}
+                  alt={tasker.username}
+                  className="h-full w-full rounded-full object-cover"
+                />
+              ) : (
+                tasker.initials
+              )}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-semibold text-foreground">
+                {tasker.username}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {t("responses.offer")}
+              </p>
+            </div>
+            <ResponseStatusBadge status={status} />
+          </Link>
+        ) : (
+          <div className="mb-4 flex items-center gap-3">
+            <div className="flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary/10 text-sm font-semibold text-primary ring-1 ring-border">
+              {tasker.avatar ? (
+                <ImageDisplay
+                  src={tasker.avatar.url}
+                  alt={tasker.username}
+                  className="h-full w-full rounded-full object-cover"
+                />
+              ) : (
+                tasker.initials
+              )}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-semibold text-foreground">
+                {tasker.username}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {t("responses.offer")}
+              </p>
+            </div>
+            <ResponseStatusBadge status={status} />
+          </div>
+        ))}
+      {message && (
+        <div className="text-wrapper text-sm leading-relaxed">
+          {parseSafeHtml(message)}
         </div>
       )}
+      <div
+        className={clsx(
+          "mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4",
+          !tasker && "mt-0 border-t-0 pt-0",
+        )}
+      >
+        <div className="flex flex-col gap-0.5">
+          <span className="text-xs text-muted-foreground">
+            {t("responses.offer")}
+          </span>
+          <span className="text-xl font-semibold tracking-tight text-foreground">
+            {priceFormatted}
+          </span>
+        </div>
+        {actions && (
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            {actions}
+          </div>
+        )}
+      </div>
     </div>
   );
 };
@@ -570,6 +633,7 @@ const ResponsesPanel = ({
               <div className="flex flex-col gap-3">
                 {responses.map((response) => (
                   <ResponseCard
+                    tasker={response.tasker}
                     key={response._id}
                     price={response.price}
                     status={response.status}
@@ -862,7 +926,7 @@ export const TaskerView = ({ task, onClose }: ViewProps) => {
               onClick={() => setStep("respond")}
               className="w-full sm:w-auto"
             >
-              {myResponse ? t("respond.viewResponse") : t("respond.continue")}
+              {t("respond.continue")}
               <ArrowRight aria-hidden="true" className="w-4 h-4" />
             </Button>
           </div>
@@ -935,7 +999,7 @@ export const TaskerView = ({ task, onClose }: ViewProps) => {
                 >
                   <ArrowLeft
                     aria-hidden="true"
-                    className="w-4 h-4 text-foreground"
+                    className="w-4 h-4 text-[currentColor]"
                   />
                   {t("common:actions.back")}
                 </Button>
@@ -957,12 +1021,12 @@ export const TaskerView = ({ task, onClose }: ViewProps) => {
                     {isLoading ? (
                       <Loader2
                         aria-hidden="true"
-                        className="w-4 h-4 animate-spin text-foreground"
+                        className="w-4 h-4 animate-spin text-[currentColor]"
                       />
                     ) : (
                       <Send
                         aria-hidden="true"
-                        className="w-4 h-4 text-foreground"
+                        className="w-4 h-4 text-[currentColor]"
                       />
                     )}
                     {t("respond.send")}

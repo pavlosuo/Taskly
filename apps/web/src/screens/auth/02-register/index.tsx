@@ -72,7 +72,7 @@ const FIELDS: {
   {
     name: "username",
     key: "username",
-    autoComplete: "username",
+    autoComplete: "nickname",
     className: "col-span-1",
   },
   {
@@ -224,7 +224,7 @@ export function Register() {
               return;
             }
             setStep("form");
-            setErrors((p) => ({ ...p, role: undefined, general: undefined }));
+            setErrors((p) => ({ ...p, role: undefined }));
           }}
         >
           {t("common:actions.continue")}

@@ -9,7 +9,7 @@ import {
 } from "shared/types/chat";
 import { ChatBack, MessageBack, IServer, User } from "@/types";
 import { EMOJI } from "shared/data";
-import { stripMediaFields } from "@/utils";
+import { stripMediaFields, toObjectId } from "@/utils";
 
 export class ChatService {
   constructor(private server: IServer) {}
@@ -33,8 +33,10 @@ export class ChatService {
     userId: ObjectId,
   ): Promise<ChatBack | null> {
     const db = await this.server.getDb();
+    const id = toObjectId(chatId);
+    if (!id) return null;
     return db.collection<ChatBack>("chats").findOne({
-      _id: new ObjectId(chatId),
+      _id: id,
       participants: userId,
       deletedBy: { $ne: userId },
     });
@@ -130,7 +132,7 @@ export class ChatService {
         member: member ?? {
           _id: otherId?.toString() ?? "",
           username: "",
-          fullName: "Deleted user",
+          fullName: "user.deleted",
           avatar: null,
           initials: "",
           publicLink: "",
@@ -147,7 +149,9 @@ export class ChatService {
 
     const allMediaIds = [
       ...new Set(docs.flatMap((d) => d.mediaIds.map((m) => m.toString()))),
-    ].map((id) => new ObjectId(id));
+    ]
+      .map((id) => toObjectId(id))
+      .filter(Boolean) as ObjectId[];
 
     const mediaDocs = allMediaIds.length
       ? await db
@@ -226,7 +230,10 @@ export class ChatService {
         };
       }
       const db = await this.server.getDb();
-      const otherId = new ObjectId(payload.memberId);
+      const otherId = toObjectId(payload.memberId);
+      if (!otherId) {
+        return { success: false, status: 404, message: "chat.memberNotFound" };
+      }
       const otherUser = await db
         .collection("users")
         .findOne({ _id: otherId }, { projection: { _id: 1 } });

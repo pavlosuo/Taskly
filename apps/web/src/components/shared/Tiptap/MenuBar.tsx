@@ -57,7 +57,9 @@ const btn = (
       aria-label={text}
       className={clsx(
         "h-7 min-w-7 px-2 rounded-md text-sm font-medium transition-colors",
-        active ? "bg-primary text-white" : "text-foreground hover:bg-muted",
+        active
+          ? "bg-primary text-white"
+          : "text-grey hover:text-foreground hover:bg-muted",
       )}
     >
       {SYMBOLS[id] ?? text}

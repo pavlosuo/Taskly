@@ -534,7 +534,7 @@ export function ForgotPassword({
       phone,
       email,
       resetToken,
-      tokenErrorType: error ?? "error",
+      tokenErrorType: error ?? "invalid",
       setStep,
       setMethod,
       setPhone,

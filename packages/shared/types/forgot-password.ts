@@ -6,4 +6,4 @@ export type NewPasswordForm = {
   confirm: string;
 };
 
-export type TokenErrorType = "expired" | "invalid" | "error";
+export type TokenErrorType = "expired" | "invalid";

@@ -57,6 +57,19 @@ export class Server implements IServer {
     return this._dbPromise;
   }
 
+  getClient(): MongoClient {
+    if (!this._client) {
+      this._client = new MongoClient(MONGODB_URI || "", {
+        serverApi: {
+          version: ServerApiVersion.v1,
+          strict: false,
+          deprecationErrors: true,
+        },
+      });
+    }
+    return this._client;
+  }
+
   async sendEmail({
     to,
     subject,
