@@ -1,8 +1,17 @@
-import { Tag, MediaItem } from "shared/types";
+import { Tag, PublicUser } from "shared/types";
 
-export type TaskStatus = "open" | "assigned" | "completed" | "cancelled";
+export type TaskStatus =
+  | "open"
+  | "assigned"
+  | "completed"
+  | "cancelled"
+  | "pending_confirmation"
+  | "expired";
 
-export type TaskResponseStatus = "pending" | "accepted" | "rejected";
+export type PaymentState = "held" | "released" | "refunded";
+
+export type TaskResponseStatus =
+  "pending" | "accepted" | "rejected" | "withdrawn_after_accept";
 
 export interface GeoPoint {
   type: "Point";
@@ -36,10 +45,16 @@ export interface Task {
   location: Location;
   deadline: Deadline;
   status: TaskStatus;
-  assignedTaskerId: string | null;
   responsesCount: number;
   createdAt: Date;
   updatedAt: Date;
+  deadlineAt?: Date;
+  doneAt?: Date;
+  autoConfirmAt?: Date;
+  completedAt?: Date;
+  completionType?: "client" | "auto";
+  cancelReason?: "client" | "overdue";
+  assignedTaskerId?: string | null;
 }
 
 export interface TaskResponse {
@@ -84,12 +99,7 @@ export interface TaskResponseItem {
   status: TaskResponseStatus;
   createdAt: Date;
   updatedAt: Date;
-  tasker: {
-    username: string;
-    avatar: MediaItem | undefined | null;
-    initials: string;
-    publicLink: string;
-  };
+  tasker: Tasker;
 }
 
 export interface TaskResponseCreateForm {
@@ -119,7 +129,7 @@ export interface TaskListQuery {
 
 export type TasksTab = "all" | "my";
 
-export type TaskerStep = "overview" | "respond";
+export type TaskerStep = "overview" | "respond" | "complete";
 
 export interface StatusOption {
   value: TaskStatusFilter;
@@ -145,3 +155,84 @@ export interface TaskFilters {
   near: NearFilter | null;
   radiusKm: number;
 }
+
+export type ReviewItem = {
+  _id: string;
+  taskId: string;
+  authorId: string;
+  targetId: string;
+  authorRole: "client" | "tasker";
+  rating: number;
+  comment: string;
+  createdAt: Date;
+};
+
+export type TaskReviews = {
+  mine: ReviewItem | null;
+  received: ReviewItem | null;
+};
+
+export type PaymentStatus = "held" | "released" | "refunded";
+
+export type PaymentItem = {
+  _id: string;
+  taskId: string;
+  clientId: string;
+  taskerId: string;
+  amount: number;
+  status: PaymentStatus;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+export type PaymentHistory = {
+  items: PaymentItem[];
+  totals: Record<PaymentStatus, number>;
+};
+
+export type ResponseStatus =
+  "pending" | "accepted" | "rejected" | "withdrawn_after_accept";
+
+export type NotificationType =
+  | "response_new"
+  | "response_accepted"
+  | "response_rejected"
+  | "task_done"
+  | "task_completed"
+  | "task_auto_completed"
+  | "task_cancelled"
+  | "task_overdue"
+  | "task_abandoned"
+  | "task_expired"
+  | "review_received";
+
+export type NotificationItem = {
+  _id: string;
+  type: NotificationType;
+  taskId: string | null;
+  data: Record<string, any>;
+  read: boolean;
+  createdAt: string;
+};
+
+export type NotificationList = {
+  items: NotificationItem[];
+  unreadCount: number;
+};
+
+export type ReviewCreateForm = {
+  rating: number;
+  comment: string;
+};
+
+export type TaskerRating = { avg: number; count: number } | null;
+
+export type TaskerStats = {
+  rating: TaskerRating;
+  completedCount: number;
+};
+
+export type Tasker = Pick<PublicUser, "username"> &
+  Pick<PublicUser["profile"], "avatar" | "initials"> & {
+    publicLink: string | null;
+  } & TaskerStats;

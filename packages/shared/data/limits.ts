@@ -11,3 +11,13 @@ export const RESET_LINK_TTL_MINUTES = 15;
 export const MAX_FILE_SIZE = 50 * 1024 * 1024;
 
 export const MAX_FILES_PER_UPLOAD = 25;
+
+export const AUTO_CONFIRM_DAYS = 3;
+
+export const REVIEW_COMMENT_MAX_LENGTH = 1000;
+
+export const DAY_MS = 24 * 60 * 60 * 1000;
+
+export const DEADLINE_GRACE_MS = DAY_MS;
+
+export const TASK_JOB_BATCH_SIZE = 100;

@@ -1,5 +1,9 @@
 import { z } from "zod";
-import { MESSAGE_MAX_LENGTH, MAX_LIST_ITEMS } from "shared/data";
+import {
+  MESSAGE_MAX_LENGTH,
+  MAX_LIST_ITEMS,
+  REVIEW_COMMENT_MAX_LENGTH,
+} from "shared/data";
 import type { Deadline } from "shared/types";
 import { priceField, sanitizedText } from "./fields";
 import {
@@ -87,4 +91,17 @@ export const taskResponseCreateSchema = z.object({
     .refine((value) => value.length >= 10, "task.message.tooShort")
     .optional(),
   price: priceField.optional(),
+});
+
+export const reviewCreateSchema = z.object({
+  rating: z
+    .number()
+    .int("review.rating.invalid")
+    .min(1, "review.rating.invalid")
+    .max(5, "review.rating.invalid"),
+  comment: z
+    .string()
+    .trim()
+    .max(REVIEW_COMMENT_MAX_LENGTH, "review.comment.tooLong")
+    .default(""),
 });

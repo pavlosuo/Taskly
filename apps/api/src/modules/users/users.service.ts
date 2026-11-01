@@ -89,22 +89,28 @@ export class UsersService {
         updates.newEmail = email;
       }
       if (fullName !== undefined) updates["profile.fullName"] = fullName;
-      if (avatar) {
-        await this.mediaService.addPublicSource(avatar._id, user._id, "avatar");
-        updates["profile.avatar"] = avatar;
-        if (
-          user.profile?.avatar?.url &&
-          user.profile?.avatar?.url !== avatar?.url
-        ) {
-          const oldId = extractMediaId(user.profile.avatar.url);
-          if (oldId) {
+
+      if (avatar !== undefined && avatar !== null) {
+        const currentAvatarId = extractMediaId(user.profile?.avatar?.url ?? "");
+        const newAvatarId = avatar._id;
+
+        if (currentAvatarId !== newAvatarId) {
+          await this.mediaService.addPublicSource(
+            newAvatarId,
+            user._id,
+            "avatar",
+          );
+
+          if (currentAvatarId) {
             await this.mediaService.removePublicSource(
-              oldId,
+              currentAvatarId,
               user._id,
               "avatar",
             );
           }
         }
+
+        updates["profile.avatar"] = avatar;
       }
 
       if (avatar === null) {

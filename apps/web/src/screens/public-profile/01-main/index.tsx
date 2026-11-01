@@ -99,7 +99,7 @@ export const Main = ({
       mimeType: c.media!.mimeType,
     }));
   const languagesList = hasLanguages
-    ? p.languages!.map((l) => l.label).join(", ")
+    ? p.languages!.map((l) => t(`common:${l.label}`)).join(", ")
     : "";
   const isOwnProfile = me && me._id === user._id;
   const isLoggedOut = !me;
@@ -384,7 +384,7 @@ export const Main = ({
                             items: [
                               {
                                 url: certUrl,
-                                originalName: l.label,
+                                originalName: t(`common:${l.label}`),
                                 mimeType: l.certificate?.media?.mimeType || "",
                               },
                             ],
@@ -392,7 +392,9 @@ export const Main = ({
                           })
                         }
                         className="shrink-0 border border-primary"
-                        aria-label={t("certificate.view", { name: l.label })}
+                        aria-label={t("certificate.view", {
+                          name: t(`common:${l.label}`),
+                        })}
                       >
                         <ImageDisplay
                           src={certUrl}
@@ -407,7 +409,7 @@ export const Main = ({
                     )}
                     <div className="min-w-0 w-28 shrink-0">
                       <p className="text-sm font-medium text-foreground truncate">
-                        {l.label}
+                        {t(`common:${l.label}`)}
                       </p>
                       <p className="text-xs text-grey">{l.level}</p>
                     </div>

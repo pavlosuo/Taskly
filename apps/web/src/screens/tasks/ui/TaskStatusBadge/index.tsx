@@ -2,6 +2,7 @@
 import { useTranslation } from "react-i18next";
 import { TaskStatus } from "shared/types";
 import clsx from "clsx";
+import { TASK_STATUS_STYLES } from "@/screens/tasks/data/taskStatus";
 
 export const TaskStatusBadge = ({
   status,
@@ -16,12 +17,7 @@ export const TaskStatusBadge = ({
       className={clsx(
         "rounded-full px-2.5 py-1 text-xs font-medium",
         className,
-        {
-          "bg-primary/10 text-primary": status === "open",
-          "bg-amber-500/10 text-amber-600": status === "assigned",
-          "bg-emerald-500/10 text-emerald-600": status === "completed",
-          "bg-grey/10 text-grey": status === "cancelled",
-        },
+        TASK_STATUS_STYLES[status].chip,
       )}
     >
       {t(`status.${status}`)}

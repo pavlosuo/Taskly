@@ -15,6 +15,8 @@ import "@/i18n";
 import { axiosApi } from "@/api/index";
 import { useUser } from "@/providers/UserProvider";
 import { usePathname } from "next/navigation";
+import { useToast } from "@/hooks/useToast";
+import { getAxiosError } from "@/utils/getAxiosError";
 
 interface ThemeContextType {
   lang: Lang;
@@ -63,7 +65,7 @@ export const ThemeProvider = ({
       i18n.changeLanguage(initialLang);
     }
   }, [initialLang]);
-
+  const toast = useToast();
   const [lang, setLang] = useState<Lang>(initialLang);
   const [theme, setTheme] = useState<Theme>(initialTheme);
   const channelRef = useRef<BroadcastChannel | null>(null);
@@ -96,7 +98,7 @@ export const ThemeProvider = ({
       }
       i18n.changeLanguage(message.value, (err) => {
         if (err) {
-          console.error("Failed to sync language:", err);
+          toast("errors:changeLang");
           return;
         }
         document.documentElement.lang = message.value;
@@ -107,7 +109,7 @@ export const ThemeProvider = ({
       channel.close();
       channelRef.current = null;
     };
-  }, []);
+  }, [toast]);
 
   const broadcast = useCallback((message: SyncMessage) => {
     channelRef.current?.postMessage(message);
@@ -126,11 +128,11 @@ export const ThemeProvider = ({
             theme: next.theme ?? stateRef.current.theme,
           },
         });
-      } catch (err) {
-        console.error("Failed to save preferences:", err);
+      } catch (e) {
+        toast(getAxiosError(e));
       }
     },
-    [user],
+    [user, toast],
   );
 
   const changeTheme = useCallback(
@@ -147,7 +149,7 @@ export const ThemeProvider = ({
     (newLang: Lang) => {
       i18n.changeLanguage(newLang, (err) => {
         if (err) {
-          console.error("Failed to change language:", err);
+          toast("errors:changeLang");
           return;
         }
         setLang(newLang);
@@ -156,7 +158,7 @@ export const ThemeProvider = ({
         broadcast({ type: "lang", value: newLang });
       });
     },
-    [persistPreferences, broadcast],
+    [persistPreferences, broadcast, toast],
   );
 
   const value = useMemo(

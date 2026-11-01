@@ -60,13 +60,6 @@ export const Main = ({ type = "error" }: { type: "error" | "not-found" }) => {
                   <Link href="/login">{PAGES_META.login[lang].title}</Link>
                 </Button>
               )}
-              <Button
-                asChild
-                variant="outline"
-                className="border-white bg-transparent text-white hover:bg-white/25 hover:text-white"
-              >
-                <Link href="/services">View Services</Link>
-              </Button>
             </div>
           </>
         )}

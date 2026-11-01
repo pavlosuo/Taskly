@@ -29,6 +29,6 @@ export const mediaItemSchema = z.object({
     .min(1, "media.mimeType.required")
     .max(100, "media.mimeType.invalid"),
   uploadedAt: z.coerce.date(),
-  publicSources: z.array(urlField),
+  publicSources: z.array(z.string()),
   chatIds: z.array(idField),
 }) satisfies z.ZodType<MediaItem>;

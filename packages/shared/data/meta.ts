@@ -40,6 +40,24 @@ export const PAGES_META: Record<
     },
   },
 
+  stats: {
+    en: {
+      title: "Stats",
+      description:
+        "View your statistics and track your progress in conversations, tasks, and other activities.",
+    },
+    "fi-FI": {
+      title: "Tilastot",
+      description:
+        "Katso tilastosi ja seuraa keskustelujasi, tehtäviäsi ja muita toimintoja.",
+    },
+    "sv-FI": {
+      title: "Statistik",
+      description:
+        "Visa dina statistik och räkna upp din progress i konversationer, uppgifter och andra aktiviteter.",
+    },
+  },
+
   account: {
     en: {
       title: "Account",

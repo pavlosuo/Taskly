@@ -319,12 +319,12 @@ export const CreateTaskDialog = () => {
                 {isLoading ? (
                   <Loader2
                     aria-hidden="true"
-                    className="h-4 w-4 animate-spin text-foreground"
+                    className="h-4 w-4 animate-spin text-[currentColor]"
                   />
                 ) : (
                   <Plus
                     aria-hidden="true"
-                    className="h-4 w-4 text-foreground"
+                    className="h-4 w-4 text-[currentColor]"
                   />
                 )}
                 {t("create.submit")}

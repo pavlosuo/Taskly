@@ -180,3 +180,18 @@ export const toGeoPoint = (
   if (Math.abs(lat) > 90 || Math.abs(lng) > 180) return undefined;
   return { type: "Point", coordinates: [lng, lat] };
 };
+
+export const toDeadlineAt = (deadline?: {
+  date?: unknown;
+  time?: string;
+}): Date | null => {
+  if (!deadline?.date) return null;
+  const base = new Date(deadline.date as string | Date);
+  if (Number.isNaN(base.getTime())) return null;
+  const match = /^(\d{1,2}):(\d{2})$/.exec(deadline.time ?? "");
+  if (match) {
+    const offset = (Number(match[1]) * 60 + Number(match[2])) * 60 * 1000;
+    return new Date(base.getTime() + offset);
+  }
+  return new Date(base.getTime() + 24 * 60 * 60 * 1000 - 1);
+};

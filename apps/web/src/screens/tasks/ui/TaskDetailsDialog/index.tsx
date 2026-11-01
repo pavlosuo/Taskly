@@ -1,7 +1,6 @@
 "use client";
 import { useEffect, useState, FormEvent } from "react";
 import { useTranslation } from "react-i18next";
-import { toast } from "sonner";
 import {
   Clock,
   Loader2,
@@ -15,10 +14,9 @@ import {
   CalendarClock,
   ListChecks,
   Award,
-  MessagesSquare,
-  ChevronDown,
   ArrowRight,
   ArrowLeft,
+  Star,
 } from "lucide-react";
 import { useTasks } from "@/providers/TaskProvider";
 import { useModal } from "@/providers/ModalProvider";
@@ -36,11 +34,9 @@ import { DatePicker } from "@/components/shared/DatePicker";
 import { Textarea } from "@/components/ui/textarea";
 import { axiosApi } from "@/api/index";
 import { LocationPicker } from "@/components/shared/LocationPicker";
-import {
-  SectionLabel,
-  TaskStatusBadge,
-  ResponseStatusBadge,
-} from "@/screens/tasks/ui";
+import { SectionLabel } from "@/screens/tasks/ui";
+import { TaskStatusBadge } from "../TaskStatusBadge";
+import { ResponseStatusBadge } from "../ResponseStatusBadge";
 import { Tiptap } from "@/components/shared/Tiptap";
 import clsx from "clsx";
 import parseSafeHtml from "@/utils/parseSafeHtml";
@@ -48,6 +44,7 @@ import { useToast } from "@/hooks/useToast";
 import {
   ZodErrors,
   Task,
+  TaskStatus,
   TaskUpdateForm,
   TaskResponseItem,
   TaskCreateForm,
@@ -57,14 +54,25 @@ import {
   taskResponseCreateSchema,
   TaskerStep,
   MESSAGE_MAX_LENGTH,
+  Tasker,
+  TaskResponseStatus,
 } from "shared/index";
 import { useFormatPrice } from "@/hooks/useFormatPrice";
 import { useFormatDate } from "@/hooks/useFormatDate";
 import { useCallback } from "react";
 import { ImageDisplay } from "@/components/shared/MediaPicker";
 import Link from "next/link";
+import { TaskFlowPanel } from "@/screens/tasks/ui/TaskFlowPanel";
+import { MockCheckoutDialog } from "@/screens/tasks/ui/MockCheckoutDialog";
+import { useUser } from "@/providers/UserProvider";
 
 const DESCRIPTION_PREVIEW_LENGTH = 320;
+
+const FINAL_STEP_STATUSES: TaskStatus[] = [
+  "assigned",
+  "pending_confirmation",
+  "completed",
+];
 
 interface ViewProps {
   task: Task | null;
@@ -448,6 +456,7 @@ const StepTabs = ({
   const steps: { key: TaskerStep; number: number }[] = [
     { key: "overview", number: 1 },
     { key: "respond", number: 2 },
+    { key: "complete", number: 3 },
   ];
   return (
     <div className="inline-flex items-center gap-1 self-start rounded-full border border-border bg-muted/30 p-1">
@@ -493,66 +502,74 @@ const ResponseCard = ({
   tasker,
 }: {
   price: number;
-  status: TaskResponseItem["status"];
+  status: TaskResponseStatus;
   message: string;
   actions?: React.ReactNode;
-  tasker?: TaskResponseItem["tasker"];
+  tasker?: Tasker;
 }) => {
   const { t } = useTranslation("tasks");
   const priceFormatted = useFormatPrice(price);
-  return (
-    <div className="rounded-xl border border-border bg-card p-4 sm:p-5">
-      {tasker &&
-        (tasker.publicLink ? (
-          <Link
-            href={tasker.publicLink}
-            className="mb-4 flex items-center gap-3"
-          >
-            <div className="flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary/10 text-sm font-semibold text-primary ring-1 ring-border">
-              {tasker.avatar ? (
-                <ImageDisplay
-                  src={tasker.avatar.url}
-                  alt={tasker.username}
-                  className="h-full w-full rounded-full object-cover"
-                />
-              ) : (
-                tasker.initials
-              )}
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold text-foreground">
-                {tasker.username}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                {t("responses.offer")}
-              </p>
-            </div>
-            <ResponseStatusBadge status={status} />
-          </Link>
-        ) : (
-          <div className="mb-4 flex items-center gap-3">
-            <div className="flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary/10 text-sm font-semibold text-primary ring-1 ring-border">
-              {tasker.avatar ? (
-                <ImageDisplay
-                  src={tasker.avatar.url}
-                  alt={tasker.username}
-                  className="h-full w-full rounded-full object-cover"
-                />
-              ) : (
-                tasker.initials
-              )}
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold text-foreground">
-                {tasker.username}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                {t("responses.offer")}
-              </p>
-            </div>
+  const taskerContent = tasker && (
+    <div className="mb-4 rounded-xl border border-border bg-muted/30 p-3 sm:p-4">
+      <div className="flex items-center gap-3">
+        <div className="relative flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary/10 text-base font-semibold text-primary ring-1 ring-border">
+          {tasker.avatar ? (
+            <ImageDisplay
+              src={tasker.avatar.url}
+              alt={tasker.username}
+              className="h-full w-full rounded-full object-cover"
+            />
+          ) : (
+            tasker.initials
+          )}
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="truncate text-sm font-semibold text-foreground">
+              {tasker.username}
+            </p>
             <ResponseStatusBadge status={status} />
           </div>
-        ))}
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            {t("responses.offer")}
+          </p>
+          <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1">
+            {tasker.rating ? (
+              <span className="inline-flex items-center gap-1 text-xs font-medium text-foreground">
+                <Star
+                  aria-hidden="true"
+                  className="size-3.5 fill-amber-500 text-amber-500"
+                />
+                {tasker.rating.avg.toFixed(1)}
+                <span className="font-normal text-muted-foreground">
+                  ({tasker.rating.count})
+                </span>
+              </span>
+            ) : (
+              <span className="text-xs text-muted-foreground">
+                {t("responses.noRating")}
+              </span>
+            )}
+            <span className="text-xs text-muted-foreground">
+              {t("responses.completed", { count: tasker.completedCount ?? 0 })}
+            </span>
+          </div>
+        </div>
+      </div>
+      {tasker.publicLink && (
+        <Link
+          href={tasker.publicLink}
+          className="mt-3 flex items-center justify-center gap-1.5 rounded-lg border border-border bg-background px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+        >
+          {t("responses.viewProfile")}
+        </Link>
+      )}
+    </div>
+  );
+
+  return (
+    <div className="rounded-xl border border-border bg-card p-4 sm:p-5">
+      {taskerContent}
       {message && (
         <div className="text-wrapper text-sm leading-relaxed">
           {parseSafeHtml(message)}
@@ -598,80 +615,65 @@ const ResponsesPanel = ({
   onReject: (id: string) => void;
 }) => {
   const { t } = useTranslation("tasks");
-  const [open, setOpen] = useState(false);
-  const count = responses.length;
+  if (loading) return <Spinner />;
+  if (responses.length === 0) {
+    return (
+      <p className="text-sm text-grey py-2 text-center">
+        {t("responses.empty")}
+      </p>
+    );
+  }
   return (
-    <div className="border-t border-border py-5 mt-5">
-      <button
-        type="button"
-        aria-expanded={open}
-        onClick={() => setOpen((prev) => !prev)}
-        className="flex w-full items-center justify-between gap-2"
-      >
-        <SectionLabel icon={MessagesSquare}>
-          {t("responses.title")}
-        </SectionLabel>
-        <ChevronDown
-          aria-hidden="true"
-          className={clsx(
-            "w-4 h-4 text-foreground transition-transform duration-300",
-            open && "rotate-180",
-          )}
+    <div className="flex flex-col gap-3">
+      {responses.map((response) => (
+        <ResponseCard
+          tasker={response.tasker}
+          key={response._id}
+          price={response.price}
+          status={response.status}
+          message={response.message}
+          actions={
+            response.status === "pending" && taskOpen ? (
+              <>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => onReject(response._id)}
+                  disabled={busy}
+                >
+                  {t("responses.reject")}
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={() => onAccept(response._id)}
+                  disabled={busy}
+                >
+                  {t("responses.accept")}
+                </Button>
+              </>
+            ) : null
+          }
         />
-      </button>
-      <div
-        className="grid transition-[grid-template-rows] duration-300 ease-out"
-        style={{ gridTemplateRows: open ? "1fr" : "0fr" }}
-      >
-        <div className="overflow-hidden">
-          <div className="pt-3">
-            {loading && <Spinner />}
-            {!loading && count === 0 && (
-              <p className="text-sm text-grey">{t("responses.empty")}</p>
-            )}
-            {count > 0 && (
-              <div className="flex flex-col gap-3">
-                {responses.map((response) => (
-                  <ResponseCard
-                    tasker={response.tasker}
-                    key={response._id}
-                    price={response.price}
-                    status={response.status}
-                    message={response.message}
-                    actions={
-                      response.status === "pending" && taskOpen ? (
-                        <>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => onReject(response._id)}
-                            disabled={busy}
-                          >
-                            {t("responses.reject")}
-                          </Button>
-                          <Button
-                            size="sm"
-                            onClick={() => onAccept(response._id)}
-                            disabled={busy}
-                          >
-                            {t("responses.accept")}
-                          </Button>
-                        </>
-                      ) : null
-                    }
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
+      ))}
+    </div>
+  );
+};
+
+const BackToOverview = ({ onClick }: { onClick: () => void }) => {
+  const { t } = useTranslation("tasks");
+  return (
+    <div className="flex justify-start border-t border-border pt-5">
+      <Button type="button" variant="outline" onClick={onClick}>
+        <ArrowLeft aria-hidden="true" className="w-4 h-4" />
+        {t("respond.backToOverview")}
+      </Button>
     </div>
   );
 };
 
 export const ClientView = ({ task, onClose }: ViewProps) => {
   const { t } = useTranslation("tasks");
+  const { user } = useUser();
   const { confirm } = useModal();
   const {
     updateTask,
@@ -686,10 +688,14 @@ export const ClientView = ({ task, onClose }: ViewProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [responses, setResponses] = useState<TaskResponseItem[]>([]);
   const [loadingResponses, setLoadingResponses] = useState(false);
+  const [checkout, setCheckout] = useState<TaskResponseItem | null>(null);
+  const [step, setStep] = useState<TaskerStep>("overview");
+  const acceptedResponse = responses.find((r) => r.status === "accepted");
+  const isMyTask = task?.clientId === user?._id;
 
   useEffect(() => {
     let cancelled = false;
-    if (!task) return;
+    if (!task?._id) return;
     (async function () {
       setLoadingResponses(true);
       const items = await getTaskResponses(task._id);
@@ -701,7 +707,7 @@ export const ClientView = ({ task, onClose }: ViewProps) => {
     return () => {
       cancelled = true;
     };
-  }, [task, getTaskResponses]);
+  }, [task?._id, getTaskResponses]);
 
   if (!task) return null;
 
@@ -775,7 +781,9 @@ export const ClientView = ({ task, onClose }: ViewProps) => {
           </div>
           <div className="flex-1 min-w-0 pr-8 max-w-[60%] md:max-w-[85%]">
             <DialogTitle className="line-clamp-1">{task.title}</DialogTitle>
-            <DialogDescription>{t("view.description")}</DialogDescription>
+            <DialogDescription>
+              {t(isMyTask ? "view.description" : "view.descriptionNotOwned")}
+            </DialogDescription>
           </div>
           <TaskStatusBadge
             status={task.status}
@@ -783,60 +791,106 @@ export const ClientView = ({ task, onClose }: ViewProps) => {
           />
         </div>
       </DialogHeader>
-      <TaskSummary task={task} />
-      <ResponsesPanel
-        responses={responses}
-        loading={loadingResponses}
-        taskOpen={task.status === "open"}
-        busy={isLoading}
-        onAccept={handleAccept}
-        onReject={handleReject}
-      />
-      <div className="flex flex-wrap gap-2 border-t border-border justify-end pt-5">
-        {task.status === "open" && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setIsEditing(true)}
-            disabled={isLoading}
-          >
-            <Pencil aria-hidden="true" className="w-3.5 h-3.5" />
-            {t("view.actions.edit")}
-          </Button>
+      {isMyTask && (
+        <div className="mb-5">
+          <StepTabs step={step} onChange={setStep} />
+        </div>
+      )}
+      {step === "overview" && <TaskSummary task={task} />}
+      {isMyTask && step === "respond" && (
+        <ResponsesPanel
+          responses={responses}
+          loading={loadingResponses}
+          taskOpen={task.status === "open"}
+          busy={isLoading}
+          onAccept={(id) =>
+            setCheckout(responses.find((r) => r._id === id) ?? null)
+          }
+          onReject={handleReject}
+        />
+      )}
+      {isMyTask &&
+        step === "complete" &&
+        (FINAL_STEP_STATUSES.includes(task.status) ? (
+          <TaskFlowPanel
+            task={task}
+            role="client"
+            amount={acceptedResponse?.price}
+          />
+        ) : (
+          <p className="text-sm text-grey py-2 text-center">
+            {t("respond.finalLocked")}
+          </p>
+        ))}
+      {isMyTask && (
+        <MockCheckoutDialog
+          response={checkout}
+          busy={isLoading}
+          onCancel={() => setCheckout(null)}
+          onConfirm={async (response) => {
+            setCheckout(null);
+            await handleAccept(response._id);
+          }}
+        />
+      )}
+      {isMyTask &&
+        (task.status === "open" ||
+          task.status === "expired" ||
+          task.status === "assigned" ||
+          task.status === "pending_confirmation" ||
+          (task.status === "cancelled" && !task.assignedTaskerId)) && (
+          <div className="mt-5 flex flex-wrap gap-2 border-t border-border justify-end pt-5">
+            {task.status === "open" && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsEditing(true)}
+                disabled={isLoading}
+              >
+                <Pencil aria-hidden="true" className="w-3.5 h-3.5" />
+                {t("view.actions.edit")}
+              </Button>
+            )}
+            {(task.status === "open" || task.status === "assigned") && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleCancel}
+                disabled={isLoading}
+              >
+                <Ban aria-hidden="true" className="w-3.5 h-3.5" />
+                {t("view.actions.cancel")}
+              </Button>
+            )}
+            {(task.status === "assigned" ||
+              task.status === "pending_confirmation") && (
+              <Button size="sm" onClick={handleComplete} disabled={isLoading}>
+                <CheckCircle2 aria-hidden="true" className="w-3.5 h-3.5" />
+                {t("view.actions.complete")}
+              </Button>
+            )}
+            {(task.status === "open" ||
+              task.status === "expired" ||
+              (task.status === "cancelled" && !task.assignedTaskerId)) && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-destructive hover:text-destructive"
+                onClick={handleDelete}
+                disabled={isLoading}
+              >
+                <Trash2 aria-hidden="true" className="w-3.5 h-3.5" />
+                {t("view.actions.delete")}
+              </Button>
+            )}
+          </div>
         )}
-        {(task.status === "open" || task.status === "assigned") && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleCancel}
-            disabled={isLoading}
-          >
-            <Ban aria-hidden="true" className="w-3.5 h-3.5" />
-            {t("view.actions.cancel")}
-          </Button>
-        )}
-        {task.status === "assigned" && (
-          <Button size="sm" onClick={handleComplete} disabled={isLoading}>
-            <CheckCircle2 aria-hidden="true" className="w-3.5 h-3.5" />
-            {t("view.actions.complete")}
-          </Button>
-        )}
-        <Button
-          variant="outline"
-          size="sm"
-          className="text-destructive hover:text-destructive"
-          onClick={handleDelete}
-          disabled={isLoading}
-        >
-          <Trash2 aria-hidden="true" className="w-3.5 h-3.5" />
-          {t("view.actions.delete")}
-        </Button>
-      </div>
     </>
   );
 };
 
 export const TaskerView = ({ task, onClose }: ViewProps) => {
+  const toast = useToast();
   const { t } = useTranslation(["tasks", "common"]);
   const { respondToTask, withdrawResponse, getTaskResponses, isLoading } =
     useTasks();
@@ -851,7 +905,7 @@ export const TaskerView = ({ task, onClose }: ViewProps) => {
 
   useEffect(() => {
     let cancelled = false;
-    if (!task) return;
+    if (!task?._id) return;
     (async function () {
       setLoading(true);
       const items = await getTaskResponses(task._id);
@@ -863,7 +917,7 @@ export const TaskerView = ({ task, onClose }: ViewProps) => {
     return () => {
       cancelled = true;
     };
-  }, [task, getTaskResponses]);
+  }, [task?._id, getTaskResponses]);
 
   if (!task) return null;
 
@@ -892,11 +946,14 @@ export const TaskerView = ({ task, onClose }: ViewProps) => {
     try {
       await withdrawResponse(task._id, myResponse._id);
       setMyResponse(null);
+      setForm({ message: "", price: 0 });
+      setStep("overview");
     } catch {}
   };
 
   const messageLength = removeHtml(form.message ?? "").length;
-  const canRespond = !loading && task.status === "open" && !myResponse;
+
+  console.log(loading);
 
   return (
     <>
@@ -936,9 +993,11 @@ export const TaskerView = ({ task, onClose }: ViewProps) => {
         <div className="flex flex-col gap-5">
           {loading && <Spinner />}
           {!loading && task.status !== "open" && !myResponse && (
-            <p className="text-sm text-grey py-2">{t("respond.closed")}</p>
+            <h3 className="text-md text-grey py-2 text-center">
+              {t("respond.closed")}
+            </h3>
           )}
-          {canRespond && (
+          {!loading && task.status === "open" && !myResponse && (
             <form
               onSubmit={handleRespond}
               noValidate
@@ -1054,18 +1113,31 @@ export const TaskerView = ({ task, onClose }: ViewProps) => {
                   ) : null
                 }
               />
-              <div className="flex justify-start border-t border-border pt-5">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setStep("overview")}
-                >
-                  <ArrowLeft aria-hidden="true" className="w-4 h-4" />
-                  {t("respond.backToOverview")}
-                </Button>
-              </div>
+              <BackToOverview onClick={() => setStep("overview")} />
             </>
           )}
+        </div>
+      )}
+      {step === "complete" && (
+        <div className="flex flex-col gap-5">
+          {loading && <Spinner />}
+          {!loading && !FINAL_STEP_STATUSES.includes(task.status) && (
+            <p className="text-sm text-grey py-2 text-center">
+              {t("respond.finalLocked")}
+            </p>
+          )}
+          {!loading &&
+            myResponse &&
+            FINAL_STEP_STATUSES.includes(task.status) && (
+              <TaskFlowPanel
+                task={task}
+                role="tasker"
+                amount={myResponse.price}
+                accepted={myResponse.status === "accepted"}
+                onClose={onClose}
+              />
+            )}
+          <BackToOverview onClick={() => setStep("overview")} />
         </div>
       )}
     </>

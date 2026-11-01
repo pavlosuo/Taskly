@@ -5,7 +5,6 @@ import {
   useRef,
   useState,
   startTransition,
-  use,
 } from "react";
 import {
   MapContainer,

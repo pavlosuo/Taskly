@@ -17,6 +17,7 @@ import { APP_NAME, PAGES_META, CHAT_PAGE_META } from "shared/data";
 import clsx from "clsx";
 import { useTheme } from "@/providers/ThemeProvider";
 import { useTranslation } from "react-i18next";
+import { WalletDialog } from "@/screens/tasks/ui/WalletDialog";
 
 export function AppSidebar() {
   const { user } = useUser();
@@ -75,7 +76,7 @@ export function AppSidebar() {
           icon: ClipboardList,
         },
         {
-          label: PAGES_META?.["support"]?.[lang]?.title,
+          label: PAGES_META?.["chats"]?.[lang]?.title,
           href: "/chats",
           icon: MessageCircle,
         },
@@ -152,9 +153,10 @@ export const SidebarWrapper = ({
     <SidebarProvider className="bg-muted">
       <AppSidebar />
       <div className="flex-1 gap-2 flex flex-col p-2 h-screen">
-        <header className="py-5 px-4 rounded-xl bg-background grid grid-cols-[max-content_1fr_max-content] items-center gap-3">
+        <header className="py-5 px-4 rounded-xl bg-background grid grid-cols-[max-content_1fr_max-content_max-content] items-center gap-3">
           <SidebarTrigger className="text-foreground hover:bg-primary hover:text-white" />
           <span className="text-sm font-medium">{formattedTitle}</span>
+          <WalletDialog />
           <Notify />
         </header>
         <div

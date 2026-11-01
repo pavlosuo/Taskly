@@ -29,7 +29,7 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
   const [socket, setSocket] = useState<Socket | null>(null);
 
   useEffect(() => {
-    if (!user) {
+    if (!user?._id) {
       socketRef.current?.disconnect();
       socketRef.current = null;
       startTransition(() => {
@@ -51,7 +51,7 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
     return () => {
       instance.disconnect();
     };
-  }, [user]);
+  }, [user?._id]);
 
   return (
     <SocketContext.Provider value={{ socket, isConnected }}>

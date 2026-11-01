@@ -3,6 +3,10 @@ import { ObjectId, Document } from "mongodb";
 import {
   TASK_SORTS,
   EARTH_RADIUS_M,
+  AUTO_CONFIRM_DAYS,
+  DAY_MS,
+  DEADLINE_GRACE_MS,
+  TASK_JOB_BATCH_SIZE,
   ServiceResult,
   taskCreateSchema,
   taskUpdateSchema,
@@ -14,10 +18,22 @@ import {
   splitList,
   toGeoPoint,
   toObjectId,
+  toDeadlineAt,
 } from "@/utils";
+import { PaymentService } from "@/modules/payment/payment.service";
+import {
+  NotificationService,
+  NotificationInput,
+} from "@/modules/notification/notification.service";
 
 export class TaskService {
-  constructor(private server: IServer) {}
+  private payments: PaymentService;
+  private notifications: NotificationService;
+
+  constructor(private server: IServer) {
+    this.payments = new PaymentService(server);
+    this.notifications = new NotificationService(server);
+  }
 
   async create(user: User, payload: unknown): Promise<ServiceResult> {
     if (user.role !== "client") {
@@ -32,6 +48,10 @@ export class TaskService {
       };
     }
     const data = parsed.data;
+    const deadlineAt = toDeadlineAt(data.deadline);
+    if (deadlineAt && deadlineAt.getTime() + DEADLINE_GRACE_MS < Date.now()) {
+      return { success: false, status: 400, message: "task.deadlinePast" };
+    }
     try {
       const db = await this.server.getDb();
       const now = new Date();
@@ -49,6 +69,7 @@ export class TaskService {
           lng: data.location.lng,
         },
         ...(geo && { geo }),
+        ...(deadlineAt && { deadlineAt }),
         deadline: data.deadline,
         status: "open",
         assignedTaskerId: null,
@@ -306,7 +327,17 @@ export class TaskService {
       if (data.certificates !== undefined)
         update.certificates = normalizeTagList(data.certificates);
       if (data.budget !== undefined) update.budget = data.budget;
-      if (data.deadline !== undefined) update.deadline = data.deadline;
+      if (data.deadline !== undefined) {
+        const deadlineAt = toDeadlineAt(data.deadline);
+        if (
+          deadlineAt &&
+          deadlineAt.getTime() + DEADLINE_GRACE_MS < Date.now()
+        ) {
+          return { success: false, status: 400, message: "task.deadlinePast" };
+        }
+        update.deadline = data.deadline;
+        update.deadlineAt = deadlineAt;
+      }
       if (data.location !== undefined) {
         update.location = {
           address: data.location.address,
@@ -354,6 +385,7 @@ export class TaskService {
           throw { status: 403, message: "general.forbidden" };
         const deletable =
           task.status === "open" ||
+          task.status === "expired" ||
           (task.status === "cancelled" && !task.assignedTaskerId);
         if (!deletable) throw { status: 409, message: "task.cannotDelete" };
         const res = await db
@@ -382,35 +414,314 @@ export class TaskService {
     if (!_id) {
       return { success: false, status: 404, message: "task.notFound" };
     }
+    return this.cancelTask(_id, user);
+  }
+
+  async complete(user: User, id: string): Promise<ServiceResult> {
+    const _id = toObjectId(id);
+    if (!_id) {
+      return { success: false, status: 404, message: "task.notFound" };
+    }
+    return this.completeTask(_id, user);
+  }
+
+  async markDone(user: User, id: string): Promise<ServiceResult> {
+    const _id = toObjectId(id);
+    if (!_id) {
+      return { success: false, status: 404, message: "task.notFound" };
+    }
+    const session = this.server.getClient().startSession();
+    try {
+      const db = await this.server.getDb();
+      await session.withTransaction(async () => {
+        const tasks = db.collection("tasks");
+        const task = await tasks.findOne({ _id }, { session });
+        if (!task) throw { status: 404, message: "task.notFound" };
+        if (task.assignedTaskerId?.toString() !== user._id.toString())
+          throw { status: 403, message: "general.forbidden" };
+        if (task.status !== "assigned")
+          throw { status: 409, message: "task.cannotMarkDone" };
+
+        const now = new Date();
+        const res = await tasks.updateOne(
+          { _id: task._id, status: "assigned" },
+          {
+            $set: {
+              status: "pending_confirmation",
+              doneAt: now,
+              autoConfirmAt: new Date(
+                now.getTime() + AUTO_CONFIRM_DAYS * DAY_MS,
+              ),
+              updatedAt: now,
+            },
+          },
+          { session },
+        );
+        if (res.modifiedCount === 0)
+          throw { status: 409, message: "task.cannotMarkDone" };
+
+        await this.notifications.push(
+          [
+            {
+              userId: task.clientId,
+              type: "task_done",
+              taskId: task._id,
+              data: { taskTitle: task.title, days: AUTO_CONFIRM_DAYS },
+            },
+          ],
+          session,
+        );
+      });
+      return { success: true, status: 200 };
+    } catch (e: any) {
+      if (e?.status) {
+        return { success: false, status: e.status, message: e.message };
+      }
+      console.error("Mark task done error:", e);
+      return { success: false, status: 500, message: "general.unknown" };
+    } finally {
+      await session.endSession();
+    }
+  }
+
+  async abandon(user: User, id: string): Promise<ServiceResult> {
+    const _id = toObjectId(id);
+    if (!_id) {
+      return { success: false, status: 404, message: "task.notFound" };
+    }
     const session = this.server.getClient().startSession();
     try {
       const db = await this.server.getDb();
       await session.withTransaction(async () => {
         const task = await db.collection("tasks").findOne({ _id }, { session });
         if (!task) throw { status: 404, message: "task.notFound" };
-        if (task.clientId.toString() !== user._id.toString())
+        if (task.assignedTaskerId?.toString() !== user._id.toString())
           throw { status: 403, message: "general.forbidden" };
-        if (task.status !== "open" && task.status !== "assigned")
+        if (task.status !== "assigned")
+          throw { status: 409, message: "task.cannotAbandon" };
+        const now = new Date();
+        const res = await db.collection("tasks").updateOne(
+          { _id: task._id, status: "assigned", assignedTaskerId: user._id },
+          {
+            $set: { status: "open", assignedTaskerId: null, updatedAt: now },
+            $inc: { responsesCount: -1 },
+          },
+          { session },
+        );
+        if (res.modifiedCount === 0)
+          throw { status: 409, message: "task.cannotAbandon" };
+
+        await db
+          .collection("taskResponses")
+          .updateOne(
+            { taskId: task._id, taskerId: user._id, status: "accepted" },
+            { $set: { status: "withdrawn_after_accept", updatedAt: now } },
+            { session },
+          );
+        await this.payments.refund(db, session, task._id);
+        await this.notifications.push(
+          [
+            {
+              userId: task.clientId,
+              type: "task_abandoned",
+              taskId: task._id,
+              data: { taskTitle: task.title },
+            },
+          ],
+          session,
+        );
+      });
+      return { success: true, status: 200 };
+    } catch (e: any) {
+      if (e?.status) {
+        return { success: false, status: e.status, message: e.message };
+      }
+      console.error("Abandon task error:", e);
+      return { success: false, status: 500, message: "general.unknown" };
+    } finally {
+      await session.endSession();
+    }
+  }
+
+  async runScheduled(): Promise<void> {
+    const db = await this.server.getDb();
+    const tasks = db.collection("tasks");
+    const now = Date.now();
+    const stale = new Date(now - DEADLINE_GRACE_MS);
+
+    const jobs: [Document, (id: ObjectId) => Promise<ServiceResult>][] = [
+      [
+        {
+          status: "pending_confirmation",
+          autoConfirmAt: { $lte: new Date(now) },
+        },
+        (id) => this.completeTask(id, null),
+      ],
+      [
+        { status: "assigned", deadlineAt: { $lte: stale } },
+        (id) => this.cancelTask(id, null),
+      ],
+      [
+        { status: "open", deadlineAt: { $lte: stale } },
+        (id) => this.expireTask(id),
+      ],
+    ];
+
+    for (const [filter, run] of jobs) {
+      const due = await tasks
+        .find(filter, { projection: { _id: 1 } })
+        .limit(TASK_JOB_BATCH_SIZE)
+        .toArray();
+      for (const task of due) {
+        const res = await run(task._id);
+        if (!res.success && res.status !== 409) {
+          console.error(
+            "Scheduled job failed:",
+            task._id.toString(),
+            res.message,
+          );
+        }
+      }
+    }
+  }
+
+  private async completeTask(
+    _id: ObjectId,
+    user: User | null,
+  ): Promise<ServiceResult> {
+    const session = this.server.getClient().startSession();
+    try {
+      const db = await this.server.getDb();
+      await session.withTransaction(async () => {
+        const tasks = db.collection("tasks");
+        const task = await tasks.findOne({ _id }, { session });
+        if (!task) throw { status: 404, message: "task.notFound" };
+        if (user && task.clientId.toString() !== user._id.toString())
+          throw { status: 403, message: "general.forbidden" };
+        const allowed = user
+          ? ["assigned", "pending_confirmation"]
+          : ["pending_confirmation"];
+        if (!allowed.includes(task.status))
+          throw { status: 409, message: "task.cannotComplete" };
+        const now = new Date();
+        const res = await tasks.updateOne(
+          { _id: task._id, status: { $in: allowed } },
+          {
+            $set: {
+              status: "completed",
+              completionType: user ? "client" : "auto",
+              completedAt: now,
+              updatedAt: now,
+            },
+          },
+          { session },
+        );
+        if (res.modifiedCount === 0)
+          throw { status: 409, message: "task.cannotComplete" };
+        await this.payments.release(db, session, task._id);
+        const data = { taskTitle: task.title };
+        const notices: NotificationInput[] = [
+          {
+            userId: task.assignedTaskerId,
+            type: user ? "task_completed" : "task_auto_completed",
+            taskId: task._id,
+            data,
+          },
+        ];
+        if (!user) {
+          notices.push({
+            userId: task.clientId,
+            type: "task_auto_completed",
+            taskId: task._id,
+            data,
+          });
+        }
+        await this.notifications.push(notices, session);
+      });
+      return { success: true, status: 200 };
+    } catch (e: any) {
+      if (e?.status) {
+        return { success: false, status: e.status, message: e.message };
+      }
+      console.error("Complete task error:", e);
+      return { success: false, status: 500, message: "general.unknown" };
+    } finally {
+      await session.endSession();
+    }
+  }
+
+  private async cancelTask(
+    _id: ObjectId,
+    user: User | null,
+  ): Promise<ServiceResult> {
+    const session = this.server.getClient().startSession();
+    try {
+      const db = await this.server.getDb();
+      await session.withTransaction(async () => {
+        const tasks = db.collection("tasks");
+        const responses = db.collection("taskResponses");
+        const task = await tasks.findOne({ _id }, { session });
+        if (!task) throw { status: 404, message: "task.notFound" };
+        if (user && task.clientId.toString() !== user._id.toString())
+          throw { status: 403, message: "general.forbidden" };
+        const allowed = user ? ["open", "assigned"] : ["assigned"];
+        if (!allowed.includes(task.status))
           throw { status: 409, message: "task.cannotCancel" };
 
         const now = new Date();
-        const rejected = await db
-          .collection("taskResponses")
-          .updateMany(
+        const pending = await responses
+          .find(
             { taskId: task._id, status: "pending" },
-            { $set: { status: "rejected", updatedAt: now } },
-            { session },
-          );
-        const res = await db.collection("tasks").updateOne(
-          { _id: task._id, status: { $in: ["open", "assigned"] } },
+            { session, projection: { taskerId: 1 } },
+          )
+          .toArray();
+        const rejected = await responses.updateMany(
+          { taskId: task._id, status: "pending" },
+          { $set: { status: "rejected", updatedAt: now } },
+          { session },
+        );
+        const res = await tasks.updateOne(
+          { _id: task._id, status: { $in: allowed } },
           {
-            $set: { status: "cancelled", updatedAt: now },
+            $set: {
+              status: "cancelled",
+              cancelReason: user ? "client" : "overdue",
+              updatedAt: now,
+            },
             $inc: { responsesCount: -rejected.modifiedCount },
           },
           { session },
         );
         if (res.modifiedCount === 0)
           throw { status: 409, message: "task.cannotCancel" };
+
+        const wasAssigned = task.status === "assigned";
+        if (wasAssigned) await this.payments.refund(db, session, task._id);
+
+        const data = { taskTitle: task.title };
+        const notices: NotificationInput[] = pending.map((r) => ({
+          userId: r.taskerId,
+          type: "response_rejected",
+          taskId: task._id,
+          data,
+        }));
+        if (wasAssigned) {
+          notices.push({
+            userId: task.assignedTaskerId,
+            type: user ? "task_cancelled" : "task_overdue",
+            taskId: task._id,
+            data,
+          });
+        }
+        if (!user) {
+          notices.push({
+            userId: task.clientId,
+            type: "task_overdue",
+            taskId: task._id,
+            data,
+          });
+        }
+        await this.notifications.push(notices, session);
       });
       return { success: true, status: 200 };
     } catch (e: any) {
@@ -424,42 +735,77 @@ export class TaskService {
     }
   }
 
-  async complete(user: User, id: string): Promise<ServiceResult> {
-    const _id = toObjectId(id);
-    if (!_id) {
-      return { success: false, status: 404, message: "task.notFound" };
-    }
+  private async expireTask(_id: ObjectId): Promise<ServiceResult> {
+    const session = this.server.getClient().startSession();
     try {
       const db = await this.server.getDb();
-      const task = await db.collection("tasks").findOne({ _id });
-      if (!task) {
-        return { success: false, status: 404, message: "task.notFound" };
-      }
-      if (task.clientId.toString() !== user._id.toString()) {
-        return { success: false, status: 403, message: "general.forbidden" };
-      }
-      if (task.status !== "assigned") {
-        return { success: false, status: 409, message: "task.cannotComplete" };
-      }
-      const res = await db
-        .collection("tasks")
-        .updateOne(
-          { _id: task._id, status: "assigned" },
-          { $set: { status: "completed", updatedAt: new Date() } },
+      await session.withTransaction(async () => {
+        const tasks = db.collection("tasks");
+        const responses = db.collection("taskResponses");
+        const task = await tasks.findOne({ _id }, { session });
+        if (!task) throw { status: 404, message: "task.notFound" };
+        if (task.status !== "open")
+          throw { status: 409, message: "task.cannotExpire" };
+
+        const now = new Date();
+        const pending = await responses
+          .find(
+            { taskId: task._id, status: "pending" },
+            { session, projection: { taskerId: 1 } },
+          )
+          .toArray();
+        const rejected = await responses.updateMany(
+          { taskId: task._id, status: "pending" },
+          { $set: { status: "rejected", updatedAt: now } },
+          { session },
         );
-      if (res.modifiedCount === 0) {
-        return { success: false, status: 409, message: "task.cannotComplete" };
-      }
+        const res = await tasks.updateOne(
+          { _id: task._id, status: "open" },
+          {
+            $set: { status: "expired", updatedAt: now },
+            $inc: { responsesCount: -rejected.modifiedCount },
+          },
+          { session },
+        );
+        if (res.modifiedCount === 0)
+          throw { status: 409, message: "task.cannotExpire" };
+
+        const data = { taskTitle: task.title };
+        const notices: NotificationInput[] = pending.map((r) => ({
+          userId: r.taskerId,
+          type: "response_rejected",
+          taskId: task._id,
+          data,
+        }));
+        notices.push({
+          userId: task.clientId,
+          type: "task_expired",
+          taskId: task._id,
+          data,
+        });
+        await this.notifications.push(notices, session);
+      });
       return { success: true, status: 200 };
-    } catch (e) {
-      console.error("Complete task error:", e);
+    } catch (e: any) {
+      if (e?.status) {
+        return { success: false, status: e.status, message: e.message };
+      }
+      console.error("Expire task error:", e);
       return { success: false, status: 500, message: "general.unknown" };
+    } finally {
+      await session.endSession();
     }
   }
 }
 
 export class TaskResponseService {
-  constructor(private server: IServer) {}
+  private payments: PaymentService;
+  private notifications: NotificationService;
+
+  constructor(private server: IServer) {
+    this.payments = new PaymentService(server);
+    this.notifications = new NotificationService(server);
+  }
 
   async create(
     user: User,
@@ -524,6 +870,18 @@ export class TaskResponseService {
           );
         if (bumped.modifiedCount === 0)
           throw { status: 409, message: "taskResponse.taskClosed" };
+
+        await this.notifications.push(
+          [
+            {
+              userId: task.clientId,
+              type: "response_new",
+              taskId: task._id,
+              data: { taskTitle: task.title, price: parsed.data.price },
+            },
+          ],
+          session,
+        );
         response = { _id: result.insertedId, ...doc };
       });
       return { success: true, status: 201, data: { response } };
@@ -557,10 +915,9 @@ export class TaskResponseService {
         return { success: false, status: 404, message: "task.notFound" };
       }
 
-      const filter =
-        task.clientId.toString() === user._id.toString()
-          ? { taskId: task._id }
-          : { taskId: task._id, taskerId: user._id };
+      const filter = task.clientId.equals(user._id)
+        ? { taskId: task._id }
+        : { taskId: task._id, taskerId: user._id };
 
       const taskResponses = await db
         .collection("taskResponses")
@@ -568,24 +925,77 @@ export class TaskResponseService {
         .sort({ createdAt: -1 })
         .toArray();
 
-      const items = await Promise.all(
-        taskResponses.map(async (r) => {
-          const user = (await db
-            .collection("users")
-            .findOne({ _id: r.taskerId })) as User;
-          return {
-            ...r,
-            tasker: {
-              username: user.username,
-              avatar: user?.profile?.avatar,
-              initials: user?.profile?.initials,
-              publicLink: user?.settings?.checkboxes.privateProfile
-                ? null
-                : user?.publicLink,
-            },
-          };
-        }),
+      const taskerIds = [
+        ...new Set(taskResponses.map((r) => r.taskerId.toString())),
+      ].map((id) => new ObjectId(id));
+
+      const [users, ratings, completed] = taskerIds.length
+        ? await Promise.all([
+            db
+              .collection("users")
+              .find({ _id: { $in: taskerIds } })
+              .toArray(),
+            db
+              .collection("reviews")
+              .aggregate([
+                {
+                  $match: {
+                    targetId: { $in: taskerIds },
+                    authorRole: "client",
+                  },
+                },
+                {
+                  $group: {
+                    _id: "$targetId",
+                    avg: { $avg: "$rating" },
+                    count: { $sum: 1 },
+                  },
+                },
+              ])
+              .toArray(),
+            db
+              .collection("tasks")
+              .aggregate([
+                {
+                  $match: {
+                    assignedTaskerId: { $in: taskerIds },
+                    status: "completed",
+                  },
+                },
+                { $group: { _id: "$assignedTaskerId", count: { $sum: 1 } } },
+              ])
+              .toArray(),
+          ])
+        : [[], [], []];
+
+      const usersById = new Map(users.map((u) => [u._id.toString(), u]));
+      const ratingsById = new Map(ratings.map((r) => [r._id.toString(), r]));
+      const completedById = new Map(
+        completed.map((c) => [c._id.toString(), c.count]),
       );
+
+      const items = taskResponses.map((r) => {
+        const u = usersById.get(r.taskerId.toString());
+        const rating = ratingsById.get(r.taskerId.toString());
+        return {
+          ...r,
+          tasker: {
+            username: u?.username,
+            avatar: u?.profile?.avatar,
+            initials: u?.profile?.initials,
+            publicLink: u?.settings?.checkboxes?.privateProfile
+              ? null
+              : u?.publicLink,
+            completedCount: completedById.get(r.taskerId.toString()) ?? 0,
+            rating: rating
+              ? {
+                  avg: Math.round(rating.avg * 10) / 10,
+                  count: rating.count,
+                }
+              : null,
+          },
+        };
+      });
 
       return { success: true, status: 200, data: { items } };
     } catch (e) {
@@ -685,6 +1095,16 @@ export class TaskResponseService {
         if (accepted.modifiedCount === 0)
           throw { status: 409, message: "taskResponse.alreadyProcessed" };
 
+        const others = await responses
+          .find(
+            {
+              taskId: task._id,
+              _id: { $ne: response._id },
+              status: "pending",
+            },
+            { session, projection: { taskerId: 1 } },
+          )
+          .toArray();
         const rejected = await responses.updateMany(
           { taskId: task._id, _id: { $ne: response._id }, status: "pending" },
           { $set: { status: "rejected", updatedAt: now } },
@@ -705,6 +1125,30 @@ export class TaskResponseService {
         );
         if (assigned.modifiedCount === 0)
           throw { status: 409, message: "taskResponse.taskAlreadyAssigned" };
+
+        await this.payments.hold(db, session, {
+          taskId: task._id,
+          clientId: task.clientId,
+          taskerId: response.taskerId,
+          amount: response.price,
+        });
+
+        const data = { taskTitle: task.title };
+        const notices: NotificationInput[] = [
+          {
+            userId: response.taskerId,
+            type: "response_accepted",
+            taskId: task._id,
+            data,
+          },
+          ...others.map((o): NotificationInput => ({
+            userId: o.taskerId,
+            type: "response_rejected",
+            taskId: task._id,
+            data,
+          })),
+        ];
+        await this.notifications.push(notices, session);
       });
       return { success: true, status: 200 };
     } catch (e: any) {
@@ -767,6 +1211,17 @@ export class TaskResponseService {
             { $inc: { responsesCount: -1 } },
             { session },
           );
+        await this.notifications.push(
+          [
+            {
+              userId: response.taskerId,
+              type: "response_rejected",
+              taskId: task._id,
+              data: { taskTitle: task.title },
+            },
+          ],
+          session,
+        );
       });
       return { success: true, status: 200 };
     } catch (e: any) {

@@ -10,7 +10,7 @@ export const authLimiter = rateLimit({
 
 export const globalLimiter = rateLimit({
   windowMs: 60 * 1000,
-  max: 50,
+  max: 100,
   message: { success: false, message: "general.tooManyRequests" },
 });
 

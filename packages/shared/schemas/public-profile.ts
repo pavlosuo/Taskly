@@ -83,10 +83,7 @@ export const publicProfileSchema: z.ZodType<PublicProfile> = z.object({
     .array(publicProfileCertificateSchema)
     .max(MAX_LIST_ITEMS, "certificates.tooMany")
     .optional(),
-  languages: z
-    .array(publicProfileLangSchema)
-    .min(1, "languages.required")
-    .optional(),
+  languages: z.array(publicProfileLangSchema).optional(),
   header: mediaItemSchema.nullable().optional(),
   introduction: mediaItemSchema.nullable().optional(),
 });

@@ -13,7 +13,6 @@ import { ChatWithMember } from "shared/types";
 import { axiosApi } from "@/api/index";
 import { useUser } from "@/providers/UserProvider";
 import { useSocket } from "@/providers/SocketProvider";
-import { useTabNotifications } from "@/hooks/useTabNotifications";
 import { useRun } from "@/hooks/useRun";
 import { useToast } from "@/hooks/useToast";
 import { getAxiosError } from "@/utils/getAxiosError";
@@ -56,8 +55,6 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
       }, 0),
     [chats, activeChat],
   );
-
-  const { notify } = useTabNotifications(totalUnread);
 
   const fetchChats = useCallback(async () => {
     try {
@@ -128,7 +125,6 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
     if (!socket) return;
     const handleChat = ({ chat }: { chat: ChatWithMember }) => {
       upsertChat(chat);
-      notify();
     };
     socket.on("chat:new", handleChat);
     socket.on("chat:updated", handleChat);
@@ -136,7 +132,7 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
       socket.off("chat:new", handleChat);
       socket.off("chat:updated", handleChat);
     };
-  }, [socket, upsertChat, notify]);
+  }, [socket, upsertChat]);
 
   useEffect(() => {
     if (!socket) return;

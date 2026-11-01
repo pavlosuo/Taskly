@@ -41,6 +41,11 @@ export const ChatListItem: FC<{ chat: ChatWithMember }> = ({ chat }) => {
     }
   };
 
+  const fullName =
+    chat.member.fullName === "user.deleted"
+      ? t("list.deletedUser")
+      : chat.member.fullName;
+
   return (
     <div className="group relative">
       <Link
@@ -51,7 +56,7 @@ export const ChatListItem: FC<{ chat: ChatWithMember }> = ({ chat }) => {
           {chat.member.avatar ? (
             <ImageDisplay
               src={chat.member.avatar.url}
-              alt={chat.member.fullName}
+              alt={fullName}
               width={52}
               height={52}
               className="w-13 h-13 rounded-full object-cover"
@@ -82,7 +87,7 @@ export const ChatListItem: FC<{ chat: ChatWithMember }> = ({ chat }) => {
                 : "font-medium text-foreground",
             )}
           >
-            {chat.member.fullName}
+            {fullName}
           </span>
           <div className="flex items-center gap-1">
             {lastMessage?.hasMedia && (

@@ -5,7 +5,6 @@ import {
   ChevronDown,
   SquareUserRound,
   Settings,
-  HelpCircle,
   LogOut,
   ShieldUser,
 } from "lucide-react";
@@ -54,11 +53,6 @@ export const UserDropdown = ({
           label: PAGES_META?.settings?.[lang]?.title,
           icon: Settings,
           href: "/settings",
-        },
-        {
-          label: PAGES_META?.help?.[lang]?.title,
-          icon: HelpCircle,
-          href: "/help",
         },
       ];
     } else if (user.role === "admin") {

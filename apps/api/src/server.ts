@@ -21,6 +21,7 @@ import dns from "node:dns/promises";
 import { Server as HTTPServer } from "http";
 import { Server as SocketIOServer, Socket } from "socket.io";
 import { parseCookieHeader } from "@/utils";
+import { TaskService } from "@/modules/task/task.service";
 
 dns.setServers(["1.1.1.1", "1.0.0.1"]);
 
@@ -91,7 +92,7 @@ export class Server implements IServer {
         t.verify().catch((err) => console.error("SMTP error:", err));
         this.mailer = t;
       }
-      await this.mailer.sendMail({
+      this.mailer.sendMail({
         from: SMTP_USER,
         to,
         subject,
@@ -209,22 +210,6 @@ export class Server implements IServer {
     };
   }
 
-  async indexesConfig() {
-    const db = await this.getDb();
-    await Promise.all([
-      db.collection("skills").createIndex({ label: "text" }),
-      db.collection("skills").createIndex({ count: -1 }),
-      db.collection("certificates").createIndex({ label: "text" }),
-      db.collection("certificates").createIndex({ count: -1 }),
-      db.collection("chats").createIndex({ participants: 1 }),
-      db.collection("chats").createIndex({ updatedAt: -1 }),
-      db.collection("messages").createIndex({ chatId: 1, _id: -1 }),
-      db.collection("users").createIndex({ username: 1 }),
-      db.collection("tasks").createIndex({ geo: "2dsphere" }),
-      db.collection("tasks").createIndex({ status: 1, createdAt: -1 }),
-    ]);
-  }
-
   emitToUser(userId: ObjectId, event: string, payload: unknown) {
     this.getIO().to(`user:${userId.toString()}`).emit(event, payload);
   }
@@ -264,7 +249,6 @@ export class Server implements IServer {
       const isAdmin = socket.data.role === "admin";
       const onlineUserIds = new Set<string>();
       socket.join(`user:${userId}`);
-
       for (const [_, s] of io.sockets.sockets) {
         if (
           s.data.role !== "admin" &&
@@ -274,21 +258,16 @@ export class Server implements IServer {
           onlineUserIds.add(s.data.userId);
         }
       }
-
       socket.emit("presence:initial", { userIds: [...onlineUserIds] });
-
       if (!isAdmin) {
         socket.broadcast.emit("presence:online", { userId });
       }
-
       socket.on("chat:join", (chatId: string) => {
         socket.join(`chat:${chatId}`);
       });
-
       socket.on("chat:leave", (chatId: string) => {
         socket.leave(`chat:${chatId}`);
       });
-
       socket.on(
         "typing:start",
         ({ chatId, memberId }: { chatId: string; memberId: string }) => {
@@ -297,18 +276,15 @@ export class Server implements IServer {
             .emit("typing:start", { chatId, userId });
         },
       );
-
       socket.on(
         "typing:stop",
         ({ chatId, memberId }: { chatId: string; memberId: string }) => {
           socket.to(`user:${memberId}`).emit("typing:stop", { chatId, userId });
         },
       );
-
       socket.on("disconnect", async () => {
         const room = io.sockets.adapter.rooms.get(`user:${userId}`);
         const stillHasOtherConnections = room && room.size > 0;
-
         if (!stillHasOtherConnections) {
           try {
             const db = await this.getDb();
@@ -328,15 +304,87 @@ export class Server implements IServer {
         }
       });
     });
-
     this._io = io;
   }
 
+  async indexesConfig() {
+    const db = await this.getDb();
+
+    await Promise.all([
+      db.collection("skills").createIndex({ label: "text" }),
+      db.collection("skills").createIndex({ count: -1 }),
+      db.collection("certificates").createIndex({ label: "text" }),
+      db.collection("certificates").createIndex({ count: -1 }),
+
+      db.collection("chats").createIndex({ participants: 1 }),
+      db.collection("chats").createIndex({ updatedAt: -1 }),
+      db.collection("messages").createIndex({ chatId: 1, _id: -1 }),
+
+      db.collection("users").createIndex({ username: 1 }),
+
+      db.collection("tasks").createIndex({ geo: "2dsphere" }),
+      db.collection("tasks").createIndex({ status: 1, createdAt: -1 }),
+      db.collection("tasks").createIndex({ status: 1, deadlineAt: 1 }),
+      db.collection("tasks").createIndex({ status: 1, autoConfirmAt: 1 }),
+      db.collection("tasks").createIndex({ clientId: 1, createdAt: -1 }),
+      db.collection("tasks").createIndex({ assignedTaskerId: 1 }),
+
+      db
+        .collection("taskResponses")
+        .createIndex({ taskId: 1, taskerId: 1 }, { unique: true }),
+      db.collection("taskResponses").createIndex({ taskerId: 1, createdAt: 1 }),
+
+      db
+        .collection("payments")
+        .createIndex(
+          { taskId: 1 },
+          { unique: true, partialFilterExpression: { status: "held" } },
+        ),
+      db.collection("payments").createIndex({ clientId: 1, createdAt: -1 }),
+      db.collection("payments").createIndex({ taskerId: 1, createdAt: -1 }),
+
+      db
+        .collection("reviews")
+        .createIndex({ taskId: 1, authorId: 1 }, { unique: true }),
+      db.collection("reviews").createIndex({ targetId: 1, authorRole: 1 }),
+
+      db.collection("notifications").createIndex({ userId: 1, createdAt: -1 }),
+      db
+        .collection("notifications")
+        .createIndex(
+          { createdAt: 1 },
+          { expireAfterSeconds: 60 * 60 * 24 * 30 },
+        ),
+    ]);
+  }
+
   async start() {
-    if (!MONGODB_URI || !JWT_SECRET || !CLIENT_URL || !NEXT_PUBLIC_API_URL)
-      throw new Error("Missing env variables");
+    if (!MONGODB_URI || !JWT_SECRET || !CLIENT_URL || !NEXT_PUBLIC_API_URL) {
+      console.error("Missing env variables");
+      return;
+    }
     await this.indexesConfig();
-    this.initSockets(createApp(this).listen(this.port));
+    await this.startJobs(this);
+    const app = createApp(this).listen(this.port);
+    this.initSockets(app);
+  }
+
+  async startJobs(server: IServer) {
+    const tasks = new TaskService(server);
+    let running = false;
+    const tick = async () => {
+      if (running) return;
+      running = true;
+      try {
+        await tasks.runScheduled();
+      } catch (e) {
+        console.error("Scheduled jobs error:", e);
+      } finally {
+        running = false;
+      }
+    };
+    tick();
+    return setInterval(tick, 60_000);
   }
 }
 

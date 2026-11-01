@@ -26,6 +26,12 @@ import {
   TasksTab,
   TASK_DEFAULT_FILTERS,
   TABS,
+  AUTO_CONFIRM_DAYS,
+  DAY_MS,
+  PaymentHistory,
+  ReviewItem,
+  ReviewCreateForm,
+  TaskReviews,
 } from "shared/index";
 import { axiosApi } from "@/api/index";
 import { useUser } from "@/providers/UserProvider";
@@ -33,6 +39,8 @@ import { getAxiosError } from "@/utils/getAxiosError";
 import { applyTaskFilters, buildTaskQuery } from "@/utils/tasksUtils";
 import { useToast } from "@/hooks/useToast";
 import { useRun } from "@/hooks/useRun";
+
+const REFETCH_ON_FOCUS_MS = 30_000;
 
 interface FetchOptions {
   includeMine?: boolean;
@@ -80,6 +88,8 @@ interface TaskContextType extends BrowserView {
   deleteTask: (id: string) => Promise<void>;
   cancelTask: (id: string) => Promise<void>;
   completeTask: (id: string) => Promise<void>;
+  markDone: (id: string) => Promise<void>;
+  abandonTask: (id: string) => Promise<void>;
   respondToTask: (
     taskId: string,
     payload: TaskResponseCreateForm,
@@ -88,6 +98,12 @@ interface TaskContextType extends BrowserView {
   acceptResponse: (taskId: string, responseId: string) => Promise<void>;
   withdrawResponse: (taskId: string, responseId: string) => Promise<void>;
   declineResponse: (taskId: string, responseId: string) => Promise<void>;
+  getTaskReviews: (taskId: string) => Promise<TaskReviews>;
+  createReview: (
+    taskId: string,
+    payload: ReviewCreateForm,
+  ) => Promise<ReviewItem>;
+  getPayments: () => Promise<PaymentHistory>;
 }
 
 const TaskContext = createContext<TaskContextType | null>(null);
@@ -162,6 +178,7 @@ export const TaskProvider = ({ children }: TaskProviderProps) => {
   const readyRef = useRef(false);
   const ssrRef = useRef(false);
   const loadedForRef = useRef<string | null>(null);
+  const lastFetchRef = useRef(0);
   const toast = useToast();
 
   useEffect(() => {
@@ -188,6 +205,7 @@ export const TaskProvider = ({ children }: TaskProviderProps) => {
         setRawTotal(data.total);
         pageRef.current = data.page;
         readyRef.current = true;
+        lastFetchRef.current = Date.now();
         setIsInitialized(true);
       } catch (e) {
         if (requestId === requestRef.current) {
@@ -208,6 +226,7 @@ export const TaskProvider = ({ children }: TaskProviderProps) => {
     ssrRef.current = true;
     requestRef.current++;
     lastQueryRef.current = {};
+    lastFetchRef.current = Date.now();
     pageRef.current = initial.page;
     setAllTasks(initial.allItems);
     setMyTasks(initial.myItems);
@@ -252,6 +271,17 @@ export const TaskProvider = ({ children }: TaskProviderProps) => {
     });
   }, [userId, fetchTasks]);
 
+  useEffect(() => {
+    if (!userId) return;
+    const onVisible = () => {
+      if (document.visibilityState !== "visible" || !readyRef.current) return;
+      if (Date.now() - lastFetchRef.current < REFETCH_ON_FOCUS_MS) return;
+      fetchTasks(lastQueryRef.current);
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => document.removeEventListener("visibilitychange", onVisible);
+  }, [userId, fetchTasks]);
+
   const serverKey = useMemo(
     () => JSON.stringify(buildTaskQuery(query, filters)),
     [query, filters],
@@ -287,10 +317,10 @@ export const TaskProvider = ({ children }: TaskProviderProps) => {
     [allTasks, myTasks],
   );
 
-  const setStatus = useCallback((id: string, status: TaskStatus) => {
-    const patch = (t: Task): Task => (t._id === id ? { ...t, status } : t);
-    setAllTasks((prev) => prev.map(patch));
-    setMyTasks((prev) => prev.map(patch));
+  const patchTask = useCallback((id: string, patch: Partial<Task>) => {
+    const apply = (t: Task): Task => (t._id === id ? { ...t, ...patch } : t);
+    setAllTasks((prev) => prev.map(apply));
+    setMyTasks((prev) => prev.map(apply));
   }, []);
 
   const createTask = useCallback(
@@ -313,13 +343,11 @@ export const TaskProvider = ({ children }: TaskProviderProps) => {
       run(
         async () => {
           await axiosApi.updateTask(id, payload);
-          const patch = (t: Task) => (t._id === id ? { ...t, ...payload } : t);
-          setAllTasks((prev) => prev.map(patch as (t: Task) => Task));
-          setMyTasks((prev) => prev.map(patch as (t: Task) => Task));
+          patchTask(id, payload as Partial<Task>);
         },
         { success: "tasks:toast.updated" },
       ),
-    [run],
+    [run, patchTask],
   );
 
   const deleteTask = useCallback(
@@ -343,11 +371,11 @@ export const TaskProvider = ({ children }: TaskProviderProps) => {
       run(
         async () => {
           await axiosApi.cancelTask(id);
-          setStatus(id, "cancelled");
+          patchTask(id, { status: "cancelled" });
         },
         { success: "tasks:toast.cancelled" },
       ),
-    [run, setStatus],
+    [run, patchTask],
   );
 
   const completeTask = useCallback(
@@ -355,11 +383,42 @@ export const TaskProvider = ({ children }: TaskProviderProps) => {
       run(
         async () => {
           await axiosApi.completeTask(id);
-          setStatus(id, "completed");
+          patchTask(id, { status: "completed" });
         },
         { success: "tasks:toast.completed" },
       ),
-    [run, setStatus],
+    [run, patchTask],
+  );
+
+  const markDone = useCallback(
+    (id: string) =>
+      run(
+        async () => {
+          await axiosApi.markTaskDone(id);
+          patchTask(id, {
+            status: "pending_confirmation",
+            autoConfirmAt: new Date(
+              Date.now() + AUTO_CONFIRM_DAYS * DAY_MS,
+            ).toISOString(),
+          } as Partial<Task>);
+        },
+        { success: "tasks:toast.markedDone" },
+      ),
+    [run, patchTask],
+  );
+
+  const abandonTask = useCallback(
+    (id: string) =>
+      run(
+        async () => {
+          await axiosApi.abandonTask(id);
+          setMyTasks((prev) => prev.filter((t) => t._id !== id));
+          setAllTasks((prev) => prev.filter((t) => t._id !== id));
+          fetchTasks(lastQueryRef.current);
+        },
+        { success: "tasks:toast.abandoned" },
+      ),
+    [run, fetchTasks],
   );
 
   const respondToTask = useCallback(
@@ -418,11 +477,11 @@ export const TaskProvider = ({ children }: TaskProviderProps) => {
       run(
         async () => {
           await axiosApi.acceptTaskResponse(taskId, responseId);
-          setStatus(taskId, "assigned");
+          patchTask(taskId, { status: "assigned" });
         },
         { success: "tasks:toast.accepted" },
       ),
-    [run, setStatus],
+    [run, patchTask],
   );
 
   const declineResponse = useCallback(
@@ -458,6 +517,42 @@ export const TaskProvider = ({ children }: TaskProviderProps) => {
     [run],
   );
 
+  const getTaskReviews = useCallback(
+    (taskId: string) =>
+      run(
+        async () => {
+          const { data } = await axiosApi.getTaskReviews(taskId);
+          return { mine: data.mine, received: data.received } as TaskReviews;
+        },
+        { loading: false },
+      ),
+    [run],
+  );
+
+  const createReview = useCallback(
+    (taskId: string, payload: ReviewCreateForm) =>
+      run(
+        async () => {
+          const { data } = await axiosApi.createReview(taskId, payload);
+          return data.review as ReviewItem;
+        },
+        { success: "tasks:toast.reviewed" },
+      ),
+    [run],
+  );
+
+  const getPayments = useCallback(
+    () =>
+      run(
+        async () => {
+          const { data } = await axiosApi.getPayments();
+          return { items: data.items, totals: data.totals } as PaymentHistory;
+        },
+        { loading: false },
+      ),
+    [run],
+  );
+
   return (
     <TaskContext.Provider
       value={{
@@ -484,11 +579,16 @@ export const TaskProvider = ({ children }: TaskProviderProps) => {
         deleteTask,
         cancelTask,
         completeTask,
+        markDone,
+        abandonTask,
         respondToTask,
         getTaskResponses,
         acceptResponse,
         withdrawResponse,
         declineResponse,
+        getTaskReviews,
+        createReview,
+        getPayments,
       }}
     >
       {children}

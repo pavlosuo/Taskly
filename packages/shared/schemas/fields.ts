@@ -109,7 +109,7 @@ export const urlField = z
   .string()
   .trim()
   .max(2048, "url.tooLong")
-  .url("url.invalid");
+  .regex(/^https?:\/\/[^/\s?#]+(?::\d+)?(?:[/?#][^\s]*)?$/, "url.invalid");
 
 export const priceField = z
   .number()

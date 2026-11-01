@@ -5,6 +5,7 @@ import { Clock, MapPin, MessageSquare } from "lucide-react";
 import { Task } from "shared/types";
 import { useFormatPrice } from "@/hooks/useFormatPrice";
 import { useFormatDate } from "@/hooks/useFormatDate";
+import { TASK_STATUS_STYLES } from "@/screens/tasks/data/taskStatus";
 
 export const TaskListItem = ({
   task,
@@ -35,12 +36,10 @@ export const TaskListItem = ({
     >
       <span
         aria-hidden="true"
-        className={clsx("absolute inset-y-0 left-0 w-1", {
-          "bg-primary": task.status === "open",
-          "bg-amber-500": task.status === "assigned",
-          "bg-emerald-500": task.status === "completed",
-          "bg-muted-foreground/40": task.status === "cancelled",
-        })}
+        className={clsx(
+          "absolute inset-y-0 left-0 w-1",
+          TASK_STATUS_STYLES[task.status].bar,
+        )}
       />
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0 flex-1">
@@ -48,26 +47,15 @@ export const TaskListItem = ({
             <span
               className={clsx(
                 "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium",
-                {
-                  "border-primary/15 bg-primary/8 text-primary":
-                    task.status === "open",
-                  "border-amber-500/15 bg-amber-500/8 text-amber-600":
-                    task.status === "assigned",
-                  "border-emerald-500/15 bg-emerald-500/8 text-emerald-600":
-                    task.status === "completed",
-                  "border-muted bg-muted text-grey":
-                    task.status === "cancelled",
-                },
+                TASK_STATUS_STYLES[task.status].chip,
               )}
             >
               <span
                 aria-hidden="true"
-                className={clsx("size-1.5 rounded-full", {
-                  "bg-primary": task.status === "open",
-                  "bg-amber-500": task.status === "assigned",
-                  "bg-emerald-500": task.status === "completed",
-                  "bg-muted-foreground": task.status === "cancelled",
-                })}
+                className={clsx(
+                  "size-1.5 rounded-full",
+                  TASK_STATUS_STYLES[task.status].dot,
+                )}
               />
               {t(`status.${task.status}`)}
             </span>

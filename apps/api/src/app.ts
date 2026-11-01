@@ -15,6 +15,9 @@ import { skillsRoutes } from "@/modules/skills/skills.routes";
 import { certificatesRoutes } from "@/modules/certificates/certificates.routes";
 import { chatRoutes } from "@/modules/chat/chat.routes";
 import { taskRoutes } from "@/modules/task/task.routes";
+import { notificationRoutes } from "@/modules/notification/notification.routes";
+import { reviewRoutes } from "@/modules/review/review.routes";
+import { paymentRoutes } from "@/modules/payment/payment.routes";
 import { settingsSchema } from "shared/index";
 
 export function createApp(server: Server): Application {
@@ -38,6 +41,9 @@ export function createApp(server: Server): Application {
   app.use("/api/certificates", certificatesRoutes(server));
   app.use("/api/chats", chatRoutes(server));
   app.use("/api/tasks", taskRoutes(server));
+  app.use("/api/notifications", notificationRoutes(server));
+  app.use("/api/reviews", reviewRoutes(server));
+  app.use("/api/payments", paymentRoutes(server));
   app.post("/api/preferences", (req, res) => {
     try {
       const parsed = settingsSchema.safeParse(req.body);
@@ -68,18 +74,9 @@ export function createApp(server: Server): Application {
       });
     }
   });
-  app.use((req, res) => {
-    const data = {
-      method: req.method,
-      url: req.originalUrl,
-      ip: req.ip,
-      userAgent: req.get("user-agent"),
-      time: new Date().toISOString(),
-    };
-    console.log(data);
-    res.status(500).json({
+  app.use((_, res) => {
+    res.status(404).json({
       success: false,
-      status: 500,
       message: "general.unknown",
     });
   });

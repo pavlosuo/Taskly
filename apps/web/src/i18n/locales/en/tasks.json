@@ -87,17 +87,11 @@
       "description": "Taskers can suggest their own price"
     }
   },
-  "status": {
-    "all": "All",
-    "open": "Open",
-    "assigned": "Assigned",
-    "completed": "Completed",
-    "cancelled": "Cancelled"
-  },
   "responseStatus": {
     "pending": "Pending",
     "accepted": "Accepted",
-    "rejected": "Rejected"
+    "rejected": "Rejected",
+    "withdrawn_after_accept": "Withdrawn after accepting"
   },
   "item": {
     "negotiable": "Negotiable",
@@ -157,6 +151,7 @@
   },
   "view": {
     "description": "Manage this task and review responses.",
+    "descriptionNotOwned": "This task doesn't belong to you.",
     "actions": {
       "edit": "Edit",
       "cancel": "Cancel task",
@@ -173,19 +168,13 @@
     "description": "Update the details below and save your changes.",
     "save": "Save changes"
   },
-  "responses": {
-    "title": "Responses",
-    "titleWithCount": "Responses ({{count}})",
-    "empty": "No one has responded yet.",
-    "offer": "offer",
-    "accept": "Accept",
-    "reject": "Reject"
-  },
   "respond": {
     "description": "Review the task and send your response.",
+    "finalLocked": "This step becomes available once the task is in progress.",
     "steps": {
       "overview": "Overview",
-      "respond": "Respond"
+      "respond": "Respond",
+      "complete": "Final"
     },
     "continue": "Continue to respond",
     "viewResponse": "View your response",
@@ -207,6 +196,85 @@
     "accepted": "Response accepted",
     "rejected": "Response rejected",
     "responseSent": "Response sent",
-    "withdrawn": "Response withdrawn"
+    "withdrawn": "Response withdrawn",
+    "markedDone": "Marked as done. The client was notified",
+    "abandoned": "You withdrew from the task",
+    "reviewed": "Review sent"
+  },
+  "responses": {
+    "title": "Responses",
+    "titleWithCount": "Responses ({{count}})",
+    "empty": "No one has responded yet.",
+    "offer": "offer",
+    "accept": "Accept",
+    "reject": "Reject",
+    "rating": "rating",
+    "noRating": "No reviews yet",
+    "completed_one": "{{count}} completed task",
+    "completed_other": "{{count}} completed tasks",
+    "viewProfile": "View profile"
+  },
+  "status": {
+    "pending_confirmation": "Awaiting confirmation",
+    "expired": "Expired",
+    "all": "All",
+    "open": "Open",
+    "assigned": "Assigned",
+    "completed": "Completed",
+    "cancelled": "Cancelled"
+  },
+  "flow": {
+    "markDone": "Mark as done",
+    "abandon": "Withdraw from task",
+    "confirm": {
+      "markDone": "Mark this task as done? The client will be asked to confirm it.",
+      "abandon": "Withdraw from this task? It will become open again and the payment will be refunded to the client."
+    },
+    "clientPending": "The tasker marked the work as done. Confirm it, or it will be approved automatically on {{date}}.",
+    "taskerPending": "Waiting for the client to confirm. If there is no answer, the work is approved automatically on {{date}}."
+  },
+  "payment": {
+    "held": "{{amount}} is held until the work is confirmed",
+    "released": "{{amount}} was released to the tasker",
+    "refunded": "{{amount}} was refunded to the client",
+    "testMode": "Test mode: no real money is moved."
+  },
+  "checkout": {
+    "title": "Hold the payment",
+    "description": "The amount is held until you confirm the finished work.",
+    "testCard": "Test card, nothing is charged",
+    "total": "To hold",
+    "note": "You can get the money back by cancelling the task before the work is submitted.",
+    "pay": "Pay and accept"
+  },
+  "wallet": {
+    "open": "Wallet",
+    "title": "Wallet",
+    "description": "History of simulated payments.",
+    "empty": "No payments yet.",
+    "status": {
+      "held": "Held",
+      "released": "Released",
+      "refunded": "Refunded"
+    },
+    "client": {
+      "held": "On hold",
+      "released": "Paid",
+      "refunded": "Refunded"
+    },
+    "tasker": {
+      "held": "In escrow",
+      "released": "Earned",
+      "refunded": "Refunded"
+    }
+  },
+  "review": {
+    "title": "Review",
+    "yours": "Your review",
+    "received": "Review about you",
+    "waiting": "The other side has not left a review yet.",
+    "placeholder": "Tell how it went (optional)",
+    "submit": "Send review",
+    "stars": "Rate {{count}}"
   }
 }

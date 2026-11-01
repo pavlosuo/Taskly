@@ -1,4 +1,5 @@
 {
+  "changeLang": "Something went wrong with language change.",
   "iban": {
     "required": "IBAN is required",
     "invalid": "Invalid IBAN"

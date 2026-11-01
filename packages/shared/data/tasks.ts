@@ -1,11 +1,34 @@
-import { TaskStatus, TaskSort, TaskFilters, TasksTab } from "shared/index";
+import { TaskSort, TaskFilters, TasksTab } from "shared/index";
 
-export const TASK_STATUSES: TaskStatus[] = [
+export const TASK_STATUSES = [
   "open",
   "assigned",
+  "pending_confirmation",
   "completed",
   "cancelled",
-];
+  "expired",
+] as const;
+
+export const RESPONSE_STATUSES = [
+  "pending",
+  "accepted",
+  "rejected",
+  "withdrawn_after_accept",
+] as const;
+
+export const NOTIFICATION_TYPES = [
+  "response_new",
+  "response_accepted",
+  "response_rejected",
+  "task_done",
+  "task_completed",
+  "task_auto_completed",
+  "task_cancelled",
+  "task_overdue",
+  "task_abandoned",
+  "task_expired",
+  "review_received",
+] as const;
 
 export const TASK_SORTS: Record<string, Record<string, 1 | -1>> = {
   newest: { createdAt: -1, _id: -1 },

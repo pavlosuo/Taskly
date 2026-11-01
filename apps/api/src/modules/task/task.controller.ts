@@ -14,6 +14,8 @@ export class TaskController {
     this.delete = this.delete.bind(this);
     this.cancel = this.cancel.bind(this);
     this.complete = this.complete.bind(this);
+    this.markDone = this.markDone.bind(this);
+    this.abandon = this.abandon.bind(this);
   }
 
   async create(req: Request, res: Response) {
@@ -79,6 +81,26 @@ export class TaskController {
   async complete(req: Request, res: Response) {
     const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
     const result = await this.service.complete(req.user, id);
+    if (!result.success)
+      return res
+        .status(result.status)
+        .json({ success: false, message: result.message });
+    return res.json({ success: true, ...(result.data ?? {}) });
+  }
+
+  async markDone(req: Request, res: Response) {
+    const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    const result = await this.service.markDone(req.user, id);
+    if (!result.success)
+      return res
+        .status(result.status)
+        .json({ success: false, message: result.message });
+    return res.json({ success: true, ...(result.data ?? {}) });
+  }
+
+  async abandon(req: Request, res: Response) {
+    const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    const result = await this.service.abandon(req.user, id);
     if (!result.success)
       return res
         .status(result.status)

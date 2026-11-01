@@ -23,6 +23,11 @@ import {
   TaskList,
   TaskResponseItem,
   TaskResponseCreateForm,
+  NotificationItem,
+  TaskReviews,
+  ReviewCreateForm,
+  ReviewItem,
+  PaymentHistory,
 } from "shared/types";
 import axios, { AxiosInstance } from "axios";
 
@@ -236,5 +241,32 @@ export const methods = (api: AxiosInstance) => {
       api.delete<CommonResponse>(
         `/api/tasks/${taskId}/responses/${responseId}`,
       ),
+
+    getNotifications: () =>
+      api.get<{ items: NotificationItem[]; unreadCount: number }>(
+        "/api/notifications",
+      ),
+
+    markNotificationRead: (notificationId: string) =>
+      api.patch<CommonResponse>(`/api/notifications/${notificationId}/read`),
+
+    markAllNotificationsRead: () =>
+      api.patch<CommonResponse>("/api/notifications/read-all"),
+
+    markTaskDone: (id: string) => api.patch(`/api/tasks/${id}/done`),
+
+    abandonTask: (id: string) => api.patch(`/api/tasks/${id}/abandon`),
+
+    getTaskReviews: (taskId: string) =>
+      api.get<{ success: boolean } & TaskReviews>(`/api/reviews/${taskId}`),
+
+    createReview: (taskId: string, payload: ReviewCreateForm) =>
+      api.post<{ success: boolean; review: ReviewItem }>(
+        `/api/reviews/${taskId}`,
+        payload,
+      ),
+
+    getPayments: () =>
+      api.get<{ success: boolean } & PaymentHistory>("/api/payments"),
   };
 };

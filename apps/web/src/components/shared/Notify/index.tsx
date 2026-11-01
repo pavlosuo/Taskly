@@ -8,44 +8,80 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Bell, MessageCircle } from "lucide-react";
+import {
+  Bell,
+  ClipboardList,
+  Star,
+  Wallet,
+  type LucideIcon,
+} from "lucide-react";
 import { useTheme } from "@/providers/ThemeProvider";
 import Link from "next/link";
+import clsx from "clsx";
 import { ImageDisplay } from "@/components/shared/MediaPicker";
 import { formatListTime } from "@/utils/formatListTime";
+import { useNotifications } from "@/hooks/useNotifications";
 import { ChatWithMember } from "shared/types";
+import { NotificationType } from "shared/index";
 
-type MessageNotification = {
+type NotifyEntry = {
   id: string;
-  type: "message" | "system";
+  kind: "message" | "task" | "system";
   title: string;
   description?: string;
   time?: string;
   url: string;
+  sortAt: number;
+  unread: boolean;
+  type?: NotificationType;
   chat?: ChatWithMember;
+  data?: unknown;
+  onOpen?: () => void;
+};
+
+const TASK_ICONS: Partial<Record<NotificationType, LucideIcon>> = {
+  review_received: Star,
+  task_completed: Wallet,
+  task_auto_completed: Wallet,
 };
 
 export const Notify = () => {
-  const { t } = useTranslation("common");
+  const { t } = useTranslation(["common", "notify"]);
   const { totalUnread, chats } = useChats();
   const { lang } = useTheme();
+  const { items, unreadCount, markRead, markAllRead } = useNotifications();
 
-  const unreadChats: MessageNotification[] = chats
+  const chatEntries: NotifyEntry[] = chats
     .filter((chat) => chat.unreadCount > 0)
-    .map((c) => {
-      const time = formatListTime(c?.lastMessage?.createdAt || "", lang);
-      return {
-        id: c._id,
-        type: "message",
-        title: t("notify.newMessage"),
-        description: c.lastMessage?.text || "",
-        time: time,
-        url: `/chats/${c._id}`,
-        chat: c,
-      };
-    });
+    .map((c) => ({
+      id: `chat-${c._id}`,
+      kind: "message",
+      title: t("notify.newMessage"),
+      description: c.lastMessage?.text || "",
+      time: formatListTime(c?.lastMessage?.createdAt || "", lang),
+      url: `/chats/${c._id}`,
+      sortAt: new Date(c?.lastMessage?.createdAt || 0).getTime(),
+      unread: true,
+      chat: c,
+    }));
 
-  const notifications: MessageNotification[] = [...unreadChats];
+  const taskEntries: NotifyEntry[] = items.map((n) => ({
+    id: `task-${n._id}`,
+    kind: "task",
+    title: t(`notify:types.${n.type}.title`),
+    description: t(`notify:types.${n.type}.description`, n.data) as string,
+    time: formatListTime(n.createdAt, lang),
+    url: "/tasks",
+    sortAt: new Date(n.createdAt).getTime(),
+    unread: !n.read,
+    type: n.type,
+    onOpen: () => markRead(n._id),
+  }));
+
+  const entries = [...chatEntries, ...taskEntries].sort(
+    (a, b) => b.sortAt - a.sortAt,
+  );
+  const badge = totalUnread + unreadCount;
 
   return (
     <DropdownMenu>
@@ -58,72 +94,73 @@ export const Notify = () => {
           aria-label={t("notify.title")}
         >
           <Bell className="h-4 w-4" />
-          {totalUnread > 0 && (
+          {badge > 0 && (
             <span className="absolute -bottom-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-xs text-white">
-              {totalUnread > 9 ? "9+" : totalUnread}
+              {badge > 9 ? "9+" : badge}
             </span>
           )}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-80 p-0">
-        <DropdownMenuLabel className="px-4 py-3">
+        <DropdownMenuLabel className="flex items-center justify-between px-4 py-3">
           {t("notify.title")}
+          {unreadCount > 0 && (
+            <button
+              type="button"
+              onClick={markAllRead}
+              className="text-xs font-normal text-primary"
+            >
+              {t("notify:markAllRead")}
+            </button>
+          )}
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <div className="max-h-96 overflow-y-auto">
-          {notifications.length > 0 ? (
-            notifications.map((notification) => {
-              const content = (
-                <>
+          {entries.length > 0 ? (
+            entries.map((entry) => {
+              const TaskIcon =
+                (entry.type && TASK_ICONS[entry.type]) || ClipboardList;
+              return (
+                <Link
+                  href={entry.url}
+                  key={entry.id}
+                  onClick={entry.onOpen}
+                  className={clsx(
+                    "flex gap-3 px-4 py-3 transition-colors hover:bg-muted/50",
+                    entry.unread && entry.kind === "task" && "bg-primary/5",
+                  )}
+                >
                   <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10">
-                    {notification.type === "message" ? (
-                      notification?.chat?.member.avatar ? (
+                    {entry.kind === "message" ? (
+                      entry.chat?.member.avatar ? (
                         <ImageDisplay
-                          src={notification.chat.member.avatar.url}
-                          alt={notification.chat.member.fullName}
+                          src={entry.chat.member.avatar.url}
+                          alt={entry.chat.member.fullName}
                           width={40}
                           height={40}
                           className="h-10 w-10 rounded-full object-cover"
                         />
                       ) : (
                         <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
-                          {notification?.chat?.member.initials}
+                          {entry.chat?.member.initials}
                         </div>
                       )
                     ) : (
-                      <MessageCircle className="h-4 w-4 text-primary" />
+                      <TaskIcon className="h-4 w-4 text-primary" />
                     )}
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-start justify-between gap-2">
-                      <p className="text-sm font-medium">
-                        {notification.title}
-                      </p>
+                      <p className="text-sm font-medium">{entry.title}</p>
                       <span className="shrink-0 text-xs text-grey">
-                        {notification.time}
+                        {entry.time}
                       </span>
                     </div>
                     <p className="mt-0.5 text-sm text-grey">
-                      {notification.description}
+                      {entry.description}
                     </p>
                   </div>
-                </>
-              );
-              return notification.url ? (
-                <Link
-                  href={notification.url}
-                  key={notification.id}
-                  className="flex gap-3 px-4 py-3 transition-colors hover:bg-muted/50"
-                >
-                  {content}
                 </Link>
-              ) : (
-                <div
-                  key={notification.id}
-                  className="flex gap-3 px-4 py-3 transition-colors hover:bg-muted/50"
-                >
-                  {content}
-                </div>
               );
             })
           ) : (

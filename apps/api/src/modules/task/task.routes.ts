@@ -33,5 +33,7 @@ export function taskRoutes(server: IServer): Router {
     server.requireTasker(),
     responseCtrl.withdraw,
   );
+  router.patch("/:id/done", server.requireAuth(), ctrl.markDone);
+  router.patch("/:id/abandon", server.requireAuth(), ctrl.abandon);
   return router;
 }
