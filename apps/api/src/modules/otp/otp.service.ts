@@ -10,6 +10,7 @@ import { IServer, User, SendOtpParams, ConsumeResult } from "@/types";
 
 export class OtpService {
   private timeForOtp: number;
+
   constructor(private server: IServer) {
     this.timeForOtp = RESET_LINK_TTL_MINUTES * 60 * 1000;
   }

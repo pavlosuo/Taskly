@@ -557,6 +557,38 @@ export class UsersService {
 
       const hideLastSeen = !!user.settings?.checkboxes?.noOnlineStatus;
 
+      const [ratings, completed] = await Promise.all([
+        db
+          .collection("reviews")
+          .aggregate([
+            {
+              $match: {
+                $or: [{ targetId: user._id }, { authorId: user._id }],
+              },
+            },
+            {
+              $group: {
+                _id: "$targetId",
+                avg: { $avg: "$rating" },
+                count: { $sum: 1 },
+              },
+            },
+          ])
+          .toArray(),
+        db
+          .collection("tasks")
+          .aggregate([
+            {
+              $match: {
+                assignedTaskerId: user._id,
+                status: "completed",
+              },
+            },
+            { $group: { _id: "$assignedTaskerId", count: { $sum: 1 } } },
+          ])
+          .toArray(),
+      ]);
+
       const doc = stripMediaFields({
         _id: user._id.toString(),
         username: user.username,
@@ -572,6 +604,8 @@ export class UsersService {
         acceptance: {
           personVerified: !!user.acceptance?.personVerified,
         },
+        rating: ratings[0],
+        completedCount: completed[0]?.count ?? 0,
       }) as PublicProfileUser;
 
       const accessReason = isOwner

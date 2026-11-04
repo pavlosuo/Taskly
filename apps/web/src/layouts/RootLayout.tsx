@@ -11,6 +11,7 @@ import { SocketProvider } from "@/providers/SocketProvider";
 import { PresenceProvider } from "@/providers/PresenceProvider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { TaskProvider } from "@/providers/TaskProvider";
+import { NotificationProvider } from "@/providers/NotificationProvider";
 import { Toaster } from "@/components/ui/sonner";
 
 type IRootLayout = {
@@ -37,11 +38,13 @@ export const RootLayout: FC<PropsWithChildren<IRootLayout>> = ({
                   initialTheme={initialTheme}
                 >
                   <MediaPickerProvider>
-                    <ChatProvider>
-                      <TaskProvider>
-                        <LightboxProvider>{children}</LightboxProvider>
-                      </TaskProvider>
-                    </ChatProvider>
+                    <NotificationProvider>
+                      <ChatProvider>
+                        <TaskProvider>
+                          <LightboxProvider>{children}</LightboxProvider>
+                        </TaskProvider>
+                      </ChatProvider>
+                    </NotificationProvider>
                   </MediaPickerProvider>
                 </ThemeProvider>
               </PresenceProvider>

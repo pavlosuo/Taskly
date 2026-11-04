@@ -1,10 +1,4 @@
-import { MediaItem } from "shared/types";
-
-export type Role = "tasker" | "client";
-
-export type Lang = "en" | "fi-FI" | "sv-FI";
-
-export type Theme = "light" | "dark";
+import { MediaItem, TaskerStats, Role, Theme, Lang } from "shared/types";
 
 export type PublicProfileLang = {
   value: string;
@@ -90,7 +84,7 @@ export interface PublicUser {
   lastSeenAt?: Date;
 }
 
-export type PublicProfileUser = {
+export interface PublicProfileUser extends TaskerStats {
   _id: string;
   lastSeenAt: Date;
   username: string;
@@ -105,7 +99,7 @@ export type PublicProfileUser = {
   acceptance: {
     personVerified: boolean;
   };
-};
+}
 
 export type UpdateProfileForm = Partial<{
   fullName: string;

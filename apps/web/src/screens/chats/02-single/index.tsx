@@ -30,6 +30,7 @@ import { FieldError } from "@/components/shared/FieldError";
 import { useTheme } from "@/providers/ThemeProvider";
 import { getAxiosError } from "@/utils/getAxiosError";
 import { Button } from "@/components/ui/button";
+import { useNotifications } from "@/providers/NotificationProvider";
 
 export const Single: FC<{
   chat: ChatWithMember;
@@ -55,6 +56,7 @@ export const Single: FC<{
   const isTyping = typingByChat[chatId] ?? false;
   const { lang } = useTheme();
   const [loadMoreFailed, setLoadMoreFailed] = useState(false);
+  const { markChatRead: clearChatNotifications } = useNotifications();
 
   useEffect(() => {
     const texts = CHAT_PAGE_META[lang];
@@ -148,12 +150,12 @@ export const Single: FC<{
   }, [chatId, initialMessages]);
 
   useEffect(() => {
-    axiosApi.markChatRead(chatId).catch(() => {});
-    upsertChat({
-      ...chat,
-      unreadCount: 0,
-    });
-  }, [chatId, upsertChat, chat]);
+    axiosApi
+      .markChatRead(chatId)
+      .then(() => clearChatNotifications(chatId))
+      .catch(() => {});
+    upsertChat({ ...chat, unreadCount: 0 });
+  }, [chatId, upsertChat, chat, clearChatNotifications]);
 
   useEffect(() => {
     if (!isLoadingInitial && !didInitialScroll.current && scrollRef.current) {

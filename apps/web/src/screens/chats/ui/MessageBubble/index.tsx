@@ -439,11 +439,12 @@ export const MessageBubble: FC<{
                   {isOwn && (
                     <ContextMenuItem
                       onClick={handleDelete}
+                      variant="destructive"
                       className="text-destructive focus:text-destructive hover:bg-destructive hover:text-white"
                     >
                       <Trash2
                         aria-hidden="true"
-                        className="w-3.5 h-3.5 text-inherit"
+                        className="w-3.5 h-3.5 text-[currentColor]"
                       />
                       {t("message.actions.delete")}
                     </ContextMenuItem>

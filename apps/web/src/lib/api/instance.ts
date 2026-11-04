@@ -268,5 +268,7 @@ export const methods = (api: AxiosInstance) => {
 
     getPayments: () =>
       api.get<{ success: boolean } & PaymentHistory>("/api/payments"),
+
+    deleteNotification: (id: string) => api.delete(`/api/notifications/${id}`),
   };
 };

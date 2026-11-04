@@ -1,4 +1,8 @@
-import { Lang } from "shared/index";
+export type Role = "tasker" | "client";
+
+export type Lang = "en" | "fi-FI" | "sv-FI";
+
+export type Theme = "light" | "dark";
 
 export type PolicyTexts = {
   policyTitle: string;

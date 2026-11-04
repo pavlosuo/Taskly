@@ -1,5 +1,4 @@
 "use client";
-import { useState } from "react";
 import { ClipboardList, Loader2 } from "lucide-react";
 import clsx from "clsx";
 import { useTranslation } from "react-i18next";
@@ -16,16 +15,36 @@ import {
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { isFiltered } from "@/utils/tasksUtils";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 
 export const Client = (initial: TaskList) => {
   const b = useTasks(initial);
-  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
-  const [dialogOpen, setDialogOpen] = useState(false);
   const { t } = useTranslation(["tasks", "common"]);
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const taskId = searchParams.get("taskId");
+  const task = b.findTask(taskId);
+  const dialogOpen = Boolean(task);
+
+  const updateTaskId = (id: string | null) => {
+    const nextSearchParams = new URLSearchParams(searchParams.toString());
+    if (id) {
+      nextSearchParams.set("taskId", id);
+    } else {
+      nextSearchParams.delete("taskId");
+    }
+    const query = nextSearchParams.toString();
+    const url = query ? `${pathname}?${query}` : pathname;
+    router.replace(url, { scroll: false });
+  };
 
   const openTask = (task: Task) => {
-    setSelectedTaskId(task._id);
-    setDialogOpen(true);
+    updateTaskId(task._id);
+  };
+
+  const closeTask = () => {
+    updateTaskId(null);
   };
 
   const filtered = isFiltered(b.filters, b.query);
@@ -111,12 +130,14 @@ export const Client = (initial: TaskList) => {
           </Button>
         </div>
       )}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+      <Dialog
+        open={dialogOpen}
+        onOpenChange={(open) => {
+          if (!open) closeTask();
+        }}
+      >
         <DialogContent className="max-h-[85vh] w-[calc(100%-2rem)] gap-0 overflow-y-auto sm:max-w-5xl">
-          <ClientView
-            task={b.findTask(selectedTaskId)}
-            onClose={() => setDialogOpen(false)}
-          />
+          <ClientView task={task} onClose={closeTask} />
         </DialogContent>
       </Dialog>
     </div>

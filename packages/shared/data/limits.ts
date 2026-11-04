@@ -18,6 +18,4 @@ export const REVIEW_COMMENT_MAX_LENGTH = 1000;
 
 export const DAY_MS = 24 * 60 * 60 * 1000;
 
-export const DEADLINE_GRACE_MS = DAY_MS;
-
-export const TASK_JOB_BATCH_SIZE = 100;
+export const TASK_JOB_BATCH_SIZE = 50;

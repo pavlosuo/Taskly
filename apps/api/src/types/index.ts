@@ -13,8 +13,30 @@ import {
   TaskResponse,
   GeoPoint,
   OtpChannel,
+  NotificationItem,
+  NotificationType,
+  NotificationActor,
 } from "shared/types";
 import { Server as SocketIOServer } from "socket.io";
+
+export interface NotificationInputBack {
+  userId: ObjectId;
+  type: NotificationType;
+  taskId?: ObjectId;
+  chatId?: ObjectId;
+  actor?: NotificationActor;
+  data?: Record<string, unknown>;
+}
+
+export type NotificationItemBack = Omit<
+  NotificationItem,
+  "_id" | "taskId" | "chatId" | "userId"
+> & {
+  _id: ObjectId;
+  userId: ObjectId;
+  taskId: ObjectId | null;
+  chatId: ObjectId | null;
+};
 
 export interface SendOtpParams {
   userId: ObjectId;
@@ -86,7 +108,6 @@ export interface TaskResponseBack extends Omit<
 
 export interface IServer {
   mailer: Transporter | null;
-  emitToUser(userId: ObjectId, event: string, payload: unknown): void;
   getIO(): SocketIOServer;
   getDb(): Promise<Db>;
   indexesConfig(): Promise<void>;

@@ -14,7 +14,7 @@ import { useState, useCallback, useRef, useEffect } from "react";
 import { useUser } from "@/providers/UserProvider";
 import clsx from "clsx";
 
-const INACTIVITY_TIMEOUT_MS = 5 * 60 * 1000;
+const INACTIVITY_TIMEOUT_MS = 10 * 60 * 1000;
 const COUNTDOWN_DURATION_S = 60;
 const TOTAL_MS = INACTIVITY_TIMEOUT_MS + COUNTDOWN_DURATION_S * 1000;
 const TICK_MS = 1000;

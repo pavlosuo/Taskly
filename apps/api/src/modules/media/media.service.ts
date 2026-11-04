@@ -1,7 +1,7 @@
 import { ObjectId } from "mongodb";
 import fs from "fs/promises";
 import { ServiceResult } from "shared/types";
-import { filePath } from "@/utils";
+import { filePath, toObjectId } from "@/utils";
 import { MediaItemBack, ChatBack, MessageBack, IServer, User } from "@/types";
 import { NEXT_PUBLIC_API_URL } from "@/env";
 
@@ -37,7 +37,7 @@ export class MediaService {
     }
   }
 
-  async getAll(user: { _id: ObjectId }): Promise<ServiceResult> {
+  async getAll(user: User): Promise<ServiceResult> {
     try {
       const db = await this.server.getDb();
       const items = await db
@@ -54,15 +54,19 @@ export class MediaService {
 
   async delete(user: User, id: string): Promise<ServiceResult> {
     try {
+      const mediaId = toObjectId(id);
+      if (!mediaId) {
+        return { success: false, status: 400, message: "media.notFound" };
+      }
       const db = await this.server.getDb();
       const item = await db.collection("media").findOne({
-        _id: new ObjectId(id),
+        _id: mediaId,
         ownerId: user._id,
       });
       if (!item)
         return { success: false, status: 404, message: "media.notFound" };
       await fs.unlink(filePath(item.filename, item.ownerId)).catch(() => {});
-      await db.collection("media").deleteOne({ _id: new ObjectId(id) });
+      await db.collection("media").deleteOne({ _id: mediaId });
       return { success: true, status: 200 };
     } catch (e) {
       console.error("Delete media error:", e);
@@ -76,19 +80,20 @@ export class MediaService {
     source: string,
   ): Promise<ServiceResult> {
     try {
+      const mediaId = toObjectId(id);
+      if (!mediaId) {
+        return { success: false, status: 400, message: "media.notFound" };
+      }
       const db = await this.server.getDb();
       const item = await db.collection("media").findOne({
-        _id: new ObjectId(id),
+        _id: mediaId,
         ownerId,
       });
       if (!item)
         return { success: false, status: 404, message: "media.notFound" };
       await db
         .collection("media")
-        .updateOne(
-          { _id: new ObjectId(id) },
-          { $addToSet: { publicSources: source } },
-        );
+        .updateOne({ _id: mediaId }, { $addToSet: { publicSources: source } });
       return { success: true, status: 200 };
     } catch (e) {
       console.error("Add public source error:", e);
@@ -102,9 +107,13 @@ export class MediaService {
     source: string,
   ): Promise<ServiceResult> {
     try {
+      const mediaId = toObjectId(id);
+      if (!mediaId) {
+        return { success: false, status: 400, message: "media.notFound" };
+      }
       const db = await this.server.getDb();
       const item = await db.collection("media").findOne({
-        _id: new ObjectId(id),
+        _id: mediaId,
         ownerId,
       });
       if (!item)
@@ -129,10 +138,12 @@ export class MediaService {
     ServiceResult<{ filePath: string; mimeType: string; fileSize: number }>
   > {
     try {
+      const mediaId = toObjectId(id);
+      if (!mediaId) {
+        return { success: false, status: 400, message: "media.notFound" };
+      }
       const db = await this.server.getDb();
-      const item = await db
-        .collection("media")
-        .findOne({ _id: new ObjectId(id) });
+      const item = await db.collection("media").findOne({ _id: mediaId });
 
       if (!item)
         return { success: false, status: 404, message: "media.notFound" };

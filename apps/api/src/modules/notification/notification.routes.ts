@@ -8,5 +8,6 @@ export function notificationRoutes(server: IServer): Router {
   router.get("/", server.requireAuth(), ctrl.list);
   router.patch("/read-all", server.requireAuth(), ctrl.markAllRead);
   router.patch("/:id/read", server.requireAuth(), ctrl.markRead);
+  router.delete("/:id", server.requireAuth(), ctrl.remove);
   return router;
 }

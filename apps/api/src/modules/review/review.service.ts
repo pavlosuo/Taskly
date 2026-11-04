@@ -31,14 +31,13 @@ export class ReviewService {
     try {
       const db = await this.server.getDb();
       let review: Record<string, any> | null = null;
-      await session.withTransaction(async () => {
+      await this.notifications.transaction(session, async (notify) => {
         const task = await db
           .collection("tasks")
           .findOne({ _id: _taskId }, { session });
         if (!task) throw { status: 404, message: "task.notFound" };
-        const isClient = task.clientId.toString() === user._id.toString();
-        const isTasker =
-          task.assignedTaskerId?.toString() === user._id.toString();
+        const isClient = task.clientId.equals(user._id);
+        const isTasker = task.assignedTaskerId?.equals(user._id);
         if (!isClient && !isTasker)
           throw { status: 404, message: "task.notFound" };
         if (task.status !== "completed")
@@ -50,6 +49,7 @@ export class ReviewService {
         if (existing) throw { status: 409, message: "review.alreadyReviewed" };
 
         const targetId = isClient ? task.assignedTaskerId : task.clientId;
+
         const doc = {
           taskId: task._id,
           authorId: user._id,
@@ -59,20 +59,20 @@ export class ReviewService {
           comment: parsed.data.comment,
           createdAt: new Date(),
         };
+
         const result = await db
           .collection("reviews")
           .insertOne(doc, { session });
-        await this.notifications.push(
-          [
-            {
-              userId: targetId,
-              type: "review_received",
-              taskId: task._id,
-              data: { taskTitle: task.title, rating: parsed.data.rating },
-            },
-          ],
-          session,
-        );
+
+        await notify([
+          {
+            userId: targetId,
+            type: "review_received",
+            taskId: task._id,
+            data: { taskTitle: task.title, rating: parsed.data.rating },
+          },
+        ]);
+
         review = { _id: result.insertedId, ...doc };
       });
       return { success: true, status: 201, data: { review } };
@@ -106,8 +106,8 @@ export class ReviewService {
         return { success: false, status: 404, message: "task.notFound" };
       }
       const isParty =
-        task.clientId.toString() === user._id.toString() ||
-        task.assignedTaskerId?.toString() === user._id.toString();
+        task.clientId?.equals(user._id) ||
+        task.assignedTaskerId?.equals(user._id);
       if (!isParty) {
         return { success: false, status: 404, message: "task.notFound" };
       }
@@ -115,12 +115,8 @@ export class ReviewService {
         .collection("reviews")
         .find({ taskId: task._id })
         .toArray();
-      const mine =
-        items.find((r) => r.authorId.toString() === user._id.toString()) ??
-        null;
-      const received =
-        items.find((r) => r.targetId.toString() === user._id.toString()) ??
-        null;
+      const mine = items.find((r) => r.authorId?.equals(user._id)) ?? null;
+      const received = items.find((r) => r.targetId?.equals(user._id)) ?? null;
       return { success: true, status: 200, data: { mine, received } };
     } catch (e) {
       console.error("Get task reviews error:", e);

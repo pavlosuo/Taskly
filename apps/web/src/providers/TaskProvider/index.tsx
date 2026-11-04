@@ -297,6 +297,13 @@ export const TaskProvider = ({ children }: TaskProviderProps) => {
     return () => clearTimeout(timeout);
   }, [serverKey, tab, isInitialized, fetchTasks]);
 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchTasks(lastQueryRef.current);
+    }, REFETCH_ON_FOCUS_MS);
+    return () => clearInterval(interval);
+  }, [fetchTasks]);
+
   const changeTab = useCallback((next: TasksTab) => {
     setTab(next);
     setFilters((f) => (f.status === "all" ? f : { ...f, status: "all" }));
@@ -397,9 +404,7 @@ export const TaskProvider = ({ children }: TaskProviderProps) => {
           await axiosApi.markTaskDone(id);
           patchTask(id, {
             status: "pending_confirmation",
-            autoConfirmAt: new Date(
-              Date.now() + AUTO_CONFIRM_DAYS * DAY_MS,
-            ).toISOString(),
+            autoConfirmAt: new Date(Date.now() + AUTO_CONFIRM_DAYS * DAY_MS),
           } as Partial<Task>);
         },
         { success: "tasks:toast.markedDone" },
@@ -564,10 +569,10 @@ export const TaskProvider = ({ children }: TaskProviderProps) => {
         isLoadingMore,
         isInitialized,
         tab,
-        changeTab,
         query,
-        setQuery,
         filters,
+        changeTab,
+        setQuery,
         setFilters,
         reset,
         findTask,

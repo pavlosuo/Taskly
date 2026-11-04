@@ -11,6 +11,7 @@ import {
   ShieldCheck,
   TvMinimalPlay,
   Drill,
+  Star,
 } from "lucide-react";
 import {
   PublicProfileUser,
@@ -165,7 +166,35 @@ export const Main = ({
                 </span>
               )}
             </div>
-            <p className="text-sm text-grey mt-0.5">@{user.username}</p>
+            <div className="flex gap-1 mt-1">
+              <p className="text-sm text-grey mt-0.5">@{user.username}</p>
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                {user.rating ? (
+                  <span className="inline-flex items-center gap-1 text-xs font-medium text-foreground">
+                    <Star
+                      aria-hidden="true"
+                      className="size-3.5 fill-amber-500 text-amber-500"
+                    />
+                    {user.rating.avg.toFixed(1)}
+                    <span className="font-normal text-muted-foreground">
+                      ({user.rating.count})
+                    </span>
+                  </span>
+                ) : (
+                  <span className="text-xs text-muted-foreground">
+                    {t("tasks:responses.noRating")}
+                  </span>
+                )}
+                {user.completedCount ? (
+                  <span className="text-xs text-muted-foreground">
+                    {t("tasks:responses.completed", {
+                      count: user.completedCount ?? 0,
+                    })}
+                  </span>
+                ) : null}
+              </div>
+            </div>
+
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 mt-3 text-xs text-grey">
               <span className="inline-flex items-center gap-1.5">
                 <CalendarDays aria-hidden="true" className="w-3.5 h-3.5" />

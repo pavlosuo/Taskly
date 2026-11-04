@@ -44,6 +44,10 @@
     "review_received": {
       "title": "New review",
       "description": "You received {{rating}}★ for “{{taskTitle}}”."
+    },
+    "chat_new": {
+      "title": "You have a new chat",
+      "description": "You received a new message from {{userName}}."
     }
   }
 }

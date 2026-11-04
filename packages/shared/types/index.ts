@@ -6,3 +6,6 @@ export * from "./common";
 export * from "./media";
 export * from "./chat";
 export * from "./task";
+export * from "./notification";
+export * from "./review";
+export * from "./payment";

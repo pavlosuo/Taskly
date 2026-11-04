@@ -83,7 +83,7 @@ export const WalletDialog = () => {
     };
   }, [open, getPayments]);
 
-  if (user?.role === "admin") return <div></div>;
+  if (user?.role === "admin") return null;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -118,11 +118,11 @@ export const WalletDialog = () => {
         )}
         {data && (
           <div className="flex flex-col gap-4">
-            <div className="grid grid-cols-3 gap-2">
+            <div className="flex flex-wrap gap-2">
               {STATUSES.map((s) => (
                 <div
                   key={s}
-                  className="rounded-xl border border-border bg-muted/30 px-3 py-2.5"
+                  className="min-w-35 w-full flex-1 rounded-xl border border-border bg-muted/30 px-3 py-2.5"
                 >
                   <p className="text-xs text-grey">
                     {t(`wallet.${user?.role}.${s}`)}

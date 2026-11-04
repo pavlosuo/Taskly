@@ -1,11 +1,10 @@
-import { IServer, User, TaskBack } from "@/types";
+import { IServer, User, TaskBack, NotificationInputBack } from "@/types";
 import { ObjectId, Document } from "mongodb";
 import {
   TASK_SORTS,
   EARTH_RADIUS_M,
   AUTO_CONFIRM_DAYS,
   DAY_MS,
-  DEADLINE_GRACE_MS,
   TASK_JOB_BATCH_SIZE,
   ServiceResult,
   taskCreateSchema,
@@ -21,10 +20,7 @@ import {
   toDeadlineAt,
 } from "@/utils";
 import { PaymentService } from "@/modules/payment/payment.service";
-import {
-  NotificationService,
-  NotificationInput,
-} from "@/modules/notification/notification.service";
+import { NotificationService } from "@/modules/notification/notification.service";
 
 export class TaskService {
   private payments: PaymentService;
@@ -33,6 +29,9 @@ export class TaskService {
   constructor(private server: IServer) {
     this.payments = new PaymentService(server);
     this.notifications = new NotificationService(server);
+    this.startJobs().catch((e) => {
+      console.error("Scheduled jobs error:", e);
+    });
   }
 
   async create(user: User, payload: unknown): Promise<ServiceResult> {
@@ -49,8 +48,8 @@ export class TaskService {
     }
     const data = parsed.data;
     const deadlineAt = toDeadlineAt(data.deadline);
-    if (deadlineAt && deadlineAt.getTime() + DEADLINE_GRACE_MS < Date.now()) {
-      return { success: false, status: 400, message: "task.deadlinePast" };
+    if (deadlineAt && deadlineAt.getTime() < Date.now()) {
+      return { success: false, status: 400, message: "task.date.past" };
     }
     try {
       const db = await this.server.getDb();
@@ -69,8 +68,8 @@ export class TaskService {
           lng: data.location.lng,
         },
         ...(geo && { geo }),
-        ...(deadlineAt && { deadlineAt }),
         deadline: data.deadline,
+        ...(deadlineAt && { deadlineAt }),
         status: "open",
         assignedTaskerId: null,
         responsesCount: 0,
@@ -78,7 +77,7 @@ export class TaskService {
         updatedAt: now,
       };
       const result = await db.collection("tasks").insertOne(doc);
-      const { geo: _geo, ...publicDoc } = doc;
+      const { geo: _geo, deadlineAt: _deadlineAt, ...publicDoc } = doc;
       return {
         success: true,
         status: 201,
@@ -263,8 +262,8 @@ export class TaskService {
       }
       if (task.status !== "open") {
         const isParty =
-          task.clientId.toString() === user._id.toString() ||
-          task.assignedTaskerId?.toString() === user._id.toString();
+          task.clientId.equals(user._id) ||
+          task.assignedTaskerId?.equals(user._id);
         if (!isParty) {
           const responded = await db
             .collection("taskResponses")
@@ -307,7 +306,7 @@ export class TaskService {
       if (!task) {
         return { success: false, status: 404, message: "task.notFound" };
       }
-      if (task.clientId.toString() !== user._id.toString()) {
+      if (!task.clientId.equals(user._id)) {
         return { success: false, status: 403, message: "general.forbidden" };
       }
       if (task.status !== "open") {
@@ -317,7 +316,6 @@ export class TaskService {
           message: "task.cannotEditAssigned",
         };
       }
-
       const data = parsed.data;
       const update: Record<string, any> = { updatedAt: new Date() };
       if (data.title !== undefined) update.title = data.title;
@@ -329,11 +327,8 @@ export class TaskService {
       if (data.budget !== undefined) update.budget = data.budget;
       if (data.deadline !== undefined) {
         const deadlineAt = toDeadlineAt(data.deadline);
-        if (
-          deadlineAt &&
-          deadlineAt.getTime() + DEADLINE_GRACE_MS < Date.now()
-        ) {
-          return { success: false, status: 400, message: "task.deadlinePast" };
+        if (deadlineAt && deadlineAt.getTime() < Date.now()) {
+          return { success: false, status: 400, message: "task.date.past" };
         }
         update.deadline = data.deadline;
         update.deadlineAt = deadlineAt;
@@ -345,14 +340,12 @@ export class TaskService {
           lng: data.location.lng,
         };
       }
-
       const ops: Document = { $set: update };
       if (data.location !== undefined) {
         const geo = toGeoPoint(data.location);
         if (geo) update.geo = geo;
         else ops.$unset = { geo: "" };
       }
-
       const res = await db
         .collection("tasks")
         .updateOne({ _id: task._id, status: "open" }, ops);
@@ -381,7 +374,7 @@ export class TaskService {
       await session.withTransaction(async () => {
         const task = await db.collection("tasks").findOne({ _id }, { session });
         if (!task) throw { status: 404, message: "task.notFound" };
-        if (task.clientId.toString() !== user._id.toString())
+        if (!task.clientId.equals(user._id))
           throw { status: 403, message: "general.forbidden" };
         const deletable =
           task.status === "open" ||
@@ -433,7 +426,7 @@ export class TaskService {
     const session = this.server.getClient().startSession();
     try {
       const db = await this.server.getDb();
-      await session.withTransaction(async () => {
+      await this.notifications.transaction(session, async (notify) => {
         const tasks = db.collection("tasks");
         const task = await tasks.findOne({ _id }, { session });
         if (!task) throw { status: 404, message: "task.notFound" };
@@ -449,10 +442,10 @@ export class TaskService {
             $set: {
               status: "pending_confirmation",
               doneAt: now,
+              updatedAt: now,
               autoConfirmAt: new Date(
                 now.getTime() + AUTO_CONFIRM_DAYS * DAY_MS,
               ),
-              updatedAt: now,
             },
           },
           { session },
@@ -460,17 +453,14 @@ export class TaskService {
         if (res.modifiedCount === 0)
           throw { status: 409, message: "task.cannotMarkDone" };
 
-        await this.notifications.push(
-          [
-            {
-              userId: task.clientId,
-              type: "task_done",
-              taskId: task._id,
-              data: { taskTitle: task.title, days: AUTO_CONFIRM_DAYS },
-            },
-          ],
-          session,
-        );
+        await notify([
+          {
+            userId: task.clientId,
+            type: "task_done",
+            taskId: task._id,
+            data: { taskTitle: task.title, days: AUTO_CONFIRM_DAYS },
+          },
+        ]);
       });
       return { success: true, status: 200 };
     } catch (e: any) {
@@ -492,7 +482,7 @@ export class TaskService {
     const session = this.server.getClient().startSession();
     try {
       const db = await this.server.getDb();
-      await session.withTransaction(async () => {
+      await this.notifications.transaction(session, async (notify) => {
         const task = await db.collection("tasks").findOne({ _id }, { session });
         if (!task) throw { status: 404, message: "task.notFound" };
         if (task.assignedTaskerId?.toString() !== user._id.toString())
@@ -518,18 +508,16 @@ export class TaskService {
             { $set: { status: "withdrawn_after_accept", updatedAt: now } },
             { session },
           );
-        await this.payments.refund(db, session, task._id);
-        await this.notifications.push(
-          [
-            {
-              userId: task.clientId,
-              type: "task_abandoned",
-              taskId: task._id,
-              data: { taskTitle: task.title },
-            },
-          ],
-          session,
-        );
+        await this.payments.refund(session, task._id);
+
+        await notify([
+          {
+            userId: task.clientId,
+            type: "task_abandoned",
+            taskId: task._id,
+            data: { taskTitle: task.title },
+          },
+        ]);
       });
       return { success: true, status: 200 };
     } catch (e: any) {
@@ -543,48 +531,6 @@ export class TaskService {
     }
   }
 
-  async runScheduled(): Promise<void> {
-    const db = await this.server.getDb();
-    const tasks = db.collection("tasks");
-    const now = Date.now();
-    const stale = new Date(now - DEADLINE_GRACE_MS);
-
-    const jobs: [Document, (id: ObjectId) => Promise<ServiceResult>][] = [
-      [
-        {
-          status: "pending_confirmation",
-          autoConfirmAt: { $lte: new Date(now) },
-        },
-        (id) => this.completeTask(id, null),
-      ],
-      [
-        { status: "assigned", deadlineAt: { $lte: stale } },
-        (id) => this.cancelTask(id, null),
-      ],
-      [
-        { status: "open", deadlineAt: { $lte: stale } },
-        (id) => this.expireTask(id),
-      ],
-    ];
-
-    for (const [filter, run] of jobs) {
-      const due = await tasks
-        .find(filter, { projection: { _id: 1 } })
-        .limit(TASK_JOB_BATCH_SIZE)
-        .toArray();
-      for (const task of due) {
-        const res = await run(task._id);
-        if (!res.success && res.status !== 409) {
-          console.error(
-            "Scheduled job failed:",
-            task._id.toString(),
-            res.message,
-          );
-        }
-      }
-    }
-  }
-
   private async completeTask(
     _id: ObjectId,
     user: User | null,
@@ -592,7 +538,7 @@ export class TaskService {
     const session = this.server.getClient().startSession();
     try {
       const db = await this.server.getDb();
-      await session.withTransaction(async () => {
+      await this.notifications.transaction(session, async (notify) => {
         const tasks = db.collection("tasks");
         const task = await tasks.findOne({ _id }, { session });
         if (!task) throw { status: 404, message: "task.notFound" };
@@ -618,9 +564,9 @@ export class TaskService {
         );
         if (res.modifiedCount === 0)
           throw { status: 409, message: "task.cannotComplete" };
-        await this.payments.release(db, session, task._id);
+        await this.payments.release(session, task._id);
         const data = { taskTitle: task.title };
-        const notices: NotificationInput[] = [
+        const notices: NotificationInputBack[] = [
           {
             userId: task.assignedTaskerId,
             type: user ? "task_completed" : "task_auto_completed",
@@ -636,7 +582,8 @@ export class TaskService {
             data,
           });
         }
-        await this.notifications.push(notices, session);
+
+        await notify(notices);
       });
       return { success: true, status: 200 };
     } catch (e: any) {
@@ -657,7 +604,7 @@ export class TaskService {
     const session = this.server.getClient().startSession();
     try {
       const db = await this.server.getDb();
-      await session.withTransaction(async () => {
+      await this.notifications.transaction(session, async (notify) => {
         const tasks = db.collection("tasks");
         const responses = db.collection("taskResponses");
         const task = await tasks.findOne({ _id }, { session });
@@ -696,10 +643,9 @@ export class TaskService {
           throw { status: 409, message: "task.cannotCancel" };
 
         const wasAssigned = task.status === "assigned";
-        if (wasAssigned) await this.payments.refund(db, session, task._id);
-
+        if (wasAssigned) await this.payments.refund(session, task._id);
         const data = { taskTitle: task.title };
-        const notices: NotificationInput[] = pending.map((r) => ({
+        const notices: NotificationInputBack[] = pending.map((r) => ({
           userId: r.taskerId,
           type: "response_rejected",
           taskId: task._id,
@@ -721,7 +667,7 @@ export class TaskService {
             data,
           });
         }
-        await this.notifications.push(notices, session);
+        await notify(notices);
       });
       return { success: true, status: 200 };
     } catch (e: any) {
@@ -739,7 +685,7 @@ export class TaskService {
     const session = this.server.getClient().startSession();
     try {
       const db = await this.server.getDb();
-      await session.withTransaction(async () => {
+      await this.notifications.transaction(session, async (notify) => {
         const tasks = db.collection("tasks");
         const responses = db.collection("taskResponses");
         const task = await tasks.findOne({ _id }, { session });
@@ -771,7 +717,7 @@ export class TaskService {
           throw { status: 409, message: "task.cannotExpire" };
 
         const data = { taskTitle: task.title };
-        const notices: NotificationInput[] = pending.map((r) => ({
+        const notices: NotificationInputBack[] = pending.map((r) => ({
           userId: r.taskerId,
           type: "response_rejected",
           taskId: task._id,
@@ -783,7 +729,8 @@ export class TaskService {
           taskId: task._id,
           data,
         });
-        await this.notifications.push(notices, session);
+
+        await notify(notices);
       });
       return { success: true, status: 200 };
     } catch (e: any) {
@@ -795,6 +742,65 @@ export class TaskService {
     } finally {
       await session.endSession();
     }
+  }
+
+  async runScheduled(): Promise<void> {
+    const db = await this.server.getDb();
+    const tasks = db.collection("tasks");
+    const now = Date.now();
+
+    const jobs: [Document, (id: ObjectId) => Promise<ServiceResult>][] = [
+      [
+        {
+          status: "pending_confirmation",
+          autoConfirmAt: { $lte: new Date(now) },
+        },
+        (id) => this.completeTask(id, null),
+      ],
+      [
+        { status: "assigned", deadlineAt: { $lte: new Date(now) } },
+        (id) => this.cancelTask(id, null),
+      ],
+      [
+        { status: "open", deadlineAt: { $lte: new Date(now) } },
+        (id) => this.expireTask(id),
+      ],
+    ];
+
+    for (const [filter, run] of jobs) {
+      const due = await tasks
+        .find(filter, { projection: { _id: 1 } })
+        .limit(TASK_JOB_BATCH_SIZE)
+        .toArray();
+      console.log(due);
+      for (const task of due) {
+        const res = await run(task._id);
+        if (!res.success && res.status !== 409) {
+          console.error(
+            "Scheduled job failed:",
+            task._id.toString(),
+            res.message,
+          );
+        }
+      }
+    }
+  }
+
+  async startJobs() {
+    let running = false;
+    const tick = async () => {
+      if (running) return;
+      running = true;
+      try {
+        await this.runScheduled();
+      } catch (e) {
+        console.error("Scheduled jobs error:", e);
+      } finally {
+        running = false;
+      }
+    };
+    tick();
+    return setInterval(tick, 60_000);
   }
 }
 
@@ -831,7 +837,7 @@ export class TaskResponseService {
     try {
       const db = await this.server.getDb();
       let response: Document | null = null;
-      await session.withTransaction(async () => {
+      await this.notifications.transaction(session, async (notify) => {
         const task = await db
           .collection("tasks")
           .findOne({ _id: _taskId }, { session });
@@ -871,17 +877,15 @@ export class TaskResponseService {
         if (bumped.modifiedCount === 0)
           throw { status: 409, message: "taskResponse.taskClosed" };
 
-        await this.notifications.push(
-          [
-            {
-              userId: task.clientId,
-              type: "response_new",
-              taskId: task._id,
-              data: { taskTitle: task.title, price: parsed.data.price },
-            },
-          ],
-          session,
-        );
+        await notify([
+          {
+            userId: task.clientId,
+            type: "response_new",
+            taskId: task._id,
+            data: { taskTitle: task.title, price: parsed.data.price },
+          },
+        ]);
+
         response = { _id: result.insertedId, ...doc };
       });
       return { success: true, status: 201, data: { response } };
@@ -1068,7 +1072,7 @@ export class TaskResponseService {
     const session = this.server.getClient().startSession();
     try {
       const db = await this.server.getDb();
-      await session.withTransaction(async () => {
+      await this.notifications.transaction(session, async (notify) => {
         const tasks = db.collection("tasks");
         const responses = db.collection("taskResponses");
         const task = await tasks.findOne({ _id: _taskId }, { session });
@@ -1126,7 +1130,7 @@ export class TaskResponseService {
         if (assigned.modifiedCount === 0)
           throw { status: 409, message: "taskResponse.taskAlreadyAssigned" };
 
-        await this.payments.hold(db, session, {
+        await this.payments.hold(session, {
           taskId: task._id,
           clientId: task.clientId,
           taskerId: response.taskerId,
@@ -1134,21 +1138,22 @@ export class TaskResponseService {
         });
 
         const data = { taskTitle: task.title };
-        const notices: NotificationInput[] = [
+        const notices: NotificationInputBack[] = [
           {
             userId: response.taskerId,
             type: "response_accepted",
             taskId: task._id,
             data,
           },
-          ...others.map((o): NotificationInput => ({
+          ...others.map((o): NotificationInputBack => ({
             userId: o.taskerId,
             type: "response_rejected",
             taskId: task._id,
             data,
           })),
         ];
-        await this.notifications.push(notices, session);
+
+        await notify(notices);
       });
       return { success: true, status: 200 };
     } catch (e: any) {
@@ -1178,7 +1183,7 @@ export class TaskResponseService {
     const session = this.server.getClient().startSession();
     try {
       const db = await this.server.getDb();
-      await session.withTransaction(async () => {
+      await this.notifications.transaction(session, async (notify) => {
         const task = await db
           .collection("tasks")
           .findOne({ _id: _taskId }, { session });
@@ -1211,17 +1216,15 @@ export class TaskResponseService {
             { $inc: { responsesCount: -1 } },
             { session },
           );
-        await this.notifications.push(
-          [
-            {
-              userId: response.taskerId,
-              type: "response_rejected",
-              taskId: task._id,
-              data: { taskTitle: task.title },
-            },
-          ],
-          session,
-        );
+
+        await notify([
+          {
+            userId: response.taskerId,
+            type: "response_rejected",
+            taskId: task._id,
+            data: { taskTitle: task.title },
+          },
+        ]);
       });
       return { success: true, status: 200 };
     } catch (e: any) {

@@ -118,6 +118,7 @@ export class TaskResponseController {
     this.getForTask = this.getForTask.bind(this);
     this.withdraw = this.withdraw.bind(this);
     this.accept = this.accept.bind(this);
+    this.decline = this.decline.bind(this);
   }
 
   async create(req: Request, res: Response) {

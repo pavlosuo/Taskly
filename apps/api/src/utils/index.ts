@@ -1,6 +1,12 @@
 import path from "path";
 import { createHash, randomInt, timingSafeEqual } from "crypto";
-import { PublicUser, MediaItemPublic, Tag, GeoPoint } from "shared/types";
+import {
+  PublicUser,
+  MediaItemPublic,
+  Tag,
+  GeoPoint,
+  Deadline,
+} from "shared/types";
 import { User } from "@/types";
 import { ObjectId, WithId, Document } from "mongodb";
 export * from "@/utils/limiters";
@@ -161,14 +167,16 @@ export function normalizeTagList(values: Tag[]): Tag[] {
   return result;
 }
 
-export const escapeRegex = (s: string) =>
-  s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+export const escapeRegex = (s: string) => {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+};
 
-export const splitList = (value: unknown) =>
-  String(value ?? "")
+export const splitList = (value: unknown) => {
+  return String(value ?? "")
     .split(",")
     .map((s) => s.trim())
     .filter(Boolean);
+};
 
 export const toGeoPoint = (
   loc?: { lat?: number; lng?: number } | null,
@@ -181,12 +189,9 @@ export const toGeoPoint = (
   return { type: "Point", coordinates: [lng, lat] };
 };
 
-export const toDeadlineAt = (deadline?: {
-  date?: unknown;
-  time?: string;
-}): Date | null => {
+export const toDeadlineAt = (deadline?: Deadline): Date | null => {
   if (!deadline?.date) return null;
-  const base = new Date(deadline.date as string | Date);
+  const base = new Date(deadline.date);
   if (Number.isNaN(base.getTime())) return null;
   const match = /^(\d{1,2}):(\d{2})$/.exec(deadline.time ?? "");
   if (match) {

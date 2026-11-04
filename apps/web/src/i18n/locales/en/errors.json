@@ -232,7 +232,8 @@
     },
     "date": {
       "required": "Date is required",
-      "invalid": "Date must be a valid date"
+      "invalid": "Date must be a valid date",
+      "past": "Deadline must be in the future"
     },
     "time": {
       "required": "Time is required",

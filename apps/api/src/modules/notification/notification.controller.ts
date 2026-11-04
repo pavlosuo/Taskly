@@ -10,6 +10,21 @@ export class NotificationController {
     this.list = this.list.bind(this);
     this.markRead = this.markRead.bind(this);
     this.markAllRead = this.markAllRead.bind(this);
+    this.remove = this.remove.bind(this);
+  }
+
+  async remove(req: Request, res: Response) {
+    const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    const result = await this.service.remove(req.user, id);
+    if (!result.success)
+      return res.status(result.status).json({
+        success: false,
+        message: result.message,
+      });
+    return res.json({
+      success: true,
+      ...(result.data ?? {}),
+    });
   }
 
   async list(req: Request, res: Response) {

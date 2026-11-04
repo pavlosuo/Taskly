@@ -21,7 +21,6 @@ import dns from "node:dns/promises";
 import { Server as HTTPServer } from "http";
 import { Server as SocketIOServer, Socket } from "socket.io";
 import { parseCookieHeader } from "@/utils";
-import { TaskService } from "@/modules/task/task.service";
 
 dns.setServers(["1.1.1.1", "1.0.0.1"]);
 
@@ -36,28 +35,6 @@ export class Server implements IServer {
     this.port = port;
   }
 
-  getDb(): Promise<Db> {
-    if (!this._dbPromise) {
-      this._client = new MongoClient(MONGODB_URI || "", {
-        serverApi: {
-          version: ServerApiVersion.v1,
-          strict: false,
-          deprecationErrors: true,
-        },
-      });
-      this._dbPromise = this._client
-        .connect()
-        .then((c) => c.db("app"))
-        .catch(async (err) => {
-          await this._client?.close().catch(() => {});
-          this._client = null;
-          this._dbPromise = null;
-          return Promise.reject(err);
-        });
-    }
-    return this._dbPromise;
-  }
-
   getClient(): MongoClient {
     if (!this._client) {
       this._client = new MongoClient(MONGODB_URI || "", {
@@ -69,6 +46,21 @@ export class Server implements IServer {
       });
     }
     return this._client;
+  }
+
+  getDb(): Promise<Db> {
+    if (!this._dbPromise) {
+      this._dbPromise = this.getClient()
+        .connect()
+        .then((c) => c.db("app"))
+        .catch(async (err) => {
+          await this._client?.close().catch(() => {});
+          this._client = null;
+          this._dbPromise = null;
+          return Promise.reject(err);
+        });
+    }
+    return this._dbPromise;
   }
 
   async sendEmail({
@@ -208,10 +200,6 @@ export class Server implements IServer {
       req.user = user;
       next();
     };
-  }
-
-  emitToUser(userId: ObjectId, event: string, payload: unknown) {
-    this.getIO().to(`user:${userId.toString()}`).emit(event, payload);
   }
 
   getIO(): SocketIOServer {
@@ -355,6 +343,15 @@ export class Server implements IServer {
           { createdAt: 1 },
           { expireAfterSeconds: 60 * 60 * 24 * 30 },
         ),
+
+      db.collection("notifications").createIndex(
+        { userId: 1, chatId: 1 },
+        {
+          unique: true,
+          partialFilterExpression: { type: "chat_message", read: false },
+          name: "uniq_unread_chat_message",
+        },
+      ),
     ]);
   }
 
@@ -364,27 +361,8 @@ export class Server implements IServer {
       return;
     }
     await this.indexesConfig();
-    await this.startJobs(this);
     const app = createApp(this).listen(this.port);
     this.initSockets(app);
-  }
-
-  async startJobs(server: IServer) {
-    const tasks = new TaskService(server);
-    let running = false;
-    const tick = async () => {
-      if (running) return;
-      running = true;
-      try {
-        await tasks.runScheduled();
-      } catch (e) {
-        console.error("Scheduled jobs error:", e);
-      } finally {
-        running = false;
-      }
-    };
-    tick();
-    return setInterval(tick, 60_000);
   }
 }
 

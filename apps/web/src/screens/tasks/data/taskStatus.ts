@@ -24,9 +24,9 @@ export const TASK_STATUS_STYLES: Record<TaskStatus, StatusStyle> = {
     dot: "bg-emerald-500",
   },
   cancelled: {
-    bar: "bg-muted-foreground/40",
-    chip: "border-muted bg-muted text-grey",
-    dot: "bg-muted-foreground",
+    bar: "bg-destructive",
+    chip: "border-destructive/15 bg-destructive/8 text-destructive",
+    dot: "bg-destructive",
   },
   expired: {
     bar: "bg-muted-foreground/40",

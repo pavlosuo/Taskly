@@ -17,7 +17,7 @@ import { APP_NAME, PAGES_META, CHAT_PAGE_META } from "shared/data";
 import clsx from "clsx";
 import { useTheme } from "@/providers/ThemeProvider";
 import { useTranslation } from "react-i18next";
-import { WalletDialog } from "@/screens/tasks/ui/WalletDialog";
+import { WalletDialog } from "@/components/shared/WalletDialog";
 
 export function AppSidebar() {
   const { user } = useUser();

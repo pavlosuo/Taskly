@@ -10,9 +10,13 @@ import {
 import { ChatBack, MessageBack, IServer, User } from "@/types";
 import { EMOJI } from "shared/data";
 import { stripMediaFields, toObjectId } from "@/utils";
+import { NotificationService } from "@/modules/notification/notification.service";
 
 export class ChatService {
-  constructor(private server: IServer) {}
+  private notifications: NotificationService;
+  constructor(private server: IServer) {
+    this.notifications = new NotificationService(server);
+  }
 
   private emitToChat(
     chatId: ObjectId,
@@ -210,19 +214,31 @@ export class ChatService {
     );
   }
 
+  private async refreshOther(chatId: ObjectId, otherId: ObjectId) {
+    const db = await this.server.getDb();
+    const chat = await db
+      .collection<ChatBack>("chats")
+      .findOne({ _id: chatId });
+    if (!chat || chat.deletedBy.some((id) => id.equals(otherId))) return;
+    const [view] = await this.enrichChats([chat], otherId);
+    this.notifications.emit(otherId, "chat:updated", { chat: view });
+    await this.notifications.syncChatMessage(otherId, chatId);
+  }
+
   async createChat(
     user: User,
     payload: CreateChatPayload,
   ): Promise<ServiceResult> {
     try {
-      if (!payload.memberId) {
+      const otherId = toObjectId(payload.memberId);
+      if (!otherId) {
         return {
           success: false,
           status: 400,
-          message: "chat.memberIdRequired",
+          message: "chat.memberNotFound",
         };
       }
-      if (payload.memberId === user._id.toString()) {
+      if (otherId.equals(user._id)) {
         return {
           success: false,
           status: 400,
@@ -230,10 +246,6 @@ export class ChatService {
         };
       }
       const db = await this.server.getDb();
-      const otherId = toObjectId(payload.memberId);
-      if (!otherId) {
-        return { success: false, status: 404, message: "chat.memberNotFound" };
-      }
       const otherUser = await db
         .collection("users")
         .findOne({ _id: otherId }, { projection: { _id: 1 } });
@@ -267,15 +279,29 @@ export class ChatService {
         updatedAt: now,
       };
       const result = await db.collection("chats").insertOne(doc);
-      const [enriched] = await this.enrichChats(
-        [{ ...doc, _id: result.insertedId }],
-        user._id,
-      );
-      const [otherView] = await this.enrichChats(
-        [{ ...doc, _id: result.insertedId }],
-        otherId,
-      );
-      this.server.emitToUser(otherId, "chat:new", { chat: otherView });
+      const chatDoc = { ...doc, _id: result.insertedId };
+      const [enriched] = await this.enrichChats([chatDoc], user._id);
+      const [otherView] = await this.enrichChats([chatDoc], otherId);
+      this.notifications.emit(otherId, "chat:new", { chat: otherView });
+      try {
+        await this.notifications.push([
+          {
+            userId: otherId,
+            type: "chat_new",
+            chatId: result.insertedId,
+            actor: {
+              _id: otherView.member._id,
+              fullName: otherView.member.fullName,
+              initials: otherView.member.initials,
+              avatar: otherView.member.avatar
+                ? { url: otherView.member.avatar.url }
+                : null,
+            },
+          },
+        ]);
+      } catch (e) {
+        console.error("Chat notification error:", e);
+      }
       return { success: true, status: 201, data: { chat: enriched } };
     } catch (e) {
       console.error("Create chat error:", e);
@@ -328,10 +354,12 @@ export class ChatService {
       if (allDeleted) {
         await db.collection("messages").deleteMany({ chatId: chat._id });
         await db.collection("chats").deleteOne({ _id: chat._id });
+        await this.notifications.removeByChat(chat._id);
       } else {
         await db
           .collection<ChatBack>("chats")
           .updateOne({ _id: chat._id }, { $addToSet: { deletedBy: user._id } });
+        await this.notifications.removeByChat(chat._id, user._id);
       }
       return { success: true, status: 200 };
     } catch (e) {
@@ -388,20 +416,27 @@ export class ChatService {
       const text = payload.text?.trim() || null;
       const mediaIds = payload.mediaIds ?? [];
       if (!text && mediaIds.length === 0) {
-        return {
-          success: false,
-          status: 400,
-          message: "chat.message.empty",
-        };
+        return { success: false, status: 400, message: "chat.message.empty" };
       }
       const db = await this.server.getDb();
       const now = new Date();
+      const otherId = chat.participants.find((p) => !p.equals(user._id));
+      let otherViewing = false;
+      if (otherId) {
+        const sockets = await this.server
+          .getIO()
+          .in(`chat:${chat._id.toString()}`)
+          .fetchSockets();
+        otherViewing = sockets.some(
+          (s) => s.data.userId === otherId.toString(),
+        );
+      }
       const doc: Omit<MessageBack, "_id"> = {
         chatId: chat._id,
         senderId: user._id,
         text,
         mediaIds: mediaIds.map((id) => new ObjectId(id)),
-        readBy: [user._id],
+        readBy: otherViewing && otherId ? [user._id, otherId] : [user._id],
         reactions: [],
         edited: false,
         createdAt: now,
@@ -409,16 +444,46 @@ export class ChatService {
       };
       const result = await db.collection("messages").insertOne(doc);
       await this.recomputeLastMessage(chat._id);
+      if (otherId) {
+        await db
+          .collection<ChatBack>("chats")
+          .updateOne(
+            { _id: chat._id },
+            { $pull: { deletedBy: otherId }, $set: { updatedAt: now } },
+          );
+      }
       const [message] = await this.populateMessages([
         { ...doc, _id: result.insertedId },
       ]);
       this.emitToChat(chat._id, "message:new", { message }, user._id);
-      const otherId = chat.participants.find((p) => !p.equals(user._id));
+
       if (otherId) {
-        const chatUpdated = await this.assertParticipant(chatId, user._id);
+        const chatUpdated = await db
+          .collection<ChatBack>("chats")
+          .findOne({ _id: chat._id });
         if (chatUpdated) {
           const [otherView] = await this.enrichChats([chatUpdated], otherId);
-          this.server.emitToUser(otherId, "chat:updated", { chat: otherView });
+          this.notifications.emit(otherId, "chat:updated", { chat: otherView });
+          if (!otherViewing) {
+            try {
+              await this.notifications.pushChatMessage({
+                userId: otherId,
+                chatId: chat._id,
+                actor: {
+                  _id: otherView.member._id,
+                  fullName: otherView.member.fullName,
+                  initials: otherView.member.initials,
+                  avatar: otherView.member.avatar
+                    ? { url: otherView.member.avatar.url }
+                    : null,
+                },
+                preview: text ? text.slice(0, 120) : null,
+                hasMedia: mediaIds.length > 0,
+              });
+            } catch (e) {
+              console.error("Chat notification error:", e);
+            }
+          }
         }
       }
       return { success: true, status: 201, data: { message } };
@@ -442,6 +507,7 @@ export class ChatService {
         },
         { $addToSet: { readBy: user._id } },
       );
+      await this.notifications.markReadByChat(user._id, chat._id);
       this.emitToChat(
         chat._id,
         "chat:read",
@@ -508,6 +574,12 @@ export class ChatService {
         { ...msg, text: trimmed, edited: true, updatedAt: now },
       ]);
       this.emitToChat(chat._id, "message:updated", { message }, user._id);
+      const otherId = chat.participants.find((p) => !p.equals(user._id));
+      if (otherId) {
+        this.refreshOther(chat._id, otherId).catch((e) =>
+          console.error("Refresh other error:", e),
+        );
+      }
       return { success: true, status: 200, data: { message } };
     } catch (e) {
       console.error("Edit message error:", e);
@@ -548,6 +620,12 @@ export class ChatService {
         },
         user._id,
       );
+      const otherId = chat.participants.find((p) => !p.equals(user._id));
+      if (otherId) {
+        this.refreshOther(chat._id, otherId).catch((e) =>
+          console.error("Refresh other error:", e),
+        );
+      }
       return { success: true, status: 200 };
     } catch (e) {
       console.error("Delete message error:", e);

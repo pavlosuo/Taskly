@@ -796,32 +796,56 @@ export const ClientView = ({ task, onClose }: ViewProps) => {
           <StepTabs step={step} onChange={setStep} />
         </div>
       )}
-      {step === "overview" && <TaskSummary task={task} />}
-      {isMyTask && step === "respond" && (
-        <ResponsesPanel
-          responses={responses}
-          loading={loadingResponses}
-          taskOpen={task.status === "open"}
-          busy={isLoading}
-          onAccept={(id) =>
-            setCheckout(responses.find((r) => r._id === id) ?? null)
-          }
-          onReject={handleReject}
-        />
+      <div
+        className={clsx("flex flex-col gap-5", step !== "overview" && "hidden")}
+      >
+        <TaskSummary task={task} />
+      </div>
+      {isMyTask && (
+        <div
+          className={clsx(
+            "flex flex-col gap-5",
+            step !== "respond" && "hidden",
+          )}
+        >
+          <ResponsesPanel
+            responses={responses}
+            loading={loadingResponses}
+            taskOpen={task.status === "open"}
+            busy={isLoading}
+            onAccept={(id) =>
+              setCheckout(responses.find((r) => r._id === id) ?? null)
+            }
+            onReject={handleReject}
+          />
+        </div>
       )}
-      {isMyTask &&
-        step === "complete" &&
-        (FINAL_STEP_STATUSES.includes(task.status) ? (
+      {isMyTask && (
+        <div
+          className={clsx(
+            "flex flex-col gap-5",
+            !(
+              step === "complete" && FINAL_STEP_STATUSES.includes(task.status)
+            ) && "hidden",
+          )}
+        >
           <TaskFlowPanel
             task={task}
             role="client"
             amount={acceptedResponse?.price}
           />
-        ) : (
-          <p className="text-sm text-grey py-2 text-center">
+          <p
+            className={clsx(
+              "text-sm text-grey py-2 text-center",
+              step === "complete" &&
+                FINAL_STEP_STATUSES.includes(task.status) &&
+                "hidden",
+            )}
+          >
             {t("respond.finalLocked")}
           </p>
-        ))}
+        </div>
+      )}
       {isMyTask && (
         <MockCheckoutDialog
           response={checkout}
@@ -953,8 +977,6 @@ export const TaskerView = ({ task, onClose }: ViewProps) => {
 
   const messageLength = removeHtml(form.message ?? "").length;
 
-  console.log(loading);
-
   return (
     <>
       <DialogHeader className="mb-2">
@@ -975,171 +997,171 @@ export const TaskerView = ({ task, onClose }: ViewProps) => {
       <div className="mb-5">
         <StepTabs step={step} onChange={setStep} />
       </div>
-      {step === "overview" && (
-        <div className="flex flex-col gap-5">
-          <TaskSummary task={task} />
-          <div className="flex justify-end border-t border-border pt-5">
-            <Button
-              onClick={() => setStep("respond")}
-              className="w-full sm:w-auto"
-            >
-              {t("respond.continue")}
-              <ArrowRight aria-hidden="true" className="w-4 h-4" />
-            </Button>
-          </div>
+      <div
+        className={clsx("flex flex-col gap-5", step !== "overview" && "hidden")}
+      >
+        <TaskSummary task={task} />
+        <div className="flex justify-end border-t border-border pt-5">
+          <Button
+            onClick={() => setStep("respond")}
+            className="w-full sm:w-auto"
+          >
+            {t("respond.continue")}
+            <ArrowRight aria-hidden="true" className="w-4 h-4" />
+          </Button>
         </div>
-      )}
-      {step === "respond" && (
-        <div className="flex flex-col gap-5">
-          {loading && <Spinner />}
-          {!loading && task.status !== "open" && !myResponse && (
-            <h3 className="text-md text-grey py-2 text-center">
-              {t("respond.closed")}
-            </h3>
-          )}
-          {!loading && task.status === "open" && !myResponse && (
-            <form
-              onSubmit={handleRespond}
-              noValidate
-              className="flex flex-col gap-4"
-            >
-              <div className="grid grid-cols-1 gap-5 md:grid-cols-[80%_1fr]">
-                <div className="form-group">
-                  <Label htmlFor="respond-message" error={!!errors.message}>
-                    {t("respond.message.label")}
-                  </Label>
-                  <Tiptap
-                    value={form.message}
-                    error={errors.message}
-                    onUpdate={({ editor }) => {
-                      setForm((prev) => ({
-                        ...prev,
-                        message: editor.getHTML(),
-                      }));
-                      setErrors((p) => ({ ...p, message: undefined }));
-                    }}
-                  />
-                  <FieldError message={errors.message} />
-                  <p
-                    className={clsx(
-                      "text-xs text-right mt-1",
-                      messageLength > MESSAGE_MAX_LENGTH
-                        ? "text-destructive"
-                        : "text-grey",
-                    )}
-                  >
-                    {messageLength}/{MESSAGE_MAX_LENGTH}
-                  </p>
-                </div>
-                <div className="form-group">
-                  <Label htmlFor="price" error={!!errors.price}>
-                    {t("respond.price.label")}
-                  </Label>
-                  <PriceInput
-                    name="price"
-                    value={form.price}
-                    onChange={(number) => {
-                      setForm((p) => ({ ...p, price: number }));
-                      setErrors((p) => ({ ...p, price: undefined }));
-                    }}
-                    placeholder={t("respond.price.placeholder")}
-                    error={errors.price}
-                  />
-                  <FieldError message={errors.price} />
-                </div>
+      </div>
+      <div
+        className={clsx("flex flex-col gap-5", step !== "respond" && "hidden")}
+      >
+        {loading && <Spinner />}
+        {!loading && task.status !== "open" && !myResponse && (
+          <h3 className="text-md text-grey py-2 text-center">
+            {t("respond.closed")}
+          </h3>
+        )}
+        {!loading && task.status === "open" && !myResponse && (
+          <form
+            onSubmit={handleRespond}
+            noValidate
+            className="flex flex-col gap-4"
+          >
+            <div className="grid grid-cols-1 gap-5 md:grid-cols-[80%_1fr]">
+              <div className="form-group">
+                <Label htmlFor="respond-message" error={!!errors.message}>
+                  {t("respond.message.label")}
+                </Label>
+                <Tiptap
+                  value={form.message}
+                  error={errors.message}
+                  onUpdate={({ editor }) => {
+                    setForm((prev) => ({
+                      ...prev,
+                      message: editor.getHTML(),
+                    }));
+                    setErrors((p) => ({ ...p, message: undefined }));
+                  }}
+                />
+                <FieldError message={errors.message} />
+                <p
+                  className={clsx(
+                    "text-xs text-right mt-1",
+                    messageLength > MESSAGE_MAX_LENGTH
+                      ? "text-destructive"
+                      : "text-grey",
+                  )}
+                >
+                  {messageLength}/{MESSAGE_MAX_LENGTH}
+                </p>
               </div>
-              <div className="flex flex-col-reverse gap-3 border-t border-border pt-5 sm:flex-row sm:justify-between">
+              <div className="form-group">
+                <Label htmlFor="price" error={!!errors.price}>
+                  {t("respond.price.label")}
+                </Label>
+                <PriceInput
+                  name="price"
+                  value={form.price}
+                  onChange={(number) => {
+                    setForm((p) => ({ ...p, price: number }));
+                    setErrors((p) => ({ ...p, price: undefined }));
+                  }}
+                  placeholder={t("respond.price.placeholder")}
+                  error={errors.price}
+                />
+                <FieldError message={errors.price} />
+              </div>
+            </div>
+            <div className="flex flex-col-reverse gap-3 border-t border-border pt-5 sm:flex-row sm:justify-between">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setStep("overview")}
+                disabled={isLoading}
+                className="w-full sm:w-auto"
+              >
+                <ArrowLeft
+                  aria-hidden="true"
+                  className="w-4 h-4 text-[currentColor]"
+                />
+                {t("common:actions.back")}
+              </Button>
+              <div className="flex flex-col-reverse gap-3 sm:flex-row">
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => setStep("overview")}
+                  onClick={onClose}
                   disabled={isLoading}
                   className="w-full sm:w-auto"
                 >
-                  <ArrowLeft
-                    aria-hidden="true"
-                    className="w-4 h-4 text-[currentColor]"
-                  />
-                  {t("common:actions.back")}
+                  {t("common:actions.close")}
                 </Button>
-                <div className="flex flex-col-reverse gap-3 sm:flex-row">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={onClose}
-                    disabled={isLoading}
-                    className="w-full sm:w-auto"
-                  >
-                    {t("common:actions.close")}
-                  </Button>
-                  <Button
-                    type="submit"
-                    disabled={isLoading}
-                    className="w-full sm:w-auto"
-                  >
-                    {isLoading ? (
-                      <Loader2
-                        aria-hidden="true"
-                        className="w-4 h-4 animate-spin text-[currentColor]"
-                      />
-                    ) : (
-                      <Send
-                        aria-hidden="true"
-                        className="w-4 h-4 text-[currentColor]"
-                      />
-                    )}
-                    {t("respond.send")}
-                  </Button>
-                </div>
+                <Button
+                  type="submit"
+                  disabled={isLoading}
+                  className="w-full sm:w-auto"
+                >
+                  {isLoading ? (
+                    <Loader2
+                      aria-hidden="true"
+                      className="w-4 h-4 animate-spin text-[currentColor]"
+                    />
+                  ) : (
+                    <Send
+                      aria-hidden="true"
+                      className="w-4 h-4 text-[currentColor]"
+                    />
+                  )}
+                  {t("respond.send")}
+                </Button>
               </div>
-            </form>
+            </div>
+          </form>
+        )}
+        {!loading && myResponse && (
+          <>
+            <ResponseCard
+              price={myResponse.price}
+              status={myResponse.status}
+              message={myResponse.message}
+              actions={
+                myResponse.status === "pending" ? (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleWithdraw}
+                    disabled={isLoading}
+                  >
+                    {t("respond.withdraw")}
+                  </Button>
+                ) : null
+              }
+            />
+            <BackToOverview onClick={() => setStep("overview")} />
+          </>
+        )}
+      </div>
+      <div
+        className={clsx("flex flex-col gap-5", step !== "complete" && "hidden")}
+      >
+        {loading && <Spinner />}
+        {!loading && !FINAL_STEP_STATUSES.includes(task.status) && (
+          <p className="text-sm text-grey py-2 text-center">
+            {t("respond.finalLocked")}
+          </p>
+        )}
+        {!loading &&
+          myResponse &&
+          FINAL_STEP_STATUSES.includes(task.status) && (
+            <TaskFlowPanel
+              task={task}
+              role="tasker"
+              amount={myResponse.price}
+              accepted={myResponse.status === "accepted"}
+              onClose={onClose}
+            />
           )}
-          {!loading && myResponse && (
-            <>
-              <ResponseCard
-                price={myResponse.price}
-                status={myResponse.status}
-                message={myResponse.message}
-                actions={
-                  myResponse.status === "pending" ? (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={handleWithdraw}
-                      disabled={isLoading}
-                    >
-                      {t("respond.withdraw")}
-                    </Button>
-                  ) : null
-                }
-              />
-              <BackToOverview onClick={() => setStep("overview")} />
-            </>
-          )}
-        </div>
-      )}
-      {step === "complete" && (
-        <div className="flex flex-col gap-5">
-          {loading && <Spinner />}
-          {!loading && !FINAL_STEP_STATUSES.includes(task.status) && (
-            <p className="text-sm text-grey py-2 text-center">
-              {t("respond.finalLocked")}
-            </p>
-          )}
-          {!loading &&
-            myResponse &&
-            FINAL_STEP_STATUSES.includes(task.status) && (
-              <TaskFlowPanel
-                task={task}
-                role="tasker"
-                amount={myResponse.price}
-                accepted={myResponse.status === "accepted"}
-                onClose={onClose}
-              />
-            )}
-          <BackToOverview onClick={() => setStep("overview")} />
-        </div>
-      )}
+        <BackToOverview onClick={() => setStep("overview")} />
+      </div>
     </>
   );
 };

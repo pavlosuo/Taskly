@@ -6,7 +6,6 @@ export class PaymentService {
   constructor(private server: IServer) {}
 
   async hold(
-    db: Db,
     session: ClientSession,
     payment: {
       taskId: ObjectId;
@@ -16,6 +15,7 @@ export class PaymentService {
     },
   ) {
     const now = new Date();
+    const db = await this.server.getDb();
     await db.collection("payments").insertOne(
       {
         ...payment,
@@ -27,8 +27,9 @@ export class PaymentService {
     );
   }
 
-  async release(db: Db, session: ClientSession, taskId: ObjectId) {
+  async release(session: ClientSession, taskId: ObjectId) {
     const now = new Date();
+    const db = await this.server.getDb();
     await db
       .collection("payments")
       .updateOne(
@@ -38,8 +39,9 @@ export class PaymentService {
       );
   }
 
-  async refund(db: Db, session: ClientSession, taskId: ObjectId) {
+  async refund(session: ClientSession, taskId: ObjectId) {
     const now = new Date();
+    const db = await this.server.getDb();
     await db
       .collection("payments")
       .updateOne(
