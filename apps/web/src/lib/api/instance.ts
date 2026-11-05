@@ -31,7 +31,8 @@ import {
 } from "shared/types";
 import axios, { AxiosInstance } from "axios";
 
-export const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+export const BASE_URL =
+  typeof window === "undefined" ? process.env.API_INTERNAL_URL : "";
 
 export function createApi(config?: {
   headers?: Record<string, string>;
