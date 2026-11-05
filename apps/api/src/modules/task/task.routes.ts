@@ -10,8 +10,8 @@ export function taskRoutes(server: IServer): Router {
   const ctrl = new TaskController(server);
   const responseCtrl = new TaskResponseController(server);
   router.post("/", server.requireClient(), ctrl.create);
-  router.get("/", server.optionalAuth(), ctrl.getAll);
-  router.get("/:id", server.optionalAuth(), ctrl.getOne);
+  router.get("/", server.requireAuth(), ctrl.getAll);
+  router.get("/:id", server.requireAuth(), ctrl.getOne);
   router.patch("/:id", server.requireClient(), ctrl.update);
   router.delete("/:id", server.requireClient(), ctrl.delete);
   router.post("/:id/cancel", server.requireClient(), ctrl.cancel);

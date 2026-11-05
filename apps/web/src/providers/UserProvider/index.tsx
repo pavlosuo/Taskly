@@ -5,7 +5,7 @@ import {
   useState,
   useCallback,
   ReactNode,
-  useMemo
+  useMemo,
 } from "react";
 import {
   PublicUser,
@@ -237,16 +237,10 @@ export const UserProvider = ({
       updateProfile,
       deactivateAccount,
       changePassword,
-    ]
+    ],
   );
 
-  return (
-    <UserContext.Provider
-      value={value}
-    >
-      {children}
-    </UserContext.Provider>
-  );
+  return <UserContext.Provider value={value}>{children}</UserContext.Provider>;
 };
 
 export const useUser = (): UserContextType => {
