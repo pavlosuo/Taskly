@@ -16,12 +16,9 @@ import { createApp } from "@/app";
 import { IServer, User } from "@/types";
 import nodemailer, { Transporter } from "nodemailer";
 import jwt from "jsonwebtoken";
-import dns from "node:dns/promises";
 import { Server as HTTPServer } from "http";
 import { Server as SocketIOServer, Socket } from "socket.io";
 import { parseCookieHeader, toObjectId, clearCookieOptions } from "@/utils";
-
-dns.setServers(["1.1.1.1", "1.0.0.1"]);
 
 export class Server implements IServer {
   readonly port: number;
