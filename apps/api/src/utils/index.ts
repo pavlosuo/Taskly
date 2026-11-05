@@ -16,7 +16,7 @@ import { NODE_ENV, COOKIE_DOMAIN, NEXT_PUBLIC_API_URL } from "@/env";
 export const clearCookieOptions = {
   httpOnly: true,
   secure: NODE_ENV === "production",
-  sameSite: "lax" as const,
+  sameSite: NODE_ENV === "production" ? ("none" as const) : ("lax" as const),
   path: "/",
   domain: COOKIE_DOMAIN,
 };

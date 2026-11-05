@@ -183,7 +183,7 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   useEffect(() => {
-    if (user) {
+    if (user?._id) {
       startTransition(() => {
         load();
       });
@@ -193,7 +193,7 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
         setUnreadCount(0);
       });
     }
-  }, [user, load]);
+  }, [user?._id, load]);
 
   useEffect(() => {
     if (!socket) return;

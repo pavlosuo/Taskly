@@ -114,12 +114,12 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
   }, []);
 
   useEffect(() => {
-    if (user) {
+    if (user?._id) {
       startTransition(() => fetchChats());
     } else {
       startTransition(() => setChats([]));
     }
-  }, [user, fetchChats]);
+  }, [user?._id, fetchChats]);
 
   useEffect(() => {
     if (!socket) return;

@@ -5,6 +5,7 @@ import {
   useState,
   useCallback,
   ReactNode,
+  useMemo
 } from "react";
 import {
   PublicUser,
@@ -198,27 +199,50 @@ export const UserProvider = ({
     [run],
   );
 
+  const value = useMemo(
+    () => ({
+      user,
+      isLoading,
+      setUser,
+      login,
+      register,
+      logout,
+      sendEmailOtp,
+      verifyEmailOtp,
+      sendPhoneOtp,
+      verifyPhoneOtp,
+      sendPasswordResetOtp,
+      verifyPasswordResetOtp,
+      sendPasswordResetLink,
+      resetPassword,
+      updateProfile,
+      deactivateAccount,
+      changePassword,
+    }),
+    [
+      user,
+      isLoading,
+      setUser,
+      login,
+      register,
+      logout,
+      sendEmailOtp,
+      verifyEmailOtp,
+      sendPhoneOtp,
+      verifyPhoneOtp,
+      sendPasswordResetOtp,
+      verifyPasswordResetOtp,
+      sendPasswordResetLink,
+      resetPassword,
+      updateProfile,
+      deactivateAccount,
+      changePassword,
+    ]
+  );
+
   return (
     <UserContext.Provider
-      value={{
-        user,
-        isLoading,
-        setUser,
-        login,
-        register,
-        logout,
-        sendEmailOtp,
-        verifyEmailOtp,
-        sendPhoneOtp,
-        verifyPhoneOtp,
-        sendPasswordResetOtp,
-        verifyPasswordResetOtp,
-        sendPasswordResetLink,
-        resetPassword,
-        updateProfile,
-        deactivateAccount,
-        changePassword,
-      }}
+      value={value}
     >
       {children}
     </UserContext.Provider>

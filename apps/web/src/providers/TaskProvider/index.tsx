@@ -191,6 +191,7 @@ export const TaskProvider = ({ children }: TaskProviderProps) => {
 
   const fetchTasks = useCallback(
     async (q?: TaskListQuery, options?: FetchOptions) => {
+      if (!userId) return;
       const includeMine = options?.includeMine ?? true;
       const requestId = ++requestRef.current;
       lastQueryRef.current = q ?? {};
@@ -219,7 +220,7 @@ export const TaskProvider = ({ children }: TaskProviderProps) => {
         if (requestId === requestRef.current) setIsFetching(false);
       }
     },
-    [toast],
+    [toast, userId],
   );
 
   const hydrate = useCallback((initial: TaskList) => {
