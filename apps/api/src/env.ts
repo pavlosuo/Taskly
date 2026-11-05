@@ -2,7 +2,8 @@ import path from "node:path";
 import dotenv from "dotenv";
 
 dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
-
+export const TRUST_PROXY = process.env.TRUST_PROXY || "0";
+export const COOKIE_DOMAIN = process.env.COOKIE_DOMAIN || undefined;
 export const PORT = process.env.PORT || "3000";
 export const PORT_API = process.env.PORT_API || "5050";
 export const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "";

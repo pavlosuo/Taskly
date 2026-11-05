@@ -156,7 +156,9 @@
     "dialogDesc": "Make it at least 8 characters — the longer, the tougher to crack.",
     "currentPassword": "Current password",
     "newPassword": "New password",
-    "confirmPassword": "Type the new one again"
+    "confirmPassword": "Type the new one again",
+    "deleteDialogTitle": "Finally, delete my account",
+    "deleteDialogDesc": "Enter your password to confirm you want to delete your account."
   },
   "verifyNow": "Verify now"
 }

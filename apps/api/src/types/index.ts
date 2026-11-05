@@ -72,6 +72,7 @@ export interface ChatBack extends Omit<
   participants: ObjectId[];
   deletedBy: ObjectId[];
   lastMessage: ChatLastMessageBack | null;
+  pairKey: string;
 }
 
 export interface MessageBack extends Omit<

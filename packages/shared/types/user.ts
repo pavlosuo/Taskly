@@ -76,6 +76,7 @@ export interface PublicUser {
   newEmail?: string;
   role: "admin" | Role;
   createdAt: Date;
+  deletedAt?: Date;
   acceptance: UserAcceptance;
   payout?: Payout;
   profile: UserProfile;

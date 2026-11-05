@@ -75,7 +75,7 @@
     "nothingToUpdate": "Nothing to update",
     "notFound": "User not found",
     "usernameMissing": "Please enter username",
-    "invalidCredentials": "Invalid email or password",
+    "invalidCredentials": "Invalid credentials",
     "unavailableData": "Unable to complete registration. Check your details."
   },
   "otp": {

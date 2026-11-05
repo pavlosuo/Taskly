@@ -33,7 +33,7 @@ interface UserContextType {
   sendPasswordResetLink: (email: string) => Promise<void>;
   resetPassword: (token: string, password: string) => Promise<void>;
   updateProfile: (payload: UpdateProfileForm) => Promise<void>;
-  deactivateAccount: () => Promise<void>;
+  deactivateAccount: (password: string) => Promise<void>;
   changePassword: (payload: ChangePasswordForm) => Promise<void>;
 }
 
@@ -175,10 +175,10 @@ export const UserProvider = ({
   );
 
   const deactivateAccount = useCallback(
-    () =>
+    (password: string) =>
       run(
         async () => {
-          await axiosApi.deactivateAccount();
+          await axiosApi.deactivateAccount(password);
           setUser(null);
           router.push("/login");
         },

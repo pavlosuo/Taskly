@@ -43,6 +43,9 @@ export function SecurityCard() {
     newPassword: false,
     confirmPassword: false,
   });
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deletePassword, setDeletePassword] = useState("");
+  const [showDeletePassword, setShowDeletePassword] = useState(false);
 
   const handleToggle = (field: keyof typeof show) => () =>
     setShow((p) => ({ ...p, [field]: !p[field] }));
@@ -61,8 +64,19 @@ export function SecurityCard() {
 
   const handleDeactivateClick = () => {
     confirm(t("profile:deactivateAccount")).then((confirmed) => {
-      if (confirmed) deactivateAccount();
+      if (!confirmed) return;
+      setDeletePassword("");
+      setShowDeletePassword(false);
+      setDeleteOpen(true);
     });
+  };
+
+  const handleDeactivateConfirm = async () => {
+    if (!deletePassword) return;
+    try {
+      await deactivateAccount(deletePassword);
+      setDeleteOpen(false);
+    } catch {}
   };
 
   const handleSavePassword = async () => {
@@ -200,6 +214,49 @@ export function SecurityCard() {
             </Button>
             <Button onClick={handleSavePassword} disabled={isLoading}>
               {isLoading ? t("actions.saving") : t("actions.save")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{t("security.deleteDialogTitle")}</DialogTitle>
+            <DialogDescription>
+              {t("security.deleteDialogDesc")}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-2">
+            <FormField
+              label={t("security.currentPassword")}
+              htmlFor="deletePassword"
+            >
+              <div className="relative">
+                <Input
+                  name="deletePassword"
+                  type={showDeletePassword ? "text" : "password"}
+                  autoComplete="current-password"
+                  value={deletePassword}
+                  onChange={(e) => setDeletePassword(e.target.value)}
+                  className="pr-10"
+                />
+                <PasswordToggle
+                  show={showDeletePassword}
+                  onToggle={() => setShowDeletePassword((p) => !p)}
+                />
+              </div>
+            </FormField>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteOpen(false)}>
+              {t("actions.cancel")}
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDeactivateConfirm}
+              disabled={isLoading || !deletePassword}
+            >
+              {t("security.deactivate")}
             </Button>
           </DialogFooter>
         </DialogContent>

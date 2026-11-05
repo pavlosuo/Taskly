@@ -26,15 +26,17 @@ export class AuthService {
 
   constructor(private server: IServer) {
     this.otpService = new OtpService(server);
-    try {
-      this.registerAdmin({
-        email: ADMIN_EMAIL,
-        password: ADMIN_PASSWORD,
-        username: ADMIN_USERNAME,
-      });
-    } catch (error) {
-      console.error("Error registering admin:", error);
-    }
+    this.registerAdmin({
+      email: ADMIN_EMAIL,
+      password: ADMIN_PASSWORD,
+      username: ADMIN_USERNAME,
+    })
+      .then((r) => {
+        if (!r.success && r.message !== "user.usernameExists") {
+          console.error("Admin bootstrap failed:", r.status, r.message);
+        }
+      })
+      .catch((e) => console.error("Error registering admin:", e));
   }
 
   async register(body: unknown): Promise<ServiceResult> {
@@ -140,7 +142,16 @@ export class AuthService {
         status: 200,
         data: { user: fullUser, fullUser },
       };
-    } catch (error) {
+    } catch (error: any) {
+      if (error?.code === 11000) {
+        const key = Object.keys(error.keyPattern ?? {})[0];
+        return {
+          success: false,
+          status: 400,
+          message:
+            key === "username" ? "user.usernameExists" : "user.unavailableData",
+        };
+      }
       console.error("Register error:", error);
       return { success: false, status: 500, message: "general.unknown" };
     }
@@ -162,6 +173,7 @@ export class AuthService {
       const existing = await users.findOne({ $or: [{ email }, { username }] });
       if (existing)
         return { success: false, status: 400, message: "user.usernameExists" };
+
       const passwordHash = await bcrypt.hash(password, 10);
       const doc = {
         email,
@@ -169,12 +181,45 @@ export class AuthService {
         passwordHash,
         role: "admin",
         createdAt: new Date(),
+        acceptance: {
+          phoneVerified: false,
+          emailVerified: false,
+          personVerified: false,
+          agreementAccepted: true,
+        },
+        payout: { iban: "", bankName: "" },
+        profile: {
+          fullName: username,
+          phone: "",
+          code: "",
+          fullPhone: "",
+          avatar: null,
+          initials: username.slice(0, 2).toUpperCase(),
+        },
+        settings: {
+          lang: "en",
+          theme: "light",
+          checkboxes: {
+            email: true,
+            phone: true,
+            privateProfile: false,
+            noOnlineStatus: false,
+          },
+        },
+        publicProfile: {
+          bio: "",
+          skills: [],
+          certificates: [],
+          languages: [],
+          header: null,
+          introduction: null,
+        },
       };
       const result = await users.insertOne(doc);
       return {
         success: true,
         status: 200,
-        data: { user: result },
+        data: { user: { _id: result.insertedId, ...doc } },
       };
     } catch (error) {
       console.error("Register admin error:", error);

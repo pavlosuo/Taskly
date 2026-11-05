@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
-import { PublicUser } from "shared/types";
+import { PublicUser } from "shared/index";
 import { AuthService } from "@/modules/auth/auth.service";
-import { toPublicUser } from "@/utils";
+import { toPublicUser, clearCookieOptions } from "@/utils";
 import { IServer, User } from "@/types";
 
 export class AuthController {
@@ -45,7 +45,7 @@ export class AuthController {
   };
 
   logout = (_: Request, res: Response) => {
-    res.clearCookie("token", { path: "/" });
+    res.clearCookie("token", clearCookieOptions);
     return res.json({ success: true });
   };
 

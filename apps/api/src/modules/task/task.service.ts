@@ -25,13 +25,15 @@ import { NotificationService } from "@/modules/notification/notification.service
 export class TaskService {
   private payments: PaymentService;
   private notifications: NotificationService;
+  private static jobsStarted = false;
 
   constructor(private server: IServer) {
     this.payments = new PaymentService(server);
     this.notifications = new NotificationService(server);
-    this.startJobs().catch((e) => {
-      console.error("Scheduled jobs error:", e);
-    });
+    if (!TaskService.jobsStarted) {
+      TaskService.jobsStarted = true;
+      this.startJobs().catch((e) => console.error("Scheduled jobs error:", e));
+    }
   }
 
   async create(user: User, payload: unknown): Promise<ServiceResult> {

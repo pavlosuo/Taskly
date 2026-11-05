@@ -23,7 +23,8 @@ import { IServer, User } from "@/types";
 import { MediaService } from "@/modules/media/media.service";
 import { Response, Request } from "express";
 import bcrypt from "bcrypt";
-import { cookieOptions } from "@/utils";
+import { cookieOptions, filePath } from "@/utils";
+import { promises as fs } from "fs";
 
 export class UsersService {
   private otpService: OtpService;
@@ -336,10 +337,135 @@ export class UsersService {
     }
   }
 
-  async deactivateAccount(user: User): Promise<ServiceResult> {
+  async deactivateAccount(
+    user: User,
+    password: unknown,
+  ): Promise<ServiceResult> {
     try {
+      if (typeof password !== "string" || !password)
+        return {
+          success: false,
+          status: 400,
+          message: "user.invalidCredentials",
+        };
       const db = await this.server.getDb();
-      await db.collection("users").deleteOne({ _id: user._id });
+      const full = await db.collection("users").findOne({ _id: user._id });
+      if (
+        !full?.passwordHash ||
+        !(await bcrypt.compare(password, full.passwordHash))
+      )
+        return {
+          success: false,
+          status: 401,
+          message: "user.invalidCredentials",
+        };
+
+      const busy = await db.collection("tasks").findOne({
+        status: { $in: ["assigned", "pending_confirmation"] },
+        $or: [{ clientId: user._id }, { assignedTaskerId: user._id }],
+      });
+
+      if (busy)
+        return { success: false, status: 409, message: "user.hasActiveTasks" };
+
+      const now = new Date();
+      const openTasks = await db
+        .collection("tasks")
+        .find(
+          { clientId: user._id, status: "open" },
+          { projection: { _id: 1 } },
+        )
+        .toArray();
+
+      if (openTasks.length) {
+        const ids = openTasks.map((t) => t._id);
+        await db
+          .collection("taskResponses")
+          .updateMany(
+            { taskId: { $in: ids }, status: "pending" },
+            { $set: { status: "rejected", updatedAt: now } },
+          );
+        await db.collection("tasks").updateMany(
+          { _id: { $in: ids }, status: "open" },
+          {
+            $set: {
+              status: "cancelled",
+              cancelReason: "client",
+              responsesCount: 0,
+              updatedAt: now,
+            },
+          },
+        );
+      }
+
+      await db.collection("notifications").deleteMany({ userId: user._id });
+
+      const files = await db
+        .collection("media")
+        .find({ ownerId: user._id }, { projection: { filename: 1 } })
+        .toArray();
+
+      await Promise.all(
+        files.map((f) =>
+          fs.unlink(filePath(f.filename, user._id)).catch(() => {}),
+        ),
+      );
+
+      await db.collection("media").deleteMany({ ownerId: user._id });
+
+      const tag = user._id.toString();
+
+      await db.collection("users").updateOne(
+        { _id: user._id },
+        {
+          $set: {
+            username: `deleted_${tag}`,
+            email: `deleted_${tag}@deleted.invalid`,
+            passwordHash: "",
+            deletedAt: now,
+            acceptance: {
+              phoneVerified: false,
+              emailVerified: false,
+              personVerified: false,
+              agreementAccepted: false,
+            },
+            payout: { iban: "", bankName: "" },
+            profile: {
+              fullName: "user.deleted",
+              phone: "",
+              code: "",
+              fullPhone: "",
+              avatar: null,
+              initials: "",
+            },
+            settings: {
+              lang: "en",
+              theme: "light",
+              checkboxes: {
+                email: false,
+                phone: false,
+                privateProfile: true,
+                noOnlineStatus: true,
+              },
+            },
+            publicProfile: {
+              bio: "",
+              skills: [],
+              certificates: [],
+              languages: [],
+              header: null,
+              introduction: null,
+            },
+          },
+          $unset: {
+            newEmail: "",
+            publicLink: "",
+            lastSeenAt: "",
+            resetTokenHash: "",
+          },
+        },
+      );
+
       return { success: true, status: 200 };
     } catch (error) {
       console.error("Deactivate account error:", error);
@@ -518,7 +644,7 @@ export class UsersService {
       const db = await this.server.getDb();
 
       const user = await db.collection("users").findOne<User>(
-        { username },
+        { username, deletedAt: { $exists: false } },
         {
           projection: {
             username: 1,

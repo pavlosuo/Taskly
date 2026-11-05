@@ -238,11 +238,7 @@ export class ChatService {
     try {
       const otherId = toObjectId(payload.memberId);
       if (!otherId) {
-        return {
-          success: false,
-          status: 400,
-          message: "chat.memberNotFound",
-        };
+        return { success: false, status: 400, message: "chat.memberNotFound" };
       }
       if (otherId.equals(user._id)) {
         return {
@@ -254,38 +250,71 @@ export class ChatService {
       const db = await this.server.getDb();
       const otherUser = await db
         .collection("users")
-        .findOne({ _id: otherId }, { projection: { _id: 1 } });
+        .findOne(
+          { _id: otherId, deletedAt: { $exists: false } },
+          { projection: { _id: 1 } },
+        );
       if (!otherUser) {
         return { success: false, status: 404, message: "chat.memberNotFound" };
       }
-      const existing = await db.collection<ChatBack>("chats").findOne({
-        participants: { $all: [user._id, otherId], $size: 2 },
-      });
-      if (existing) {
+
+      const chats = db.collection<ChatBack>("chats");
+      const pairKey = [user._id, otherId].map(String).sort().join(":");
+
+      const openExisting = async (existing: ChatBack) => {
         if (existing.deletedBy.some((id) => id.equals(user._id))) {
-          await db
-            .collection<ChatBack>("chats")
-            .updateOne(
-              { _id: existing._id },
-              { $pull: { deletedBy: user._id } },
-            );
+          await chats.updateOne(
+            { _id: existing._id },
+            { $pull: { deletedBy: user._id } },
+          );
           existing.deletedBy = existing.deletedBy.filter(
             (id) => !id.equals(user._id),
           );
         }
         const [enriched] = await this.enrichChats([existing], user._id);
-        return { success: true, status: 200, data: { chat: enriched } };
+        return {
+          success: true as const,
+          status: 200,
+          data: { chat: enriched },
+        };
+      };
+
+      const existing = await chats.findOne({
+        $or: [
+          { pairKey },
+          { participants: { $all: [user._id, otherId], $size: 2 } },
+        ],
+      });
+      if (existing) {
+        if (!existing.pairKey) {
+          await chats
+            .updateOne({ _id: existing._id }, { $set: { pairKey } as any })
+            .catch(() => {});
+        }
+        return openExisting(existing);
       }
+
       const now = new Date();
-      const doc: Omit<ChatBack, "_id"> = {
+      const doc = {
         participants: [user._id, otherId],
-        deletedBy: [],
+        pairKey,
+        deletedBy: [] as ObjectId[],
         lastMessage: null,
         createdAt: now,
         updatedAt: now,
       };
-      const result = await db.collection("chats").insertOne(doc);
-      const chatDoc = { ...doc, _id: result.insertedId };
+      let insertedId: ObjectId;
+      try {
+        const result = await db.collection("chats").insertOne(doc);
+        insertedId = result.insertedId;
+      } catch (e: any) {
+        if (e?.code !== 11000) throw e;
+        const dup = await chats.findOne({ pairKey });
+        if (!dup) throw e;
+        return openExisting(dup);
+      }
+
+      const chatDoc = { ...doc, _id: insertedId } as ChatBack;
       const [enriched] = await this.enrichChats([chatDoc], user._id);
       const [otherView] = await this.enrichChats([chatDoc], otherId);
       this.notifications.emit(otherId, "chat:new", { chat: otherView });
@@ -294,7 +323,7 @@ export class ChatService {
           {
             userId: otherId,
             type: "chat_new",
-            chatId: result.insertedId,
+            chatId: insertedId,
             actor: {
               _id: otherView.member._id,
               fullName: otherView.member.fullName,
@@ -423,6 +452,27 @@ export class ChatService {
       const mediaIds = payload.mediaIds ?? [];
       if (!text && mediaIds.length === 0) {
         return { success: false, status: 400, message: "chat.message.empty" };
+      }
+      const rawIds = [...new Set(payload.mediaIds ?? [])];
+      const mediaObjectIds = rawIds
+        .map((id) => toObjectId(id))
+        .filter((id): id is ObjectId => !!id);
+      if (mediaObjectIds.length !== rawIds.length) {
+        return {
+          success: false,
+          status: 400,
+          message: "chat.message.invalidMedia",
+        };
+      }
+      if (mediaObjectIds.length) {
+        const owned = await (
+          await this.server.getDb()
+        )
+          .collection("media")
+          .countDocuments({ _id: { $in: mediaObjectIds }, ownerId: user._id });
+        if (owned !== mediaObjectIds.length) {
+          return { success: false, status: 403, message: "general.forbidden" };
+        }
       }
       const db = await this.server.getDb();
       const now = new Date();

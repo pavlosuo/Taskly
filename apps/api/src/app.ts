@@ -1,6 +1,5 @@
-import { CLIENT_URL } from "@/env";
+import { CLIENT_URL, TRUST_PROXY } from "@/env";
 import { cookieOptions } from "@/utils";
-import express, { Application } from "express";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import helmet from "helmet";
@@ -19,9 +18,12 @@ import { notificationRoutes } from "@/modules/notification/notification.routes";
 import { reviewRoutes } from "@/modules/review/review.routes";
 import { paymentRoutes } from "@/modules/payment/payment.routes";
 import { settingsSchema } from "shared/index";
+import express, { Application, Request, Response, NextFunction } from "express";
+import { MulterError } from "multer";
 
 export function createApp(server: Server): Application {
   const app = express();
+  app.set("trust proxy", Number(TRUST_PROXY));
   app.use(helmet());
   app.use(express.json());
   app.use(cookieParser());
@@ -74,17 +76,27 @@ export function createApp(server: Server): Application {
       });
     }
   });
-  app.use((_, res) => {
-    res.status(404).json({
-      success: false,
-      message: "general.unknown",
-    });
+  app.use((_req, res) => {
+    res.status(404).json({ success: false, message: "general.notFound" });
   });
-  app.use((_, res) => {
-    console.log("Request received", {
-      method: _.method,
-      url: _.url,
-    });
+  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+    if (res.headersSent) return;
+    if (err instanceof MulterError) {
+      const message =
+        err.code === "LIMIT_FILE_SIZE"
+          ? "media.fileTooLarge"
+          : "media.invalidFile";
+      return res.status(400).json({ success: false, status: 400, message });
+    }
+    if (err?.type === "entity.parse.failed" || err instanceof SyntaxError) {
+      return res
+        .status(400)
+        .json({ success: false, status: 400, message: "general.badRequest" });
+    }
+    console.error("Unhandled error:", err);
+    return res
+      .status(500)
+      .json({ success: false, status: 500, message: "general.unknown" });
   });
   return app;
 }

@@ -6,7 +6,6 @@ import {
   SMTP_SECURE,
   SMTP_USER,
   SMTP_PASS,
-  NODE_ENV,
   PORT_API,
   CLIENT_URL,
   NEXT_PUBLIC_API_URL,
@@ -20,7 +19,7 @@ import jwt from "jsonwebtoken";
 import dns from "node:dns/promises";
 import { Server as HTTPServer } from "http";
 import { Server as SocketIOServer, Socket } from "socket.io";
-import { parseCookieHeader } from "@/utils";
+import { parseCookieHeader, toObjectId, clearCookieOptions } from "@/utils";
 
 dns.setServers(["1.1.1.1", "1.0.0.1"]);
 
@@ -112,10 +111,7 @@ export class Server implements IServer {
       { expiresIn: "7d" },
     );
     res.cookie("token", token, {
-      httpOnly: true,
-      secure: NODE_ENV === "production",
-      sameSite: "lax",
-      path: "/",
+      ...clearCookieOptions,
       maxAge: 60 * 60 * 24 * 7 * 1000,
     });
     return token;
@@ -212,7 +208,7 @@ export class Server implements IServer {
   private initSockets(httpServer: HTTPServer) {
     const io = new SocketIOServer(httpServer, {
       cors: {
-        origin: process.env.CLIENT_URL,
+        origin: CLIENT_URL,
         credentials: true,
       },
     });
@@ -225,7 +221,8 @@ export class Server implements IServer {
         if (!user) return next(new Error("unauthorized"));
         socket.data.userId = user._id.toString();
         socket.data.role = user.role;
-        socket.data.noOnlineStatus = user.settings.checkboxes.noOnlineStatus;
+        socket.data.noOnlineStatus =
+          user.settings?.checkboxes?.noOnlineStatus ?? false;
         next();
       } catch (err) {
         console.error("SOCKET AUTH ERROR:", err);
@@ -236,7 +233,9 @@ export class Server implements IServer {
       const userId = socket.data.userId as string;
       const isAdmin = socket.data.role === "admin";
       const onlineUserIds = new Set<string>();
+      socket.data.chats = new Map<string, string>();
       socket.join(`user:${userId}`);
+
       for (const [_, s] of io.sockets.sockets) {
         if (
           s.data.role !== "admin" &&
@@ -250,26 +249,50 @@ export class Server implements IServer {
       if (!isAdmin) {
         socket.broadcast.emit("presence:online", { userId });
       }
-      socket.on("chat:join", (chatId: string) => {
-        socket.join(`chat:${chatId}`);
+
+      socket.on("chat:join", async (chatId: string) => {
+        try {
+          const _id = toObjectId(chatId);
+          if (!_id) return;
+          const me = new ObjectId(userId);
+          const db = await this.getDb();
+          const chat = await db
+            .collection("chats")
+            .findOne(
+              { _id, participants: me, deletedBy: { $ne: me } },
+              { projection: { participants: 1 } },
+            );
+          if (!chat) return;
+          const other = (chat.participants as ObjectId[]).find(
+            (p) => !p.equals(me),
+          );
+          if (!other) return;
+          (socket.data.chats as Map<string, string>).set(
+            chatId,
+            other.toString(),
+          );
+          socket.join(`chat:${chatId}`);
+        } catch (e) {
+          console.error("chat:join error:", e);
+        }
       });
+
       socket.on("chat:leave", (chatId: string) => {
+        (socket.data.chats as Map<string, string>).delete(chatId);
         socket.leave(`chat:${chatId}`);
       });
-      socket.on(
-        "typing:start",
-        ({ chatId, memberId }: { chatId: string; memberId: string }) => {
-          socket
-            .to(`user:${memberId}`)
-            .emit("typing:start", { chatId, userId });
-        },
-      );
-      socket.on(
-        "typing:stop",
-        ({ chatId, memberId }: { chatId: string; memberId: string }) => {
-          socket.to(`user:${memberId}`).emit("typing:stop", { chatId, userId });
-        },
-      );
+
+      socket.on("typing:start", ({ chatId }: { chatId: string }) => {
+        const memberId = (socket.data.chats as Map<string, string>).get(chatId);
+        if (!memberId) return;
+        socket.to(`user:${memberId}`).emit("typing:start", { chatId, userId });
+      });
+
+      socket.on("typing:stop", ({ chatId }: { chatId: string }) => {
+        const memberId = (socket.data.chats as Map<string, string>).get(chatId);
+        if (!memberId) return;
+        socket.to(`user:${memberId}`).emit("typing:stop", { chatId, userId });
+      });
       socket.on("disconnect", async () => {
         const room = io.sockets.adapter.rooms.get(`user:${userId}`);
         const stillHasOtherConnections = room && room.size > 0;
@@ -306,8 +329,6 @@ export class Server implements IServer {
       db.collection("chats").createIndex({ participants: 1 }),
       db.collection("chats").createIndex({ updatedAt: -1 }),
       db.collection("messages").createIndex({ chatId: 1, _id: -1 }),
-
-      db.collection("users").createIndex({ username: 1 }),
 
       db.collection("tasks").createIndex({ geo: "2dsphere" }),
       db.collection("tasks").createIndex({ status: 1, createdAt: -1 }),
@@ -349,6 +370,44 @@ export class Server implements IServer {
           unique: true,
           partialFilterExpression: { type: "chat_message", read: false },
           name: "uniq_unread_chat_message",
+        },
+      ),
+
+      db.collection("users").createIndex(
+        { username: 1 },
+        {
+          unique: true,
+          collation: { locale: "en", strength: 2 },
+          name: "uniq_username_ci",
+        },
+      ),
+
+      db.collection("users").createIndex(
+        { email: 1 },
+        {
+          unique: true,
+          collation: { locale: "en", strength: 2 },
+          name: "uniq_email_ci",
+        },
+      ),
+
+      db.collection("users").createIndex(
+        { "profile.fullPhone": 1 },
+        {
+          unique: true,
+          name: "uniq_full_phone",
+          partialFilterExpression: {
+            "profile.fullPhone": { $type: "string", $gt: "" },
+          },
+        },
+      ),
+
+      db.collection("chats").createIndex(
+        { pairKey: 1 },
+        {
+          unique: true,
+          name: "uniq_chat_pair",
+          partialFilterExpression: { pairKey: { $type: "string" } },
         },
       ),
     ]);

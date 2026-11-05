@@ -1,6 +1,7 @@
 import { Response, Request } from "express";
 import { IServer } from "@/types";
 import { UsersService } from "@/modules/users/users.service";
+import { clearCookieOptions } from "@/utils";
 
 export class UsersController {
   private service: UsersService;
@@ -23,13 +24,14 @@ export class UsersController {
   };
 
   deactivateAccount = async (req: Request, res: Response) => {
-    const result = await this.service.deactivateAccount(req.user);
+    const password = req.body.password;
+    const result = await this.service.deactivateAccount(req.user, password);
     if (!result.success)
       return res.status(result.status).json({
         success: false,
         message: result.message,
       });
-    res.clearCookie("token", { path: "/" });
+    res.clearCookie("token", clearCookieOptions);
     return res.json({
       success: true,
       ...(result.data ?? {}),

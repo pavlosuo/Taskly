@@ -11,14 +11,19 @@ import { User } from "@/types";
 import { ObjectId, WithId, Document } from "mongodb";
 export * from "@/utils/limiters";
 export * from "@/utils/upload";
-import { NODE_ENV } from "@/env";
+import { NODE_ENV, COOKIE_DOMAIN, NEXT_PUBLIC_API_URL } from "@/env";
 
-export const cookieOptions = {
+export const clearCookieOptions = {
   httpOnly: true,
   secure: NODE_ENV === "production",
   sameSite: "lax" as const,
-  maxAge: 365 * 24 * 60 * 60 * 1000,
   path: "/",
+  domain: COOKIE_DOMAIN,
+};
+
+export const cookieOptions = {
+  ...clearCookieOptions,
+  maxAge: 365 * 24 * 60 * 60 * 1000,
 };
 
 export const toObjectId = (value: unknown): ObjectId | null => {
@@ -132,6 +137,11 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
   return proto === Object.prototype || proto === null;
 }
 
+export const mediaUrl = (url: string): string => {
+  const id = extractMediaId(url);
+  return id ? `${NEXT_PUBLIC_API_URL}/api/media/${id}/file` : url;
+};
+
 export function stripMediaFields<T>(input: T): T {
   if (Array.isArray(input)) {
     return input.map((item) => stripMediaFields(item)) as unknown as T;
@@ -139,7 +149,7 @@ export function stripMediaFields<T>(input: T): T {
   if (isMediaObject(input)) {
     return {
       originalName: input.originalName,
-      url: input.url,
+      url: mediaUrl(input.url),
       mimeType: input.mimeType,
     } as unknown as T;
   }

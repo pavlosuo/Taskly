@@ -1,9 +1,8 @@
 import { ObjectId } from "mongodb";
 import fs from "fs/promises";
 import { ServiceResult } from "shared/types";
-import { filePath, toObjectId } from "@/utils";
+import { filePath, toObjectId, mediaUrl } from "@/utils";
 import { MediaItemBack, ChatBack, MessageBack, IServer, User } from "@/types";
-import { NEXT_PUBLIC_API_URL } from "@/env";
 
 export class MediaService {
   constructor(private server: IServer) {}
@@ -22,7 +21,8 @@ export class MediaService {
         chatIds: [],
       };
       const result = await db.collection("media").insertOne(doc);
-      const url = `${NEXT_PUBLIC_API_URL}/api/media/${result.insertedId}/file`;
+      const path = `/api/media/${result.insertedId}/file`;
+      const url = mediaUrl(path);
       await db
         .collection("media")
         .updateOne({ _id: result.insertedId }, { $set: { url } });

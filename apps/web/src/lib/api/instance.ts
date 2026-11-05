@@ -98,7 +98,8 @@ export const methods = (api: AxiosInstance) => {
         `/api/users/by-username/${encodeURIComponent(username)}`,
       ),
 
-    deactivateAccount: () => api.delete<CommonResponse>("/api/users"),
+    deactivateAccount: (password: string) =>
+      api.delete<CommonResponse>("/api/users", { data: { password } }),
 
     verifyPhoneOtp: (otp: string) =>
       api.post<AuthResponse>("/api/users/phone/verify-otp", { otp }),
