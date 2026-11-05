@@ -22,6 +22,7 @@
     "category": "No files in this category",
     "drop": "Drop to upload"
   },
+  "preview": { "open": "Preview" },
   "details": {
     "name": "Name",
     "type": "Type",
@@ -31,7 +32,8 @@
     "selected_one": "{{count}} file selected",
     "selected_other": "{{count}} files selected",
     "delete": "Delete permanently",
-    "deleteAll": "Delete all selected"
+    "deleteAll": "Delete all selected",
+    "preview": "Open preview"
   },
   "deleteConfirm_one": "Delete this file permanently?",
   "deleteConfirm_other": "Delete {{count}} files permanently?"

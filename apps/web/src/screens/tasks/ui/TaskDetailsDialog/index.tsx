@@ -787,7 +787,7 @@ export const ClientView = ({ task, onClose }: ViewProps) => {
           </div>
           <TaskStatusBadge
             status={task.status}
-            className="absolute top-5 right-16"
+            className="absolute top-5 right-10 md:right-16"
           />
         </div>
       </DialogHeader>
@@ -989,7 +989,7 @@ export const TaskerView = ({ task, onClose }: ViewProps) => {
             <DialogDescription>{t("respond.description")}</DialogDescription>
             <TaskStatusBadge
               status={task.status}
-              className="absolute top-5 right-16"
+              className="absolute top-5 right-10 md:right-16"
             />
           </div>
         </div>

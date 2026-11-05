@@ -1,4 +1,5 @@
 {
+  "deactivateAccount": "Are you sure you want to delete your account? This action is permanent.",
   "actions": {
     "add": "Add",
     "edit": "Edit",

@@ -71,17 +71,16 @@ export function QRCode({ url, name }: { url: string; name: string }) {
   };
 
   return (
-    <div className="flex flex-col items-center gap-4 bg-background p-6 w-fit border border-border">
-      <div className="border border-border p-3">
-        <QRCodeSVG
-          value={url}
-          size={200}
-          bgColor={theme === "light" ? "#fff" : "#0c0c09"}
-          fgColor={theme === "light" ? "#0c0c09" : "#fff"}
-          level="H"
-          includeMargin={true}
-        />
-      </div>
+    <div className="flex flex-col items-center gap-4 bg-background p-6 w-fit max-w-full border border-border">
+      <QRCodeSVG
+        value={url}
+        size={200}
+        bgColor={theme === "light" ? "#fff" : "#0c0c09"}
+        fgColor={theme === "light" ? "#0c0c09" : "#fff"}
+        level="H"
+        includeMargin={true}
+        className="w-full"
+      />
       <div ref={exportRef} aria-hidden="true" className="hidden">
         <QRCodeSVG
           value={url}
@@ -95,7 +94,7 @@ export function QRCode({ url, name }: { url: string; name: string }) {
       <p className="max-w-55 truncate text-sm text-grey" title={name}>
         {name}
       </p>
-      <div className="flex gap-2">
+      <div className="flex gap-2 flex-wrap justify-center">
         <Button onClick={handleCopy} variant="secondary" className="w-[12ch]">
           {copied ? t("qrCode.copied") : t("qrCode.copyLink")}
         </Button>

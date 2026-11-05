@@ -40,6 +40,21 @@ export const PAGES_META: Record<
     },
   },
 
+  soon: {
+    en: {
+      title: "Coming Soon",
+      description: "This page is coming soon.",
+    },
+    "fi-FI": {
+      title: "Tulossa",
+      description: "Tapahtuu pian.",
+    },
+    "sv-FI": {
+      title: "Kommer snart",
+      description: "Denna sida kommer snart.",
+    },
+  },
+
   stats: {
     en: {
       title: "Stats",

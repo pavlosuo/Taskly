@@ -7,6 +7,7 @@ import { getServerApi } from "@/api/server";
 import { AutoLogoutPopup } from "@/components/shared/AutoLogoutPopup";
 import { cookies } from "next/headers";
 import { Lang } from "shared/index";
+import { FloatingSettings } from "@/components/shared/FloatingSettings";
 
 export async function generateMetadata() {
   try {
@@ -37,6 +38,13 @@ export default async function Dashboard() {
           </main>
         </SidebarWrapper>
       </PolicyDataProvider>
+    );
+  } else {
+    return (
+      <>
+        <FloatingSettings />
+        <Screens.Error.Main type="soon" />
+      </>
     );
   }
 }

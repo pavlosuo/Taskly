@@ -60,7 +60,7 @@ export function SecurityCard() {
   };
 
   const handleDeactivateClick = () => {
-    confirm("confirm.deactivateAccount").then((confirmed) => {
+    confirm(t("profile:deactivateAccount")).then((confirmed) => {
       if (confirmed) deactivateAccount();
     });
   };

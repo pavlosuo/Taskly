@@ -11,12 +11,10 @@ import { useSocket } from "@/providers/SocketProvider";
 
 interface PresenceContextType {
   onlineUserIds: Set<string>;
-  isOnline: (userId: string) => boolean;
 }
 
 const PresenceContext = createContext<PresenceContextType>({
   onlineUserIds: new Set(),
-  isOnline: () => false,
 });
 
 export const PresenceProvider = ({ children }: { children: ReactNode }) => {
@@ -59,7 +57,6 @@ export const PresenceProvider = ({ children }: { children: ReactNode }) => {
     <PresenceContext.Provider
       value={{
         onlineUserIds,
-        isOnline: (userId: string) => onlineUserIds.has(userId),
       }}
     >
       {children}

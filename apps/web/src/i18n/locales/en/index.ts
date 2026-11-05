@@ -10,6 +10,7 @@ import user from "./user.json";
 import tasks from "./tasks.json";
 import profile from "./profile.json";
 import notify from "./notify.json";
+import admin from "./admin.json";
 
 const spaces = {
   common,
@@ -24,6 +25,7 @@ const spaces = {
   tasks,
   profile,
   notify,
+  admin,
 };
 
 export default spaces;

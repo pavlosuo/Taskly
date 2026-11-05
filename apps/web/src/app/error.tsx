@@ -9,8 +9,8 @@ export const metadata = getMetaData({
 
 export default function Error() {
   return (
-    <main className="page">
+    <>
       <Screens.Error.Main type="error" />
-    </main>
+    </>
   );
 }

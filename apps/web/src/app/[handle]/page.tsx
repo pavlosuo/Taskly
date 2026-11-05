@@ -44,9 +44,9 @@ export default async function PublicProfilePage({ params }: Props) {
   }
   if (!user) notFound();
   return (
-    <main className="page">
+    <>
       <FloatingSettings />
       <Screens.PublicProfile.Main user={user} accessReason={accessReason} />
-    </main>
+    </>
   );
 }

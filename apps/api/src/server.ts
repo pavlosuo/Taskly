@@ -285,7 +285,6 @@ export class Server implements IServer {
           } catch (e) {
             console.error("Update lastSeenAt on disconnect error:", e);
           }
-
           if (!isAdmin) {
             io.emit("presence:offline", { userId });
           }

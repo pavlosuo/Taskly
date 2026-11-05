@@ -13,11 +13,11 @@ export function OnlineStatus({
 }) {
   const { t } = useTranslation("common");
   const [now, setNow] = useState(() => Date.now());
-  const { isOnline } = usePresence();
-  const liveOnline = isOnline(user._id);
+  const { onlineUserIds } = usePresence();
+  const liveOnline = onlineUserIds.has(user._id);
 
   useEffect(() => {
-    const id = setInterval(() => setNow(Date.now()), 30000);
+    const id = setInterval(() => setNow(Date.now()), 30_000);
     return () => clearInterval(id);
   }, []);
 

@@ -19,7 +19,7 @@ export function QRCard() {
         title={t("qr.title")}
         desc={t("qr.desc")}
       />
-      <div className="border border-border bg-background p-4 flex justify-between items-end">
+      <div className="border border-border bg-background p-4 flex flex-col justify-between items-center md:flex-row gap-4 md:items-end">
         <Button variant="link" asChild>
           <Link
             href={link}

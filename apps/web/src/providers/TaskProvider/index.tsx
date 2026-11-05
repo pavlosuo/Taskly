@@ -39,6 +39,7 @@ import { getAxiosError } from "@/utils/getAxiosError";
 import { applyTaskFilters, buildTaskQuery } from "@/utils/tasksUtils";
 import { useToast } from "@/hooks/useToast";
 import { useRun } from "@/hooks/useRun";
+import { useSocket } from "@/providers/SocketProvider";
 
 const REFETCH_ON_FOCUS_MS = 30_000;
 
@@ -157,6 +158,7 @@ const findIn = (lists: Task[][], id: string | null) =>
   id ? (lists.flat().find((t) => t._id === id) ?? null) : null;
 
 export const TaskProvider = ({ children }: TaskProviderProps) => {
+  const { socket } = useSocket();
   const [allTasks, setAllTasks] = useState<Task[]>([]);
   const [myTasks, setMyTasks] = useState<Task[]>([]);
   const [rawTotal, setRawTotal] = useState(0);
@@ -262,6 +264,29 @@ export const TaskProvider = ({ children }: TaskProviderProps) => {
   }, [toast]);
 
   useEffect(() => {
+    if (!socket || !userId) return;
+    let timer: ReturnType<typeof setTimeout>;
+    const refetch = () => {
+      clearTimeout(timer);
+      timer = setTimeout(() => fetchTasks(lastQueryRef.current), 500);
+    };
+    const onNew = ({
+      notification,
+    }: {
+      notification: { taskId: string | null };
+    }) => {
+      if (notification.taskId) refetch();
+    };
+    socket.on("notification:new", onNew);
+    socket.io.on("reconnect", refetch);
+    return () => {
+      clearTimeout(timer);
+      socket.off("notification:new", onNew);
+      socket.io.off("reconnect", refetch);
+    };
+  }, [socket, userId, fetchTasks]);
+
+  useEffect(() => {
     if (!userId || loadedForRef.current === userId) return;
     const adoptSsr = ssrRef.current && loadedForRef.current === null;
     loadedForRef.current = userId;
@@ -296,13 +321,6 @@ export const TaskProvider = ({ children }: TaskProviderProps) => {
     }, 300);
     return () => clearTimeout(timeout);
   }, [serverKey, tab, isInitialized, fetchTasks]);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      fetchTasks(lastQueryRef.current);
-    }, REFETCH_ON_FOCUS_MS);
-    return () => clearInterval(interval);
-  }, [fetchTasks]);
 
   const changeTab = useCallback((next: TasksTab) => {
     setTab(next);
@@ -558,57 +576,90 @@ export const TaskProvider = ({ children }: TaskProviderProps) => {
     [run],
   );
 
+  const contextValue = useMemo(
+    () => ({
+      ...view,
+      allTasks,
+      myTasks,
+      isLoading,
+      isListLoading: tab === "all" ? isFetching || !isInitialized : false,
+      isLoadingMore,
+      isInitialized,
+      tab,
+      query,
+      filters,
+      changeTab,
+      setQuery,
+      setFilters,
+      reset,
+      findTask,
+      hydrate,
+      fetchTasks,
+      loadMoreTasks,
+      createTask,
+      updateTask,
+      deleteTask,
+      cancelTask,
+      completeTask,
+      markDone,
+      abandonTask,
+      respondToTask,
+      getTaskResponses,
+      acceptResponse,
+      withdrawResponse,
+      declineResponse,
+      getTaskReviews,
+      createReview,
+      getPayments,
+    }),
+    [
+      view,
+      allTasks,
+      myTasks,
+      isLoading,
+      isFetching,
+      isLoadingMore,
+      isInitialized,
+      tab,
+      query,
+      filters,
+      changeTab,
+      setQuery,
+      setFilters,
+      reset,
+      findTask,
+      hydrate,
+      fetchTasks,
+      loadMoreTasks,
+      createTask,
+      updateTask,
+      deleteTask,
+      cancelTask,
+      completeTask,
+      markDone,
+      abandonTask,
+      respondToTask,
+      getTaskResponses,
+      acceptResponse,
+      withdrawResponse,
+      declineResponse,
+      getTaskReviews,
+      createReview,
+      getPayments,
+    ],
+  );
+
   return (
-    <TaskContext.Provider
-      value={{
-        ...view,
-        allTasks,
-        myTasks,
-        isLoading,
-        isListLoading: tab === "all" ? isFetching || !isInitialized : false,
-        isLoadingMore,
-        isInitialized,
-        tab,
-        query,
-        filters,
-        changeTab,
-        setQuery,
-        setFilters,
-        reset,
-        findTask,
-        hydrate,
-        fetchTasks,
-        loadMoreTasks,
-        createTask,
-        updateTask,
-        deleteTask,
-        cancelTask,
-        completeTask,
-        markDone,
-        abandonTask,
-        respondToTask,
-        getTaskResponses,
-        acceptResponse,
-        withdrawResponse,
-        declineResponse,
-        getTaskReviews,
-        createReview,
-        getPayments,
-      }}
-    >
-      {children}
-    </TaskContext.Provider>
+    <TaskContext.Provider value={contextValue}>{children}</TaskContext.Provider>
   );
 };
 
 export const useTasks = (initial?: TaskList): TaskContextType => {
   const context = useContext(TaskContext);
   const hydrate = context?.hydrate;
-
   useEffect(() => {
     if (initial) hydrate?.(initial);
   }, [initial, hydrate]);
-
   const seeded = useMemo(() => {
     if (!context || !initial || context.isInitialized) return null;
     return {
@@ -624,10 +675,8 @@ export const useTasks = (initial?: TaskList): TaskContextType => {
       myTasks: initial.myItems,
     };
   }, [context, initial]);
-
   if (!context) throw new Error("useTasks must be used within TaskProvider");
   if (!seeded) return context;
-
   return {
     ...context,
     ...seeded,

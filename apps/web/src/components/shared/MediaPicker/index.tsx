@@ -17,6 +17,7 @@ import {
   Music,
   Video,
   File,
+  Maximize2,
 } from "lucide-react";
 import {
   Dialog,
@@ -42,6 +43,8 @@ import { formatSize } from "@/utils/formatSize";
 import { useFormatDate } from "@/hooks/useFormatDate";
 import { useModal } from "@/providers/ModalProvider";
 import { useTheme } from "@/providers/ThemeProvider";
+import { createPortal } from "react-dom";
+import { Lightbox } from "@/components/shared/Lightbox";
 
 export const VideoDisplay = ({ src }: { src: string; className?: string }) => {
   return (
@@ -187,6 +190,12 @@ export function MediaPicker({
     done: number;
   } | null>(null);
   const { lang } = useTheme();
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+
+  const openPreview = useCallback((index: number) => {
+    setLightboxIndex(index);
+  }, []);
+  const closePreview = useCallback(() => setLightboxIndex(null), []);
 
   const selectedItem =
     selectedIds.size === 1
@@ -224,6 +233,7 @@ export function MediaPicker({
         setSelectedIds(new Set());
         setAnchorIndex(null);
         setFocusIndex(0);
+        setLightboxIndex(null);
       }
     });
   }, [open, accept]);
@@ -233,6 +243,7 @@ export function MediaPicker({
   );
 
   const handleFilterChange = (next: FilterType) => {
+    setLightboxIndex(null);
     setFilter(next);
     const nextFiltered = items.filter((item) =>
       next === "all" ? true : getFileType(item.mimeType) === next,
@@ -457,7 +468,10 @@ export function MediaPicker({
     }
   };
 
-  const hotkeyOpts = { enabled: open, enableOnFormTags: false };
+  const hotkeyOpts = {
+    enabled: open && lightboxIndex === null,
+    enableOnFormTags: false,
+  };
 
   useHotkeys(
     "mod+a",
@@ -550,6 +564,22 @@ export function MediaPicker({
     [filtered, anchorIndex],
   );
 
+  useHotkeys(
+    "space",
+    (e) => {
+      if ((e.target as HTMLElement).closest("button, label")) return;
+      if (filtered.length === 0) return;
+      e.preventDefault();
+      const selectedIndex =
+        selectedIds.size === 1
+          ? filtered.findIndex((i) => selectedIds.has(i._id))
+          : -1;
+      openPreview(selectedIndex >= 0 ? selectedIndex : focusIndex);
+    },
+    hotkeyOpts,
+    [filtered, selectedIds, focusIndex, openPreview],
+  );
+
   const selectedItemDate = useFormatDate(selectedItem?.uploadedAt) || "";
 
   const emptyText = dragOver
@@ -569,7 +599,13 @@ export function MediaPicker({
         )}
         onPointerDownOutside={(e) => e.preventDefault()}
         onInteractOutside={(e) => e.preventDefault()}
-        onEscapeKeyDown={(e) => e.stopPropagation()}
+        onEscapeKeyDown={(e) => {
+          e.stopPropagation();
+          if (lightboxIndex !== null) {
+            e.preventDefault();
+            setLightboxIndex(null);
+          }
+        }}
         onDrop={handleDrop}
         onDragEnter={handleDragEnter}
         onDragOver={handleDragOver}
@@ -627,7 +663,7 @@ export function MediaPicker({
             />
           </label>
         </div>
-        <div className="grid grid-cols-1 grid-rows-[1fr_max-content] h-130 w-full md:grid-rows-1 md:grid-cols-[1fr_max-content]">
+        <div className="grid grid-cols-1 grid-rows-[1fr_max-content] h-100 md:h-130 w-full md:grid-rows-1 md:grid-cols-[1fr_max-content]">
           <div
             className="overflow-y-auto p-4 transition-colors relative w-full"
             onClick={handleBackgroundClick}
@@ -670,8 +706,13 @@ export function MediaPicker({
                         handleItemClick(item._id, index, e);
                       }}
                       onDoubleClick={() => {
-                        setSelectedIds(new Set([item._id]));
-                        handleConfirm();
+                        if (!onSelect) {
+                          openPreview(index);
+                          return;
+                        }
+                        onSelect(multiple ? [item] : [item]);
+                        onOpenChange(false);
+                        setSelectedIds(new Set());
                       }}
                       className={clsx(
                         "relative aspect-square border-2 rounded-lg cursor-pointer overflow-hidden group transition-all",
@@ -684,6 +725,18 @@ export function MediaPicker({
                       )}
                     >
                       <FileThumbnail item={item} />
+                      <button
+                        type="button"
+                        aria-label={t("preview.open")}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openPreview(index);
+                        }}
+                        onDoubleClick={(e) => e.stopPropagation()}
+                        className="absolute top-1.5 right-1.5 p-1.5 rounded-full bg-black/50 text-white opacity-0 group-hover:opacity-100 focus-visible:opacity-100 hover:bg-black/70 transition-opacity"
+                      >
+                        <Maximize2 aria-hidden="true" className="w-3.5 h-3.5" />
+                      </button>
                       {isSelected && (
                         <div className="absolute top-1.5 left-1.5 w-5 h-5 rounded-full bg-primary flex items-center justify-center">
                           <Check
@@ -720,7 +773,7 @@ export function MediaPicker({
                     />
                   )}
                 </div>
-                <div className="grid grid-cols-2 md:grid-cols-1 gap-3 p-4 overflow-y-auto flex-1">
+                <div className="grid grid-cols-2 md:grid-rows-[auto_auto_auto_1fr_auto_auto] md:grid-cols-1 gap-3 p-4 overflow-y-auto flex-1">
                   <div>
                     <p className="text-xs text-grey mb-0.5">
                       {t("details.name")}
@@ -753,6 +806,19 @@ export function MediaPicker({
                       {selectedItemDate}
                     </p>
                   </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const idx = filtered.findIndex(
+                        (i) => i._id === selectedItem._id,
+                      );
+                      if (idx >= 0) openPreview(idx);
+                    }}
+                    className="flex items-center gap-1.5 text-xs text-primary hover:underline"
+                  >
+                    <Maximize2 aria-hidden="true" className="w-3.5 h-3.5" />
+                    {t("details.preview")}
+                  </button>
                   <button
                     type="button"
                     onClick={handleDeleteSelected}
@@ -807,6 +873,20 @@ export function MediaPicker({
             </Button>
           )}
         </div>
+        {lightboxIndex !== null &&
+          filtered[lightboxIndex] &&
+          typeof document !== "undefined" &&
+          createPortal(
+            <div className="pointer-events-auto relative z-60">
+              <Lightbox
+                items={filtered}
+                index={lightboxIndex}
+                onClose={closePreview}
+                onIndexChange={setLightboxIndex}
+              />
+            </div>,
+            document.body,
+          )}
       </DialogContent>
     </Dialog>
   );

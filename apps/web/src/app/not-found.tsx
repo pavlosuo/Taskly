@@ -21,9 +21,9 @@ export async function generateMetadata() {
 
 export default function Page404() {
   return (
-    <main className="page">
+    <>
       <FloatingSettings />
       <Screens.Error.Main type="not-found" />
-    </main>
+    </>
   );
 }

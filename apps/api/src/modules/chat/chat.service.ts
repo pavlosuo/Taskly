@@ -64,6 +64,8 @@ export class ChatService {
             publicLink: 1,
             lastSeenAt: 1,
             role: 1,
+            "settings.checkboxes.noOnlineStatus": 1,
+            "settings.checkboxes.privateProfile": 1,
           },
         },
       )
@@ -76,10 +78,14 @@ export class ChatService {
         fullName: u.profile?.fullName ?? "",
         avatar: stripMediaFields(u.profile?.avatar) ?? null,
         initials: u.profile?.initials ?? "",
-        ...(u.role !== "admin"
+        ...(u.role !== "admin" && !u.settings?.checkboxes?.privateProfile
           ? {
               publicLink: u.publicLink,
-              lastSeenAt: u.lastSeenAt as string,
+            }
+          : {}),
+        ...(u.role !== "admin" && !u.settings?.checkboxes?.noOnlineStatus
+          ? {
+              lastSeenAt: u.lastSeenAt,
             }
           : {}),
       });

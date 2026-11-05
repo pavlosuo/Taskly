@@ -80,5 +80,11 @@ export function createApp(server: Server): Application {
       message: "general.unknown",
     });
   });
+  app.use((_, res) => {
+    console.log("Request received", {
+      method: _.method,
+      url: _.url,
+    });
+  });
   return app;
 }

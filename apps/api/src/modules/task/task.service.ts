@@ -772,7 +772,6 @@ export class TaskService {
         .find(filter, { projection: { _id: 1 } })
         .limit(TASK_JOB_BATCH_SIZE)
         .toArray();
-      console.log(due);
       for (const task of due) {
         const res = await run(task._id);
         if (!res.success && res.status !== 409) {
