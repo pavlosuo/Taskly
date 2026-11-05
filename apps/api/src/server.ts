@@ -413,10 +413,14 @@ export class Server implements IServer {
   async start() {
     if (!MONGODB_URI || !JWT_SECRET || !CLIENT_URL || !NEXT_PUBLIC_API_URL) {
       console.error("Missing env variables");
-      return;
+      process.exit(1);
     }
+    console.log("Connecting to MongoDB...");
     await this.indexesConfig();
-    const app = createApp(this).listen(this.port);
+    console.log("MongoDB OK, indexes created");
+    const app = createApp(this).listen(this.port, "0.0.0.0", () => {
+      console.log(`API listening on ${this.port}`);
+    });
     this.initSockets(app);
   }
 }

@@ -7,7 +7,9 @@ export function useToast() {
   return useCallback(
     (key?: string, type: "error" | "success" = "error") => {
       if (!key) return;
-      toast?.[type](t(key), {
+      const text = t(key);
+      if (text === "undefined") return;
+      toast?.[type](text, {
         duration: 3000,
         position: "top-right",
       });
