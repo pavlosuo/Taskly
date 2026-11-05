@@ -1,0 +1,40 @@
+{
+  "roles": {
+    "tasker": "Utförare",
+    "client": "Beställare"
+  },
+  "verified": "Verifierad",
+  "memberSince": "Medlem sedan {{date}}",
+  "speaks": "Talar {{languages}}",
+  "hire": "Anlita {{name}}",
+  "hireDisabled": {
+    "loggedOut": "Logga in för att skicka ett meddelande",
+    "own": "Du kan inte skicka meddelanden till dig själv"
+  },
+  "headerAlt": "Omslagsbild",
+  "chips": {
+    "skills_one": "färdighet",
+    "skills_other": "färdigheter",
+    "certificates_one": "certifikat",
+    "certificates_other": "certifikat",
+    "languages_one": "språk",
+    "languages_other": "språk"
+  },
+  "sections": {
+    "about": "Om",
+    "introduction": "Introduktionsvideo",
+    "skills": "Färdigheter",
+    "certificates": "Certifikat",
+    "languages": "Språk"
+  },
+  "empty": {
+    "bio": "{{name}} har inte skrivit någon presentation ännu.",
+    "introduction": "{{name}} har inte lagt till någon introduktionsvideo ännu.",
+    "skills": "Inga färdigheter har lagts till ännu.",
+    "certificates": "Inga certifikat har lagts till ännu.",
+    "languages": "Inga språk har lagts till ännu."
+  },
+  "certificate": {
+    "view": "Visa certifikatet {{name}}"
+  }
+}

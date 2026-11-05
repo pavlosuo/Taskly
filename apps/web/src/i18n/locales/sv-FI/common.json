@@ -1,0 +1,205 @@
+{
+  "appName": "Taskly",
+  "notify": {
+    "title": "Aviseringar",
+    "newMessage": "Nytt meddelande i chatten",
+    "emptyTitle": "Du har inga aviseringar",
+    "emptyDescription": "När du får aviseringar visas de här."
+  },
+  "popup": {
+    "title": "Är du kvar?",
+    "logoutIn": "Du loggas ut om",
+    "seconds_one": "{{count}} sekund.",
+    "seconds_other": "{{count}} sekunder.",
+    "continue": "Fortsätt",
+    "logout": "Logga ut"
+  },
+  "editor": {
+    "bold": "Fet stil",
+    "italic": "Kursiv stil",
+    "strike": "Genomstruken",
+    "code": "Kod i text",
+    "clearMarks": "Rensa markeringar",
+    "clearNodes": "Rensa blockformatering",
+    "paragraph": "Stycke",
+    "h1": "Rubrik 1",
+    "h2": "Rubrik 2",
+    "h3": "Rubrik 3",
+    "h4": "Rubrik 4",
+    "h5": "Rubrik 5",
+    "h6": "Rubrik 6",
+    "bulletList": "• Lista",
+    "orderedList": "1. Lista",
+    "codeBlock": "Kodblock",
+    "blockquote": "Citat",
+    "horizontalRule": "Horisontell linje",
+    "hardBreak": "Radbrytning",
+    "undo": "Ångra",
+    "redo": "Gör om"
+  },
+  "actions": {
+    "back": "Tillbaka",
+    "continue": "Fortsätt",
+    "cancel": "Avbryt",
+    "select": "Välj",
+    "retry": "Försök igen",
+    "save": "Spara",
+    "delete": "Ta bort",
+    "logout": "Logga ut",
+    "close": "Stäng"
+  },
+  "header": {
+    "logIn": "Logga in",
+    "signUp": "Registrera dig",
+    "privateProfileAdmin": "Den här profilen är privat. Du ser den eftersom du är inloggad som administratör.",
+    "privateProfileOwner": "Den här profilen är privat. Du ser den eftersom det är din egen profil – andra användare ser inte den här sidan."
+  },
+  "nav": {
+    "users": "Hitta utförare",
+    "tasks": "Bläddra bland uppdrag",
+    "top": "Topputförare",
+    "leaderboard": "Topplista",
+    "stats": "Statistik"
+  },
+  "qrCode": {
+    "copyLink": "Kopiera länk",
+    "copied": "Kopierad!",
+    "download": "Ladda ner koden"
+  },
+  "aria": {
+    "showPassword": "Visa lösenord",
+    "hidePassword": "Dölj lösenord"
+  },
+  "hint": {
+    "label": "Tips"
+  },
+  "location": {
+    "placeholder": "Sök efter en adress...",
+    "search": "Sök adress",
+    "locate": "Använd min nuvarande plats",
+    "resolving": "Hämtar adress...",
+    "hint": "Klicka på kartan för att placera en nål eller sök efter en adress ovan · OpenStreetMap"
+  },
+  "lightbox": {
+    "close": "Stäng",
+    "download": "Ladda ner",
+    "previous": "Föregående",
+    "next": "Nästa",
+    "noPreview": "Ingen förhandsvisning finns för den här filtypen"
+  },
+  "tagInput": {
+    "placeholder": "Sök eller lägg till...",
+    "add": "Lägg till ”{{value}}”",
+    "remove": "Ta bort {{name}}"
+  },
+  "phoneNoResult": {
+    "title": "Inga resultat",
+    "description": "Vi hittade inga resultat för din sökning."
+  },
+  "method": { "phone": "Telefon", "email": "E-post" },
+  "alt": { "authIllustration": "Illustration för inloggning" },
+  "auth": {
+    "noAccount": {
+      "text": "Har du inget konto ännu?",
+      "label": "Skapa konto"
+    },
+    "hasAccount": {
+      "text": "Har du redan ett konto?",
+      "label": "Logga in"
+    }
+  },
+  "privacy": {
+    "accept": "Jag godkänner integritetspolicyn",
+    "description": "Genom att markera rutan godkänner du <policy>integritetspolicyn</policy>"
+  },
+  "status": {
+    "online": "Online",
+    "minutesAgo": "{{count}} min sedan",
+    "hoursAgo": "{{count}} h sedan",
+    "daysAgo": "{{count}} d sedan",
+    "lastSeen": "Senast aktiv {{time}}"
+  },
+  "general": {
+    "finnish": "finska",
+    "swedish": "svenska",
+    "english": "engelska",
+    "russian": "ryska",
+    "estonian": "estniska",
+    "arabic": "arabiska",
+    "somali": "somaliska",
+    "french": "franska",
+    "german": "tyska",
+    "spanish": "spanska",
+    "italian": "italienska",
+    "portuguese": "portugisiska",
+    "polish": "polska",
+    "ukrainian": "ukrainska",
+    "chinese": "kinesiska",
+    "japanese": "japanska",
+    "korean": "koreanska",
+    "turkish": "turkiska",
+    "persian": "persiska",
+    "hindi": "hindi",
+    "bengali": "bengali",
+    "urdu": "urdu",
+    "vietnamese": "vietnamesiska",
+    "thai": "thailändska",
+    "dutch": "nederländska",
+    "romanian": "rumänska",
+    "hungarian": "ungerska",
+    "czech": "tjeckiska",
+    "slovak": "slovakiska",
+    "bulgarian": "bulgariska",
+    "croatian": "kroatiska",
+    "serbian": "serbiska",
+    "danish": "danska",
+    "norwegian": "norska",
+    "lithuanian": "litauiska",
+    "latvian": "lettiska",
+    "greek": "grekiska",
+    "hebrew": "hebreiska",
+    "indonesian": "indonesiska",
+    "malay": "malajiska",
+    "filipino": "filipino",
+    "swahili": "swahili",
+    "amharic": "amhariska",
+    "kurdish": "kurdiska",
+    "azerbaijani": "azerbajdzjanska",
+    "georgian": "georgiska",
+    "armenian": "armeniska",
+    "mongolian": "mongoliska",
+    "kazakh": "kazakiska",
+    "uzbek": "uzbekiska",
+    "cerfA1": "A1 — Nybörjare",
+    "cerfA2": "A2 — Grundläggande",
+    "cerfB1": "B1 — Mellannivå",
+    "cerfB2": "B2 — Övre mellannivå",
+    "cerfC1": "C1 — Avancerad",
+    "cerfC2": "C2 — Flytande"
+  },
+  "settings": {
+    "title": "Inställningar",
+    "description": "Anpassa språk och visningstema.",
+    "language": {
+      "title": "Språk",
+      "description": "Välj appens språk."
+    },
+    "darkMode": {
+      "title": "Mörkt läge",
+      "description": "Växla mellan ljust och mörkt tema."
+    }
+  },
+  "videoPlayer": {
+    "settings": "Inställningar",
+    "speed": "Hastighet"
+  },
+  "loading": "Laddar...",
+  "toast": {
+    "codeSent": "Verifieringskod skickad",
+    "emailVerified": "E-postadressen har verifierats",
+    "phoneVerified": "Telefonnumret har verifierats",
+    "profileUpdated": "Profilen har uppdaterats",
+    "passwordChanged": "Lösenordet har ändrats",
+    "accountDeactivated": "Kontot har inaktiverats"
+  }
+}

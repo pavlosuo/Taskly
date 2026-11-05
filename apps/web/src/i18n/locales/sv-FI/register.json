@@ -1,0 +1,47 @@
+{
+  "roleStep": {
+    "title": "Gå med i {{appName}}",
+    "subtitle": "Hur planerar du att använda appen?"
+  },
+  "formStep": {
+    "title": "Skapa konto",
+    "submit": {
+      "idle": "Skapa konto",
+      "loading": "Skapar konto..."
+    }
+  },
+  "roles": {
+    "client": {
+      "title": "Jag behöver hjälp",
+      "desc": "Publicera uppdrag och hitta pålitliga personer i närheten.",
+      "tags": ["Publicera uppdrag", "Anlita utförare"],
+      "hint": "Snabb registrering – ingen verifiering krävs."
+    },
+    "tasker": {
+      "title": "Jag vill jobba",
+      "desc": "Bläddra bland lokala uppdrag och tjäna pengar på dina egna villkor.",
+      "tags": ["Tjäna pengar", "Flexibla tider"],
+      "hint": "Du verifierar din identitet efter registreringen."
+    }
+  },
+  "fields": {
+    "fullName": {
+      "label": "Fullständigt namn",
+      "placeholder": "Ange ditt fullständiga namn"
+    },
+    "email": { "label": "E-post", "placeholder": "Ange din e-postadress" },
+    "username": {
+      "label": "Användarnamn",
+      "placeholder": "Ange ditt användarnamn"
+    },
+    "phone": {
+      "label": "Telefonnummer",
+      "placeholder": "Ange ditt telefonnummer"
+    },
+    "password": { "label": "Lösenord", "placeholder": "Skapa ett lösenord" },
+    "confirm": {
+      "label": "Bekräfta lösenord",
+      "placeholder": "Upprepa ditt lösenord"
+    }
+  }
+}

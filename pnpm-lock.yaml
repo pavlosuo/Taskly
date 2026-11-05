@@ -23,6 +23,9 @@ importers:
       "@taskly/shared":
         specifier: workspace:*
         version: link:../../packages/shared
+      axios:
+        specifier: ^1.13.6
+        version: 1.18.1
       bcrypt:
         specifier: ^6.0.0
         version: 6.0.0

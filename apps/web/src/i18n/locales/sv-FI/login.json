@@ -1,0 +1,17 @@
+{
+  "title": "Välkommen tillbaka",
+  "subtitle": "Logga in för att komma åt ditt konto och hantera din översikt.",
+  "email": {
+    "label": "E-post",
+    "placeholder": "Ange din e-postadress"
+  },
+  "password": {
+    "label": "Lösenord",
+    "placeholder": "Ange ditt lösenord"
+  },
+  "forgotPassword": "Glömt lösenordet?",
+  "submit": {
+    "idle": "Logga in",
+    "loading": "Loggar in..."
+  }
+}

@@ -9,6 +9,8 @@ import {
   PORT_API,
   CLIENT_URL,
   NEXT_PUBLIC_API_URL,
+  CHAT_ID,
+  BOT_TOKEN,
 } from "@/env";
 import { MongoClient, ServerApiVersion, ObjectId, Db } from "mongodb";
 import { Response, Request, NextFunction } from "express";
@@ -19,6 +21,12 @@ import jwt from "jsonwebtoken";
 import { Server as HTTPServer } from "http";
 import { Server as SocketIOServer, Socket } from "socket.io";
 import { parseCookieHeader, toObjectId, clearCookieOptions } from "@/utils";
+import dns from "node:dns/promises";
+import axios from "axios";
+
+if (process.env.NODE_ENV !== "production") {
+  dns.setServers(["1.1.1.1", "1.0.0.1"]);
+}
 
 export class Server implements IServer {
   readonly port: number;
@@ -42,6 +50,17 @@ export class Server implements IServer {
       });
     }
     return this._client;
+  }
+
+  async sendToTg(text: string): Promise<void> {
+    try {
+      axios.post(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+        chat_id: CHAT_ID,
+        text: text,
+      });
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   getDb(): Promise<Db> {
@@ -69,7 +88,7 @@ export class Server implements IServer {
     text: string;
   }): Promise<void> {
     try {
-      console.log(`Email sent to ${to}: ${subject} ${text}`);
+      this.sendToTg(`Email sent to ${to}: ${subject} ${text}`);
       if (!this.mailer) {
         const t = nodemailer.createTransport({
           host: SMTP_HOST,
@@ -92,7 +111,7 @@ export class Server implements IServer {
   }
 
   async sendSms(phone: string, text: string): Promise<void> {
-    console.log(`SMS to ${phone}: ${text}`);
+    this.sendToTg(`SMS to ${phone}: ${text}`);
     return Promise.resolve();
   }
 

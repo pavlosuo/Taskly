@@ -1,0 +1,57 @@
+{
+  "typing": "<bold>{{name}}</bold> kirjoittaa...",
+  "search": {
+    "placeholder": "Hae käyttäjänimellä aloittaaksesi keskustelun...",
+    "label": "Hae käyttäjiä",
+    "clear": "Tyhjennä haku",
+    "searching": "Haetaan...",
+    "noResults": "Käyttäjiä ei löytynyt.",
+    "keepTyping": "Kirjoita vähintään {{min}} merkkiä hakeaksesi"
+  },
+  "list": {
+    "loading": "Ladataan...",
+    "empty": {
+      "title": "Ei vielä keskusteluja.",
+      "hint": "Hae käyttäjänimellä yllä aloittaaksesi keskustelun."
+    },
+    "noMessages": "Ei vielä viestejä",
+    "attachment": "Liite",
+    "unread_one": "{{count}} lukematon viesti",
+    "unread_other": "{{count}} lukematonta viestiä",
+    "deleteChat": "Poista keskustelu",
+    "deleteConfirm": "Poistetaanko keskustelu käyttäjän {{name}} kanssa?",
+    "deletedUser": "Poistettu käyttäjä"
+  },
+  "room": {
+    "loading": "Ladataan...",
+    "empty": "Ei vielä viestejä. Sano hei!"
+  },
+  "input": {
+    "placeholder": "Viesti...",
+    "label": "Viesti",
+    "attach": "Liitä tiedosto",
+    "send": "Lähetä viesti",
+    "removeAttachment": "Poista {{name}}"
+  },
+  "message": {
+    "edited": "muokattu",
+    "read": "Luettu",
+    "sent": "Lähetetty",
+    "editLabel": "Muokkaa viestiä",
+    "deleteConfirm": "Poistetaanko tämä viesti?",
+    "actions": {
+      "edit": "Muokkaa",
+      "copy": "Kopioi teksti",
+      "delete": "Poista"
+    }
+  },
+  "reactions": {
+    "label": "Reaktiot: {{list}}",
+    "add": "Reagoi",
+    "you": "Sinä",
+    "youAnd": "Sinä ja {{name}}"
+  },
+  "toast": {
+    "deleted": "Keskustelu poistettu"
+  }
+}

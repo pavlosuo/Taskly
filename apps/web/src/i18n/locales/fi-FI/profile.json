@@ -1,0 +1,164 @@
+{
+  "deactivateAccount": "Haluatko varmasti poistaa tilisi? Tätä toimintoa ei voi perua.",
+  "actions": {
+    "add": "Lisää",
+    "edit": "Muokkaa",
+    "cancel": "Antaa olla",
+    "save": "Tallenna muutokset",
+    "saving": "Tallennetaan...",
+    "verify": "Vahvista nyt"
+  },
+  "appearance": {
+    "title": "Tee siitä omasi",
+    "desc": "Valitse kieli ja tunnelma – vaalea tai tumma.",
+    "language": {
+      "label": "Kieli",
+      "desc": "Kieli, jolla sovellus puhuu sinulle."
+    },
+    "darkMode": {
+      "label": "Tumma tila",
+      "desc": "Silmille lempeä auringonlaskun jälkeen."
+    }
+  },
+  "settings": {
+    "notifications": {
+      "title": "Pysy kartalla",
+      "desc": "Valitse, miten muistutamme sinua, kun jotain tapahtuu.",
+      "email": {
+        "label": "Sähköposti",
+        "desc": "Päivitykset suoraan postilaatikkoosi."
+      },
+      "phone": {
+        "label": "Tekstiviesti",
+        "desc": "Nopeat viestit suoraan puhelimeesi."
+      }
+    },
+    "privacy": {
+      "title": "Yksityisyys",
+      "desc": "Sinä päätät, kuka sinut näkee.",
+      "privateProfile": {
+        "label": "Yksityinen profiili",
+        "desc": "Pidä sivusi vain itselläsi."
+      },
+      "noOnlineStatus": {
+        "label": "Piilota paikallaolotila",
+        "desc": "Selaa incognito-tilassa – kukaan ei näe, milloin olet paikalla."
+      }
+    }
+  },
+  "avatar": {
+    "title": "Näytä kasvosi",
+    "desc": "Anna nimellesi kasvot – tilaajat ja julkinen profiilisi näyttävät sen.",
+    "change": "Vaihda kuva",
+    "remove": "Poista kuva",
+    "hint": "JPG tai PNG, enintään 10 Mt"
+  },
+  "certificates": {
+    "searchPlaceholder": "Hae sertifikaattia tai lisää oma…",
+    "add": "Lisää ”{{name}}”",
+    "addPhotoHint": "Napauta ruutua ja esittele sertifikaatti kuvalla",
+    "removePhoto": "Poista kuva",
+    "remove": "Poista sertifikaatti"
+  },
+  "languages": {
+    "searchPlaceholder": "Hae kieltä…",
+    "removeLanguage": "Poista kieli",
+    "addCertificate": "+ Lisää sertifikaatti",
+    "removeCertificate": "Poista",
+    "descriptionLabel": "Kerro lisää (valinnainen)",
+    "descriptionPlaceholder": "Mikä se on? Esim. IELTS 7.5, DELE B2…"
+  },
+  "skills": {
+    "searchPlaceholder": "Hae taitoa tai lisää oma…"
+  },
+  "otp": {
+    "hint": "Kirjoita juuri lähettämämme 6-numeroinen koodi.",
+    "confirm": "Vahvista",
+    "checking": "Tarkistetaan…",
+    "resendIn": "Lähetä uudelleen {{seconds}} s kuluttua",
+    "resend": "Lähetä uusi koodi"
+  },
+  "verify": {
+    "emailTitle": "Vahvista sähköpostisi",
+    "emailDesc": "Lähetimme koodin osoitteeseen {{value}}. Kirjoita se alle vahvistaaksesi, että osoite on sinun.",
+    "phoneTitle": "Vahvista puhelinnumerosi",
+    "phoneDesc": "Lähetimme koodin numeroon {{value}}. Kirjoita se alle vahvistaaksesi, että numero on sinun."
+  },
+  "payout": {
+    "title": "Saa palkkasi",
+    "desc": "Kerro, minne lähetämme ansaitsemasi rahat jokaisen valmistuneen tehtävän jälkeen.",
+    "iban": "IBAN",
+    "bank": "Pankki",
+    "editAria": "Muokkaa maksutietoja",
+    "addAria": "Lisää maksutiedot",
+    "empty": "Ei vielä maksutapaa – lisää se, niin rahat pääsevät liikkeelle.",
+    "addNow": "Lisää nyt",
+    "dialogTitle": "Päivitä maksutietosi",
+    "dialogDesc": "Jokaisen valmistuneen tehtävän jälkeen ansiosi maksetaan tälle tilille.",
+    "bankPlaceholder": "Valitse pankkisi"
+  },
+  "personal": {
+    "title": "Perustiedot",
+    "desc": "Nimesi, käyttäjänimesi ja yhteystietosi.",
+    "editAria": "Muokkaa henkilötietoja",
+    "fullName": "Koko nimi",
+    "username": "Käyttäjänimi",
+    "email": "Sähköposti",
+    "phone": "Puhelinnumero",
+    "verified": "Vahvistettu",
+    "unverified": "Vahvistamaton",
+    "emailHint": "Uusi sähköposti? Pyydämme sinua vahvistamaan sen.",
+    "phoneHint": "Uusi numero? Pyydämme sinua vahvistamaan sen.",
+    "dialog": {
+      "formTitle": "Päivitä tietosi",
+      "formDesc": "Pidä tietosi ajan tasalla, jotta tilaajat ja me tavoitamme sinut aina.",
+      "emailTitle": "Vahvista uusi sähköpostisi",
+      "emailDesc": "Lähetimme koodin osoitteeseen {{email}}. Kirjoita se alle lukitaksesi muutoksen.",
+      "phoneTitle": "Vahvista uusi puhelinnumerosi",
+      "phoneDesc": "Lähetimme koodin numeroon {{phone}}. Kirjoita se alle lukitaksesi muutoksen."
+    }
+  },
+  "publicProfile": {
+    "title": "Näyteikkunasi",
+    "desc": "Tämän tilaajat näkevät, kun he löytävät sinut {{appName}}-palvelusta.",
+    "editAria": "Muokkaa julkista profiilia",
+    "aboutMe": "Tietoa minusta",
+    "skills": "Taidot",
+    "certificates": "Sertifikaatit",
+    "languages": "Kielet",
+    "noSkills": "Ei vielä taitoja – kerro, missä olet hyvä.",
+    "noCertificates": "Ei vielä sertifikaatteja – onko sinulla? Näytä ne.",
+    "noLanguages": "Ei vielä kieliä – mitä kieliä puhut?",
+    "headerTitle": "Anna profiilillesi otsikkokuva",
+    "addHeader": "Lataa otsikkokuva",
+    "removeHeader": "Poista otsikkokuva",
+    "introTitle": "Lisää esittelyvideo",
+    "addIntro": "Lataa esittelyvideo",
+    "removeIntro": "Poista esittelyvideo",
+    "dialogTitle": "Kiillota näyteikkunasi",
+    "dialogDesc": "Tämän tilaajat näkevät selatessaan tekijöitä – tee siitä vaikuttava.",
+    "skillsHint": "Listaa, missä olet hyvä – tilaajat rakastavat ammattilaista, jolla on todisteet.",
+    "certificatesHint": "Onko sinulla sertifikaatteja? Lisää ne – tilaajat luottavat siihen, minkä näkevät.",
+    "languagesHint": "Lisää puhumasi kielet – se rakentaa luottamusta nopeasti."
+  },
+  "qr": {
+    "title": "QR-koodisi",
+    "desc": "Tulosta se, jaa se, esittele se – yksi skannaus ja tilaajat päätyvät profiiliisi.",
+    "viewProfile": "Näytä profiilini",
+    "viewProfileAria": "Näytä profiilini (avautuu uuteen välilehteen)"
+  },
+  "security": {
+    "title": "Lukitse tilisi",
+    "desc": "Vaihda salasanasi ja päätä, kuka pääsee sisään.",
+    "changePassword": "Vaihda salasana",
+    "deactivate": "Poista tilini käytöstä",
+    "dialogTitle": "Aseta uusi salasana",
+    "dialogDesc": "Käytä vähintään 8 merkkiä – mitä pidempi, sitä vaikeampi murtaa.",
+    "currentPassword": "Nykyinen salasana",
+    "newPassword": "Uusi salasana",
+    "confirmPassword": "Kirjoita uusi salasana uudelleen",
+    "deleteDialogTitle": "Lopuksi: poista tilini",
+    "deleteDialogDesc": "Vahvista tilisi poistaminen kirjoittamalla salasanasi."
+  },
+  "verifyNow": "Vahvista nyt"
+}

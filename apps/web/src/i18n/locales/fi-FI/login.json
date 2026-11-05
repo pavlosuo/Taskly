@@ -1,0 +1,17 @@
+{
+  "title": "Tervetuloa takaisin",
+  "subtitle": "Kirjaudu sisään päästäksesi tilillesi ja hallitaksesi kojelautaasi.",
+  "email": {
+    "label": "Sähköposti",
+    "placeholder": "Kirjoita sähköpostiosoitteesi"
+  },
+  "password": {
+    "label": "Salasana",
+    "placeholder": "Kirjoita salasanasi"
+  },
+  "forgotPassword": "Unohtuiko salasana?",
+  "submit": {
+    "idle": "Kirjaudu sisään",
+    "loading": "Kirjaudutaan sisään..."
+  }
+}

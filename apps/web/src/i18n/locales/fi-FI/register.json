@@ -1,0 +1,47 @@
+{
+  "roleStep": {
+    "title": "Liity {{appName}}-palveluun",
+    "subtitle": "Miten aiot käyttää sovellusta?"
+  },
+  "formStep": {
+    "title": "Luo tili",
+    "submit": {
+      "idle": "Luo tili",
+      "loading": "Luodaan tiliä..."
+    }
+  },
+  "roles": {
+    "client": {
+      "title": "Tarvitsen apua",
+      "desc": "Julkaise tehtäviä ja löydä luotettavia tekijöitä läheltäsi.",
+      "tags": ["Julkaise tehtäviä", "Palkkaa tekijöitä"],
+      "hint": "Nopea rekisteröityminen – vahvistusta ei tarvita."
+    },
+    "tasker": {
+      "title": "Haluan tehdä töitä",
+      "desc": "Selaa paikallisia tehtäviä ja ansaitse omilla aikatauluillasi.",
+      "tags": ["Ansaitse rahaa", "Joustavat työajat"],
+      "hint": "Vahvistat henkilöllisyytesi rekisteröitymisen jälkeen."
+    }
+  },
+  "fields": {
+    "fullName": { "label": "Koko nimi", "placeholder": "Kirjoita koko nimesi" },
+    "email": {
+      "label": "Sähköposti",
+      "placeholder": "Kirjoita sähköpostiosoitteesi"
+    },
+    "username": {
+      "label": "Käyttäjänimi",
+      "placeholder": "Kirjoita käyttäjänimesi"
+    },
+    "phone": {
+      "label": "Puhelinnumero",
+      "placeholder": "Kirjoita puhelinnumerosi"
+    },
+    "password": { "label": "Salasana", "placeholder": "Luo salasana" },
+    "confirm": {
+      "label": "Vahvista salasana",
+      "placeholder": "Kirjoita salasana uudelleen"
+    }
+  }
+}

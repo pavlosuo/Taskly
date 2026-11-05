@@ -1,0 +1,205 @@
+{
+  "appName": "Taskly",
+  "notify": {
+    "title": "Ilmoitukset",
+    "newMessage": "Uusi viesti keskustelussa",
+    "emptyTitle": "Sinulla ei ole ilmoituksia",
+    "emptyDescription": "Kun saat ilmoituksia, ne näkyvät täällä."
+  },
+  "popup": {
+    "title": "Oletko vielä paikalla?",
+    "logoutIn": "Sinut kirjataan ulos",
+    "seconds_one": "{{count}} sekunnin kuluttua.",
+    "seconds_other": "{{count}} sekunnin kuluttua.",
+    "continue": "Jatka",
+    "logout": "Kirjaudu ulos"
+  },
+  "editor": {
+    "bold": "Lihavointi",
+    "italic": "Kursivointi",
+    "strike": "Yliviivaus",
+    "code": "Koodi rivillä",
+    "clearMarks": "Tyhjennä merkinnät",
+    "clearNodes": "Tyhjennä lohkomuotoilu",
+    "paragraph": "Kappale",
+    "h1": "Otsikko 1",
+    "h2": "Otsikko 2",
+    "h3": "Otsikko 3",
+    "h4": "Otsikko 4",
+    "h5": "Otsikko 5",
+    "h6": "Otsikko 6",
+    "bulletList": "• Luettelo",
+    "orderedList": "1. Luettelo",
+    "codeBlock": "Koodilohko",
+    "blockquote": "Lainaus",
+    "horizontalRule": "Vaakaviiva",
+    "hardBreak": "Pakotettu rivinvaihto",
+    "undo": "Kumoa",
+    "redo": "Tee uudelleen"
+  },
+  "actions": {
+    "back": "Takaisin",
+    "continue": "Jatka",
+    "cancel": "Peruuta",
+    "select": "Valitse",
+    "retry": "Yritä uudelleen",
+    "save": "Tallenna",
+    "delete": "Poista",
+    "logout": "Kirjaudu ulos",
+    "close": "Sulje"
+  },
+  "header": {
+    "logIn": "Kirjaudu",
+    "signUp": "Rekisteröidy",
+    "privateProfileAdmin": "Tämä profiili on yksityinen. Näet sen, koska olet kirjautunut ylläpitäjänä.",
+    "privateProfileOwner": "Tämä profiili on yksityinen. Näet sen, koska se on oma profiilisi – muut käyttäjät eivät näe tätä sivua."
+  },
+  "nav": {
+    "users": "Etsi tekijöitä",
+    "tasks": "Selaa tehtäviä",
+    "top": "Parhaat tekijät",
+    "leaderboard": "Tulostaulu",
+    "stats": "Tilastot"
+  },
+  "qrCode": {
+    "copyLink": "Kopioi linkki",
+    "copied": "Kopioitu!",
+    "download": "Lataa koodi"
+  },
+  "aria": {
+    "showPassword": "Näytä salasana",
+    "hidePassword": "Piilota salasana"
+  },
+  "hint": {
+    "label": "Vihje"
+  },
+  "location": {
+    "placeholder": "Hae osoitetta...",
+    "search": "Hae osoite",
+    "locate": "Käytä nykyistä sijaintiani",
+    "resolving": "Haetaan osoitetta...",
+    "hint": "Napsauta karttaa asettaaksesi merkin tai hae osoitetta yllä · OpenStreetMap"
+  },
+  "lightbox": {
+    "close": "Sulje",
+    "download": "Lataa",
+    "previous": "Edellinen",
+    "next": "Seuraava",
+    "noPreview": "Tälle tiedostotyypille ei ole esikatselua"
+  },
+  "tagInput": {
+    "placeholder": "Hae tai lisää...",
+    "add": "Lisää ”{{value}}”",
+    "remove": "Poista {{name}}"
+  },
+  "phoneNoResult": {
+    "title": "Ei tuloksia",
+    "description": "Haullasi ei löytynyt tuloksia."
+  },
+  "method": { "phone": "Puhelin", "email": "Sähköposti" },
+  "alt": { "authIllustration": "Kirjautumisen kuvitus" },
+  "auth": {
+    "noAccount": {
+      "text": "Eikö sinulla ole vielä tiliä?",
+      "label": "Luo tili"
+    },
+    "hasAccount": {
+      "text": "Onko sinulla jo tili?",
+      "label": "Kirjaudu sisään"
+    }
+  },
+  "privacy": {
+    "accept": "Hyväksyn tietosuojaselosteen",
+    "description": "Valitsemalla tämän ruudun hyväksyt <policy>tietosuojaselosteen</policy>"
+  },
+  "status": {
+    "online": "Paikalla",
+    "minutesAgo": "{{count}} min sitten",
+    "hoursAgo": "{{count}} t sitten",
+    "daysAgo": "{{count}} pv sitten",
+    "lastSeen": "Nähty viimeksi {{time}}"
+  },
+  "general": {
+    "finnish": "suomi",
+    "swedish": "ruotsi",
+    "english": "englanti",
+    "russian": "venäjä",
+    "estonian": "viro",
+    "arabic": "arabia",
+    "somali": "somali",
+    "french": "ranska",
+    "german": "saksa",
+    "spanish": "espanja",
+    "italian": "italia",
+    "portuguese": "portugali",
+    "polish": "puola",
+    "ukrainian": "ukraina",
+    "chinese": "kiina",
+    "japanese": "japani",
+    "korean": "korea",
+    "turkish": "turkki",
+    "persian": "persia",
+    "hindi": "hindi",
+    "bengali": "bengali",
+    "urdu": "urdu",
+    "vietnamese": "vietnam",
+    "thai": "thai",
+    "dutch": "hollanti",
+    "romanian": "romania",
+    "hungarian": "unkari",
+    "czech": "tšekki",
+    "slovak": "slovakki",
+    "bulgarian": "bulgaria",
+    "croatian": "kroatia",
+    "serbian": "serbia",
+    "danish": "tanska",
+    "norwegian": "norja",
+    "lithuanian": "liettua",
+    "latvian": "latvia",
+    "greek": "kreikka",
+    "hebrew": "heprea",
+    "indonesian": "indonesia",
+    "malay": "malaiji",
+    "filipino": "filipino",
+    "swahili": "swahili",
+    "amharic": "amhara",
+    "kurdish": "kurdi",
+    "azerbaijani": "azeri",
+    "georgian": "georgia",
+    "armenian": "armenia",
+    "mongolian": "mongoli",
+    "kazakh": "kazakki",
+    "uzbek": "uzbekki",
+    "cerfA1": "A1 — Alkeet",
+    "cerfA2": "A2 — Perustaso",
+    "cerfB1": "B1 — Keskitaso",
+    "cerfB2": "B2 — Hyvä keskitaso",
+    "cerfC1": "C1 — Edistynyt",
+    "cerfC2": "C2 — Erinomainen"
+  },
+  "settings": {
+    "title": "Asetukset",
+    "description": "Mukauta kieltä ja ulkoasun teemaa.",
+    "language": {
+      "title": "Kieli",
+      "description": "Valitse sovelluksen kieli."
+    },
+    "darkMode": {
+      "title": "Tumma tila",
+      "description": "Vaihda vaalean ja tumman teeman välillä."
+    }
+  },
+  "videoPlayer": {
+    "settings": "Asetukset",
+    "speed": "Nopeus"
+  },
+  "loading": "Ladataan...",
+  "toast": {
+    "codeSent": "Vahvistuskoodi lähetetty",
+    "emailVerified": "Sähköposti vahvistettu",
+    "phoneVerified": "Puhelinnumero vahvistettu",
+    "profileUpdated": "Profiili päivitetty",
+    "passwordChanged": "Salasana vaihdettu",
+    "accountDeactivated": "Tili poistettu käytöstä"
+  }
+}

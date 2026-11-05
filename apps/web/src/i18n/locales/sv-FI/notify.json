@@ -1,0 +1,53 @@
+{
+  "markAllRead": "Mark all as read",
+  "types": {
+    "response_new": {
+      "title": "New response",
+      "description": "A tasker offered {{price}} for “{{taskTitle}}”."
+    },
+    "response_accepted": {
+      "title": "Response accepted",
+      "description": "You were chosen for “{{taskTitle}}”. The payment is held until the work is confirmed."
+    },
+    "response_rejected": {
+      "title": "Response not selected",
+      "description": "Your response to “{{taskTitle}}” was not selected."
+    },
+    "task_done": {
+      "title": "Work submitted",
+      "description": "The tasker marked “{{taskTitle}}” as done. Confirm it, or it will be approved automatically in {{days}} days."
+    },
+    "task_completed": {
+      "title": "Task completed",
+      "description": "“{{taskTitle}}” was confirmed. The payment was released to you."
+    },
+    "task_auto_completed": {
+      "title": "Task approved automatically",
+      "description": "“{{taskTitle}}” was approved automatically. The payment was released."
+    },
+    "task_cancelled": {
+      "title": "Task cancelled",
+      "description": "The client cancelled “{{taskTitle}}”. The payment was refunded."
+    },
+    "task_overdue": {
+      "title": "Task cancelled",
+      "description": "“{{taskTitle}}” was cancelled because the deadline passed. The payment was refunded."
+    },
+    "task_abandoned": {
+      "title": "Tasker withdrew",
+      "description": "The tasker backed out of “{{taskTitle}}”. The task is open again."
+    },
+    "task_expired": {
+      "title": "Task expired",
+      "description": "“{{taskTitle}}” expired without an assigned tasker."
+    },
+    "review_received": {
+      "title": "New review",
+      "description": "You received {{rating}}★ for “{{taskTitle}}”."
+    },
+    "chat_new": {
+      "title": "You have a new chat",
+      "description": "You received a new message from {{userName}}."
+    }
+  }
+}

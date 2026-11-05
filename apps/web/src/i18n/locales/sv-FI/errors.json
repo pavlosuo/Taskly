@@ -1,0 +1,289 @@
+{
+  "changeLang": "Något gick fel när språket skulle bytas.",
+  "iban": {
+    "required": "IBAN krävs",
+    "invalid": "Ogiltigt IBAN"
+  },
+  "bankName": {
+    "invalid": "Välj en giltig bank"
+  },
+  "lightbox": {
+    "downloadFailed": "Det gick inte att ladda ner filen"
+  },
+  "phone": {
+    "required": "Telefonnummer krävs",
+    "invalid": "Ogiltigt telefonnummer",
+    "tooLong": "Telefonnumret är för långt"
+  },
+  "role": {
+    "invalid": "Ogiltig roll",
+    "required": "Välj hur du ska använda appen"
+  },
+  "email": {
+    "required": "E-postadress krävs",
+    "tooLong": "E-postadressen är för lång",
+    "noSpaces": "E-postadressen får inte innehålla mellanslag",
+    "noDomain": "E-postadressen måste innehålla en domän",
+    "invalid": "Ogiltig e-postadress"
+  },
+  "password": {
+    "required": "Lösenord krävs",
+    "minLength": "Lösenordet måste vara minst 8 tecken",
+    "tooLong": "Lösenordet är för långt",
+    "uppercase": "Lösenordet måste innehålla minst en stor bokstav",
+    "lowercase": "Lösenordet måste innehålla minst en liten bokstav",
+    "number": "Lösenordet måste innehålla minst en siffra",
+    "special": "Lösenordet måste innehålla minst ett specialtecken",
+    "noSpaces": "Lösenordet får inte innehålla mellanslag",
+    "oldInvalid": "Det gamla lösenordet är felaktigt",
+    "newSameAsOld": "Det nya lösenordet måste skilja sig från det gamla",
+    "strength": {
+      "invalid": "Ogiltigt lösenord",
+      "weak": "Svagt lösenord",
+      "medium": "Medelstarkt lösenord",
+      "strong": "Starkt lösenord",
+      "veryStrong": "Mycket starkt lösenord"
+    },
+    "tips": {
+      "minLength": "Använd minst 8 tecken",
+      "uppercase": "Lägg till en stor bokstav (A–Z)",
+      "lowercase": "Lägg till en liten bokstav (a–z)",
+      "number": "Lägg till minst en siffra (0–9)",
+      "special": "Lägg till ett specialtecken (!@#$% osv.)",
+      "noSpaces": "Ta bort mellanslag"
+    }
+  },
+  "confirm": {
+    "required": "Bekräfta ditt lösenord",
+    "mismatch": "Lösenorden matchar inte",
+    "tooLong": "Lösenordsbekräftelsen är för lång"
+  },
+  "username": {
+    "required": "Användarnamn krävs",
+    "tooShort": "Användarnamnet måste vara minst 3 tecken",
+    "tooLong": "Användarnamnet får vara högst 30 tecken",
+    "invalidChars": "Användarnamnet får bara innehålla bokstäver, siffror, understreck, punkter och bindestreck",
+    "invalidStart": "Användarnamnet måste börja med en bokstav eller siffra",
+    "invalidEnd": "Användarnamnet måste sluta med en bokstav eller siffra",
+    "invalidSequence": "Användarnamnet får inte innehålla flera punkter, bindestreck eller understreck i följd",
+    "alreadyTaken": "Användarnamnet är redan upptaget"
+  },
+  "user": {
+    "emailExists": "E-postadressen används redan",
+    "usernameExists": "Användarnamnet är redan upptaget",
+    "phoneExists": "Telefonnumret används redan",
+    "nothingToUpdate": "Inget att uppdatera",
+    "notFound": "Användaren hittades inte",
+    "usernameMissing": "Ange ett användarnamn",
+    "invalidCredentials": "Ogiltiga inloggningsuppgifter",
+    "unavailableData": "Registreringen kunde inte slutföras. Kontrollera dina uppgifter."
+  },
+  "otp": {
+    "required": "Kod krävs",
+    "invalidLength": "Koden måste bestå av 6 siffror",
+    "digitsOnly": "Koden får bara innehålla siffror",
+    "missingFullPhone": "Ange ditt fullständiga telefonnummer",
+    "notFound": "Ingen kod har begärts",
+    "expired": "Koden har gått ut",
+    "invalid": "Ogiltig kod"
+  },
+  "token": {
+    "required": "Token krävs",
+    "invalid": "Ogiltig token",
+    "tooLong": "Token är för lång"
+  },
+  "fullName": {
+    "required": "Fullständigt namn krävs",
+    "tooShort": "Det fullständiga namnet är för kort",
+    "tooLong": "Det fullständiga namnet är för långt",
+    "invalidChars": "Det fullständiga namnet får bara innehålla bokstäver, mellanslag, bindestreck och apostrofer",
+    "missingLastName": "Ange både förnamn och efternamn",
+    "invalidSpacing": "Det fullständiga namnet får inte innehålla flera mellanslag i följd"
+  },
+  "code": {
+    "required": "Landskod krävs",
+    "tooLong": "Landskoden är för lång"
+  },
+  "id": {
+    "required": "ID krävs",
+    "invalid": "Ogiltigt ID"
+  },
+  "url": {
+    "required": "URL krävs",
+    "invalid": "Ogiltig URL"
+  },
+  "publicLink": {
+    "required": "Offentlig länk krävs",
+    "invalid": "Ogiltig offentlig länk",
+    "tooLong": "Den offentliga länken är för lång"
+  },
+  "agreementAccepted": { "required": "Du måste godkänna integritetspolicyn" },
+  "upload": {
+    "tooMany": "Du kan ladda upp högst {{max}} filer åt gången (du valde {{selected}}).",
+    "unsupported_one": "Filtypen ”{{type}}” är inte tillåten.",
+    "unsupported_other": "{{count}} filer har en filtyp som inte stöds och hoppades över.",
+    "failed_one": "Det gick inte att ladda upp ”{{name}}”.",
+    "failed_other": "Det gick inte att ladda upp {{count}} filer."
+  },
+  "general": {
+    "unknown": "Något gick fel. Försök igen.",
+    "unauthorized": "Du har inte behörighet att utföra den här åtgärden.",
+    "notFound": "Den begärda resursen hittades inte.",
+    "forbidden": "Du får inte utföra den här åtgärden.",
+    "tooManyRequests": "För många förfrågningar. Försök igen senare.",
+    "serviceUnavailable": "Tjänsten är tillfälligt otillgänglig. Försök igen senare."
+  },
+  "policy": {
+    "invalid": "Ogiltig policy"
+  },
+  "language": {
+    "value": {
+      "invalid": "Språket är ogiltigt"
+    },
+    "label": {
+      "invalid": "Språket är ogiltigt"
+    },
+    "level": {
+      "invalid": "Språknivån är ogiltig"
+    },
+    "certificate": {
+      "required": "Certifikat krävs",
+      "tooLong": "Certifikatbeskrivningen är för lång"
+    }
+  },
+  "certificate": {
+    "value": {
+      "required": "Certifikat krävs",
+      "tooLong": "Certifikatbeskrivningen är för lång"
+    },
+    "label": {
+      "required": "Certifikat krävs",
+      "tooLong": "Certifikatbeskrivningen är för lång"
+    }
+  },
+  "skill": {
+    "value": {
+      "required": "Färdighet krävs",
+      "tooLong": "Färdighetsbeskrivningen är för lång"
+    },
+    "label": {
+      "required": "Färdighet krävs",
+      "tooLong": "Färdighetsbeskrivningen är för lång"
+    },
+    "description": {
+      "required": "Färdighetsbeskrivning krävs",
+      "tooLong": "Färdighetsbeskrivningen är för lång"
+    }
+  },
+  "lang": {
+    "invalid": "Det här språket stöds inte"
+  },
+  "theme": {
+    "invalid": "Det här temat stöds inte"
+  },
+  "locale": {
+    "invalid": "Den här språkversionen stöds inte"
+  },
+  "chat": {
+    "memberIdRequired": "Medlems-ID krävs",
+    "cannotCreateChatWithSelf": "Du kan inte starta en chatt med dig själv",
+    "memberNotFound": "Medlemmen hittades inte",
+    "notFound": "Chatten hittades inte",
+    "message": {
+      "empty": "Meddelandet måste innehålla text eller media.",
+      "noText": "Meddelandet måste innehålla text eller media.",
+      "tooLong": "Meddelandet är för långt",
+      "notFound": "Meddelandet hittades inte",
+      "invalidEmoji": "Ogiltig emoji"
+    }
+  },
+  "media": {
+    "notFound": "Mediet hittades inte",
+    "filename": {
+      "required": "Filnamn krävs",
+      "tooLong": "Filnamnet är för långt"
+    },
+    "originalName": {
+      "required": "Ursprungligt namn krävs",
+      "tooLong": "Det ursprungliga namnet är för långt"
+    },
+    "size": {
+      "invalid": "Storleken är ogiltig",
+      "tooLarge": "Filen är för stor"
+    },
+    "type": {
+      "required": "Filtyp krävs",
+      "invalid": "Ogiltig filtyp"
+    },
+    "mimeType": {
+      "required": "MIME-typ krävs",
+      "invalid": "Ogiltig MIME-typ"
+    }
+  },
+  "task": {
+    "notFound": "Uppdraget hittades inte",
+    "cannotEditAssigned": "Bara öppna uppdrag kan redigeras",
+    "cannotDelete": "Ett tilldelat uppdrag kan inte tas bort",
+    "cannotCancel": "Det här uppdraget kan inte avbokas",
+    "cannotComplete": "Bara tilldelade uppdrag kan markeras som slutförda",
+    "message": {
+      "tooShort": "Meddelandet måste vara minst 10 tecken",
+      "tooLong": "Meddelandet får vara högst 1000 tecken"
+    },
+    "date": {
+      "required": "Datum krävs",
+      "invalid": "Datumet måste vara giltigt",
+      "past": "Sista datum måste ligga i framtiden"
+    },
+    "time": {
+      "required": "Tid krävs",
+      "invalid": "Tiden måste vara giltig"
+    },
+    "price": {
+      "required": "Pris krävs",
+      "invalid": "Priset måste vara ett giltigt tal",
+      "tooLarge": "Priset får vara högst 1 000 000"
+    },
+    "title": {
+      "required": "Rubrik krävs",
+      "tooShort": "Rubriken måste vara minst 5 tecken",
+      "tooLong": "Rubriken får vara högst 100 tecken"
+    },
+    "description": {
+      "required": "Beskrivning krävs",
+      "tooShort": "Beskrivningen måste vara minst 20 tecken",
+      "tooLong": "Beskrivningen får vara högst 1000 tecken"
+    },
+    "skills": {
+      "tooMany": "Du kan välja upp till 15 färdigheter"
+    },
+    "certificates": {
+      "tooMany": "Du kan välja upp till 15 certifikat"
+    },
+    "languages": {
+      "required": "Välj minst ett språk"
+    },
+    "location": {
+      "required": "Plats krävs",
+      "tooShort": "Platsen måste vara minst 3 tecken",
+      "tooLong": "Platsen får vara högst 200 tecken",
+      "invalidLatitude": "Latituden måste vara ett giltigt tal mellan -90 och 90",
+      "invalidLongitude": "Longituden måste vara ett giltigt tal mellan -180 och 180",
+      "unsupported": "Din webbläsare stöder inte platstjänster",
+      "denied": "Åtkomst till plats nekades. Tillåt den i webbläsarens inställningar",
+      "unavailable": "Din plats är inte tillgänglig just nu",
+      "timeout": "Det tog för lång tid att hämta din plats. Försök igen",
+      "unknown": "Det gick inte att hämta din plats"
+    },
+    "update": { "empty": "Inget att uppdatera" }
+  },
+  "taskResponse": {
+    "notFound": "Svaret hittades inte",
+    "taskClosed": "Det här uppdraget är inte längre öppet",
+    "ownTask": "Du kan inte svara på ditt eget uppdrag",
+    "alreadyResponded": "Du har redan svarat på det här uppdraget",
+    "cannotWithdraw": "Bara väntande svar kan dras tillbaka",
+    "taskAlreadyAssigned": "Det här uppdraget har redan tilldelats",
+    "alreadyProcessed": "Det här svaret har redan hanterats"
+  }
+}

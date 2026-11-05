@@ -1,0 +1,40 @@
+{
+  "title": "Mediakirjasto",
+  "description": "Valitse tiedostoja kirjastostasi tai lataa uusia",
+  "filters": {
+    "all": "Kaikki",
+    "image": "Kuvat",
+    "video": "Video",
+    "audio": "Ääni",
+    "pdf": "PDF",
+    "word": "Word",
+    "excel": "Excel",
+    "other": "Muut"
+  },
+  "upload": {
+    "label": "Lataa tiedostoja",
+    "uploading": "Ladataan...",
+    "progress": "Ladataan {{done}}/{{total}}..."
+  },
+  "empty": {
+    "loading": "Ladataan...",
+    "library": "Ei vielä tiedostoja – vedä ja pudota tai lataa",
+    "category": "Tässä luokassa ei ole tiedostoja",
+    "drop": "Pudota ladataksesi"
+  },
+  "preview": { "open": "Esikatsele" },
+  "details": {
+    "name": "Nimi",
+    "type": "Tyyppi",
+    "size": "Koko",
+    "uploaded": "Ladattu",
+    "empty": "Valitse tiedosto nähdäksesi sen tiedot",
+    "selected_one": "{{count}} tiedosto valittu",
+    "selected_other": "{{count}} tiedostoa valittu",
+    "delete": "Poista pysyvästi",
+    "deleteAll": "Poista kaikki valitut",
+    "preview": "Avaa esikatselu"
+  },
+  "deleteConfirm_one": "Poistetaanko tämä tiedosto pysyvästi?",
+  "deleteConfirm_other": "Poistetaanko {{count}} tiedostoa pysyvästi?"
+}

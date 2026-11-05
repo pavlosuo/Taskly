@@ -1,0 +1,280 @@
+{
+  "startTime": "Starttid",
+  "endTime": "Sluttid",
+  "pickDate": "Välj datum",
+  "general": {
+    "allTasks": "Alla uppdrag",
+    "myTasks": "Mina uppdrag"
+  },
+  "actions": {
+    "searchAll": "Sök bland öppna uppdrag...",
+    "searchMy": "Sök bland mina uppdrag...",
+    "search": "Sök uppdrag..."
+  },
+  "list": {
+    "showing_one": "Visar {{shown}} av {{count}} uppdrag",
+    "showing_other": "Visar {{shown}} av {{count}} uppdrag",
+    "loadMore": "Ladda fler"
+  },
+  "empty": {
+    "noMatches": {
+      "title": "Inga uppdrag hittades",
+      "text": "Prova ett annat sökord eller justera dina filter.",
+      "action": "Rensa sökning och filter"
+    }
+  },
+  "tasker": {
+    "title": "Hitta uppdrag som matchar dina färdigheter och skicka ett erbjudande.",
+    "empty": {
+      "my": {
+        "title": "Inga uppdrag ännu",
+        "text": "Uppdrag du har sökt eller blivit tilldelad visas här.",
+        "action": "Bläddra bland öppna uppdrag"
+      },
+      "open": {
+        "title": "Inga öppna uppdrag just nu",
+        "text": "Nya uppdrag visas här när beställare publicerar dem. Kom tillbaka senare."
+      }
+    }
+  },
+  "client": {
+    "title": "Skapa uppdrag och hantera svar.",
+    "empty": {
+      "my": {
+        "title": "Du har inga uppdrag ännu",
+        "text": "Klicka på ”Nytt uppdrag” för att skapa ditt första."
+      },
+      "open": {
+        "title": "Inga öppna uppdrag just nu",
+        "text": "Kom tillbaka senare."
+      }
+    }
+  },
+  "create": {
+    "trigger": "Nytt uppdrag",
+    "title": "Skapa ett nytt uppdrag",
+    "description": "Ge det en tydlig rubrik, en plats och en tidsfrist – utförare hittar det via sökning.",
+    "success": "Uppdraget har skapats",
+    "submit": "Skapa uppdrag",
+    "sections": {
+      "details": "Uppdragsinformation",
+      "schedule": "Tidsplan och budget",
+      "requirements": "Krav"
+    },
+    "fields": {
+      "title": {
+        "label": "Uppdragets rubrik",
+        "placeholder": "t.ex. Montera en IKEA-garderob"
+      },
+      "description": {
+        "label": "Beskrivning",
+        "placeholder": "Beskriv vad som ska göras, arbetets omfattning och viktiga detaljer."
+      },
+      "location": { "label": "Plats" },
+      "deadline": { "label": "Tidsfrist" },
+      "budget": { "label": "Budget", "placeholder": "Valfritt" },
+      "skills": {
+        "label": "Nödvändiga färdigheter",
+        "placeholder": "Sök eller lägg till en färdighet..."
+      },
+      "certificates": {
+        "label": "Nödvändiga certifikat",
+        "placeholder": "Sök eller lägg till ett certifikat..."
+      }
+    },
+    "negotiable": {
+      "title": "Budgeten är förhandlingsbar",
+      "description": "Utförare kan föreslå sitt eget pris"
+    }
+  },
+  "responseStatus": {
+    "pending": "Väntar",
+    "accepted": "Godkänd",
+    "rejected": "Avvisad",
+    "withdrawn_after_accept": "Återkallad efter godkännande"
+  },
+  "item": {
+    "negotiable": "Förhandlingsbar",
+    "budget": "uppdragets budget",
+    "responses_one": "{{count}} svar",
+    "responses_other": "{{count}} svar"
+  },
+  "sort": {
+    "newest": "Nyast först",
+    "deadline": "Tidsfrist: närmast först",
+    "budget_desc": "Budget: högst till lägst",
+    "budget_asc": "Budget: lägst till högst",
+    "distance": "Närmast först"
+  },
+  "toolbar": {
+    "search": "Sök uppdrag",
+    "searchDefault": "Sök efter rubrik eller beskrivning...",
+    "clearSearch": "Rensa sökningen",
+    "filters": "Filter",
+    "sortBy": "Sortera efter",
+    "budgetFrom": "Budget från",
+    "budgetTo": "Budget upp till",
+    "any": "Alla",
+    "negotiableOnly": "Endast förhandlingsbara",
+    "skills": {
+      "label": "Färdigheter",
+      "placeholder": "Någon av dessa färdigheter..."
+    },
+    "certificates": {
+      "label": "Certifikat",
+      "placeholder": "Något av dessa certifikat..."
+    },
+    "within": "Inom",
+    "ofLocation": "från din plats",
+    "radius": "Sökradie",
+    "km": "{{value}} km",
+    "removeLocation": "Ta bort platsfilter",
+    "nearMe": "Uppdrag nära mig",
+    "reset": "Återställ filter",
+    "geo": {
+      "unsupported": "Din webbläsare stöder inte platstjänster.",
+      "denied": "Åtkomst till plats nekades. Tillåt den i webbläsarens inställningar.",
+      "failed": "Det gick inte att hämta din plats. Försök igen."
+    }
+  },
+  "summary": {
+    "details": "Information",
+    "location": "Plats",
+    "schedule": "Tidsplan och budget",
+    "deadline": "Tidsfrist",
+    "budget": "Budget",
+    "negotiableNote": "Budgeten är förhandlingsbar – beloppet ovan är en utgångspunkt.",
+    "skills": "Färdigheter",
+    "certificates": "Certifikat",
+    "showMore": "Visa mer",
+    "showLess": "Visa mindre"
+  },
+  "view": {
+    "description": "Hantera det här uppdraget och granska svar.",
+    "descriptionNotOwned": "Det här uppdraget tillhör inte dig.",
+    "actions": {
+      "edit": "Redigera",
+      "cancel": "Avboka uppdrag",
+      "complete": "Markera som slutfört",
+      "delete": "Ta bort"
+    },
+    "confirm": {
+      "cancel": "Vill du avboka det här uppdraget? Väntande svar avvisas.",
+      "delete": "Vill du ta bort det här uppdraget permanent? Alla svar tas också bort."
+    }
+  },
+  "edit": {
+    "title": "Redigera uppdrag",
+    "description": "Uppdatera uppgifterna nedan och spara ändringarna.",
+    "save": "Spara ändringar"
+  },
+  "respond": {
+    "description": "Granska uppdraget och skicka ditt svar.",
+    "finalLocked": "Det här steget blir tillgängligt när uppdraget pågår.",
+    "steps": {
+      "overview": "Översikt",
+      "respond": "Svara",
+      "complete": "Slutsteg"
+    },
+    "continue": "Fortsätt till svar",
+    "viewResponse": "Visa ditt svar",
+    "closed": "Det här uppdraget tar inte längre emot svar.",
+    "message": { "label": "Meddelande till beställaren" },
+    "price": {
+      "label": "Ditt pris",
+      "placeholder": "Ange ditt pris"
+    },
+    "send": "Skicka svar",
+    "withdraw": "Dra tillbaka",
+    "backToOverview": "Tillbaka till översikten"
+  },
+  "toast": {
+    "updated": "Uppdraget har uppdaterats",
+    "cancelled": "Uppdraget har avbokats",
+    "completed": "Uppdraget har markerats som slutfört",
+    "deleted": "Uppdraget har tagits bort",
+    "accepted": "Svaret har godkänts",
+    "rejected": "Svaret har avvisats",
+    "responseSent": "Svaret har skickats",
+    "withdrawn": "Svaret har dragits tillbaka",
+    "markedDone": "Markerat som klart. Beställaren har meddelats",
+    "abandoned": "Du drog dig ur uppdraget",
+    "reviewed": "Recensionen har skickats"
+  },
+  "responses": {
+    "title": "Svar",
+    "titleWithCount": "Svar ({{count}})",
+    "empty": "Ingen har svarat ännu.",
+    "offer": "erbjudande",
+    "accept": "Godkänn",
+    "reject": "Avvisa",
+    "rating": "betyg",
+    "noRating": "Inga recensioner ännu",
+    "completed_one": "{{count}} slutfört uppdrag",
+    "completed_other": "{{count}} slutförda uppdrag",
+    "viewProfile": "Visa profil"
+  },
+  "status": {
+    "pending_confirmation": "Väntar på bekräftelse",
+    "expired": "Utgånget",
+    "all": "Alla",
+    "open": "Öppet",
+    "assigned": "Tilldelat",
+    "completed": "Slutfört",
+    "cancelled": "Avbokat"
+  },
+  "flow": {
+    "markDone": "Markera som klart",
+    "abandon": "Dra dig ur uppdraget",
+    "confirm": {
+      "markDone": "Vill du markera det här uppdraget som klart? Beställaren ombeds bekräfta det.",
+      "abandon": "Vill du dra dig ur det här uppdraget? Det blir öppet igen och betalningen återbetalas till beställaren."
+    },
+    "clientPending": "Utföraren markerade arbetet som klart. Bekräfta det, annars godkänns det automatiskt den {{date}}.",
+    "taskerPending": "Väntar på att beställaren ska bekräfta. Om inget svar kommer godkänns arbetet automatiskt den {{date}}."
+  },
+  "payment": {
+    "held": "{{amount}} reserveras tills arbetet har bekräftats",
+    "released": "{{amount}} har betalats ut till utföraren",
+    "refunded": "{{amount}} har återbetalats till beställaren",
+    "testMode": "Testläge: inga riktiga pengar flyttas."
+  },
+  "checkout": {
+    "title": "Reservera betalningen",
+    "description": "Beloppet reserveras tills du bekräftar det slutförda arbetet.",
+    "testCard": "Testkort, inget debiteras",
+    "total": "Att reservera",
+    "note": "Du kan få tillbaka pengarna genom att avboka uppdraget innan arbetet har skickats in.",
+    "pay": "Betala och godkänn"
+  },
+  "wallet": {
+    "open": "Plånbok",
+    "title": "Plånbok",
+    "description": "Historik över simulerade betalningar.",
+    "empty": "Inga betalningar ännu.",
+    "status": {
+      "held": "Reserverad",
+      "released": "Utbetald",
+      "refunded": "Återbetald"
+    },
+    "client": {
+      "held": "Reserverad",
+      "released": "Betald",
+      "refunded": "Återbetald"
+    },
+    "tasker": {
+      "held": "På spärrat konto",
+      "released": "Intjänat",
+      "refunded": "Återbetald"
+    }
+  },
+  "review": {
+    "title": "Recension",
+    "yours": "Din recension",
+    "received": "Recension om dig",
+    "waiting": "Den andra parten har inte lämnat någon recension ännu.",
+    "placeholder": "Berätta hur det gick (valfritt)",
+    "submit": "Skicka recension",
+    "stars": "Betygsätt {{count}}"
+  }
+}

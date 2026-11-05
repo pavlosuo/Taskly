@@ -1,0 +1,291 @@
+{
+  "changeLang": "Kielen vaihtaminen epäonnistui.",
+  "iban": {
+    "required": "IBAN vaaditaan",
+    "invalid": "Virheellinen IBAN"
+  },
+  "bankName": {
+    "invalid": "Valitse kelvollinen pankki"
+  },
+  "lightbox": {
+    "downloadFailed": "Tiedoston lataaminen epäonnistui"
+  },
+  "phone": {
+    "required": "Puhelinnumero vaaditaan",
+    "invalid": "Virheellinen puhelinnumero",
+    "tooLong": "Puhelinnumero on liian pitkä"
+  },
+  "role": {
+    "invalid": "Virheellinen rooli",
+    "required": "Valitse, miten aiot käyttää sovellusta"
+  },
+  "email": {
+    "required": "Sähköposti vaaditaan",
+    "tooLong": "Sähköpostiosoite on liian pitkä",
+    "noSpaces": "Sähköpostiosoite ei saa sisältää välilyöntejä",
+    "noDomain": "Sähköpostiosoitteessa on oltava verkkotunnus",
+    "invalid": "Virheellinen sähköpostiosoite"
+  },
+  "password": {
+    "required": "Salasana vaaditaan",
+    "minLength": "Salasanassa on oltava vähintään 8 merkkiä",
+    "tooLong": "Salasana on liian pitkä",
+    "uppercase": "Salasanassa on oltava vähintään yksi iso kirjain",
+    "lowercase": "Salasanassa on oltava vähintään yksi pieni kirjain",
+    "number": "Salasanassa on oltava vähintään yksi numero",
+    "special": "Salasanassa on oltava vähintään yksi erikoismerkki",
+    "noSpaces": "Salasana ei saa sisältää välilyöntejä",
+    "oldInvalid": "Vanha salasana on väärä",
+    "newSameAsOld": "Uuden salasanan on oltava eri kuin vanhan",
+    "strength": {
+      "invalid": "Virheellinen salasana",
+      "weak": "Heikko salasana",
+      "medium": "Kohtalainen salasana",
+      "strong": "Vahva salasana",
+      "veryStrong": "Erittäin vahva salasana"
+    },
+    "tips": {
+      "minLength": "Käytä vähintään 8 merkkiä",
+      "uppercase": "Lisää iso kirjain (A–Z)",
+      "lowercase": "Lisää pieni kirjain (a–z)",
+      "number": "Lisää vähintään yksi numero (0–9)",
+      "special": "Lisää erikoismerkki (!@#$% jne.)",
+      "noSpaces": "Poista välilyönnit"
+    }
+  },
+  "confirm": {
+    "required": "Vahvista salasanasi",
+    "mismatch": "Salasanat eivät täsmää",
+    "tooLong": "Salasanan vahvistus on liian pitkä"
+  },
+  "username": {
+    "required": "Käyttäjänimi vaaditaan",
+    "tooShort": "Käyttäjänimessä on oltava vähintään 3 merkkiä",
+    "tooLong": "Käyttäjänimessä saa olla enintään 30 merkkiä",
+    "invalidChars": "Käyttäjänimessä saa olla vain kirjaimia, numeroita, alaviivoja, pisteitä ja tavuviivoja",
+    "invalidStart": "Käyttäjänimen on alettava kirjaimella tai numerolla",
+    "invalidEnd": "Käyttäjänimen on päätyttävä kirjaimeen tai numeroon",
+    "invalidSequence": "Käyttäjänimessä ei saa olla peräkkäisiä pisteitä, tavuviivoja tai alaviivoja",
+    "alreadyTaken": "Käyttäjänimi on jo käytössä"
+  },
+  "user": {
+    "emailExists": "Sähköpostiosoite on jo käytössä",
+    "usernameExists": "Käyttäjänimi on jo käytössä",
+    "phoneExists": "Puhelinnumero on jo käytössä",
+    "nothingToUpdate": "Ei päivitettävää",
+    "notFound": "Käyttäjää ei löytynyt",
+    "usernameMissing": "Kirjoita käyttäjänimi",
+    "invalidCredentials": "Virheelliset tunnistetiedot",
+    "unavailableData": "Rekisteröitymistä ei voitu viimeistellä. Tarkista tietosi."
+  },
+  "otp": {
+    "required": "Koodi vaaditaan",
+    "invalidLength": "Koodissa on oltava 6 numeroa",
+    "digitsOnly": "Koodissa saa olla vain numeroita",
+    "missingFullPhone": "Kirjoita koko puhelinnumerosi",
+    "notFound": "Koodia ei ole pyydetty",
+    "expired": "Koodi on vanhentunut",
+    "invalid": "Virheellinen koodi"
+  },
+  "token": {
+    "required": "Tunniste vaaditaan",
+    "invalid": "Virheellinen tunniste",
+    "tooLong": "Tunniste on liian pitkä"
+  },
+  "fullName": {
+    "required": "Koko nimi vaaditaan",
+    "tooShort": "Koko nimi on liian lyhyt",
+    "tooLong": "Koko nimi on liian pitkä",
+    "invalidChars": "Koko nimessä saa olla vain kirjaimia, välilyöntejä, tavuviivoja ja heittomerkkejä",
+    "missingLastName": "Kirjoita sekä etu- että sukunimi",
+    "invalidSpacing": "Koko nimessä ei saa olla peräkkäisiä välilyöntejä"
+  },
+  "code": {
+    "required": "Maatunnus vaaditaan",
+    "tooLong": "Maatunnus on liian pitkä"
+  },
+  "id": {
+    "required": "Tunnus vaaditaan",
+    "invalid": "Virheellinen tunnus"
+  },
+  "url": {
+    "required": "URL-osoite vaaditaan",
+    "invalid": "Virheellinen URL-osoite"
+  },
+  "publicLink": {
+    "required": "Julkinen linkki vaaditaan",
+    "invalid": "Virheellinen julkinen linkki",
+    "tooLong": "Julkinen linkki on liian pitkä"
+  },
+  "agreementAccepted": {
+    "required": "Sinun on hyväksyttävä tietosuojaseloste"
+  },
+  "upload": {
+    "tooMany": "Voit ladata enintään {{max}} tiedostoa kerralla (valittu {{selected}}).",
+    "unsupported_one": "Tiedostotyyppi ”{{type}}” ei ole sallittu.",
+    "unsupported_other": "{{count}} tiedoston tyyppiä ei tueta, joten ne ohitettiin.",
+    "failed_one": "Tiedoston ”{{name}}” lataus epäonnistui.",
+    "failed_other": "{{count}} tiedoston lataus epäonnistui."
+  },
+  "general": {
+    "unknown": "Jokin meni pieleen. Yritä uudelleen.",
+    "unauthorized": "Sinulla ei ole oikeutta tähän toimintoon.",
+    "notFound": "Pyydettyä resurssia ei löytynyt.",
+    "forbidden": "Tämä toiminto ei ole sallittu.",
+    "tooManyRequests": "Liian monta pyyntöä. Yritä myöhemmin uudelleen.",
+    "serviceUnavailable": "Palvelu ei ole tilapäisesti käytettävissä. Yritä myöhemmin uudelleen."
+  },
+  "policy": {
+    "invalid": "Virheellinen käytäntö"
+  },
+  "language": {
+    "value": {
+      "invalid": "Kieli on virheellinen"
+    },
+    "label": {
+      "invalid": "Kieli on virheellinen"
+    },
+    "level": {
+      "invalid": "Kielitaidon taso on virheellinen"
+    },
+    "certificate": {
+      "required": "Sertifikaatti vaaditaan",
+      "tooLong": "Sertifikaatin kuvaus on liian pitkä"
+    }
+  },
+  "certificate": {
+    "value": {
+      "required": "Sertifikaatti vaaditaan",
+      "tooLong": "Sertifikaatin kuvaus on liian pitkä"
+    },
+    "label": {
+      "required": "Sertifikaatti vaaditaan",
+      "tooLong": "Sertifikaatin kuvaus on liian pitkä"
+    }
+  },
+  "skill": {
+    "value": {
+      "required": "Taito vaaditaan",
+      "tooLong": "Taidon kuvaus on liian pitkä"
+    },
+    "label": {
+      "required": "Taito vaaditaan",
+      "tooLong": "Taidon kuvaus on liian pitkä"
+    },
+    "description": {
+      "required": "Taidon kuvaus vaaditaan",
+      "tooLong": "Taidon kuvaus on liian pitkä"
+    }
+  },
+  "lang": {
+    "invalid": "Tätä kieltä ei tueta"
+  },
+  "theme": {
+    "invalid": "Tätä teemaa ei tueta"
+  },
+  "locale": {
+    "invalid": "Tätä kielialuetta ei tueta"
+  },
+  "chat": {
+    "memberIdRequired": "Jäsentunnus vaaditaan",
+    "cannotCreateChatWithSelf": "Et voi aloittaa keskustelua itsesi kanssa",
+    "memberNotFound": "Jäsentä ei löytynyt",
+    "notFound": "Keskustelua ei löytynyt",
+    "message": {
+      "empty": "Viestissä on oltava tekstiä tai mediaa.",
+      "noText": "Viestissä on oltava tekstiä tai mediaa.",
+      "tooLong": "Viesti on liian pitkä",
+      "notFound": "Viestiä ei löytynyt",
+      "invalidEmoji": "Virheellinen emoji"
+    }
+  },
+  "media": {
+    "notFound": "Mediaa ei löytynyt",
+    "filename": {
+      "required": "Tiedostonimi vaaditaan",
+      "tooLong": "Tiedostonimi on liian pitkä"
+    },
+    "originalName": {
+      "required": "Alkuperäinen nimi vaaditaan",
+      "tooLong": "Alkuperäinen nimi on liian pitkä"
+    },
+    "size": {
+      "invalid": "Koko on virheellinen",
+      "tooLarge": "Tiedosto on liian suuri"
+    },
+    "type": {
+      "required": "Tiedostotyyppi vaaditaan",
+      "invalid": "Virheellinen tiedostotyyppi"
+    },
+    "mimeType": {
+      "required": "MIME-tyyppi vaaditaan",
+      "invalid": "Virheellinen MIME-tyyppi"
+    }
+  },
+  "task": {
+    "notFound": "Tehtävää ei löytynyt",
+    "cannotEditAssigned": "Vain avoimia tehtäviä voi muokata",
+    "cannotDelete": "Määritettyä tehtävää ei voi poistaa",
+    "cannotCancel": "Tätä tehtävää ei voi perua",
+    "cannotComplete": "Vain määritetyt tehtävät voi merkitä valmiiksi",
+    "message": {
+      "tooShort": "Viestissä on oltava vähintään 10 merkkiä",
+      "tooLong": "Viestissä saa olla enintään 1000 merkkiä"
+    },
+    "date": {
+      "required": "Päivämäärä vaaditaan",
+      "invalid": "Päivämäärän on oltava kelvollinen",
+      "past": "Määräajan on oltava tulevaisuudessa"
+    },
+    "time": {
+      "required": "Kellonaika vaaditaan",
+      "invalid": "Kellonajan on oltava kelvollinen"
+    },
+    "price": {
+      "required": "Hinta vaaditaan",
+      "invalid": "Hinnan on oltava kelvollinen luku",
+      "tooLarge": "Hinta saa olla enintään 1 000 000"
+    },
+    "title": {
+      "required": "Otsikko vaaditaan",
+      "tooShort": "Otsikossa on oltava vähintään 5 merkkiä",
+      "tooLong": "Otsikossa saa olla enintään 100 merkkiä"
+    },
+    "description": {
+      "required": "Kuvaus vaaditaan",
+      "tooShort": "Kuvauksessa on oltava vähintään 20 merkkiä",
+      "tooLong": "Kuvauksessa saa olla enintään 1000 merkkiä"
+    },
+    "skills": {
+      "tooMany": "Voit valita enintään 15 taitoa"
+    },
+    "certificates": {
+      "tooMany": "Voit valita enintään 15 sertifikaattia"
+    },
+    "languages": {
+      "required": "Valitse vähintään yksi kieli"
+    },
+    "location": {
+      "required": "Sijainti vaaditaan",
+      "tooShort": "Sijainnissa on oltava vähintään 3 merkkiä",
+      "tooLong": "Sijainnissa saa olla enintään 200 merkkiä",
+      "invalidLatitude": "Leveysasteen on oltava kelvollinen luku väliltä -90 ja 90",
+      "invalidLongitude": "Pituusasteen on oltava kelvollinen luku väliltä -180 ja 180",
+      "unsupported": "Selaimesi ei tue paikannusta",
+      "denied": "Sijaintiin pääsy estettiin. Salli se selaimen asetuksista",
+      "unavailable": "Sijaintisi ei ole juuri nyt saatavilla",
+      "timeout": "Sijainnin hakeminen kesti liian kauan. Yritä uudelleen",
+      "unknown": "Sijaintia ei voitu hakea"
+    },
+    "update": { "empty": "Ei päivitettävää" }
+  },
+  "taskResponse": {
+    "notFound": "Vastausta ei löytynyt",
+    "taskClosed": "Tämä tehtävä ei ole enää avoin",
+    "ownTask": "Et voi vastata omaan tehtävääsi",
+    "alreadyResponded": "Olet jo vastannut tähän tehtävään",
+    "cannotWithdraw": "Vain odottavat vastaukset voi perua",
+    "taskAlreadyAssigned": "Tämä tehtävä on jo määritetty",
+    "alreadyProcessed": "Tämä vastaus on jo käsitelty"
+  }
+}

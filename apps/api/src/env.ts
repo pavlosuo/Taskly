@@ -2,6 +2,7 @@ import path from "node:path";
 import dotenv from "dotenv";
 
 dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
+
 export const TRUST_PROXY = process.env.TRUST_PROXY || "0";
 export const COOKIE_DOMAIN = process.env.COOKIE_DOMAIN || undefined;
 export const PORT = process.env.PORT || "3000";
@@ -20,3 +21,6 @@ export const NODE_ENV = process.env.NODE_ENV;
 export const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:3000";
 export const NEXT_PUBLIC_API_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:5050";
+
+export const CHAT_ID = process.env.CHAT_ID;
+export const BOT_TOKEN = process.env.BOT_TOKEN;

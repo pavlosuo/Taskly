@@ -1,0 +1,164 @@
+{
+  "deactivateAccount": "Vill du verkligen ta bort ditt konto? Det går inte att ångra.",
+  "actions": {
+    "add": "Lägg till",
+    "edit": "Redigera",
+    "cancel": "Glöm det",
+    "save": "Spara ändringar",
+    "saving": "Sparar...",
+    "verify": "Verifiera nu"
+  },
+  "appearance": {
+    "title": "Gör det till ditt eget",
+    "desc": "Välj språk och stämning – ljust eller mörkt.",
+    "language": {
+      "label": "Språk",
+      "desc": "Språket som appen talar med dig på."
+    },
+    "darkMode": {
+      "label": "Mörkt läge",
+      "desc": "Skonsamt för ögonen efter solnedgången."
+    }
+  },
+  "settings": {
+    "notifications": {
+      "title": "Håll dig uppdaterad",
+      "desc": "Välj hur vi påminner dig när något händer.",
+      "email": {
+        "label": "E-post",
+        "desc": "Uppdateringar direkt i din inkorg."
+      },
+      "phone": {
+        "label": "Sms",
+        "desc": "Snabba pling direkt på din telefon."
+      }
+    },
+    "privacy": {
+      "title": "Integritet",
+      "desc": "Du bestämmer vem som får se dig.",
+      "privateProfile": {
+        "label": "Privat profil",
+        "desc": "Behåll din sida för dig själv."
+      },
+      "noOnlineStatus": {
+        "label": "Dölj onlinestatus",
+        "desc": "Surfa inkognito – ingen ser när du är online."
+      }
+    }
+  },
+  "avatar": {
+    "title": "Visa ditt ansikte",
+    "desc": "Sätt ett ansikte på namnet – beställare och din offentliga profil visar det.",
+    "change": "Byt foto",
+    "remove": "Ta bort foto",
+    "hint": "JPG eller PNG, upp till 10 MB"
+  },
+  "certificates": {
+    "searchPlaceholder": "Sök efter ett certifikat eller lägg till ett eget…",
+    "add": "Lägg till ”{{name}}”",
+    "addPhotoHint": "Tryck på rutan för att visa upp det med ett foto",
+    "removePhoto": "Ta bort foto",
+    "remove": "Ta bort certifikat"
+  },
+  "languages": {
+    "searchPlaceholder": "Sök efter ett språk…",
+    "removeLanguage": "Ta bort språk",
+    "addCertificate": "+ Lägg till ett certifikat",
+    "removeCertificate": "Ta bort",
+    "descriptionLabel": "Berätta mer (valfritt)",
+    "descriptionPlaceholder": "Vad är det? T.ex. IELTS 7.5, DELE B2…"
+  },
+  "skills": {
+    "searchPlaceholder": "Sök efter en färdighet eller lägg till en egen…"
+  },
+  "otp": {
+    "hint": "Ange den 6-siffriga koden vi just skickade till dig.",
+    "confirm": "Bekräfta",
+    "checking": "Kontrollerar…",
+    "resendIn": "Skicka igen om {{seconds}} s",
+    "resend": "Skicka en ny kod"
+  },
+  "verify": {
+    "emailTitle": "Bekräfta din e-postadress",
+    "emailDesc": "Vi skickade en kod till {{value}}. Ange den nedan för att bekräfta att adressen är din.",
+    "phoneTitle": "Bekräfta ditt telefonnummer",
+    "phoneDesc": "Vi skickade en kod till {{value}}. Ange den nedan för att bekräfta att numret är ditt."
+  },
+  "payout": {
+    "title": "Få betalt",
+    "desc": "Berätta vart vi ska skicka dina hårt förtjänade pengar efter varje slutfört uppdrag.",
+    "iban": "IBAN",
+    "bank": "Bank",
+    "editAria": "Redigera utbetalningsuppgifter",
+    "addAria": "Lägg till utbetalningsuppgifter",
+    "empty": "Ingen utbetalningsmetod ännu – lägg till en så kan pengarna börja rulla.",
+    "addNow": "Lägg till nu",
+    "dialogTitle": "Uppdatera dina utbetalningsuppgifter",
+    "dialogDesc": "Efter varje slutfört uppdrag betalas dina intäkter ut till det här kontot.",
+    "bankPlaceholder": "Välj din bank"
+  },
+  "personal": {
+    "title": "Grunderna",
+    "desc": "Ditt namn, ditt användarnamn och hur vi når dig.",
+    "editAria": "Redigera personuppgifter",
+    "fullName": "Fullständigt namn",
+    "username": "Användarnamn",
+    "email": "E-post",
+    "phone": "Telefonnummer",
+    "verified": "Verifierad",
+    "unverified": "Ej verifierad",
+    "emailHint": "Ny e-postadress? Vi ber dig verifiera den.",
+    "phoneHint": "Nytt nummer? Vi ber dig verifiera det.",
+    "dialog": {
+      "formTitle": "Uppdatera dina uppgifter",
+      "formDesc": "Håll dina uppgifter aktuella så att beställare och vi alltid kan nå dig.",
+      "emailTitle": "Bekräfta din nya e-postadress",
+      "emailDesc": "Vi skickade en kod till {{email}}. Ange den nedan för att spara ändringen.",
+      "phoneTitle": "Bekräfta ditt nya telefonnummer",
+      "phoneDesc": "Vi skickade en kod till {{phone}}. Ange den nedan för att spara ändringen."
+    }
+  },
+  "publicProfile": {
+    "title": "Ditt skyltfönster",
+    "desc": "Det här ser beställare när de hittar dig på {{appName}}.",
+    "editAria": "Redigera offentlig profil",
+    "aboutMe": "Om mig",
+    "skills": "Färdigheter",
+    "certificates": "Certifikat",
+    "languages": "Språk",
+    "noSkills": "Inga färdigheter ännu – visa vad du är bra på.",
+    "noCertificates": "Inga certifikat ännu – har du några? Visa upp dem.",
+    "noLanguages": "Inga språk ännu – vad talar du?",
+    "headerTitle": "Ge din profil en omslagsbild",
+    "addHeader": "Ladda upp en omslagsbild",
+    "removeHeader": "Ta bort omslagsbild",
+    "introTitle": "Lägg till en introduktionsvideo",
+    "addIntro": "Ladda upp en introduktionsvideo",
+    "removeIntro": "Ta bort introduktionsvideo",
+    "dialogTitle": "Polera ditt skyltfönster",
+    "dialogDesc": "Det här ser beställare när de bläddrar bland utförare – gör det minnesvärt.",
+    "skillsHint": "Lista vad du är bra på – beställare älskar proffs som kan visa upp bevis.",
+    "certificatesHint": "Har du certifikat? Lägg till dem – beställare litar på det de kan se.",
+    "languagesHint": "Lägg till språken du talar – det bygger förtroende snabbt."
+  },
+  "qr": {
+    "title": "Din QR-kod",
+    "desc": "Skriv ut den, sätt upp den, visa upp den – en skanning och beställare landar på din profil.",
+    "viewProfile": "Visa min profil",
+    "viewProfileAria": "Visa min profil (öppnas i en ny flik)"
+  },
+  "security": {
+    "title": "Lås ditt konto",
+    "desc": "Byt lösenord och bestäm vem som kommer in.",
+    "changePassword": "Byt lösenord",
+    "deactivate": "Inaktivera mitt konto",
+    "dialogTitle": "Ange ett nytt lösenord",
+    "dialogDesc": "Använd minst 8 tecken – ju längre, desto svårare att knäcka.",
+    "currentPassword": "Nuvarande lösenord",
+    "newPassword": "Nytt lösenord",
+    "confirmPassword": "Ange det nya igen",
+    "deleteDialogTitle": "Till sist: ta bort mitt konto",
+    "deleteDialogDesc": "Ange ditt lösenord för att bekräfta att du vill ta bort ditt konto."
+  },
+  "verifyNow": "Verifiera nu"
+}

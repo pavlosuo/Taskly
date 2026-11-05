@@ -1,0 +1,40 @@
+{
+  "roles": {
+    "tasker": "Tekijä",
+    "client": "Tilaaja"
+  },
+  "verified": "Vahvistettu",
+  "memberSince": "Jäsen {{date}} alkaen",
+  "speaks": "Puhuu: {{languages}}",
+  "hire": "Palkkaa {{name}}",
+  "hireDisabled": {
+    "loggedOut": "Kirjaudu sisään lähettääksesi viestin",
+    "own": "Et voi lähettää viestiä itsellesi"
+  },
+  "headerAlt": "Otsikkokuva",
+  "chips": {
+    "skills_one": "taito",
+    "skills_other": "taitoa",
+    "certificates_one": "sertifikaatti",
+    "certificates_other": "sertifikaattia",
+    "languages_one": "kieli",
+    "languages_other": "kieltä"
+  },
+  "sections": {
+    "about": "Tietoa",
+    "introduction": "Esittelyvideo",
+    "skills": "Taidot",
+    "certificates": "Sertifikaatit",
+    "languages": "Kielet"
+  },
+  "empty": {
+    "bio": "{{name}} ei ole vielä kirjoittanut esittelyä.",
+    "introduction": "{{name}} ei ole vielä lisännyt esittelyvideota.",
+    "skills": "Taitoja ei ole vielä lisätty.",
+    "certificates": "Sertifikaatteja ei ole vielä lisätty.",
+    "languages": "Kieliä ei ole vielä lisätty."
+  },
+  "certificate": {
+    "view": "Näytä sertifikaatti: {{name}}"
+  }
+}

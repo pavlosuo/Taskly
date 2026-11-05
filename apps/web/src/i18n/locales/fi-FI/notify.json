@@ -1,0 +1,53 @@
+{
+  "markAllRead": "Merkitse kaikki luetuiksi",
+  "types": {
+    "response_new": {
+      "title": "Uusi vastaus",
+      "description": "Tekijä tarjosi {{price}} tehtävästä ”{{taskTitle}}”."
+    },
+    "response_accepted": {
+      "title": "Vastaus hyväksytty",
+      "description": "Sinut valittiin tehtävään ”{{taskTitle}}”. Maksu pidätetään, kunnes työ on vahvistettu."
+    },
+    "response_rejected": {
+      "title": "Vastausta ei valittu",
+      "description": "Vastaustasi tehtävään ”{{taskTitle}}” ei valittu."
+    },
+    "task_done": {
+      "title": "Työ lähetetty",
+      "description": "Tekijä merkitsi tehtävän ”{{taskTitle}}” valmiiksi. Vahvista se, tai se hyväksytään automaattisesti {{days}} päivän kuluttua."
+    },
+    "task_completed": {
+      "title": "Tehtävä valmis",
+      "description": "Tehtävä ”{{taskTitle}}” vahvistettiin. Maksu vapautettiin sinulle."
+    },
+    "task_auto_completed": {
+      "title": "Tehtävä hyväksyttiin automaattisesti",
+      "description": "Tehtävä ”{{taskTitle}}” hyväksyttiin automaattisesti. Maksu vapautettiin."
+    },
+    "task_cancelled": {
+      "title": "Tehtävä peruttu",
+      "description": "Tilaaja perui tehtävän ”{{taskTitle}}”. Maksu palautettiin."
+    },
+    "task_overdue": {
+      "title": "Tehtävä peruttu",
+      "description": "Tehtävä ”{{taskTitle}}” peruttiin, koska määräaika umpeutui. Maksu palautettiin."
+    },
+    "task_abandoned": {
+      "title": "Tekijä veti itsensä pois",
+      "description": "Tekijä perääntyi tehtävästä ”{{taskTitle}}”. Tehtävä on taas avoin."
+    },
+    "task_expired": {
+      "title": "Tehtävä vanheni",
+      "description": "Tehtävä ”{{taskTitle}}” vanheni ilman määritettyä tekijää."
+    },
+    "review_received": {
+      "title": "Uusi arvostelu",
+      "description": "Sait {{rating}}★ tehtävästä ”{{taskTitle}}”."
+    },
+    "chat_new": {
+      "title": "Sinulla on uusi keskustelu",
+      "description": "Sait uuden viestin käyttäjältä {{userName}}."
+    }
+  }
+}

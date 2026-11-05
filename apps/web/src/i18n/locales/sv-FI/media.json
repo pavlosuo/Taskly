@@ -1,0 +1,40 @@
+{
+  "title": "Mediebibliotek",
+  "description": "Välj filer från ditt bibliotek eller ladda upp nya",
+  "filters": {
+    "all": "Alla",
+    "image": "Bilder",
+    "video": "Video",
+    "audio": "Ljud",
+    "pdf": "PDF",
+    "word": "Word",
+    "excel": "Excel",
+    "other": "Övrigt"
+  },
+  "upload": {
+    "label": "Ladda upp filer",
+    "uploading": "Laddar upp...",
+    "progress": "Laddar upp {{done}}/{{total}}..."
+  },
+  "empty": {
+    "loading": "Laddar...",
+    "library": "Inga filer ännu – dra och släpp eller ladda upp",
+    "category": "Inga filer i den här kategorin",
+    "drop": "Släpp för att ladda upp"
+  },
+  "preview": { "open": "Förhandsvisa" },
+  "details": {
+    "name": "Namn",
+    "type": "Typ",
+    "size": "Storlek",
+    "uploaded": "Uppladdad",
+    "empty": "Välj en fil för att se dess information",
+    "selected_one": "{{count}} fil vald",
+    "selected_other": "{{count}} filer valda",
+    "delete": "Ta bort permanent",
+    "deleteAll": "Ta bort alla valda",
+    "preview": "Öppna förhandsvisning"
+  },
+  "deleteConfirm_one": "Vill du ta bort den här filen permanent?",
+  "deleteConfirm_other": "Vill du ta bort {{count}} filer permanent?"
+}

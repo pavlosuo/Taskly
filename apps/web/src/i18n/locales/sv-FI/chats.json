@@ -1,0 +1,57 @@
+{
+  "typing": "<bold>{{name}}</bold> skriver...",
+  "search": {
+    "placeholder": "Sök efter användarnamn för att starta en chatt...",
+    "label": "Sök användare",
+    "clear": "Rensa sökningen",
+    "searching": "Söker...",
+    "noResults": "Inga användare hittades.",
+    "keepTyping": "Skriv minst {{min}} tecken för att söka"
+  },
+  "list": {
+    "loading": "Laddar...",
+    "empty": {
+      "title": "Inga konversationer ännu.",
+      "hint": "Sök efter ett användarnamn ovan för att starta en."
+    },
+    "noMessages": "Inga meddelanden ännu",
+    "attachment": "Bilaga",
+    "unread_one": "{{count}} oläst meddelande",
+    "unread_other": "{{count}} olästa meddelanden",
+    "deleteChat": "Ta bort chatten",
+    "deleteConfirm": "Vill du ta bort konversationen med {{name}}?",
+    "deletedUser": "Borttagen användare"
+  },
+  "room": {
+    "loading": "Laddar...",
+    "empty": "Inga meddelanden ännu. Säg hej!"
+  },
+  "input": {
+    "placeholder": "Meddelande...",
+    "label": "Meddelande",
+    "attach": "Bifoga fil",
+    "send": "Skicka meddelande",
+    "removeAttachment": "Ta bort {{name}}"
+  },
+  "message": {
+    "edited": "redigerat",
+    "read": "Läst",
+    "sent": "Skickat",
+    "editLabel": "Redigera meddelande",
+    "deleteConfirm": "Vill du ta bort det här meddelandet?",
+    "actions": {
+      "edit": "Redigera",
+      "copy": "Kopiera text",
+      "delete": "Ta bort"
+    }
+  },
+  "reactions": {
+    "label": "Reaktioner: {{list}}",
+    "add": "Reagera",
+    "you": "Du",
+    "youAnd": "Du och {{name}}"
+  },
+  "toast": {
+    "deleted": "Konversationen har tagits bort"
+  }
+}

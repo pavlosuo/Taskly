@@ -1,0 +1,280 @@
+{
+  "startTime": "Alkamisaika",
+  "endTime": "Päättymisaika",
+  "pickDate": "Valitse päivämäärä",
+  "general": {
+    "allTasks": "Kaikki tehtävät",
+    "myTasks": "Omat tehtäväni"
+  },
+  "actions": {
+    "searchAll": "Hae avoimia tehtäviä...",
+    "searchMy": "Hae omia tehtäviäni...",
+    "search": "Hae tehtäviä..."
+  },
+  "list": {
+    "showing_one": "Näytetään {{shown}} / {{count}} tehtävästä",
+    "showing_other": "Näytetään {{shown}} / {{count}} tehtävästä",
+    "loadMore": "Lataa lisää"
+  },
+  "empty": {
+    "noMatches": {
+      "title": "Tehtäviä ei löytynyt",
+      "text": "Kokeile eri hakusanaa tai muuta suodattimia.",
+      "action": "Tyhjennä haku ja suodattimet"
+    }
+  },
+  "tasker": {
+    "title": "Löydä taitojasi vastaavia tehtäviä ja lähetä tarjous.",
+    "empty": {
+      "my": {
+        "title": "Ei vielä tehtäviä",
+        "text": "Tehtävät, joihin olet vastannut tai jotka sinulle on määritetty, näkyvät täällä.",
+        "action": "Selaa avoimia tehtäviä"
+      },
+      "open": {
+        "title": "Ei avoimia tehtäviä juuri nyt",
+        "text": "Uudet tehtävät ilmestyvät tänne, kun tilaajat julkaisevat niitä. Palaa myöhemmin."
+      }
+    }
+  },
+  "client": {
+    "title": "Luo tehtäviä ja hallitse vastauksia.",
+    "empty": {
+      "my": {
+        "title": "Sinulla ei ole vielä tehtäviä",
+        "text": "Napsauta ”Uusi tehtävä” luodaksesi ensimmäisen."
+      },
+      "open": {
+        "title": "Ei avoimia tehtäviä juuri nyt",
+        "text": "Palaa myöhemmin."
+      }
+    }
+  },
+  "create": {
+    "trigger": "Uusi tehtävä",
+    "title": "Luo uusi tehtävä",
+    "description": "Anna selkeä otsikko, paikka ja määräaika – tekijät löytävät tehtävän haulla.",
+    "success": "Tehtävä luotu",
+    "submit": "Luo tehtävä",
+    "sections": {
+      "details": "Tehtävän tiedot",
+      "schedule": "Aikataulu ja budjetti",
+      "requirements": "Vaatimukset"
+    },
+    "fields": {
+      "title": {
+        "label": "Tehtävän otsikko",
+        "placeholder": "esim. Kokoa IKEA-vaatekaappi"
+      },
+      "description": {
+        "label": "Kuvaus",
+        "placeholder": "Kuvaile, mitä pitää tehdä, työn laajuus ja tärkeät yksityiskohdat."
+      },
+      "location": { "label": "Sijainti" },
+      "deadline": { "label": "Määräaika" },
+      "budget": { "label": "Budjetti", "placeholder": "Valinnainen" },
+      "skills": {
+        "label": "Vaadittavat taidot",
+        "placeholder": "Hae tai lisää taito..."
+      },
+      "certificates": {
+        "label": "Vaadittavat sertifikaatit",
+        "placeholder": "Hae tai lisää sertifikaatti..."
+      }
+    },
+    "negotiable": {
+      "title": "Budjetti on neuvoteltavissa",
+      "description": "Tekijät voivat ehdottaa omaa hintaansa"
+    }
+  },
+  "responseStatus": {
+    "pending": "Odottaa",
+    "accepted": "Hyväksytty",
+    "rejected": "Hylätty",
+    "withdrawn_after_accept": "Peruttu hyväksymisen jälkeen"
+  },
+  "item": {
+    "negotiable": "Neuvoteltavissa",
+    "budget": "tehtävän budjetti",
+    "responses_one": "{{count}} vastaus",
+    "responses_other": "{{count}} vastausta"
+  },
+  "sort": {
+    "newest": "Uusimmat ensin",
+    "deadline": "Määräaika: lähin ensin",
+    "budget_desc": "Budjetti: suurimmasta pienimpään",
+    "budget_asc": "Budjetti: pienimmästä suurimpaan",
+    "distance": "Lähimmät ensin"
+  },
+  "toolbar": {
+    "search": "Hae tehtäviä",
+    "searchDefault": "Hae otsikosta tai kuvauksesta...",
+    "clearSearch": "Tyhjennä haku",
+    "filters": "Suodattimet",
+    "sortBy": "Järjestä",
+    "budgetFrom": "Budjetti vähintään",
+    "budgetTo": "Budjetti enintään",
+    "any": "Kaikki",
+    "negotiableOnly": "Vain neuvoteltavissa olevat",
+    "skills": {
+      "label": "Taidot",
+      "placeholder": "Jokin näistä taidoista..."
+    },
+    "certificates": {
+      "label": "Sertifikaatit",
+      "placeholder": "Jokin näistä sertifikaateista..."
+    },
+    "within": "Enintään",
+    "ofLocation": "sijainnistasi",
+    "radius": "Hakusäde",
+    "km": "{{value}} km",
+    "removeLocation": "Poista sijaintisuodatin",
+    "nearMe": "Tehtävät lähelläni",
+    "reset": "Nollaa suodattimet",
+    "geo": {
+      "unsupported": "Selaimesi ei tue paikannusta.",
+      "denied": "Sijaintiin pääsy estettiin. Salli se selaimen asetuksista.",
+      "failed": "Sijaintia ei voitu hakea. Yritä uudelleen."
+    }
+  },
+  "summary": {
+    "details": "Tiedot",
+    "location": "Sijainti",
+    "schedule": "Aikataulu ja budjetti",
+    "deadline": "Määräaika",
+    "budget": "Budjetti",
+    "negotiableNote": "Budjetti on neuvoteltavissa – yllä oleva summa on lähtökohta.",
+    "skills": "Taidot",
+    "certificates": "Sertifikaatit",
+    "showMore": "Näytä lisää",
+    "showLess": "Näytä vähemmän"
+  },
+  "view": {
+    "description": "Hallitse tätä tehtävää ja tarkastele vastauksia.",
+    "descriptionNotOwned": "Tämä tehtävä ei ole sinun.",
+    "actions": {
+      "edit": "Muokkaa",
+      "cancel": "Peru tehtävä",
+      "complete": "Merkitse valmiiksi",
+      "delete": "Poista"
+    },
+    "confirm": {
+      "cancel": "Perutaanko tämä tehtävä? Odottavat vastaukset hylätään.",
+      "delete": "Poistetaanko tämä tehtävä pysyvästi? Myös kaikki vastaukset poistetaan."
+    }
+  },
+  "edit": {
+    "title": "Muokkaa tehtävää",
+    "description": "Päivitä alla olevat tiedot ja tallenna muutokset.",
+    "save": "Tallenna muutokset"
+  },
+  "respond": {
+    "description": "Tutustu tehtävään ja lähetä vastauksesi.",
+    "finalLocked": "Tämä vaihe tulee käyttöön, kun tehtävä on käynnissä.",
+    "steps": {
+      "overview": "Yleiskatsaus",
+      "respond": "Vastaa",
+      "complete": "Lopuksi"
+    },
+    "continue": "Jatka vastaamaan",
+    "viewResponse": "Näytä vastauksesi",
+    "closed": "Tämä tehtävä ei enää ota vastaan vastauksia.",
+    "message": { "label": "Viesti tilaajalle" },
+    "price": {
+      "label": "Hintasi",
+      "placeholder": "Kirjoita hintasi"
+    },
+    "send": "Lähetä vastaus",
+    "withdraw": "Peru",
+    "backToOverview": "Takaisin yleiskatsaukseen"
+  },
+  "toast": {
+    "updated": "Tehtävä päivitetty",
+    "cancelled": "Tehtävä peruttu",
+    "completed": "Tehtävä merkitty valmiiksi",
+    "deleted": "Tehtävä poistettu",
+    "accepted": "Vastaus hyväksytty",
+    "rejected": "Vastaus hylätty",
+    "responseSent": "Vastaus lähetetty",
+    "withdrawn": "Vastaus peruttu",
+    "markedDone": "Merkitty valmiiksi. Tilaajalle ilmoitettiin",
+    "abandoned": "Perääntyit tehtävästä",
+    "reviewed": "Arvostelu lähetetty"
+  },
+  "responses": {
+    "title": "Vastaukset",
+    "titleWithCount": "Vastaukset ({{count}})",
+    "empty": "Kukaan ei ole vielä vastannut.",
+    "offer": "tarjous",
+    "accept": "Hyväksy",
+    "reject": "Hylkää",
+    "rating": "arvosana",
+    "noRating": "Ei vielä arvosteluja",
+    "completed_one": "{{count}} valmis tehtävä",
+    "completed_other": "{{count}} valmista tehtävää",
+    "viewProfile": "Näytä profiili"
+  },
+  "status": {
+    "pending_confirmation": "Odottaa vahvistusta",
+    "expired": "Vanhentunut",
+    "all": "Kaikki",
+    "open": "Avoin",
+    "assigned": "Määritetty",
+    "completed": "Valmis",
+    "cancelled": "Peruttu"
+  },
+  "flow": {
+    "markDone": "Merkitse valmiiksi",
+    "abandon": "Peräänny tehtävästä",
+    "confirm": {
+      "markDone": "Merkitäänkö tämä tehtävä valmiiksi? Tilaajaa pyydetään vahvistamaan se.",
+      "abandon": "Perääntyäkö tästä tehtävästä? Se muuttuu taas avoimeksi ja maksu palautetaan tilaajalle."
+    },
+    "clientPending": "Tekijä merkitsi työn valmiiksi. Vahvista se, tai se hyväksytään automaattisesti {{date}}.",
+    "taskerPending": "Odotetaan tilaajan vahvistusta. Jos vastausta ei tule, työ hyväksytään automaattisesti {{date}}."
+  },
+  "payment": {
+    "held": "{{amount}} on pidätetty, kunnes työ vahvistetaan",
+    "released": "{{amount}} vapautettiin tekijälle",
+    "refunded": "{{amount}} palautettiin tilaajalle",
+    "testMode": "Testitila: oikeaa rahaa ei siirretä."
+  },
+  "checkout": {
+    "title": "Pidätä maksu",
+    "description": "Summa pidätetään, kunnes vahvistat valmiin työn.",
+    "testCard": "Testikortti, mitään ei veloiteta",
+    "total": "Pidätettävä summa",
+    "note": "Saat rahat takaisin perumalla tehtävän ennen kuin työ on lähetetty.",
+    "pay": "Maksa ja hyväksy"
+  },
+  "wallet": {
+    "open": "Lompakko",
+    "title": "Lompakko",
+    "description": "Simuloitujen maksujen historia.",
+    "empty": "Ei vielä maksuja.",
+    "status": {
+      "held": "Pidätetty",
+      "released": "Vapautettu",
+      "refunded": "Palautettu"
+    },
+    "client": {
+      "held": "Pidätetty",
+      "released": "Maksettu",
+      "refunded": "Palautettu"
+    },
+    "tasker": {
+      "held": "Välitystilillä",
+      "released": "Ansaittu",
+      "refunded": "Palautettu"
+    }
+  },
+  "review": {
+    "title": "Arvostelu",
+    "yours": "Sinun arvostelusi",
+    "received": "Sinusta annettu arvostelu",
+    "waiting": "Toinen osapuoli ei ole vielä jättänyt arvostelua.",
+    "placeholder": "Kerro, miten meni (valinnainen)",
+    "submit": "Lähetä arvostelu",
+    "stars": "Anna arvosana {{count}}"
+  }
+}
