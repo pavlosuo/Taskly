@@ -80,6 +80,10 @@ export class MediaController {
       const filePath = path.resolve(fp);
       const range = req.headers.range;
 
+      if (fs.existsSync(filePath) === false) {
+        return res.status(404).end();
+      }
+
       res.setHeader("Content-Type", mimeType);
       res.setHeader("Accept-Ranges", "bytes");
       res.setHeader("X-Content-Type-Options", "nosniff");

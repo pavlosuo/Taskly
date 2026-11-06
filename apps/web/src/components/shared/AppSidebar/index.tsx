@@ -146,8 +146,13 @@ export const SidebarWrapper = ({
   memberName?: string;
 }) => {
   const { lang } = useTheme();
+  const { t } = useTranslation("chats");
+  const fullName =
+    memberName === "user.deleted"
+      ? t("list.deletedUser")
+      : CHAT_PAGE_META[lang].title(memberName || "");
   const formattedTitle = memberName
-    ? CHAT_PAGE_META[lang].title(memberName)
+    ? fullName
     : PAGES_META?.[title]?.[lang]?.title || title;
   return (
     <SidebarProvider className="bg-muted">

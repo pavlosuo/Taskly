@@ -1,7 +1,7 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { Paperclip, Send, X, Loader2 } from "lucide-react";
+import { Paperclip, Send, X } from "lucide-react";
 import { axiosApi } from "@/api/index";
 import { MediaItem } from "shared/types";
 import { useMediaPicker } from "@/providers/MediaPickerProvider";
@@ -11,6 +11,7 @@ import { useSingleChat } from "@/providers/SingleChatProvider";
 import { useSocket } from "@/providers/SocketProvider";
 import { getAxiosError } from "@/utils/getAxiosError";
 import { useToast } from "@/hooks/useToast";
+import { useUser } from "@/providers/UserProvider";
 
 const TYPING_STOP_DELAY_MS = 2000;
 
@@ -25,15 +26,20 @@ export const ChatInput = () => {
   const { socket } = useSocket();
   const toast = useToast();
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const { user } = useUser();
 
   useEffect(() => {
     return () => {
-      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
     };
   }, []);
 
   const emitTypingStop = () => {
-    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
     socket?.emit("typing:stop", {
       chatId: chat._id,
       memberId: chat.member._id,
@@ -46,7 +52,9 @@ export const ChatInput = () => {
       chatId: chat._id,
       memberId: chat.member._id,
     });
-    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
     typingTimeoutRef.current = setTimeout(() => {
       socket?.emit("typing:stop", {
         chatId: chat._id,
@@ -75,19 +83,35 @@ export const ChatInput = () => {
   const handleSend = async () => {
     if (isSending) return;
     const trimmed = text.trim();
-    if (!trimmed && pendingMedia.length === 0) return;
+    const media = [...pendingMedia];
+    if (!trimmed && media.length === 0) return;
+    const tempId = `temp-${crypto.randomUUID()}`;
+    const optimisticMessage = {
+      _id: tempId,
+      chatId: chat._id,
+      senderId: user?._id || "",
+      text: trimmed,
+      media: media.map((m) => ({ ...m, _id: `temp-${m._id}` })),
+      readBy: [],
+      reactions: [],
+      edited: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    setText("");
+    setPendingMedia([]);
+    emitTypingStop();
+    onMessageSent(optimisticMessage);
+    setIsSending(true);
     try {
-      setIsSending(true);
-      const { data } = await axiosApi.sendMessage(chat._id, {
+      await axiosApi.sendMessage(chat._id, {
         text: trimmed || undefined,
-        mediaIds: pendingMedia.map((m) => m._id),
+        mediaIds: media.map((m) => m._id),
       });
-      emitTypingStop();
-      onMessageSent(data.message);
-      setText("");
-      setPendingMedia([]);
       fetchChats();
     } catch (e) {
+      setText(trimmed);
+      setPendingMedia(media);
       toast(getAxiosError(e));
     } finally {
       setIsSending(false);
@@ -155,15 +179,10 @@ export const ChatInput = () => {
         <button
           type="button"
           onClick={handleSend}
-          disabled={isSending || (!text.trim() && pendingMedia.length === 0)}
           className="shrink-0 p-2.5 rounded-full bg-primary text-white disabled:opacity-40"
           aria-label={t("input.send")}
         >
-          {isSending ? (
-            <Loader2 aria-hidden="true" className="w-5 h-5 animate-spin" />
-          ) : (
-            <Send aria-hidden="true" className="w-5 h-5" />
-          )}
+          <Send aria-hidden="true" className="w-5 h-5" />
         </button>
       </div>
     </div>

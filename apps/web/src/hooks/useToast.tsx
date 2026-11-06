@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
 export function useToast() {
-  const { t } = useTranslation("errors");
+  const { t } = useTranslation(["errors", "common"]);
   return useCallback(
     (key?: string, type: "error" | "success" = "error") => {
       if (!key) return;

@@ -152,8 +152,9 @@ export const Single: FC<{
   useEffect(() => {
     axiosApi
       .markChatRead(chatId)
-      .then(() => clearChatNotifications(chatId))
+      .then(() => {})
       .catch(() => {});
+    clearChatNotifications(chatId);
     upsertChat({ ...chat, unreadCount: 0 });
   }, [chatId, upsertChat, chat, clearChatNotifications]);
 
@@ -213,6 +214,7 @@ export const Single: FC<{
         })),
       );
     };
+
     socket.on("message:new", handleNew);
     socket.on("message:updated", handleUpdated);
     socket.on("message:deleted", handleDeleted);
@@ -224,6 +226,11 @@ export const Single: FC<{
       socket.off("chat:read", handleRead);
     };
   }, [socket, chatId, chat, upsertChat, appendMessage]);
+
+  const fullName =
+    chat.member.fullName === "user.deleted"
+      ? t("list.deletedUser")
+      : chat.member.fullName;
 
   return (
     <SingleChatProvider
@@ -248,7 +255,7 @@ export const Single: FC<{
             {chat.member.avatar ? (
               <ImageDisplay
                 src={chat.member.avatar.url}
-                alt={chat.member.fullName}
+                alt={fullName}
                 width={40}
                 height={40}
                 className="w-10 h-10 rounded-full object-cover"
@@ -268,7 +275,7 @@ export const Single: FC<{
               className="min-w-0"
             >
               <p className="text-sm font-semibold text-foreground truncate">
-                {chat.member.fullName}
+                {fullName}
               </p>
               {chat.member.username && (
                 <p className="text-xs text-grey truncate">
@@ -279,7 +286,7 @@ export const Single: FC<{
           ) : (
             <div className="min-w-0">
               <p className="text-sm font-semibold text-foreground truncate">
-                {chat.member.fullName}
+                {fullName}
               </p>
               {chat.member.username && (
                 <p className="text-xs text-grey truncate">
