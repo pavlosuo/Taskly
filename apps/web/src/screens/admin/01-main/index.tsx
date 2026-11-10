@@ -2,7 +2,7 @@
 import { PrivacyPolicyAdmin } from "@/components/shared/PrivacyPolicy";
 import { SectionCard } from "@/screens/user/ui";
 import { GlobeLock } from "lucide-react";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export function Main() {
   const { t } = useTranslation("admin");

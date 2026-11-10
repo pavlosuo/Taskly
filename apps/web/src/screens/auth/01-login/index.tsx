@@ -1,7 +1,7 @@
 "use client";
 import { useState, useCallback } from "react";
 import Link from "next/link";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "@/hooks/useTranslation";
 import { useUser } from "@/providers/UserProvider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/shared/Input";

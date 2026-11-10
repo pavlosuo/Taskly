@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect, useRef, startTransition } from "react";
 import { useRouter } from "next/navigation";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "@/hooks/useTranslation";
 import { Search, X, Loader2 } from "lucide-react";
 import { axiosApi } from "@/api/index";
 import { ChatMemberPreview, ChatWithMember } from "shared/types";

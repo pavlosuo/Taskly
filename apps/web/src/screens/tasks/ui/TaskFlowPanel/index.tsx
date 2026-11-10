@@ -1,5 +1,5 @@
 "use client";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "@/hooks/useTranslation";
 import { CheckCircle2, Hourglass, Undo2, ShieldCheck } from "lucide-react";
 import { Task, PaymentState } from "shared/index";
 import { useTasks } from "@/providers/TaskProvider";

@@ -7,7 +7,7 @@ import { startTransition } from "react";
 import { countries } from "country-codes-flags-phone-codes";
 import * as flags from "country-flag-icons/react/3x2";
 import { useTheme } from "@/providers/ThemeProvider";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "@/hooks/useTranslation";
 
 type HTMLSVGElement = HTMLElement & SVGElement;
 

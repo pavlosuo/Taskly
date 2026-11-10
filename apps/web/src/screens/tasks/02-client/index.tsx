@@ -1,7 +1,7 @@
 "use client";
 import { ClipboardList, Loader2 } from "lucide-react";
 import clsx from "clsx";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "@/hooks/useTranslation";
 import { Task, TaskList, TABS, TAB_LABELS } from "shared/index";
 import { useTasks } from "@/providers/TaskProvider";
 import {

@@ -445,6 +445,7 @@ export class ChatService {
     payload: SendMessagePayload,
   ): Promise<ServiceResult> {
     try {
+      const db = await this.server.getDb();
       const chat = await this.assertParticipant(chatId, user._id);
       if (!chat)
         return { success: false, status: 404, message: "chat.notFound" };
@@ -465,16 +466,13 @@ export class ChatService {
         };
       }
       if (mediaObjectIds.length) {
-        const owned = await (
-          await this.server.getDb()
-        )
+        const owned = await db
           .collection("media")
           .countDocuments({ _id: { $in: mediaObjectIds }, ownerId: user._id });
         if (owned !== mediaObjectIds.length) {
           return { success: false, status: 403, message: "general.forbidden" };
         }
       }
-      const db = await this.server.getDb();
       const now = new Date();
       const otherId = chat.participants.find((p) => !p.equals(user._id));
       let otherViewing = false;

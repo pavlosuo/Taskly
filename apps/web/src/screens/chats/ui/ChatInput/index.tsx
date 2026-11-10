@@ -1,6 +1,6 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "@/hooks/useTranslation";
 import { Paperclip, Send, X } from "lucide-react";
 import { axiosApi } from "@/api/index";
 import { MediaItem } from "shared/types";

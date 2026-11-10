@@ -1,6 +1,6 @@
 "use client";
 import { useState, useCallback } from "react";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "@/hooks/useTranslation";
 import clsx from "clsx";
 import { CalendarCheck, UserPlus, ArrowLeftToLine } from "lucide-react";
 import { useUser } from "@/providers/UserProvider";

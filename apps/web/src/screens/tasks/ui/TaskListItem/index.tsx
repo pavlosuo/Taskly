@@ -1,6 +1,6 @@
 "use client";
 import clsx from "clsx";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "@/hooks/useTranslation";
 import { Clock, MapPin, MessageSquare } from "lucide-react";
 import { Task } from "shared/types";
 import { useFormatPrice } from "@/hooks/useFormatPrice";

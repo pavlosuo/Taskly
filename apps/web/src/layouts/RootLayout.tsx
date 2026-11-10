@@ -31,12 +31,12 @@ export const RootLayout: FC<PropsWithChildren<IRootLayout>> = ({
       <TooltipProvider>
         <ModalProvider>
           <UserProvider initialUser={user}>
-            <SocketProvider>
-              <PresenceProvider>
-                <ThemeProvider
-                  initialLang={initialLang}
-                  initialTheme={initialTheme}
-                >
+            <ThemeProvider
+              initialLang={initialLang}
+              initialTheme={initialTheme}
+            >
+              <SocketProvider>
+                <PresenceProvider>
                   <MediaPickerProvider>
                     <NotificationProvider>
                       <ChatProvider>
@@ -46,9 +46,9 @@ export const RootLayout: FC<PropsWithChildren<IRootLayout>> = ({
                       </ChatProvider>
                     </NotificationProvider>
                   </MediaPickerProvider>
-                </ThemeProvider>
-              </PresenceProvider>
-            </SocketProvider>
+                </PresenceProvider>
+              </SocketProvider>
+            </ThemeProvider>
           </UserProvider>
         </ModalProvider>
       </TooltipProvider>

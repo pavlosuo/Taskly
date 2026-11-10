@@ -8,7 +8,7 @@ import {
   startTransition,
 } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "@/hooks/useTranslation";
 import {
   Upload,
   Trash2,

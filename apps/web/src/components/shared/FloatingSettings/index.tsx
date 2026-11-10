@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "@/hooks/useTranslation";
 import { Settings, Globe, Moon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {

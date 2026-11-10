@@ -1,5 +1,5 @@
 "use client";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "@/hooks/useTranslation";
 import { PolicyData } from "shared/types";
 import parseSafeHtml from "@/utils/parseSafeHtml";
 import { useFormatDate } from "@/hooks/useFormatDate";

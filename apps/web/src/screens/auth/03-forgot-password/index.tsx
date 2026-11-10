@@ -9,7 +9,7 @@ import {
   useEffect,
 } from "react";
 import { useRouter } from "next/navigation";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "@/hooks/useTranslation";
 import clsx from "clsx";
 import { Info, Check } from "lucide-react";
 import { useUser } from "@/providers/UserProvider";

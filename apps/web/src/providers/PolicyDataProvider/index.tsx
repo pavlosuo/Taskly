@@ -10,7 +10,7 @@ import { axiosApi } from "@/api/index";
 import { PolicyData } from "shared/types";
 import { getAxiosError } from "@/utils/getAxiosError";
 import { useToast } from "@/hooks/useToast";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface PolicyDataContextType {
   policyData: PolicyData;

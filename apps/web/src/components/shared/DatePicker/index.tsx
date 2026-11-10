@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/input-group";
 import { enUS, fi, sv, Locale } from "react-day-picker/locale";
 import { Lang, Deadline } from "shared/index";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "@/hooks/useTranslation";
 
 const locales: Record<Lang, Locale> = {
   en: enUS,

@@ -1,4 +1,3 @@
-import path from "path";
 import { createHash, randomInt, timingSafeEqual } from "crypto";
 import {
   PublicUser,
@@ -6,12 +5,14 @@ import {
   Tag,
   GeoPoint,
   Deadline,
+  PublicProfileLang,
 } from "shared/types";
 import { User } from "@/types";
 import { ObjectId, WithId, Document } from "mongodb";
+import { NODE_ENV, COOKIE_DOMAIN, NEXT_PUBLIC_API_URL } from "@/env";
 export * from "@/utils/limiters";
 export * from "@/utils/upload";
-import { NODE_ENV, COOKIE_DOMAIN, NEXT_PUBLIC_API_URL } from "@/env";
+export * from "@/utils/storage";
 
 export const clearCookieOptions = {
   httpOnly: true,
@@ -99,18 +100,6 @@ export const safeEqual = (a: string, b: string): boolean => {
 
 export const generateOtp = (): string => randomInt(100000, 1000000).toString();
 
-export const filePath = (
-  filename: string,
-  userId: string | ObjectId,
-): string => {
-  return path.resolve(
-    process.cwd(),
-    "../../uploads",
-    userId.toString(),
-    filename,
-  );
-};
-
 export function extractMediaId(url: string): string | null {
   if (!url) return null;
   const match = url.match(/\/api\/media\/([a-f0-9]+)\/file/);
@@ -163,7 +152,9 @@ export function stripMediaFields<T>(input: T): T {
   return input;
 }
 
-export function normalizeTagList(values: Tag[]): Tag[] {
+export function normalizeTagList(
+  values: Tag[] | PublicProfileLang[],
+): Tag[] | PublicProfileLang[] {
   const seen = new Set<string>();
   const result: Tag[] = [];
   for (const raw of values) {

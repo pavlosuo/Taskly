@@ -1,5 +1,5 @@
 "use client";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "@/hooks/useTranslation";
 import { AppearanceCard, CheckboxesCard } from "@/screens/user/ui";
 import { Bell, MessageCircle } from "lucide-react";
 import { useUser } from "@/providers/UserProvider";

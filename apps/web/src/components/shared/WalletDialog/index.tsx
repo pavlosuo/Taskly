@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "@/hooks/useTranslation";
 import { Loader2, Wallet } from "lucide-react";
 import clsx from "clsx";
 import { PaymentHistory, PaymentItem, PaymentStatus } from "shared/index";

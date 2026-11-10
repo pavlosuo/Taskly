@@ -21,7 +21,7 @@ import {
 } from "shared/index";
 import { SectionCard, FormField } from "@/screens/user/ui";
 import clsx from "clsx";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "@/hooks/useTranslation";
 import { PasswordToggle } from "@/screens/auth/ui";
 import { useToast } from "@/hooks/useToast";
 

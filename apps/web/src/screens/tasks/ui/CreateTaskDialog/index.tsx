@@ -16,7 +16,7 @@ import {
   ListChecks,
 } from "lucide-react";
 import { useToast } from "@/hooks/useToast";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "@/hooks/useTranslation";
 import { useTasks } from "@/providers/TaskProvider";
 import { Input, PriceInput, TagInput } from "@/components/shared/Input";
 import { Button } from "@/components/ui/button";

@@ -1,7 +1,7 @@
 "use client";
 import { PublicUser, PublicProfileUser, ChatMemberPreview } from "shared/types";
 import { useEffect, useMemo, useState } from "react";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "@/hooks/useTranslation";
 import { usePresence } from "@/providers/PresenceProvider";
 
 export function OnlineStatus({

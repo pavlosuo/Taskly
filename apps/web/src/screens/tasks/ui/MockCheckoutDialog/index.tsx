@@ -1,5 +1,5 @@
 "use client";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "@/hooks/useTranslation";
 import { CreditCard, Loader2, Lock } from "lucide-react";
 import { TaskResponseItem } from "shared/index";
 import {

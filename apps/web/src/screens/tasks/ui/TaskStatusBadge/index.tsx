@@ -1,5 +1,5 @@
 "use client";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "@/hooks/useTranslation";
 import { TaskStatus } from "shared/types";
 import clsx from "clsx";
 import { TASK_STATUS_STYLES } from "@/screens/tasks/data/taskStatus";

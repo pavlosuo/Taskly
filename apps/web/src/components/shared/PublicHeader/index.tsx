@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "@/hooks/useTranslation";
 import { EyeOff, Menu, ShieldAlert, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { UserDropdown } from "@/components/shared/UserDropdown";

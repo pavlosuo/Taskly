@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import clsx from "clsx";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "@/hooks/useTranslation";
 import parseSafeHtml from "@/utils/parseSafeHtml";
 import { Button } from "@/components/ui/button";
 import {

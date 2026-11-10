@@ -1,5 +1,5 @@
 "use client";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "@/hooks/useTranslation";
 import { axiosApi } from "@/api/index";
 import { PublicProfileSkill } from "shared/index";
 import { TagInput } from "@/components/shared/Input";

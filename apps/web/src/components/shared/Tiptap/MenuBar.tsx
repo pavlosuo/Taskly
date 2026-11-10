@@ -1,6 +1,6 @@
 "use client";
 import { useEditorState, Editor } from "@tiptap/react";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "@/hooks/useTranslation";
 import type { TFunction } from "i18next";
 import { menuBarStateSelector } from "./menuBarState";
 import { Fragment } from "react";

@@ -1,11 +1,12 @@
 import { FilterType } from "shared/index";
 
+export const MEDIA_QUOTA_BYTES = 100 * 1024 * 1024;
+
 export const ALLOWED_MIME_TYPES = new Set([
   "image/jpeg",
   "image/png",
   "image/webp",
   "image/gif",
-  "image/svg+xml",
   "image/avif",
   "video/mp4",
   "video/webm",

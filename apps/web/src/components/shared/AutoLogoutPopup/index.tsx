@@ -1,6 +1,6 @@
 "use client";
 import { AlertTriangle } from "lucide-react";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "@/hooks/useTranslation";
 import {
   Dialog,
   DialogContent,

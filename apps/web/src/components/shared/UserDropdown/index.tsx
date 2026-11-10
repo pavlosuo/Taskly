@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ImageDisplay } from "@/components/shared/MediaPicker";
 import { PAGES_META } from "shared/data";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "@/hooks/useTranslation";
 import { useTheme } from "@/providers/ThemeProvider";
 
 export const UserDropdown = ({

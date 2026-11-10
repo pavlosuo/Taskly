@@ -93,6 +93,11 @@ export function createApp(server: Server): Application {
         .status(400)
         .json({ success: false, status: 400, message: "general.badRequest" });
     }
+    if (err?.name === "UploadError") {
+      return res
+        .status(400)
+        .json({ success: false, status: 400, message: err.message });
+    }
     console.error("Unhandled error:", err);
     return res
       .status(500)

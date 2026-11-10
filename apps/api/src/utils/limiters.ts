@@ -33,3 +33,11 @@ export const searchLimiter = rateLimit({
   legacyHeaders: false,
   message: { success: false, status: 429, message: "general.tooManyRequests" },
 });
+
+export const uploadLimiter = rateLimit({
+  windowMs: 60_000,
+  limit: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, status: 429, message: "general.tooManyRequests" },
+});

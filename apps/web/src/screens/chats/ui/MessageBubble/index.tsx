@@ -1,7 +1,7 @@
 "use client";
 import { FC, useState, useRef, useEffect } from "react";
 import clsx from "clsx";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "@/hooks/useTranslation";
 import {
   Check,
   CheckCheck,

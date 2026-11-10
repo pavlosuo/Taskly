@@ -16,7 +16,7 @@ import { Notify } from "@/components/shared/Notify";
 import { APP_NAME, PAGES_META, CHAT_PAGE_META } from "shared/data";
 import clsx from "clsx";
 import { useTheme } from "@/providers/ThemeProvider";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "@/hooks/useTranslation";
 import { WalletDialog } from "@/components/shared/WalletDialog";
 
 export function AppSidebar() {

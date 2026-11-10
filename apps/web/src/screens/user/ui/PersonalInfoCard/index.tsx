@@ -1,6 +1,6 @@
 "use client";
 import { useState, useCallback } from "react";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "@/hooks/useTranslation";
 import { Button } from "@/components/ui/button";
 import { Input, PhoneInput } from "@/components/shared/Input";
 import {

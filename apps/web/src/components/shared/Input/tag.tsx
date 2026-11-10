@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef, useState, startTransition } from "react";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "@/hooks/useTranslation";
 import { X, Plus, Loader2 } from "lucide-react";
 import { Input } from "@/components/shared/Input";
 import { Tag } from "shared/types";

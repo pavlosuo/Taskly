@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "@/hooks/useTranslation";
 import { Button } from "@/components/ui/button";
 import { QrCode, ArrowUpRight } from "lucide-react";
 import { useUser } from "@/providers/UserProvider";

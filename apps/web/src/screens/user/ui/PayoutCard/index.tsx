@@ -2,7 +2,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import clsx from "clsx";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "@/hooks/useTranslation";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,

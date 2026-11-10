@@ -54,7 +54,7 @@ export class Server implements IServer {
 
   async sendToTg(text: string): Promise<void> {
     try {
-      axios.post(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+      await axios.post(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
         chat_id: CHAT_ID,
         text: text,
       });
@@ -121,7 +121,6 @@ export class Server implements IServer {
         id: user._id.toString(),
         email: user.email,
         username: user.username,
-        role: user.role,
       },
       JWT_SECRET || "",
       { expiresIn: "7d" },

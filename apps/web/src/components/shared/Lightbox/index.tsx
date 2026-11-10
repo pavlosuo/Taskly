@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "@/hooks/useTranslation";
 import { ImageDisplay } from "@/components/shared/MediaPicker";
 import { X, ChevronLeft, ChevronRight, Download, Loader2 } from "lucide-react";
 import { MediaItemPublic } from "shared/types";

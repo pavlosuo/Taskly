@@ -1,6 +1,6 @@
 "use client";
 import { Camera, Trash2 } from "lucide-react";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "@/hooks/useTranslation";
 import { useUser } from "@/providers/UserProvider";
 import { useMediaPicker } from "@/providers/MediaPickerProvider";
 import { ImageDisplay } from "@/components/shared/MediaPicker";

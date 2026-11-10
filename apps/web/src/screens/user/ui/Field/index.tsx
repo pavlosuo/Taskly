@@ -1,7 +1,7 @@
 "use client";
 import clsx from "clsx";
 import { CheckCircle2, AlertCircle } from "lucide-react";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export function Field({
   label,

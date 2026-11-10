@@ -2,7 +2,7 @@
 import { Eye, EyeOff } from "lucide-react";
 import { OtpChannel } from "shared/types";
 import Image from "next/image";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "@/hooks/useTranslation";
 import { useRouter } from "next/navigation";
 
 export function AuthLayout({ children }: { children: React.ReactNode }) {

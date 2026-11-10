@@ -1,6 +1,6 @@
 "use client";
 import { useState, useMemo } from "react";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "@/hooks/useTranslation";
 import { X } from "lucide-react";
 import { Input } from "@/components/shared/Input";
 import { WORLD_LANGUAGES, CERF_LEVELS } from "shared/data";
