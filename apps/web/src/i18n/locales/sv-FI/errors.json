@@ -76,7 +76,8 @@
     "notFound": "Användaren hittades inte",
     "usernameMissing": "Ange ett användarnamn",
     "invalidCredentials": "Ogiltiga inloggningsuppgifter",
-    "unavailableData": "Registreringen kunde inte slutföras. Kontrollera dina uppgifter."
+    "unavailableData": "Registreringen kunde inte slutföras. Kontrollera dina uppgifter.",
+    "hasActiveTasks": "Användaren har aktiva uppgifter"
   },
   "otp": {
     "required": "Kod krävs",
@@ -131,7 +132,8 @@
     "notFound": "Den begärda resursen hittades inte.",
     "forbidden": "Du får inte utföra den här åtgärden.",
     "tooManyRequests": "För många förfrågningar. Försök igen senare.",
-    "serviceUnavailable": "Tjänsten är tillfälligt otillgänglig. Försök igen senare."
+    "serviceUnavailable": "Tjänsten är tillfälligt otillgänglig. Försök igen senare.",
+    "badRequest": "Felaktig förfrågan"
   },
   "policy": {
     "invalid": "Ogiltig policy"
@@ -194,11 +196,16 @@
       "noText": "Meddelandet måste innehålla text eller media.",
       "tooLong": "Meddelandet är för långt",
       "notFound": "Meddelandet hittades inte",
-      "invalidEmoji": "Ogiltig emoji"
+      "invalidEmoji": "Ogiltig emoji",
+      "invalidMedia": "Ogiltigt media i meddelandet"
     }
   },
   "media": {
     "notFound": "Mediet hittades inte",
+    "typeNotAllowed": "Medietypen är inte tillåten",
+    "noFile": "Ingen fil har angetts",
+    "quotaExceeded": "Lagringskvoten har överskridits",
+    "inUse": "Mediet används för närvarande",
     "filename": {
       "required": "Filnamn krävs",
       "tooLong": "Filnamnet är för långt"

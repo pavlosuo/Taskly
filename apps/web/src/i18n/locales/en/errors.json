@@ -76,7 +76,8 @@
     "notFound": "User not found",
     "usernameMissing": "Please enter username",
     "invalidCredentials": "Invalid credentials",
-    "unavailableData": "Unable to complete registration. Check your details."
+    "unavailableData": "Unable to complete registration. Check your details.",
+    "hasActiveTasks": "User has active tasks"
   },
   "otp": {
     "required": "Code is required",
@@ -131,7 +132,8 @@
     "notFound": "The requested resource was not found.",
     "forbidden": "You are not allowed to perform this action.",
     "tooManyRequests": "Too many requests. Please try again later.",
-    "serviceUnavailable": "The service is temporarily unavailable. Please try again later."
+    "serviceUnavailable": "The service is temporarily unavailable. Please try again later.",
+    "badRequest": "Bad request"
   },
   "policy": {
     "invalid": "Invalid policy"
@@ -194,11 +196,16 @@
       "noText": "Message must contain text or media.",
       "tooLong": "Message is too long",
       "notFound": "Message not found",
-      "invalidEmoji": "Invalid emoji"
+      "invalidEmoji": "Invalid emoji",
+      "invalidMedia": "Invalid media in message"
     }
   },
   "media": {
     "notFound": "Media not found",
+    "typeNotAllowed": "Media type is not allowed",
+    "noFile": "No file provided",
+    "quotaExceeded": "Storage quota exceeded",
+    "inUse": "Media is currently in use",
     "filename": {
       "required": "Filename is required",
       "tooLong": "Filename is too long"

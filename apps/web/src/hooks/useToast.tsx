@@ -3,7 +3,7 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { toast } from "sonner";
 
 export function useToast() {
-  const { t } = useTranslation(["common", "errors", ]);
+  const { t } = useTranslation(["common", "errors"]);
   return useCallback(
     (key?: string, type: "error" | "success" = "error") => {
       if (!key) return;

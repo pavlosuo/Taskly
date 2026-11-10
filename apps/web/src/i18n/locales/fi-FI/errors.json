@@ -76,7 +76,8 @@
     "notFound": "Käyttäjää ei löytynyt",
     "usernameMissing": "Kirjoita käyttäjänimi",
     "invalidCredentials": "Virheelliset tunnistetiedot",
-    "unavailableData": "Rekisteröitymistä ei voitu viimeistellä. Tarkista tietosi."
+    "unavailableData": "Rekisteröitymistä ei voitu viimeistellä. Tarkista tietosi.",
+    "hasActiveTasks": "Käyttäjällä on aktiivisia tehtäviä"
   },
   "otp": {
     "required": "Koodi vaaditaan",
@@ -133,7 +134,8 @@
     "notFound": "Pyydettyä resurssia ei löytynyt.",
     "forbidden": "Tämä toiminto ei ole sallittu.",
     "tooManyRequests": "Liian monta pyyntöä. Yritä myöhemmin uudelleen.",
-    "serviceUnavailable": "Palvelu ei ole tilapäisesti käytettävissä. Yritä myöhemmin uudelleen."
+    "serviceUnavailable": "Palvelu ei ole tilapäisesti käytettävissä. Yritä myöhemmin uudelleen.",
+    "badRequest": "Virheellinen pyyntö"
   },
   "policy": {
     "invalid": "Virheellinen käytäntö"
@@ -191,16 +193,23 @@
     "cannotCreateChatWithSelf": "Et voi aloittaa keskustelua itsesi kanssa",
     "memberNotFound": "Jäsentä ei löytynyt",
     "notFound": "Keskustelua ei löytynyt",
+
     "message": {
       "empty": "Viestissä on oltava tekstiä tai mediaa.",
       "noText": "Viestissä on oltava tekstiä tai mediaa.",
       "tooLong": "Viesti on liian pitkä",
       "notFound": "Viestiä ei löytynyt",
-      "invalidEmoji": "Virheellinen emoji"
+      "invalidEmoji": "Virheellinen emoji",
+      "invalidMedia": "Viestissä on virheellinen media"
     }
   },
   "media": {
     "notFound": "Mediaa ei löytynyt",
+    "typeNotAllowed": "Mediatyyppi ei ole sallittu",
+    "noFile": "Tiedostoa ei ole annettu",
+    "quotaExceeded": "Tallennustilan kiintiö on ylitetty",
+    "inUse": "Media on parhaillaan käytössä",
+
     "filename": {
       "required": "Tiedostonimi vaaditaan",
       "tooLong": "Tiedostonimi on liian pitkä"

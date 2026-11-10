@@ -9,7 +9,7 @@ import {
 } from "shared/types";
 import { User } from "@/types";
 import { ObjectId, WithId, Document } from "mongodb";
-import { NODE_ENV, COOKIE_DOMAIN, NEXT_PUBLIC_API_URL } from "@/env";
+import { NODE_ENV, NEXT_PUBLIC_API_URL } from "@/env";
 export * from "@/utils/limiters";
 export * from "@/utils/upload";
 export * from "@/utils/storage";
@@ -17,9 +17,8 @@ export * from "@/utils/storage";
 export const clearCookieOptions = {
   httpOnly: true,
   secure: NODE_ENV === "production",
-  sameSite: NODE_ENV === "production" ? ("none" as const) : ("lax" as const),
+  sameSite: "lax" as const,
   path: "/",
-  domain: COOKIE_DOMAIN,
 };
 
 export const cookieOptions = {
