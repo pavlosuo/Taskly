@@ -1,0 +1,9 @@
+:{$PORT} {
+	@api path /api/* /socket.io/*
+	handle @api {
+		reverse_proxy api.railway.internal:5050
+	}
+	handle {
+		reverse_proxy web.railway.internal:3000
+	}
+}
