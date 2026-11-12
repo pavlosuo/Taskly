@@ -66,7 +66,7 @@ export const MediaPickerProvider = ({ children }: { children: ReactNode }) => {
       <MediaPicker
         open={open}
         onOpenChange={handleOpenChange}
-        accept={options?.accept ?? "image"}
+        accept={options?.accept ?? "all"}
         onSelect={options?.onSelect ? handleSelect : undefined}
         multiple={options?.multiple ?? false}
       />

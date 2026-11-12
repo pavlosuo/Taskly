@@ -25,30 +25,58 @@ import { processMedia } from "@/utils/process-media";
 import path from "path";
 
 export class MediaService {
-  recovery: Promise<void>;
+  private static jobsStarted = false;
 
   constructor(private server: IServer) {
-    this.recovery = this.recover().catch((e) =>
-      console.error("Recover error:", e),
-    );
+    if (!MediaService.jobsStarted) {
+      MediaService.jobsStarted = true;
+      this.startJobs().catch((e) => console.error("Scheduled jobs error:", e));
+    }
   }
 
-  private async recover() {
+  private async startJobs() {
+    const run = () =>
+      this.cleanup().catch((e) => console.error("Cleanup error:", e));
+    await run();
+    setInterval(run, 24 * 3_600_000).unref();
+  }
+
+  private async cleanup() {
     const db = await this.server.getDb();
     const media = db.collection<MediaItemBack>("media");
+    const hours = (h: number) => new Date(Date.now() - h * 3_600_000);
     await media.updateMany(
-      { status: "processing" },
+      { status: "processing", uploadedAt: { $lt: hours(3) } },
       { $set: { status: "failed", size: 0, optimizing: false } },
     );
     await media.updateMany(
-      { optimizing: true },
+      { optimizing: true, uploadedAt: { $lt: hours(3) } },
       { $set: { optimizing: false } },
     );
-    await fs.rm(TMP_ROOT, { recursive: true, force: true });
+    const failed = await media
+      .find({ status: "failed", uploadedAt: { $lt: hours(24) } })
+      .toArray();
+    for (const m of failed) {
+      for (const name of [m.filename, m.posterFilename]) {
+        if (name)
+          await storage.remove(mediaKey(m.ownerId, name)).catch(() => {});
+      }
+    }
+    if (failed.length) {
+      await media.deleteMany({ _id: { $in: failed.map((m) => m._id) } });
+    }
+    for (const dir of await fs.readdir(TMP_ROOT).catch(() => [])) {
+      const dirPath = path.join(TMP_ROOT, dir);
+      for (const f of await fs.readdir(dirPath).catch(() => [])) {
+        const p = path.join(dirPath, f);
+        const st = await fs.stat(p).catch(() => null);
+        if (st && st.mtimeMs < hours(24).getTime())
+          await fs.rm(p, { force: true });
+      }
+    }
   }
 
   async upload(user: User, file: Express.Multer.File): Promise<ServiceResult> {
-    await this.recovery;
     const _id = new ObjectId();
     const { width, height } = file;
     let media: Collection<MediaItemBack> | undefined;
@@ -251,6 +279,7 @@ export class MediaService {
   async serveFile(
     id: string,
     user?: User | null,
+    poster = false,
   ): Promise<
     ServiceResult<
       | { kind: "local"; path: string; mimeType: string; disposition: string }
@@ -266,14 +295,16 @@ export class MediaService {
       const item = await db
         .collection<MediaItemBack>("media")
         .findOne({ _id: mediaId });
-
       if (!item)
         return { success: false, status: 404, message: "media.notFound" };
-
-      const disposition = contentDisposition(item.mimeType, item.originalName);
-
+      if (poster && !item.posterFilename) {
+        return { success: false, status: 404, message: "media.notFound" };
+      }
+      const disposition = poster
+        ? "inline"
+        : contentDisposition(item.mimeType, item.originalName);
       const sign = async (): Promise<ServiceResult<any>> => {
-        if (item.status !== "ready") {
+        if (!poster && item.status !== "ready") {
           const localPath = path.join(
             TMP_ROOT,
             item.ownerId.toString(),
@@ -302,11 +333,11 @@ export class MediaService {
           data: {
             kind: "remote",
             url: await storage.signedUrl(
-              mediaKey(item.ownerId, item.filename),
-              {
-                mimeType: item.mimeType,
-                disposition,
-              },
+              mediaKey(
+                item.ownerId,
+                (poster ? item.posterFilename : item.filename) || "",
+              ),
+              { mimeType: poster ? "image/jpeg" : item.mimeType, disposition },
             ),
           },
         };

@@ -15,6 +15,7 @@ export class MediaController {
     this.delete = this.delete.bind(this);
     this.handleServe = this.handleServe.bind(this);
     this.serveFile = this.serveFile.bind(this);
+    this.servePoster = this.servePoster.bind(this);
   }
 
   private send(res: Response, result: any) {
@@ -48,12 +49,17 @@ export class MediaController {
     return this.send(res, await this.service.delete(req.user, id));
   }
 
-  async handleServe(req: Request, res: Response, retry = true): Promise<void> {
+  async handleServe(
+    req: Request,
+    res: Response,
+    retry = true,
+    poster = false,
+  ): Promise<void> {
     try {
       const id = Array.isArray(req.params.id)
         ? req.params.id[0]
         : req.params.id;
-      const result = await this.service.serveFile(id, req.user ?? null);
+      const result = await this.service.serveFile(id, req.user ?? null, poster);
       if (!result.success) return void this.send(res, result);
       const file = result.data!;
       res.setHeader("X-Content-Type-Options", "nosniff");
@@ -72,7 +78,14 @@ export class MediaController {
           (err: any) => {
             if (!err || res.headersSent) return;
             if (err.code === "ENOENT" && retry)
-              return void this.handleServe(req, res, false);
+              return void this.handleServe(req, res, false, poster);
+            if (upstream.status === 304) {
+              for (const h of ["etag", "last-modified"]) {
+                const v = upstream.headers.get(h);
+                if (v) res.setHeader(h, v);
+              }
+              return void res.status(304).end();
+            }
             res.status(err.code === "ENOENT" ? 404 : 500).json({
               success: false,
               status: err.code === "ENOENT" ? 404 : 500,
@@ -126,7 +139,11 @@ export class MediaController {
     }
   }
 
-  async serveFile(req: Request, res: Response): Promise<void> {
-    return this.handleServe(req, res, true);
+  async serveFile(req: Request, res: Response) {
+    return this.handleServe(req, res, true, false);
+  }
+
+  async servePoster(req: Request, res: Response) {
+    return this.handleServe(req, res, true, true);
   }
 }

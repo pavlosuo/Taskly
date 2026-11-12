@@ -17,5 +17,5 @@ export function getFileType(mimeType: string): FilterType {
       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
   )
     return "excel";
-  return "document";
+  return "other";
 }

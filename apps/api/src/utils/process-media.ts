@@ -286,7 +286,7 @@ async function processVideo(i: MediaSource, emit: MediaEmit) {
   const posterPath = path.join(dir, `${base}.poster.jpg`);
   try {
     const first: FirstUpdate = await readyLimit(async () => {
-      const opt = await probeVideo(optPath).catch(() => null);
+      const src = await probeVideo(i.localPath).catch(() => null);
       let readyPath = i.localPath;
       let mimeType = i.mimeType;
       let key = mediaKey(i.ownerId, path.basename(i.localPath));
@@ -348,9 +348,9 @@ async function processVideo(i: MediaSource, emit: MediaEmit) {
         key,
         mimeType,
         size,
-        width: opt?.width ?? first.width,
-        height: opt?.height ?? first.height,
-        durationSec: opt?.durationSec ?? first.durationSec,
+        width: src?.width,
+        height: src?.height,
+        durationSec: src?.durationSec,
         posterKey,
       };
     });
@@ -397,7 +397,7 @@ async function processVideo(i: MediaSource, emit: MediaEmit) {
           ],
           1_800_000,
         );
-        const opt = await probeVideo(optPath);
+        const opt = await probeVideo(optPath).catch(() => null);
         const optSize = (await fs.promises.stat(optPath)).size;
         if (optSize >= first.size * VIDEO.minGain) {
           await emit({ ...first, final: true });
@@ -410,9 +410,9 @@ async function processVideo(i: MediaSource, emit: MediaEmit) {
           key: optKey,
           mimeType: "video/mp4",
           size: optSize,
-          width: opt.width,
-          height: opt.height,
-          durationSec: opt.durationSec,
+          width: opt?.width ?? first.width,
+          height: opt?.height ?? first.height,
+          durationSec: opt?.durationSec ?? first.durationSec,
           final: true,
         });
         await removeQuiet(first.key);

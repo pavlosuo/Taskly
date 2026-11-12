@@ -16,5 +16,6 @@ export function mediaRoutes(server: IServer): Router {
   router.get("/", server.requireAuth(), ctrl.getAll);
   router.delete("/:id", server.requireAuth(), ctrl.delete);
   router.get("/:id/file", server.optionalAuth(), ctrl.serveFile);
+  router.get("/:id/poster", server.optionalAuth(), ctrl.servePoster);
   return router;
 }

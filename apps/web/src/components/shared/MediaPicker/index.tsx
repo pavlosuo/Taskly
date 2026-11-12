@@ -787,7 +787,7 @@ export function MediaPicker({
                       {t("details.type")}
                     </p>
                     <p className="text-sm text-foreground">
-                      {selectedItem.mimeType}
+                      {t(`filters.${getFileType(selectedItem.mimeType)}`)}
                     </p>
                   </div>
                   <div>

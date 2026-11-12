@@ -274,6 +274,14 @@ export function PublicProfileCard() {
                     <div className="group relative aspect-video w-full">
                       <VideoPlayer
                         src={user.publicProfile!.introduction!.url}
+                        poster={
+                          user.publicProfile!.introduction?.posterFilename
+                            ? user.publicProfile!.introduction?.url.replace(
+                                /\/file$/,
+                                "/poster",
+                              )
+                            : undefined
+                        }
                         className="h-full w-full"
                       />
                       <button

@@ -12,7 +12,6 @@ import { User } from "@/types";
 import { ObjectId, WithId, Document } from "mongodb";
 import { NODE_ENV, NEXT_PUBLIC_API_URL } from "@/env";
 import path from "path";
-import os from "node:os";
 export * from "@/utils/limiters";
 export * from "@/utils/upload";
 export * from "@/utils/storage";
@@ -142,6 +141,7 @@ export function stripMediaFields<T>(input: T): T {
       originalName: input.originalName,
       url: mediaUrl(input.url),
       mimeType: input.mimeType,
+      posterFilename: input.posterFilename,
     } as unknown as T;
   }
   if (isPlainObject(input)) {
@@ -221,5 +221,11 @@ export const contentDisposition = (mime: string, filename: string) => {
   return `${type}; filename*=UTF-8''${encoded}`;
 };
 
-export const TMP_ROOT = path.join(os.tmpdir(), "uploads",
+export const TMP_ROOT = path.join(
+  import.meta.dirname,
+  "..",
+  "..",
+  "..",
+  "..",
+  "uploads",
 );

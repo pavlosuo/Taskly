@@ -14,10 +14,9 @@ import { Lang, Theme, PAGES_META, APP_NAME } from "shared/index";
 import { I18nextProvider } from "react-i18next";
 import { createI18n } from "@/i18n";
 import { axiosApi } from "@/api/index";
-import { useUser } from "@/providers/UserProvider";
 import { usePathname } from "next/navigation";
-import { useToast } from "@/hooks/useToast";
 import { getAxiosError } from "@/utils/getAxiosError";
+import { toast as sonner } from "sonner";
 
 interface ThemeContextType {
   lang: Lang;
@@ -41,9 +40,7 @@ const CHANNEL_NAME = "theme-sync";
 
 function isSyncMessage(data: unknown): data is SyncMessage {
   if (typeof data !== "object" || data === null) return false;
-
   const msg = data as Record<string, unknown>;
-
   return (
     (msg.type === "theme" || msg.type === "lang") &&
     typeof msg.value === "string"
@@ -63,8 +60,6 @@ export const ThemeProvider = ({
   initialTheme,
   initialLang,
 }: ThemeProviderProps) => {
-  const toast = useToast();
-  const { user } = useUser();
   const pathname = usePathname();
   const [i18nInstance] = useState(() => createI18n(initialLang));
   const [lang, setLang] = useState<Lang>(initialLang);
@@ -72,6 +67,11 @@ export const ThemeProvider = ({
   const channelRef = useRef<BroadcastChannel | null>(null);
   const stateRef = useRef({ lang: initialLang, theme: initialTheme });
   const pageId = pathname.split("/").filter(Boolean).at(-1) ?? "";
+
+  const toast = useCallback(
+    (key: string) => sonner.error(i18nInstance.t(key)),
+    [i18nInstance],
+  );
 
   useEffect(() => {
     if (i18nInstance.language !== initialLang) {
@@ -86,11 +86,9 @@ export const ThemeProvider = ({
 
   useEffect(() => {
     const meta = PAGES_META[pageId]?.[lang];
-
     if (meta) {
       document.title = `${meta.title} | ${APP_NAME}`;
     }
-
     document.documentElement.lang = lang;
   }, [pageId, lang]);
 
@@ -135,29 +133,18 @@ export const ThemeProvider = ({
   const persistPreferences = useCallback(
     async (next: { lang?: Lang; theme?: Theme }) => {
       try {
-        if (!user) {
-          await axiosApi.preferences(next);
-          return;
-        }
-
-        await axiosApi.updateProfile({
-          settings: {
-            lang: next.lang ?? stateRef.current.lang,
-            theme: next.theme ?? stateRef.current.theme,
-          },
-        });
+        await axiosApi.preferences(next);
       } catch (e) {
         toast(getAxiosError(e));
       }
     },
-    [user, toast],
+    [toast],
   );
 
   const changeTheme = useCallback(
     (newTheme: Theme) => {
       setTheme(newTheme);
       document.documentElement.dataset.theme = newTheme;
-
       persistPreferences({ theme: newTheme });
       broadcast({ type: "theme", value: newTheme });
     },
@@ -167,16 +154,13 @@ export const ThemeProvider = ({
   const changeLang = useCallback(
     (newLang: Lang) => {
       if (newLang === lang) return;
-
       i18nInstance.changeLanguage(newLang, (err) => {
         if (err) {
           toast("errors:changeLang");
           return;
         }
-
         setLang(newLang);
         document.documentElement.lang = newLang;
-
         persistPreferences({ lang: newLang });
         broadcast({ type: "lang", value: newLang });
       });

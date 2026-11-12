@@ -17,12 +17,14 @@ export type MediaItem = {
   chatIds: string[];
   durationSec?: number;
   posterFilename?: string;
+  poster?: string;
 };
 
 export type MediaItemPublic = {
   url: string;
   originalName: string;
   mimeType: string;
+  posterFilename?: string;
 };
 
 export type FilterType =

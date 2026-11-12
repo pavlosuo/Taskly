@@ -51,6 +51,7 @@ import {
 import { Video } from "@videojs/react/video";
 import { createPlayer } from "@videojs/react";
 import { videoFeatures } from "@videojs/react/video";
+
 export const { Player } = createPlayer({ features: videoFeatures });
 
 const TOP_STATUS_ACTIONS = [
@@ -67,7 +68,6 @@ export interface VideoPlayerProps {
   src: string;
   poster?: string | undefined;
   className?: string;
-  renderPoster?: Poster.Props["render"];
 }
 
 const Button = forwardRef<HTMLButtonElement, ComponentProps<"button">>(
@@ -240,7 +240,6 @@ export function VideoPlayer({
   src,
   poster,
   className,
-  renderPoster,
   ...rest
 }: VideoPlayerProps): ReactNode {
   return (
@@ -250,7 +249,7 @@ export function VideoPlayer({
         {...rest}
       >
         <Video src={src} playsInline />
-        {renderPoster && <Poster render={renderPoster} />}
+        {poster && <Poster />}
         <BufferingIndicator
           render={(props) => (
             <div {...props} className="media-buffering-indicator">

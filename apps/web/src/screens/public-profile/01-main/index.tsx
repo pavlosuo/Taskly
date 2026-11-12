@@ -292,6 +292,11 @@ export const Main = ({
                   <div className="group relative aspect-video w-full">
                     <VideoPlayer
                       src={p.introduction!.url}
+                      poster={
+                        p.introduction?.posterFilename
+                          ? p.introduction?.url.replace(/\/file$/, "/poster")
+                          : undefined
+                      }
                       className="h-full w-full"
                     />
                   </div>

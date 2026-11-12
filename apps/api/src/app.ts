@@ -46,7 +46,7 @@ export function createApp(server: Server): Application {
   app.use("/api/notifications", notificationRoutes(server));
   app.use("/api/reviews", reviewRoutes(server));
   app.use("/api/payments", paymentRoutes(server));
-  app.post("/api/preferences", (req, res) => {
+  app.post("/api/preferences", server.optionalAuth(), async (req, res) => {
     try {
       const parsed = settingsSchema.safeParse(req.body);
       if (!parsed.success) {
@@ -57,18 +57,23 @@ export function createApp(server: Server): Application {
         });
       }
       const { theme, lang } = parsed.data;
-      if (theme) {
-        res.cookie("theme", theme, cookieOptions);
+      if (theme) res.cookie("theme", theme, cookieOptions);
+      if (lang) res.cookie("lang", lang, cookieOptions);
+      if (req.user && (theme || lang)) {
+        const db = await server.getDb();
+        await db.collection("users").updateOne(
+          { _id: req.user._id },
+          {
+            $set: {
+              ...(theme && { "settings.theme": theme }),
+              ...(lang && { "settings.lang": lang }),
+            },
+          },
+        );
       }
-      if (lang) {
-        res.cookie("lang", lang, cookieOptions);
-      }
-      return res.json({
-        success: true,
-        theme,
-        lang,
-      });
-    } catch {
+      return res.json({ success: true, theme, lang });
+    } catch (e) {
+      console.error("Preferences error:", e);
       return res.status(500).json({
         success: false,
         status: 500,

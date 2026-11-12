@@ -28,13 +28,10 @@ export const RootLayout: FC<PropsWithChildren<IRootLayout>> = ({
 }) => {
   return (
     <>
-      <TooltipProvider>
-        <ModalProvider>
-          <UserProvider initialUser={user}>
-            <ThemeProvider
-              initialLang={initialLang}
-              initialTheme={initialTheme}
-            >
+      <ThemeProvider initialLang={initialLang} initialTheme={initialTheme}>
+        <TooltipProvider>
+          <ModalProvider>
+            <UserProvider initialUser={user}>
               <SocketProvider>
                 <PresenceProvider>
                   <MediaPickerProvider>
@@ -48,10 +45,10 @@ export const RootLayout: FC<PropsWithChildren<IRootLayout>> = ({
                   </MediaPickerProvider>
                 </PresenceProvider>
               </SocketProvider>
-            </ThemeProvider>
-          </UserProvider>
-        </ModalProvider>
-      </TooltipProvider>
+            </UserProvider>
+          </ModalProvider>
+        </TooltipProvider>
+      </ThemeProvider>
       <Toaster />
     </>
   );

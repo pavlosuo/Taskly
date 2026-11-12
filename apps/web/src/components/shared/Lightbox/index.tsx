@@ -81,6 +81,8 @@ export function Lightbox({
     }
   };
 
+  console.log(current);
+
   return (
     <div
       className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/85 px-4 py-8"
@@ -143,6 +145,11 @@ export function Lightbox({
           {type === "video" && (
             <VideoPlayer
               src={current.url}
+              poster={
+                current.posterFilename
+                  ? current.url.replace(/\/file$/, "/poster")
+                  : undefined
+              }
               className="h-full w-auto aspect-video"
             />
           )}
