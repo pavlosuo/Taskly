@@ -71,6 +71,7 @@ export class UsersService {
       const db = await this.server.getDb();
       const users = db.collection("users");
       const updates: Record<string, unknown> = {};
+      const unsets: Record<string, ""> = {};
       const adds: Array<() => Promise<ServiceResult>> = [];
       const removes: Array<() => Promise<unknown>> = [];
       const badMedia: ServiceResult = {
@@ -122,14 +123,22 @@ export class UsersService {
           updates.publicLink = `${CLIENT_URL}/@${username}`;
       }
 
-      if (email !== undefined && email !== user.email) {
-        const exists = await users.findOne({
-          $or: [{ email }, { newEmail: email }],
-          _id: { $ne: user._id },
-        });
-        if (exists)
-          return { success: false, status: 400, message: "user.emailExists" };
-        updates.newEmail = email;
+      if (email !== undefined) {
+        if (email === user.email) {
+          if (user.newEmail) {
+            unsets.newEmail = "";
+            unsets["otps.verify-email"] = "";
+          }
+        } else if (email !== user.newEmail) {
+          const exists = await users.findOne({
+            $or: [{ email }, { newEmail: email }],
+            _id: { $ne: user._id },
+          });
+          if (exists)
+            return { success: false, status: 400, message: "user.emailExists" };
+          updates.newEmail = email;
+          unsets["otps.verify-email"] = "";
+        }
       }
 
       if (fullName !== undefined) updates["profile.fullName"] = fullName;
@@ -145,19 +154,29 @@ export class UsersService {
         if (err) return err;
       }
 
-      if (fullPhone !== undefined && fullPhone !== user.profile?.fullPhone) {
-        const phoneTaken = await users.findOne({
-          $or: [
-            { "profile.fullPhone": fullPhone },
-            { "profile.newFullPhone": fullPhone },
-          ],
-          _id: { $ne: user._id },
-        });
-        if (phoneTaken)
-          return { success: false, status: 400, message: "user.phoneExists" };
-        updates["profile.newFullPhone"] = fullPhone;
-        updates["profile.newPhone"] = phone;
-        updates["profile.newCode"] = code;
+      if (fullPhone !== undefined) {
+        if (fullPhone === user.profile?.fullPhone) {
+          if (user.profile?.newFullPhone) {
+            unsets["profile.newFullPhone"] = "";
+            unsets["profile.newPhone"] = "";
+            unsets["profile.newCode"] = "";
+            unsets["otps.verify-phone"] = "";
+          }
+        } else if (fullPhone !== user.profile?.newFullPhone) {
+          const phoneTaken = await users.findOne({
+            $or: [
+              { "profile.fullPhone": fullPhone },
+              { "profile.newFullPhone": fullPhone },
+            ],
+            _id: { $ne: user._id },
+          });
+          if (phoneTaken)
+            return { success: false, status: 400, message: "user.phoneExists" };
+          updates["profile.newFullPhone"] = fullPhone;
+          updates["profile.newPhone"] = phone;
+          updates["profile.newCode"] = code;
+          unsets["otps.verify-phone"] = "";
+        }
       }
 
       if (payout !== undefined) {
@@ -302,21 +321,31 @@ export class UsersService {
         }
       }
 
-      if (Object.keys(updates).length === 0)
+      if (
+        Object.keys(updates).length === 0 &&
+        Object.keys(unsets).length === 0
+      ) {
         return {
           success: true,
           status: 200,
           data: { message: "user.nothingToUpdate" },
         };
+      }
 
       for (const add of adds) {
         const r = await add();
         if (!r.success) return r;
       }
-      await users.updateOne({ _id: user._id }, { $set: updates });
+      await users.updateOne(
+        { _id: user._id },
+        {
+          ...(Object.keys(updates).length ? { $set: updates } : {}),
+          ...(Object.keys(unsets).length ? { $unset: unsets } : {}),
+        },
+      );
       await Promise.allSettled(removes.map((fn) => fn()));
-
       const updated = await users.findOne({ _id: user._id });
+
       return {
         success: true,
         status: 200,
@@ -477,26 +506,45 @@ export class UsersService {
           message: parsed.error.issues[0].message,
         };
 
+      const pending = user.profile?.newFullPhone;
+      const expected = pending ?? user.profile?.fullPhone;
+      if (!expected)
+        return { success: false, status: 400, message: "otp.missingFullPhone" };
+
       const check = await this.otpService.consume(
         user._id,
         "verify-phone",
         parsed.data.otp,
+        expected,
       );
       if (!check.ok)
         return { success: false, status: check.status, message: check.message };
 
+      const confirmed = check.record.destination;
+      const isPending = pending === confirmed;
       const db = await this.server.getDb();
-      const fullPhone = user.profile?.newFullPhone ?? user.profile?.fullPhone;
-      const phone = user.profile?.newPhone ?? user.profile?.phone;
-      const code = user.profile?.newCode ?? user.profile?.code;
+      const users = db.collection("users");
+      const taken = await users.findOne(
+        { "profile.fullPhone": confirmed, _id: { $ne: user._id } },
+        { projection: { _id: 1 } },
+      );
+      if (taken)
+        return { success: false, status: 400, message: "user.phoneExists" };
 
-      await db.collection("users").updateOne(
-        { _id: user._id },
+      const res = await users.updateOne(
+        {
+          _id: user._id,
+          ...(isPending
+            ? { "profile.newFullPhone": confirmed }
+            : { "profile.fullPhone": confirmed }),
+        },
         {
           $set: {
-            "profile.fullPhone": fullPhone,
-            "profile.phone": phone,
-            "profile.code": code,
+            "profile.fullPhone": confirmed,
+            ...(isPending && {
+              "profile.phone": user.profile?.newPhone,
+              "profile.code": user.profile?.newCode,
+            }),
             "acceptance.phoneVerified": true,
           },
           $unset: {
@@ -507,13 +555,18 @@ export class UsersService {
         },
       );
 
-      const updated = await db.collection("users").findOne({ _id: user._id });
+      if (res.matchedCount === 0) {
+        return { success: false, status: 400, message: "otp.invalid" };
+      }
+      const updated = await users.findOne({ _id: user._id });
       return {
         success: true,
         status: 200,
         data: { user: toPublicUser(updated) },
       };
-    } catch (error) {
+    } catch (error: any) {
+      if (error?.code === 11000)
+        return { success: false, status: 400, message: "user.phoneExists" };
       console.error("Verify phone OTP error:", error);
       return { success: false, status: 500, message: "general.unknown" };
     }
@@ -529,35 +582,52 @@ export class UsersService {
           message: parsed.error.issues[0].message,
         };
 
+      const pending = user.newEmail;
+      const expected = pending ?? user.email;
+
       const check = await this.otpService.consume(
         user._id,
         "verify-email",
         parsed.data.otp,
+        expected,
       );
       if (!check.ok)
         return { success: false, status: check.status, message: check.message };
 
+      const confirmed = check.record.destination;
+      const isPending = pending === confirmed;
       const db = await this.server.getDb();
-      const confirmedEmail = check.record.destination;
+      const users = db.collection("users");
 
-      await db.collection("users").updateOne(
-        { _id: user._id },
+      const taken = await users.findOne(
+        { email: confirmed, _id: { $ne: user._id } },
+        { projection: { _id: 1 } },
+      );
+      if (taken)
+        return { success: false, status: 400, message: "user.emailExists" };
+
+      const res = await users.updateOne(
         {
-          $set: {
-            email: confirmedEmail,
-            "acceptance.emailVerified": true,
-          },
+          _id: user._id,
+          ...(isPending ? { newEmail: confirmed } : { email: confirmed }),
+        },
+        {
+          $set: { email: confirmed, "acceptance.emailVerified": true },
           $unset: { newEmail: "" },
         },
       );
+      if (res.matchedCount === 0)
+        return { success: false, status: 400, message: "otp.invalid" };
 
-      const updated = await db.collection("users").findOne({ _id: user._id });
+      const updated = await users.findOne({ _id: user._id });
       return {
         success: true,
         status: 200,
         data: { user: toPublicUser(updated) },
       };
-    } catch (error) {
+    } catch (error: any) {
+      if (error?.code === 11000)
+        return { success: false, status: 400, message: "user.emailExists" };
       console.error("Verify email OTP error:", error);
       return { success: false, status: 500, message: "general.unknown" };
     }

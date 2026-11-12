@@ -72,7 +72,12 @@ export class AuthService {
         };
 
       const existing = await users.findOne({
-        $or: [{ email }, { "profile.fullPhone": fullPhone }],
+        $or: [
+          { email },
+          { newEmail: email },
+          { "profile.fullPhone": fullPhone },
+          { "profile.newFullPhone": fullPhone },
+        ],
       });
 
       if (existing)

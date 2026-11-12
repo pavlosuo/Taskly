@@ -1,4 +1,4 @@
-import { createHash, randomInt, timingSafeEqual } from "crypto";
+import { createHash, randomInt, timingSafeEqual, createHmac } from "crypto";
 import {
   PublicUser,
   MediaItemPublic,
@@ -10,11 +10,21 @@ import {
 } from "shared/index";
 import { User } from "@/types";
 import { ObjectId, WithId, Document } from "mongodb";
-import { NODE_ENV, NEXT_PUBLIC_API_URL } from "@/env";
+import { NODE_ENV, NEXT_PUBLIC_API_URL, OTP_SECRET } from "@/env";
 import path from "path";
 export * from "@/utils/limiters";
 export * from "@/utils/upload";
 export * from "@/utils/storage";
+
+export const hashOtp = (
+  userId: ObjectId,
+  purpose: string,
+  destination: string,
+  code: string,
+): string =>
+  createHmac("sha256", OTP_SECRET)
+    .update(`${userId.toString()}:${purpose}:${destination}:${code}`)
+    .digest("hex");
 
 export const clearCookieOptions = {
   httpOnly: true,
@@ -221,11 +231,4 @@ export const contentDisposition = (mime: string, filename: string) => {
   return `${type}; filename*=UTF-8''${encoded}`;
 };
 
-export const TMP_ROOT = path.join(
-  import.meta.dirname,
-  "..",
-  "..",
-  "..",
-  "..",
-  "uploads",
-);
+export const TMP_ROOT = path.join(process.cwd(), "..", "..", "uploads");

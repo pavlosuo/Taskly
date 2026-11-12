@@ -1,7 +1,13 @@
 import { z } from "zod";
 import { MAX_FILE_SIZE } from "shared/data";
-import type { MediaItem } from "shared/types";
+import type { MediaItem, MediaStatus } from "shared/types";
 import { idField, urlField } from "./fields";
+
+export const MEDIA_STATUSES: MediaStatus[] = [
+  "processing",
+  "ready",
+  "failed",
+] as const;
 
 export const mediaItemSchema = z.object({
   _id: idField,
@@ -28,7 +34,14 @@ export const mediaItemSchema = z.object({
     .trim()
     .min(1, "media.mimeType.required")
     .max(100, "media.mimeType.invalid"),
+  width: z.number().int().positive().optional(),
+  height: z.number().int().positive().optional(),
+  status: z.enum(MEDIA_STATUSES, "media.status.invalid"),
+  optimizing: z.boolean(),
   uploadedAt: z.coerce.date(),
   publicSources: z.array(z.string()),
   chatIds: z.array(idField),
+  durationSec: z.number().nonnegative().optional(),
+  posterFilename: z.string().optional(),
+  poster: z.string().optional(),
 }) satisfies z.ZodType<MediaItem>;

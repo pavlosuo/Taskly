@@ -19,3 +19,9 @@ export const REVIEW_COMMENT_MAX_LENGTH = 1000;
 export const DAY_MS = 24 * 60 * 60 * 1000;
 
 export const TASK_JOB_BATCH_SIZE = 50;
+
+export const OTP_TTL_MINUTES = 10;
+
+export const OTP_RESEND_SECONDS = 60;
+
+export const OTP_MAX_ATTEMPTS = 5;
