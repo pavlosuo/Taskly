@@ -38,3 +38,38 @@ export const FILTERS: { value: FilterType; labelKey: string }[] = [
   { value: "excel", labelKey: "filters.excel" },
   { value: "other", labelKey: "filters.other" },
 ];
+
+export const INLINE_RE =
+  /^(image\/(jpeg|png|webp|gif|avif)|video\/|audio\/|application\/pdf$)/;
+
+export const MAX_PIXELS = 100_000_000;
+
+export const IMAGE_MIME_EXT: Record<string, string> = {
+  "image/jpeg": ".jpg",
+  "image/png": ".png",
+  "image/webp": ".webp",
+};
+
+export const LEGACY_OFFICE = new Set([
+  "application/msword",
+  "application/vnd.ms-excel",
+  "application/vnd.ms-powerpoint",
+]);
+
+export const TEXT_EXT: Record<string, string> = {
+  "text/plain": ".txt",
+  "text/csv": ".csv",
+};
+
+export const MIME_ALIASES: Record<string, string> = {
+  "audio/vnd.wave": "audio/wav",
+  "audio/x-wav": "audio/wav",
+};
+
+export const EXT_OVERRIDE: Record<string, string> = {
+  "application/msword": ".doc",
+  "application/vnd.ms-excel": ".xls",
+  "application/vnd.ms-powerpoint": ".ppt",
+  "audio/webm": ".webm",
+  "audio/wav": ".wav",
+};

@@ -56,6 +56,9 @@ importers:
       ffmpeg-static:
         specifier: ^5.3.0
         version: 5.3.0
+      ffprobe-static:
+        specifier: ^3.1.0
+        version: 3.1.0
       file-type:
         specifier: 16.5.4
         version: 16.5.4
@@ -99,6 +102,9 @@ importers:
       "@types/express":
         specifier: ^5.0.6
         version: 5.0.6
+      "@types/ffprobe-static":
+        specifier: ^2.0.3
+        version: 2.0.3
       "@types/google-libphonenumber":
         specifier: ^7.4.30
         version: 7.4.30
@@ -3970,6 +3976,12 @@ packages:
         integrity: sha512-sKYVuV7Sv9fbPIt/442koC7+IIwK5olP1KWeD88e/idgoJqDm3JV/YUiPwkoKK92ylff2MGxSz1CSjsXelx0YA==,
       }
 
+  "@types/ffprobe-static@2.0.3":
+    resolution:
+      {
+        integrity: sha512-86Q8dIzhjknxA6935ZcVLkVU3t6bP+F08mdriWZk2+3UqjxIbT3QEADjbO5Yq8826cVs/aZBREVZ7jUoSTgHiw==,
+      }
+
   "@types/geojson@7946.0.16":
     resolution:
       {
@@ -6238,6 +6250,12 @@ packages:
         integrity: sha512-H+K6sW6TiIX6VGend0KQwthe+kaceeH/luE8dIZyOP35ik7ahYojDuqlTV1bOrtEwl01sy2HFNGQfi5IDJvotg==,
       }
     engines: { node: ">=16" }
+
+  ffprobe-static@3.1.0:
+    resolution:
+      {
+        integrity: sha512-Dvpa9uhVMOYivhHKWLGDoa512J751qN1WZAIO+Xw4L/mrUSPxS4DApzSUDbCFE/LUq2+xYnznEahTd63AqBSpA==,
+      }
 
   figures@6.1.0:
     resolution:
@@ -12832,6 +12850,8 @@ snapshots:
       "@types/express-serve-static-core": 5.1.1
       "@types/serve-static": 2.2.0
 
+  "@types/ffprobe-static@2.0.3": {}
+
   "@types/geojson@7946.0.16": {}
 
   "@types/google-libphonenumber@7.4.30": {}
@@ -14462,6 +14482,8 @@ snapshots:
       progress: 2.0.3
     transitivePeerDependencies:
       - supports-color
+
+  ffprobe-static@3.1.0: {}
 
   figures@6.1.0:
     dependencies:

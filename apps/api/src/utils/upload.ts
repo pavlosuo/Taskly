@@ -1,58 +1,31 @@
 import multer from "multer";
 import path from "path";
 import fs from "fs";
-import os from "os";
 import sharp from "sharp";
 import { nanoid } from "nanoid";
 import { fromFile } from "file-type";
 import { Request } from "express";
-import { ALLOWED_MIME_TYPES, MAX_FILE_SIZE } from "shared/data";
+import {
+  ALLOWED_MIME_TYPES,
+  MAX_FILE_SIZE,
+  MAX_PIXELS,
+  LEGACY_OFFICE,
+  MIME_ALIASES,
+  EXT_OVERRIDE,
+  TEXT_EXT,
+} from "shared/data";
+import { InfoUpload, UploadError } from "@/types";
+import { TMP_ROOT } from "@/utils/index";
 
-export class UploadError extends Error {
-  name = "UploadError";
+async function looksLikeText(p: string) {
+  const fh = await fs.promises.open(p, "r");
+  try {
+    const { buffer, bytesRead } = await fh.read(Buffer.alloc(8192), 0, 8192, 0);
+    return !buffer.subarray(0, bytesRead).includes(0);
+  } finally {
+    await fh.close();
+  }
 }
-
-export const INLINE_RE =
-  /^(image\/(jpeg|png|webp|gif|avif)|video\/|audio\/|application\/pdf$)/;
-
-const TMP_ROOT = path.join(os.tmpdir(), "uploads");
-
-const IMAGE_CONFIG = {
-  maxWidth: 1440,
-  jpegQuality: 90,
-  pngCompressionLevel: 9,
-  webpQuality: 90,
-};
-
-export const IMAGE_MIME_EXT: Record<string, string> = {
-  "image/jpeg": ".jpg",
-  "image/png": ".png",
-  "image/webp": ".webp",
-};
-
-const LEGACY_OFFICE = new Set([
-  "application/msword",
-  "application/vnd.ms-excel",
-  "application/vnd.ms-powerpoint",
-]);
-
-const TEXT_EXT: Record<string, string> = {
-  "text/plain": ".txt",
-  "text/csv": ".csv",
-};
-
-const MIME_ALIASES: Record<string, string> = {
-  "audio/vnd.wave": "audio/wav",
-  "audio/x-wav": "audio/wav",
-};
-
-const EXT_OVERRIDE: Record<string, string> = {
-  "application/msword": ".doc",
-  "application/vnd.ms-excel": ".xls",
-  "application/vnd.ms-powerpoint": ".ppt",
-  "audio/webm": ".webm",
-  "audio/wav": ".wav",
-};
 
 async function verifyFile(
   p: string,
@@ -61,7 +34,7 @@ async function verifyFile(
   const detected = await fromFile(p).catch(() => undefined);
   if (!detected) {
     const ext = TEXT_EXT[declared];
-    return ext ? { mime: declared, ext } : null;
+    return ext && (await looksLikeText(p)) ? { mime: declared, ext } : null;
   }
   let mime = MIME_ALIASES[detected.mime] ?? detected.mime;
   if (mime === "application/x-cfb" && LEGACY_OFFICE.has(declared)) {
@@ -80,10 +53,12 @@ class TempDiskStorage implements multer.StorageEngine {
   ) {
     let settled = false;
     let tmpPath = "";
-    const done = (err?: Error | null, info?: Partial<Express.Multer.File>) => {
+    let out: fs.WriteStream | undefined;
+    const done = (err?: Error | null, info?: InfoUpload) => {
       if (settled) return;
       settled = true;
       if (err) {
+        out?.destroy();
         if (tmpPath) fs.unlink(tmpPath, () => cb(err));
         else cb(err);
         return;
@@ -93,71 +68,53 @@ class TempDiskStorage implements multer.StorageEngine {
     try {
       const dir = path.join(TMP_ROOT, req.user._id.toString());
       fs.mkdirSync(dir, { recursive: true });
-      const isImage = Object.prototype.hasOwnProperty.call(
-        IMAGE_MIME_EXT,
-        file.mimetype,
-      );
       const id = nanoid();
-      tmpPath = path.join(
-        dir,
-        `${id}${isImage ? IMAGE_MIME_EXT[file.mimetype] : ".tmp"}`,
-      );
-      const out = fs.createWriteStream(tmpPath);
-      out.on("error", (e) => done(e));
-      file.stream.on("error", (e) => done(e));
-      out.on("finish", async () => {
+      tmpPath = path.join(dir, `${id}.tmp`);
+      const stream = fs.createWriteStream(tmpPath);
+      out = stream;
+      const finalize = async () => {
         if (settled) return;
-        const size = out.bytesWritten;
-        const base = { destination: dir, size };
-        if (isImage) {
-          return done(null, {
-            ...base,
-            path: tmpPath,
-            filename: path.basename(tmpPath),
-          });
-        }
-        const verified = await verifyFile(tmpPath, file.mimetype);
-        if (!verified) return done(new UploadError("media.typeNotAllowed"));
-        const finalPath = path.join(dir, `${id}${verified.ext}`);
-        fs.rename(tmpPath, finalPath, (err) => {
-          if (err) return done(err);
+        try {
+          const size = stream.bytesWritten;
+          const verified = await verifyFile(tmpPath, file.mimetype);
+          if (!verified) return done(new UploadError("media.typeNotAllowed"));
+          let width: number | undefined;
+          let height: number | undefined;
+          if (verified.mime.startsWith("image/")) {
+            const meta = await sharp(tmpPath, { limitInputPixels: MAX_PIXELS })
+              .metadata()
+              .catch(() => null);
+            if (!meta?.width || !meta.height) {
+              return done(new UploadError("media.typeNotAllowed"));
+            }
+            const pageHeight = meta.pageHeight ?? meta.height;
+            if (meta.width * pageHeight > MAX_PIXELS) {
+              return done(new UploadError("media.tooLarge"));
+            }
+            const swap = (meta.orientation ?? 1) >= 5;
+            width = swap ? pageHeight : meta.width;
+            height = swap ? meta.width : pageHeight;
+          }
+          const finalPath = path.join(dir, `${id}${verified.ext}`);
+          await fs.promises.rename(tmpPath, finalPath);
           tmpPath = finalPath;
           done(null, {
-            ...base,
+            destination: dir,
+            size,
             path: finalPath,
             filename: path.basename(finalPath),
             mimetype: verified.mime,
+            width,
+            height,
           });
-        });
-      });
-      if (!isImage) {
-        file.stream.pipe(out);
-        return;
-      }
-      const transformer = sharp().rotate().resize({
-        width: IMAGE_CONFIG.maxWidth,
-        fit: "inside",
-        withoutEnlargement: true,
-      });
-      if (file.mimetype === "image/jpeg") {
-        transformer.jpeg({
-          quality: IMAGE_CONFIG.jpegQuality,
-          mozjpeg: true,
-          progressive: true,
-        });
-      } else if (file.mimetype === "image/png") {
-        transformer.png({
-          compressionLevel: IMAGE_CONFIG.pngCompressionLevel,
-          palette: true,
-        });
-      } else {
-        transformer.webp({ quality: IMAGE_CONFIG.webpQuality });
-      }
-      transformer.on("error", () => {
-        out.destroy();
-        done(new UploadError("media.typeNotAllowed"));
-      });
-      file.stream.pipe(transformer).pipe(out);
+        } catch (e) {
+          done(e as Error);
+        }
+      };
+      stream.on("error", done);
+      file.stream.on("error", done);
+      stream.on("finish", () => void finalize());
+      file.stream.pipe(stream);
     } catch (e) {
       done(e as Error);
     }
@@ -177,9 +134,10 @@ class TempDiskStorage implements multer.StorageEngine {
 export const upload = multer({
   storage: new TempDiskStorage(),
   limits: { fileSize: MAX_FILE_SIZE, files: 1 },
-  fileFilter: (req, file, cb) => {
-    const ok = ALLOWED_MIME_TYPES.has(file.mimetype);
-    if (!ok) (req as any).fileRejected = true;
-    cb(null, ok);
+  fileFilter: (_req, file, cb) => {
+    if (!ALLOWED_MIME_TYPES.has(file.mimetype)) {
+      return cb(new UploadError("media.typeNotAllowed"));
+    }
+    cb(null, true);
   },
 });

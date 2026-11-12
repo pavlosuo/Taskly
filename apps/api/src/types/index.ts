@@ -19,6 +19,15 @@ import {
 } from "shared/types";
 import { Server as SocketIOServer } from "socket.io";
 
+export type InfoUpload = Partial<Express.Multer.File> & {
+  width?: number;
+  height?: number;
+};
+
+export class UploadError extends Error {
+  name = "UploadError";
+}
+
 export interface NotificationInputBack {
   userId: ObjectId;
   type: NotificationType;
@@ -55,10 +64,31 @@ export interface User extends Omit<PublicUser, "_id"> {
   passwordHash: string;
 }
 
-export interface MediaItemBack extends Omit<MediaItem, "_id" | "ownerId"> {
+export type MediaItemBack = Omit<MediaItem, "_id" | "ownerId"> & {
   _id: ObjectId;
   ownerId: ObjectId;
+};
+
+export interface MediaSource {
+  ownerId: ObjectId;
+  localPath: string;
+  mimeType: string;
 }
+
+export interface MediaUpdate {
+  key: string;
+  mimeType: string;
+  size: number;
+  width?: number;
+  height?: number;
+  durationSec?: number;
+  posterKey?: string;
+  final: boolean;
+}
+
+export type MediaEmit = (update: MediaUpdate) => Promise<void>;
+
+export type FirstUpdate = Omit<MediaUpdate, "final">;
 
 export interface ChatLastMessageBack extends Omit<ChatLastMessage, "senderId"> {
   senderId: ObjectId;

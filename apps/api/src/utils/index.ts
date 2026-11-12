@@ -6,10 +6,13 @@ import {
   GeoPoint,
   Deadline,
   PublicProfileLang,
-} from "shared/types";
+  INLINE_RE,
+} from "shared/index";
 import { User } from "@/types";
 import { ObjectId, WithId, Document } from "mongodb";
 import { NODE_ENV, NEXT_PUBLIC_API_URL } from "@/env";
+import path from "path";
+import os from "node:os";
 export * from "@/utils/limiters";
 export * from "@/utils/upload";
 export * from "@/utils/storage";
@@ -200,3 +203,23 @@ export const toDeadlineAt = (deadline?: Deadline): Date | null => {
   }
   return new Date(base.getTime() + 24 * 60 * 60 * 1000 - 1);
 };
+
+export const defined = (o: Record<string, unknown>) =>
+  Object.fromEntries(Object.entries(o).filter(([, v]) => v !== undefined));
+
+export const fileOf = (key: string) => key.split("/")[1];
+
+export const mediaKey = (ownerId: ObjectId, filename: string) =>
+  `${ownerId.toString()}/${filename}`;
+
+export const contentDisposition = (mime: string, filename: string) => {
+  const type = INLINE_RE.test(mime) ? "inline" : "attachment";
+  const encoded = encodeURIComponent(filename).replace(
+    /['()*]/g,
+    (c) => `%${c.charCodeAt(0).toString(16).toUpperCase()}`,
+  );
+  return `${type}; filename*=UTF-8''${encoded}`;
+};
+
+export const TMP_ROOT = path.join(os.tmpdir(), "uploads",
+);

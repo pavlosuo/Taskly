@@ -12,7 +12,6 @@ import {
   R2_SECRET_ACCESS_KEY,
   R2_BUCKET,
 } from "@/env";
-import { ObjectId } from "mongodb";
 
 const s3 = new S3Client({
   region: "auto",
@@ -24,8 +23,7 @@ const s3 = new S3Client({
   },
 });
 
-export const mediaKey = (ownerId: ObjectId, filename: string) =>
-  `${ownerId.toString()}/${filename}`;
+const HOUR = 3_600_000;
 
 export const storage = {
   async put(key: string, localPath: string, contentType: string) {
@@ -36,6 +34,7 @@ export const storage = {
         Key: key,
         Body: fs.createReadStream(localPath),
         ContentType: contentType,
+        CacheControl: "private, max-age=31536000, immutable",
       },
     }).done();
   },
@@ -54,7 +53,10 @@ export const storage = {
         ResponseContentType: opts.mimeType,
         ResponseContentDisposition: opts.disposition,
       }),
-      { expiresIn: 300 },
+      {
+        expiresIn: 2 * 3600,
+        signingDate: new Date(Math.floor(Date.now() / HOUR) * HOUR),
+      },
     );
   },
 };

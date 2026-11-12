@@ -11,6 +11,7 @@ import {
   ChatMemberPreview,
   MediaItem,
   PublicProfileCertificate,
+  IMAGE_MIME_EXT,
 } from "shared/index";
 import { CLIENT_URL } from "@/env";
 import { OtpService } from "@/modules/otp/otp.service";
@@ -29,7 +30,6 @@ import {
   stripMediaFields,
   escapeRegex,
   normalizeTagList,
-  IMAGE_MIME_EXT,
 } from "@/utils";
 import { ObjectId } from "mongodb";
 

@@ -510,7 +510,6 @@ export class ChatService {
         { ...doc, _id: result.insertedId },
       ]);
       this.emitToChat(chat._id, "message:new", { message }, user._id);
-
       if (otherId) {
         const chatUpdated = await db
           .collection<ChatBack>("chats")
