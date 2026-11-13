@@ -52,9 +52,6 @@ export const publicProfileSkillSchema: z.ZodType<PublicProfileSkill> = z.object(
       .trim()
       .min(1, "skill.label.required")
       .max(100, "skill.label.tooLong"),
-    description: sanitizedText(500, "skill.description.tooLong")
-      .refine((value) => value.length >= 1, "skill.description.required")
-      .optional(),
   },
 );
 

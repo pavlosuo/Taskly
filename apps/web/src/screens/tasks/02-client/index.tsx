@@ -54,8 +54,10 @@ export const Client = (initial: TaskList) => {
   return (
     <div className="w-full px-4 pb-6 pt-1">
       <div className="flex flex-col gap-4 pb-4">
-        <div className="grid grid-cols-[1fr_max-content_max-content] items-center gap-3">
-          <p className="text-sm text-grey">{t("client.title")}</p>
+        <div className="grid grid-cols-1 md:grid-cols-[1fr_1fr] lg:grid-cols-[1fr_max-content_max-content] items-center gap-3">
+          <p className="text-sm text-grey col-span-full lg:col-[auto]">
+            {t("client.title")}
+          </p>
           <CreateTaskDialog />
           <TaskTabs
             tabs={TABS.map((tab) => ({

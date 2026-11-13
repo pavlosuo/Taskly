@@ -16,6 +16,46 @@ export * from "@/utils/limiters";
 export * from "@/utils/upload";
 export * from "@/utils/storage";
 
+const TRANSLIT: Record<string, string> = {
+  а: "a",
+  б: "b",
+  в: "v",
+  г: "g",
+  д: "d",
+  е: "e",
+  ё: "yo",
+  ж: "zh",
+  з: "z",
+  и: "i",
+  й: "y",
+  к: "k",
+  л: "l",
+  м: "m",
+  н: "n",
+  о: "o",
+  п: "p",
+  р: "r",
+  с: "s",
+  т: "t",
+  у: "u",
+  ф: "f",
+  х: "kh",
+  ц: "ts",
+  ч: "ch",
+  ш: "sh",
+  щ: "shch",
+  ъ: "",
+  ы: "y",
+  ь: "",
+  э: "e",
+  ю: "yu",
+  я: "ya",
+  і: "i",
+  ї: "yi",
+  є: "ye",
+  ґ: "g",
+};
+
 export const hashOtp = (
   userId: ObjectId,
   purpose: string,
@@ -222,13 +262,22 @@ export const fileOf = (key: string) => key.split("/")[1];
 export const mediaKey = (ownerId: ObjectId, filename: string) =>
   `${ownerId.toString()}/${filename}`;
 
+const transliterate = (str: string) =>
+  Array.from(str)
+    .map((ch) => {
+      const lower = ch.toLowerCase();
+      const t = TRANSLIT[lower];
+      if (t === undefined) return ch;
+      return ch !== lower ? t.charAt(0).toUpperCase() + t.slice(1) : t;
+    })
+    .join("");
+
 export const contentDisposition = (mime: string, filename: string) => {
   const type = INLINE_RE.test(mime) ? "inline" : "attachment";
-  const encoded = encodeURIComponent(filename).replace(
-    /['()*]/g,
-    (c) => `%${c.charCodeAt(0).toString(16).toUpperCase()}`,
-  );
-  return `${type}; filename*=UTF-8''${encoded}`;
+  const safe = transliterate(filename)
+    .replace(/[^\x20-\x7E]/g, "_")
+    .replace(/["\\;]/g, "_");
+  return `${type}; filename="${safe}"`;
 };
 
 export const TMP_ROOT = path.join(process.cwd(), "..", "..", "uploads");

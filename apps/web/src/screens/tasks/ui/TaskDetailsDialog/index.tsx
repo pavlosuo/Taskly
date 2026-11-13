@@ -960,7 +960,10 @@ export const TaskerView = ({ task, onClose }: ViewProps) => {
       return;
     }
     try {
-      const response = await respondToTask(task._id, form);
+      const response = await respondToTask(
+        task._id,
+        parsed.data as { message: string; price: number },
+      );
       setMyResponse(response);
     } catch {}
   };

@@ -68,7 +68,6 @@ async function createZip() {
     await addDirectory(SOURCE_DIR);
     await archive.finalize();
     await closePromise;
-    console.log(`ZIP: ${OUTPUT_ZIP}`);
   } catch (error) {
     archive.abort();
     output.destroy();

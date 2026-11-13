@@ -86,7 +86,9 @@
     "missingFullPhone": "Kirjoita koko puhelinnumerosi",
     "notFound": "Koodia ei ole pyydetty",
     "expired": "Koodi on vanhentunut",
-    "invalid": "Virheellinen koodi"
+    "invalid": "Virheellinen koodi",
+    "resendTooSoon": "Ole hyvä ja odota ennen uuden koodin pyyntöjä",
+    "tooManyAttempts": "Liikaa koodia pyydetty"
   },
   "token": {
     "required": "Tunniste vaaditaan",
@@ -193,7 +195,6 @@
     "cannotCreateChatWithSelf": "Et voi aloittaa keskustelua itsesi kanssa",
     "memberNotFound": "Jäsentä ei löytynyt",
     "notFound": "Keskustelua ei löytynyt",
-
     "message": {
       "empty": "Viestissä on oltava tekstiä tai mediaa.",
       "noText": "Viestissä on oltava tekstiä tai mediaa.",

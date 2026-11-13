@@ -1,6 +1,10 @@
 "use client";
 import { Sidebar } from "@/components/ui/sidebar";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import {
+  SidebarProvider,
+  SidebarTrigger,
+  SidebarTriggerClose,
+} from "@/components/ui/sidebar";
 import Link from "next/link";
 import {
   LayoutDashboard,
@@ -87,12 +91,12 @@ export function AppSidebar() {
   return (
     <Sidebar className="pt-2 pb-2 pl-2 border-none">
       <div className="Sidebar overflow-hidden grid grid-cols-[100%] grid-rows-[max-content_1fr_max-content] p-2 w-full h-full bg-background">
-        <Link
-          href="/"
-          className="py-2 mb-4 logo flex items-center justify-center"
-        >
-          {APP_NAME}
-        </Link>
+        <div className="flex py-5 px-4 md:py-0 md:px-0 items-center justify-between md:mb-4 md:justify-center">
+          <Link href="/" className="py-2 logo flex items-center justify-center">
+            {APP_NAME}
+          </Link>
+          <SidebarTriggerClose className="md:hidden" />
+        </div>
         <nav role="navigation">
           <ul className="flex flex-col gap-1">
             {navItems &&
@@ -159,7 +163,7 @@ export const SidebarWrapper = ({
       <AppSidebar />
       <div className="flex-1 gap-2 flex flex-col p-2 h-screen">
         <header className="py-5 px-4 rounded-xl bg-background grid grid-cols-[max-content_1fr_max-content_max-content] items-center gap-3">
-          <SidebarTrigger className="text-foreground hover:bg-primary hover:text-white" />
+          <SidebarTrigger />
           <span className="text-sm font-medium">{formattedTitle}</span>
           <WalletDialog />
           <Notify />

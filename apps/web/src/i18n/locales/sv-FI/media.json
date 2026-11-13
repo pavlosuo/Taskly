@@ -36,5 +36,8 @@
     "preview": "Öppna förhandsvisning"
   },
   "deleteConfirm_one": "Vill du ta bort den här filen permanent?",
-  "deleteConfirm_other": "Vill du ta bort {{count}} filer permanent?"
+  "deleteConfirm_other": "Vill du ta bort {{count}} filer permanent?",
+  "status": {
+    "invalid": "Ogiltig fil"
+  }
 }

@@ -81,8 +81,6 @@ export function Lightbox({
     }
   };
 
-  console.log(current);
-
   return (
     <div
       className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/85 px-4 py-8"

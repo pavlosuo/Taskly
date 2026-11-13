@@ -118,7 +118,4 @@ export const priceField = z
   .max(MAX_PRICE, "task.price.tooLarge");
 
 export const sanitizedText = (max: number, tooLongMessage: string) =>
-  z
-    .string()
-    .transform(removeHtml)
-    .refine((value) => value.length <= max, tooLongMessage);
+  z.string().refine((value) => removeHtml(value).length <= max, tooLongMessage);

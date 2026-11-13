@@ -75,21 +75,6 @@ export function PublicHeader({
             </nav>
           </div>
           <div className="shrink-0 flex items-center gap-2">
-            {user ? (
-              <>
-                <Notify />
-                <UserDropdown variant="compact" side="top" align="end" />
-              </>
-            ) : (
-              <div className="hidden sm:flex items-center gap-2">
-                <Button variant="secondary" asChild>
-                  <Link href="/login">{t("header.logIn")}</Link>
-                </Button>
-                <Button asChild>
-                  <Link href="/register">{t("header.signUp")}</Link>
-                </Button>
-              </div>
-            )}
             <button
               type="button"
               onClick={() => setMenuOpen((v) => !v)}
@@ -106,6 +91,21 @@ export function PublicHeader({
                 <Menu aria-hidden="true" className="w-5 h-5" />
               )}
             </button>
+            {user ? (
+              <>
+                <Notify />
+                <UserDropdown variant="compact" side="top" align="end" />
+              </>
+            ) : (
+              <div className="hidden sm:flex items-center gap-2">
+                <Button variant="secondary" asChild>
+                  <Link href="/login">{t("header.logIn")}</Link>
+                </Button>
+                <Button asChild>
+                  <Link href="/register">{t("header.signUp")}</Link>
+                </Button>
+              </div>
+            )}
           </div>
         </div>
         {menuOpen && (

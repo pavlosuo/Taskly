@@ -13,7 +13,6 @@ export type PublicProfileLang = {
 export type PublicProfileSkill = {
   value: string;
   label: string;
-  description?: string;
 };
 
 export type PublicProfileCertificate = {

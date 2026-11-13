@@ -86,7 +86,9 @@
     "missingFullPhone": "Please enter your full phone number",
     "notFound": "No OTP requested",
     "expired": "OTP has expired",
-    "invalid": "Invalid OTP"
+    "invalid": "Invalid OTP",
+    "resendTooSoon": "Please wait before requesting a new OTP",
+    "tooManyAttempts": "Too many OTP requests"
   },
   "token": {
     "required": "Token is required",

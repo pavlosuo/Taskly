@@ -191,19 +191,16 @@ export function MediaPicker({
   } | null>(null);
   const { lang } = useTheme();
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
-
   const openPreview = useCallback((index: number) => {
     setLightboxIndex(index);
   }, []);
   const closePreview = useCallback(() => setLightboxIndex(null), []);
-
   const selectedItem =
     selectedIds.size === 1
       ? (items.find((i) => i._id === [...selectedIds][0]) ?? null)
       : null;
 
   useEffect(() => {
-    if (!open) return;
     let cancelled = false;
     startTransition(() => {
       setIsLoadingMedia(true);
@@ -223,7 +220,7 @@ export function MediaPicker({
     return () => {
       cancelled = true;
     };
-  }, [open]);
+  }, []);
 
   useEffect(() => {
     startTransition(() => {
@@ -618,7 +615,7 @@ export function MediaPicker({
             {t("description")}
           </DialogDescription>
         </DialogHeader>
-        <div className="flex items-center justify-between gap-4 px-5 py-3 border-b border-border">
+        <div className="flex flex-col xs:flex-row items-end xs:items-center justify-between gap-4 px-5 py-3 border-b border-border">
           <div className="flex items-center gap-1 flex-wrap">
             {FILTERS.map((f) => (
               <button

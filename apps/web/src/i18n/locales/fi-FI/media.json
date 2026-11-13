@@ -36,5 +36,8 @@
     "preview": "Avaa esikatselu"
   },
   "deleteConfirm_one": "Poistetaanko tämä tiedosto pysyvästi?",
-  "deleteConfirm_other": "Poistetaanko {{count}} tiedostoa pysyvästi?"
+  "deleteConfirm_other": "Poistetaanko {{count}} tiedostoa pysyvästi?",
+  "status": {
+    "invalid": "Tiedostotyyppi ei ole sallittu"
+  }
 }

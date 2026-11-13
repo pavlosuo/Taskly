@@ -36,5 +36,8 @@
     "preview": "Open preview"
   },
   "deleteConfirm_one": "Delete this file permanently?",
-  "deleteConfirm_other": "Delete {{count}} files permanently?"
+  "deleteConfirm_other": "Delete {{count}} files permanently?",
+  "status": {
+    "invalid": "Invalid file"
+  }
 }

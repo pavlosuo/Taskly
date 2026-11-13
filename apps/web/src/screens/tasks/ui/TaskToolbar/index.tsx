@@ -52,14 +52,14 @@ export const TaskTabs = <T extends string>({
           aria-pressed={active}
           onClick={() => onChange(tab.value)}
           className={clsx(
-            "rounded-full flex flex-1 items-center justify-center gap-2 px-4 py-1.5 text-sm font-medium transition-colors sm:flex-none",
+            "rounded-full flex flex-1 items-center justify-center gap-2 px-4 py-1.5 text-sm font-medium transition-colors whitespace-nowrap",
             active
               ? "bg-primary text-white border border-primary"
               : "text-grey hover:text-foreground border border-border",
           )}
         >
           {tab.label}
-          {tab.count !== undefined && (
+          {tab.count ? (
             <span
               className={clsx(
                 "text-xs font-semibold tabular-nums rounded-full w-4 h-4",
@@ -70,7 +70,7 @@ export const TaskTabs = <T extends string>({
             >
               {tab.count}
             </span>
-          )}
+          ) : null}
         </button>
       );
     })}

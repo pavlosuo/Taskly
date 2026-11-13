@@ -87,7 +87,10 @@ export function PublicProfileCard() {
         return;
       }
       await updateProfile({
-        publicProfile: { ...user?.publicProfile, ...parsed.data },
+        publicProfile: {
+          ...user?.publicProfile,
+          ...parsed.data,
+        },
       });
       setOpen(false);
     } catch {}

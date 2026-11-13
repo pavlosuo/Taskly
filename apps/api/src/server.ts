@@ -433,7 +433,6 @@ export class Server implements IServer {
       console.error("Missing env variables");
       process.exit(1);
     }
-    console.log("Connecting to MongoDB...");
     await this.indexesConfig();
     console.log("MongoDB OK, indexes created");
     const app = createApp(this).listen(this.port, "0.0.0.0", () => {

@@ -127,7 +127,7 @@ export class UsersService {
         if (email === user.email) {
           if (user.newEmail) {
             unsets.newEmail = "";
-            unsets["otps.verify-email"] = "";
+            updates["otps.verify-email.expiresAt"] = new Date(0);
           }
         } else if (email !== user.newEmail) {
           const exists = await users.findOne({
@@ -137,7 +137,7 @@ export class UsersService {
           if (exists)
             return { success: false, status: 400, message: "user.emailExists" };
           updates.newEmail = email;
-          unsets["otps.verify-email"] = "";
+          updates["otps.verify-email.expiresAt"] = new Date(0);
         }
       }
 
@@ -160,7 +160,7 @@ export class UsersService {
             unsets["profile.newFullPhone"] = "";
             unsets["profile.newPhone"] = "";
             unsets["profile.newCode"] = "";
-            unsets["otps.verify-phone"] = "";
+            updates["otps.verify-phone.expiresAt"] = new Date(0);
           }
         } else if (fullPhone !== user.profile?.newFullPhone) {
           const phoneTaken = await users.findOne({
@@ -175,7 +175,7 @@ export class UsersService {
           updates["profile.newFullPhone"] = fullPhone;
           updates["profile.newPhone"] = phone;
           updates["profile.newCode"] = code;
-          unsets["otps.verify-phone"] = "";
+          updates["otps.verify-phone.expiresAt"] = new Date(0);
         }
       }
 

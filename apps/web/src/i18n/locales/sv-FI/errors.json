@@ -86,7 +86,9 @@
     "missingFullPhone": "Ange ditt fullständiga telefonnummer",
     "notFound": "Ingen kod har begärts",
     "expired": "Koden har gått ut",
-    "invalid": "Ogiltig kod"
+    "invalid": "Ogiltig kod",
+    "resendTooSoon": "Ange en kort tid innan du begär en ny kod",
+    "tooManyAttempts": "Flera uppdrag har begärts"
   },
   "token": {
     "required": "Token krävs",

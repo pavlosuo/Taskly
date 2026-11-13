@@ -5,9 +5,12 @@ import {
   useState,
   useCallback,
   ReactNode,
+  useEffect,
+  startTransition,
 } from "react";
 import { MediaPicker } from "@/components/shared/MediaPicker";
 import { MediaItem, FilterType } from "shared/types";
+import { useUser } from "@/providers/UserProvider";
 
 type MediaPickerOptions = {
   accept?: FilterType;
@@ -33,6 +36,7 @@ export const useMediaPicker = () => {
 export const MediaPickerProvider = ({ children }: { children: ReactNode }) => {
   const [open, setOpen] = useState(false);
   const [options, setOptions] = useState<MediaPickerOptions | null>(null);
+  const { user } = useUser();
 
   const openPicker = useCallback((opts: MediaPickerOptions) => {
     setOptions(opts);
@@ -59,6 +63,15 @@ export const MediaPickerProvider = ({ children }: { children: ReactNode }) => {
     }
     setOpen(o);
   };
+
+  useEffect(() => {
+    if (!user?._id) {
+      startTransition(() => {
+        setOpen(false);
+        setOptions(null);
+      });
+    }
+  }, [user?._id]);
 
   return (
     <MediaPickerContext.Provider value={{ openPicker, isOpen: open }}>
