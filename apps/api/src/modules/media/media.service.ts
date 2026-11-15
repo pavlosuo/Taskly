@@ -339,6 +339,8 @@ export class MediaService {
               ),
               { mimeType: poster ? "image/jpeg" : item.mimeType, disposition },
             ),
+            mimeType: item.mimeType,
+            disposition,
           },
         };
       };

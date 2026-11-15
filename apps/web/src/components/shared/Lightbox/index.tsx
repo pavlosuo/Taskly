@@ -105,9 +105,9 @@ export function Lightbox({
         aria-label={t("lightbox.download")}
       >
         {isDownloading ? (
-          <Loader2 className="w-4 h-4 animate-spin" />
+          <Loader2 className="w-5 h-5 animate-spin" />
         ) : (
-          <Download className="w-4 h-4" />
+          <Download className="w-5 h-5" />
         )}
       </button>
       {items.length > 1 && (

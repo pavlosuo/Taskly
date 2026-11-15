@@ -60,7 +60,10 @@ export class MediaController {
         ? req.params.id[0]
         : req.params.id;
       const result = await this.service.serveFile(id, req.user ?? null, poster);
-      if (!result.success) return void this.send(res, result);
+      if (!result.success) {
+        this.send(res, result);
+        return;
+      }
       const file = result.data!;
       res.setHeader("X-Content-Type-Options", "nosniff");
       res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
@@ -72,19 +75,14 @@ export class MediaController {
           path.basename(file.path),
           {
             root: path.dirname(file.path),
-            dotfiles: "allow",
+            dotfiles: "deny",
             cacheControl: false,
           },
           (err: any) => {
             if (!err || res.headersSent) return;
-            if (err.code === "ENOENT" && retry)
-              return void this.handleServe(req, res, false, poster);
-            if (upstream.status === 304) {
-              for (const h of ["etag", "last-modified"]) {
-                const v = upstream.headers.get(h);
-                if (v) res.setHeader(h, v);
-              }
-              return void res.status(304).end();
+            if (err.code === "ENOENT" && retry) {
+              this.handleServe(req, res, false, poster);
+              return;
             }
             res.status(err.code === "ENOENT" ? 404 : 500).json({
               success: false,
@@ -95,6 +93,8 @@ export class MediaController {
         );
       }
       const headers: Record<string, string> = {};
+      const ac = new AbortController();
+
       for (const h of [
         "range",
         "if-range",
@@ -104,17 +104,26 @@ export class MediaController {
         const v = req.headers[h];
         if (typeof v === "string") headers[h] = v;
       }
-      const ac = new AbortController();
-      res.on("close", () => ac.abort());
+      res.on("close", () => {
+        if (!res.writableEnded) {
+          ac.abort();
+        }
+      });
       const upstream = await fetch(file.url, { headers, signal: ac.signal });
-      if (upstream.status === 304) return void res.status(304).end();
-      if (upstream.status === 404 && retry)
-        return void this.handleServe(req, res, false);
+      if (upstream.status === 304) {
+        res.status(304).end();
+        return;
+      }
+      if (upstream.status === 404 && retry) {
+        this.handleServe(req, res, false, poster);
+        return;
+      }
       if (!upstream.ok && upstream.status !== 416) {
         const status = upstream.status === 404 ? 404 : 502;
-        return void res
+        res
           .status(status)
           .json({ success: false, status, message: "general.unknown" });
+        return;
       }
       res.status(upstream.status);
       for (const h of [
@@ -129,8 +138,11 @@ export class MediaController {
         const v = upstream.headers.get(h);
         if (v) res.setHeader(h, v);
       }
-      if (!upstream.body) return void res.end();
-      await pipeline(Readable.fromWeb(upstream.body as any), res);
+      if (!upstream.body) {
+        res.end();
+        return;
+      }
+      await pipeline(Readable.fromWeb(upstream.body), res);
     } catch (e: any) {
       if (e?.name === "AbortError" || res.headersSent) return;
       res

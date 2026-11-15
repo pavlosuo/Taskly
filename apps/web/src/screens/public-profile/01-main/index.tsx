@@ -167,7 +167,7 @@ export const Main = ({
                   </span>
                 )}
               </div>
-              <div className="flex gap-1 mt-1">
+              <div className="flex gap-1 mt-1 items-end">
                 <p className="text-sm text-grey mt-0.5">@{user.username}</p>
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
                   {user.rating ? (

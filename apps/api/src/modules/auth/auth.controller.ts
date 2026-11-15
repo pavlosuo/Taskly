@@ -9,9 +9,17 @@ export class AuthController {
 
   constructor(private server: IServer) {
     this.service = new AuthService(server);
+    this.register = this.register.bind(this);
+    this.login = this.login.bind(this);
+    this.logout = this.logout.bind(this);
+    this.me = this.me.bind(this);
+    this.verifyPasswordResetOtp = this.verifyPasswordResetOtp.bind(this);
+    this.sendPasswordResetLink = this.sendPasswordResetLink.bind(this);
+    this.resetPassword = this.resetPassword.bind(this);
+    this.verifyPasswordResetToken = this.verifyPasswordResetToken.bind(this);
   }
 
-  register = async (req: Request, res: Response) => {
+  async register(req: Request, res: Response) {
     const result = await this.service.register(req.body);
     if (!result.success)
       return res.status(result.status).json({
@@ -27,9 +35,9 @@ export class AuthController {
       success: true,
       user: toPublicUser(user),
     });
-  };
+  }
 
-  login = async (req: Request, res: Response) => {
+  async login(req: Request, res: Response) {
     const result = await this.service.login(req.body);
     if (!result.success)
       return res.status(result.status).json({
@@ -42,21 +50,23 @@ export class AuthController {
       success: true,
       user: toPublicUser(user),
     });
-  };
+  }
 
-  logout = (_: Request, res: Response) => {
+  async logout(req: Request, res: Response) {
+    const user = req.user;
+    if (user) await this.server.revokeSessions(user._id);
     res.clearCookie("token", clearCookieOptions);
     return res.json({ success: true });
-  };
+  }
 
-  me = (req: Request, res: Response) => {
+  async me(req: Request, res: Response) {
     const user = req.user;
     if (!user) {
       return res.json({
         success: true,
         user: null,
         settings: {
-          lang: req.cookies.lang ?? "en",
+          lang: req.cookies.lang ?? "fi-FI",
           theme: req.cookies.theme ?? "light",
         },
       });
@@ -69,9 +79,9 @@ export class AuthController {
         theme: user.settings.theme,
       },
     });
-  };
+  }
 
-  verifyPasswordResetOtp = async (req: Request, res: Response) => {
+  async verifyPasswordResetOtp(req: Request, res: Response) {
     const result = await this.service.verifyPasswordResetOtp(req.body);
     if (!result.success)
       return res
@@ -79,29 +89,29 @@ export class AuthController {
         .json({ success: false, message: result.message });
     return res.json({
       success: true,
-      resetToken: (result.data as any).resetToken,
+      resetToken: (result.data as { resetToken: string }).resetToken,
     });
-  };
+  }
 
-  sendPasswordResetLink = async (req: Request, res: Response) => {
+  async sendPasswordResetLink(req: Request, res: Response) {
     const result = await this.service.sendPasswordResetLink(req.body);
     if (!result.success)
       return res
         .status(result.status)
         .json({ success: false, message: result.message });
     return res.json({ success: true });
-  };
+  }
 
-  resetPassword = async (req: Request, res: Response) => {
+  async resetPassword(req: Request, res: Response) {
     const result = await this.service.resetPassword(req.body);
     if (!result.success)
       return res
         .status(result.status)
         .json({ success: false, message: result.message });
     return res.json({ success: true });
-  };
+  }
 
-  verifyPasswordResetToken = async (req: Request, res: Response) => {
+  async verifyPasswordResetToken(req: Request, res: Response) {
     const result = await this.service.verifyPasswordResetToken(req.body.token);
     if (!result.success)
       return res.status(result.status).json({
@@ -110,5 +120,5 @@ export class AuthController {
         ...(result.data ?? {}),
       });
     return res.json({ success: true });
-  };
+  }
 }

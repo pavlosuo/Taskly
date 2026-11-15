@@ -39,6 +39,28 @@ export class AuthService {
       .catch((e) => console.error("Error registering admin:", e));
   }
 
+  private readResetToken(
+    token: string,
+  ): { ok: true; id: ObjectId } | { ok: false; reason: "expired" | "invalid" } {
+    try {
+      const d = jwt.verify(token, JWT_SECRET || "", { algorithms: ["HS256"] });
+      if (
+        typeof d === "string" ||
+        d.typ !== "reset" ||
+        typeof d.id !== "string" ||
+        !ObjectId.isValid(d.id)
+      ) {
+        return { ok: false, reason: "invalid" };
+      }
+      return { ok: true, id: new ObjectId(d.id) };
+    } catch (e) {
+      return {
+        ok: false,
+        reason: e instanceof jwt.TokenExpiredError ? "expired" : "invalid",
+      };
+    }
+  }
+
   async register(body: unknown): Promise<ServiceResult> {
     try {
       const parsed = registerSchema.safeParse(body);
@@ -48,7 +70,6 @@ export class AuthService {
           status: 400,
           message: parsed.error.issues[0].message,
         };
-
       const {
         email,
         password,
@@ -63,14 +84,12 @@ export class AuthService {
       const db = await this.server.getDb();
       const users = db.collection("users");
       const existingName = await users.findOne({ username });
-
       if (existingName)
         return {
           success: false,
           status: 400,
           message: "user.usernameExists",
         };
-
       const existing = await users.findOne({
         $or: [
           { email },
@@ -79,23 +98,19 @@ export class AuthService {
           { "profile.newFullPhone": fullPhone },
         ],
       });
-
       if (existing)
         return {
           success: false,
           status: 400,
           message: "user.unavailableData",
         };
-
       const passwordHash = await bcrypt.hash(password, 10);
-
       const initials = (fullName ?? username ?? "")
         .split(" ")
         .map((w) => w[0])
         .join("")
         .toUpperCase()
         .slice(0, 2);
-
       const doc: Omit<User, "_id"> = {
         username,
         publicLink: `${CLIENT_URL}/@${username}`,
@@ -139,6 +154,7 @@ export class AuthService {
           introduction: null,
         },
         passwordHash,
+        tokenVersion: 0,
       };
       const result = await users.insertOne(doc);
       const fullUser = { _id: result.insertedId, ...doc };
@@ -171,14 +187,12 @@ export class AuthService {
           status: 400,
           message: parsed.error.issues[0].message,
         };
-
       const { email, password, username } = parsed.data;
       const db = await this.server.getDb();
       const users = db.collection("users");
       const existing = await users.findOne({ $or: [{ email }, { username }] });
       if (existing)
         return { success: false, status: 400, message: "user.usernameExists" };
-
       const passwordHash = await bcrypt.hash(password, 10);
       const doc = {
         email,
@@ -186,6 +200,7 @@ export class AuthService {
         passwordHash,
         role: "admin",
         createdAt: new Date(),
+        tokenVersion: 0,
         acceptance: {
           phoneVerified: false,
           emailVerified: false,
@@ -275,7 +290,6 @@ export class AuthService {
           status: 400,
           message: parsed.error.issues[0].message,
         };
-
       const { fullPhone, otp } = parsed.data;
       const db = await this.server.getDb();
       const user = await db
@@ -283,16 +297,16 @@ export class AuthService {
         .findOne({ "profile.fullPhone": fullPhone });
       if (!user)
         return { success: false, status: 400, message: "otp.notFound" };
-
       const check = await this.otpService.consume(
         user._id,
         "reset-password",
         otp,
+        fullPhone,
       );
       if (!check.ok)
         return { success: false, status: check.status, message: check.message };
       const resetToken = jwt.sign(
-        { id: user._id.toString() },
+        { id: user._id.toString(), typ: "reset" },
         JWT_SECRET || "",
         { expiresIn: "15m" },
       );
@@ -323,7 +337,7 @@ export class AuthService {
       const user = await db.collection("users").findOne({ email });
       if (!user) return { success: true, status: 200 };
       const resetToken = jwt.sign(
-        { id: user._id.toString() },
+        { id: user._id.toString(), typ: "reset" },
         JWT_SECRET || "",
         { expiresIn: "1h" },
       );
@@ -356,19 +370,12 @@ export class AuthService {
           message: parsed.error.issues[0].message,
         };
       const { token, password } = parsed.data;
-      let decoded: any;
-      try {
-        decoded = jwt.verify(token, JWT_SECRET || "");
-      } catch {
-        return {
-          success: false,
-          status: 400,
-          message: "general.unknown",
-        };
-      }
+      const read = this.readResetToken(token);
+      if (!read.ok)
+        return { success: false, status: 400, message: "general.unknown" };
       const db = await this.server.getDb();
       const user = await db.collection("users").findOne({
-        _id: new ObjectId(decoded.id),
+        _id: read.id,
         resetTokenHash: hashToken(token),
       });
       if (!user)
@@ -384,6 +391,7 @@ export class AuthService {
           { _id: user._id },
           { $set: { passwordHash }, $unset: { resetTokenHash: "" } },
         );
+      await this.server.revokeSessions(user._id);
       return { success: true, status: 200 };
     } catch (error) {
       console.error("Reset password error:", error);
@@ -395,21 +403,17 @@ export class AuthService {
     try {
       if (!token || typeof token !== "string")
         return { success: false, status: 400, message: "token.required" };
-      let decoded: any;
-      try {
-        decoded = jwt.verify(token, JWT_SECRET || "");
-      } catch (e: any) {
-        const reason = e.name === "TokenExpiredError" ? "expired" : "invalid";
+      const read = this.readResetToken(token);
+      if (!read.ok)
         return {
           success: false,
           status: 400,
           message: "general.unknown",
-          data: { reason },
+          data: { reason: read.reason },
         };
-      }
       const db = await this.server.getDb();
       const user = await db.collection("users").findOne({
-        _id: new ObjectId(decoded.id),
+        _id: read.id,
         resetTokenHash: hashToken(token),
       });
       if (!user)

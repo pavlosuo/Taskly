@@ -25,3 +25,5 @@ export const OTP_TTL_MINUTES = 10;
 export const OTP_RESEND_SECONDS = 60;
 
 export const OTP_MAX_ATTEMPTS = 5;
+
+export const LAST_SEEN_THROTTLE_MS = 5 * 60 * 1000;

@@ -12,6 +12,7 @@ import {
   CHAT_ID,
   BOT_TOKEN,
 } from "@/env";
+import { LAST_SEEN_THROTTLE_MS } from "shared/data";
 import { MongoClient, ServerApiVersion, ObjectId, Db } from "mongodb";
 import { Response, Request, NextFunction } from "express";
 import { createApp } from "@/app";
@@ -33,26 +34,14 @@ export class Server implements IServer {
   private _client: MongoClient | null = null;
   private _dbPromise: Promise<Db> | null = null;
   private _io: SocketIOServer | null = null;
-  public mailer: Transporter | null = null;
+  private mailer: Transporter | null = null;
+  private authCache = new WeakMap<Request, Promise<User | null>>();
 
   constructor(port = 5050) {
     this.port = port;
   }
 
-  getClient(): MongoClient {
-    if (!this._client) {
-      this._client = new MongoClient(MONGODB_URI || "", {
-        serverApi: {
-          version: ServerApiVersion.v1,
-          strict: false,
-          deprecationErrors: true,
-        },
-      });
-    }
-    return this._client;
-  }
-
-  async sendToTg(text: string): Promise<void> {
+  private async sendToTg(text: string): Promise<void> {
     try {
       await axios.post(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
         chat_id: CHAT_ID,
@@ -61,21 +50,6 @@ export class Server implements IServer {
     } catch (error) {
       console.error(error);
     }
-  }
-
-  getDb(): Promise<Db> {
-    if (!this._dbPromise) {
-      this._dbPromise = this.getClient()
-        .connect()
-        .then((c) => c.db("app"))
-        .catch(async (err) => {
-          await this._client?.close().catch(() => {});
-          this._client = null;
-          this._dbPromise = null;
-          return Promise.reject(err);
-        });
-    }
-    return this._dbPromise;
   }
 
   async sendEmail({
@@ -115,12 +89,108 @@ export class Server implements IServer {
     return Promise.resolve();
   }
 
+  getClient(): MongoClient {
+    if (!this._client) {
+      this._client = new MongoClient(MONGODB_URI || "", {
+        serverApi: {
+          version: ServerApiVersion.v1,
+          strict: false,
+          deprecationErrors: true,
+        },
+      });
+    }
+    return this._client;
+  }
+
+  getDb(): Promise<Db> {
+    if (!this._dbPromise) {
+      this._dbPromise = this.getClient()
+        .connect()
+        .then((c) => c.db("app"))
+        .catch(async (err) => {
+          await this._client?.close().catch(() => {});
+          this._client = null;
+          this._dbPromise = null;
+          return Promise.reject(err);
+        });
+    }
+    return this._dbPromise;
+  }
+
+  getIO(): SocketIOServer {
+    if (!this._io) {
+      console.error("Socket.io not initialized");
+      throw new Error("general.unknown");
+    }
+    return this._io;
+  }
+
+  private async getUserFromToken(
+    token: string | undefined,
+  ): Promise<User | null> {
+    if (!token) return null;
+    let decoded: jwt.JwtPayload;
+
+    try {
+      const d = jwt.verify(token, JWT_SECRET || "", { algorithms: ["HS256"] });
+      if (typeof d === "string") return null;
+      decoded = d;
+    } catch {
+      return null;
+    }
+
+    if (
+      decoded.typ !== "access" ||
+      typeof decoded.id !== "string" ||
+      !ObjectId.isValid(decoded.id)
+    ) {
+      return null;
+    }
+
+    try {
+      const db = await this.getDb();
+      const users = db.collection("users");
+      const user = (await users.findOne({
+        _id: new ObjectId(decoded.id),
+      })) as User | null;
+      if (!user || user.deletedAt) return null;
+      if (decoded.tv !== (user.tokenVersion ?? 0)) return null;
+      const last = user.lastSeenAt ? new Date(user.lastSeenAt).getTime() : 0;
+      if (Date.now() - last > LAST_SEEN_THROTTLE_MS) {
+        users
+          .updateOne({ _id: user._id }, { $set: { lastSeenAt: new Date() } })
+          .catch((e) => console.error("lastSeenAt update error:", e));
+      }
+      return user;
+    } catch (error) {
+      console.error("AUTH DB ERROR:", error);
+      return null;
+    }
+  }
+
+  private async getUserFromCookie(req: Request): Promise<User | null> {
+    let p = this.authCache.get(req);
+    if (!p) {
+      p = this.getUserFromToken(req.cookies?.token);
+      this.authCache.set(req, p);
+    }
+    return p;
+  }
+
+  async revokeSessions(userId: ObjectId): Promise<void> {
+    const db = await this.getDb();
+    await db
+      .collection("users")
+      .updateOne({ _id: userId }, { $inc: { tokenVersion: 1 } });
+    this.getIO()?.in(`user:${userId.toString()}`).disconnectSockets(true);
+  }
+
   issueToken(res: Response, user: User): string {
     const token = jwt.sign(
       {
         id: user._id.toString(),
-        email: user.email,
-        username: user.username,
+        tv: user.tokenVersion ?? 0,
+        typ: "access",
       },
       JWT_SECRET || "",
       { expiresIn: "7d" },
@@ -132,29 +202,20 @@ export class Server implements IServer {
     return token;
   }
 
-  private async getUserFromToken(
-    token: string | undefined,
-  ): Promise<User | null> {
-    if (!token) return null;
-    try {
-      const decoded = jwt.verify(token, JWT_SECRET || "") as jwt.JwtPayload;
-      const db = await this.getDb();
-      const user = (await db
-        .collection("users")
-        .findOneAndUpdate(
-          { _id: new ObjectId(decoded.id) },
-          { $set: { lastSeenAt: new Date() } },
-          { returnDocument: "after" },
-        )) as User | null;
-      return user;
-    } catch (error) {
-      console.error("VERIFY ERROR:", error);
-      return null;
+  setPresenceVisibility(userId: string, hidden: boolean): void {
+    const io = this.getIO();
+    if (!io) return;
+    const room = io.sockets.adapter.rooms.get(`user:${userId}`);
+    if (!room || room.size === 0) return;
+    let isAdmin = false;
+    for (const sid of room) {
+      const s = io.sockets.sockets.get(sid);
+      if (!s) continue;
+      s.data.noOnlineStatus = hidden;
+      if (s.data.role === "admin") isAdmin = true;
     }
-  }
-
-  async getUserFromCookie(req: Request): Promise<User | null> {
-    return this.getUserFromToken(req.cookies?.token);
+    if (isAdmin) return;
+    io.emit(hidden ? "presence:offline" : "presence:online", { userId });
   }
 
   requireAuth() {
@@ -213,13 +274,6 @@ export class Server implements IServer {
     };
   }
 
-  getIO(): SocketIOServer {
-    if (!this._io) {
-      throw new Error("general.unknown");
-    }
-    return this._io;
-  }
-
   private initSockets(httpServer: HTTPServer) {
     const io = new SocketIOServer(httpServer, {
       cors: {
@@ -248,9 +302,6 @@ export class Server implements IServer {
       const userId = socket.data.userId as string;
       const isAdmin = socket.data.role === "admin";
       const onlineUserIds = new Set<string>();
-      socket.data.chats = new Map<string, string>();
-      socket.join(`user:${userId}`);
-
       for (const [_, s] of io.sockets.sockets) {
         if (
           s.data.role !== "admin" &&
@@ -260,11 +311,12 @@ export class Server implements IServer {
           onlineUserIds.add(s.data.userId);
         }
       }
+      socket.data.chats = new Map<string, string>();
+      socket.join(`user:${userId}`);
       socket.emit("presence:initial", { userIds: [...onlineUserIds] });
-      if (!isAdmin) {
+      if (!isAdmin && !socket.data.noOnlineStatus) {
         socket.broadcast.emit("presence:online", { userId });
       }
-
       socket.on("chat:join", async (chatId: string) => {
         try {
           const _id = toObjectId(chatId);
@@ -291,18 +343,15 @@ export class Server implements IServer {
           console.error("chat:join error:", e);
         }
       });
-
       socket.on("chat:leave", (chatId: string) => {
         (socket.data.chats as Map<string, string>).delete(chatId);
         socket.leave(`chat:${chatId}`);
       });
-
       socket.on("typing:start", ({ chatId }: { chatId: string }) => {
         const memberId = (socket.data.chats as Map<string, string>).get(chatId);
         if (!memberId) return;
         socket.to(`user:${memberId}`).emit("typing:start", { chatId, userId });
       });
-
       socket.on("typing:stop", ({ chatId }: { chatId: string }) => {
         const memberId = (socket.data.chats as Map<string, string>).get(chatId);
         if (!memberId) return;
@@ -323,7 +372,7 @@ export class Server implements IServer {
           } catch (e) {
             console.error("Update lastSeenAt on disconnect error:", e);
           }
-          if (!isAdmin) {
+          if (!isAdmin && !socket.data.noOnlineStatus) {
             io.emit("presence:offline", { userId });
           }
         }
@@ -332,7 +381,7 @@ export class Server implements IServer {
     this._io = io;
   }
 
-  async indexesConfig() {
+  private async indexesConfig() {
     const db = await this.getDb();
 
     await Promise.all([
@@ -442,4 +491,7 @@ export class Server implements IServer {
   }
 }
 
-new Server(Number(PORT_API)).start().catch(console.error);
+new Server(Number(PORT_API)).start().catch(() => {
+  console.error("SERVER ERROR");
+  process.exit(1);
+});

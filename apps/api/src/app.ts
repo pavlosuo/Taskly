@@ -24,7 +24,16 @@ import { MulterError } from "multer";
 export function createApp(server: Server): Application {
   const app = express();
   app.set("trust proxy", Number(TRUST_PROXY));
-  app.use(helmet());
+  app.use(
+    helmet({
+      contentSecurityPolicy: {
+        directives: {
+          ...helmet.contentSecurityPolicy.getDefaultDirectives(),
+          "frame-ancestors": ["'self'", CLIENT_URL],
+        },
+      },
+    }),
+  );
   app.use(express.json());
   app.use(cookieParser());
   app.use(

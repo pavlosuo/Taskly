@@ -1,6 +1,5 @@
 import { Db, ObjectId, MongoClient } from "mongodb";
 import { Response, Request, NextFunction } from "express";
-import { Transporter } from "nodemailer";
 import {
   OtpPurpose,
   OtpRecord,
@@ -62,6 +61,7 @@ export interface User extends Omit<PublicUser, "_id"> {
   _id: ObjectId;
   otps?: Partial<Record<OtpPurpose, OtpRecord>>;
   passwordHash: string;
+  tokenVersion?: number;
 }
 
 export type MediaItemBack = Omit<MediaItem, "_id" | "ownerId"> & {
@@ -138,14 +138,12 @@ export interface TaskResponseBack extends Omit<
 }
 
 export interface IServer {
-  mailer: Transporter | null;
   getIO(): SocketIOServer;
   getDb(): Promise<Db>;
-  indexesConfig(): Promise<void>;
+  getClient(): MongoClient;
   sendEmail(args: { to: string; subject: string; text: string }): Promise<void>;
   sendSms(phone: string, text: string): Promise<void>;
   issueToken(res: Response, user: User): string;
-  getUserFromCookie(req: Request): Promise<User | null>;
   requireAuth(): (
     req: Request,
     res: Response,
@@ -171,5 +169,6 @@ export interface IServer {
     res: Response,
     next: NextFunction,
   ) => Promise<void | Response>;
-  getClient(): MongoClient;
+  revokeSessions(userId: ObjectId): Promise<void>;
+  setPresenceVisibility(userId: string, hidden: boolean): void;
 }

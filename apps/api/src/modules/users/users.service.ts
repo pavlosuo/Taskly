@@ -346,6 +346,15 @@ export class UsersService {
       await Promise.allSettled(removes.map((fn) => fn()));
       const updated = await users.findOne({ _id: user._id });
 
+      const hiddenNext = settings?.checkboxes?.noOnlineStatus;
+      if (
+        hiddenNext !== undefined &&
+        user.role !== "admin" &&
+        hiddenNext !== !!user.settings?.checkboxes?.noOnlineStatus
+      ) {
+        this.server.setPresenceVisibility(user._id.toString(), hiddenNext);
+      }
+
       return {
         success: true,
         status: 200,
