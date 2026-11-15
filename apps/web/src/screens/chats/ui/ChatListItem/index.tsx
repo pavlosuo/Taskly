@@ -49,7 +49,7 @@ export const ChatListItem: FC<{ chat: ChatWithMember }> = ({ chat }) => {
   return (
     <div className="group relative">
       <Link
-        href={`/chats/${chat._id}`}
+        href={`/chats?chatId=${chat._id}`}
         className="flex items-center gap-3 py-4 pl-4 pr-14 hover:bg-muted transition-colors"
       >
         <div className="relative shrink-0">

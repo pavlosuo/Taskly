@@ -116,7 +116,7 @@ export const Main = ({
     try {
       setIsStarting(true);
       const chat = await createChat(userId);
-      router.push(`/chats/${chat._id}`);
+      router.push(`/chats?chatId=${chat._id}`);
     } catch (e) {
       toast(getAxiosError(e));
     } finally {

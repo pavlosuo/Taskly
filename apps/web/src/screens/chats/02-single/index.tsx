@@ -7,7 +7,6 @@ import {
   useCallback,
   startTransition,
 } from "react";
-import { useRouter } from "next/navigation";
 import { useTranslation, Trans } from "react-i18next";
 import { ArrowLeft } from "lucide-react";
 import { axiosApi } from "@/api/index";
@@ -34,11 +33,16 @@ import { useNotifications } from "@/providers/NotificationProvider";
 
 export const Single: FC<{
   chat: ChatWithMember;
+  onClose: () => void;
   messages?: Message[] | null;
   nextCursor?: string | null;
-}> = ({ chat, messages: initialMessages, nextCursor: initialNextCursor }) => {
+}> = ({
+  chat,
+  onClose,
+  messages: initialMessages,
+  nextCursor: initialNextCursor,
+}) => {
   const { t } = useTranslation(["chats", "common", "errors"]);
-  const router = useRouter();
   const { upsertChat, activeChat, setActiveChat, typingByChat, clearUnread } =
     useChats();
   const displayChat = activeChat ?? chat;
@@ -252,7 +256,7 @@ export const Single: FC<{
         <div className="flex items-center gap-3 py-3.5 px-4 border-b border-border shrink-0">
           <button
             type="button"
-            onClick={() => router.push("/chats")}
+            onClick={onClose}
             className="p-1.5 -ml-1.5 rounded-full hover:bg-muted text-grey"
             aria-label={t("common:actions.back")}
           >

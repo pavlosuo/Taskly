@@ -40,7 +40,7 @@ const ICONS: Partial<Record<NotificationType, LucideIcon>> = {
 };
 
 const getUrl = (n: NotificationItem) => {
-  if (n.category === "chat" && n.chatId) return `/chats/${n.chatId}`;
+  if (n.category === "chat" && n.chatId) return `/chats?chatId=${n.chatId}`;
   if (n.category === "task") return "/tasks?taskId=" + n.taskId;
   return "/";
 };

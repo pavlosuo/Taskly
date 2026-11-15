@@ -23,11 +23,6 @@ import {
 } from "@/components/ui/context-menu";
 import { ImageDisplay } from "@/components/shared/MediaPicker";
 import { useTheme } from "@/providers/ThemeProvider";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import { useSingleChat } from "@/providers/SingleChatProvider";
 import { useLightbox } from "@/providers/LightboxProvider";
 import { FileThumbnail } from "@/components/shared/MediaPicker";
@@ -149,39 +144,59 @@ const Reactions: FC<{
   );
 };
 
-const PopoverReactions: FC<{
-  isOwn: boolean;
-  handleToggleReaction: (emoji: string) => void;
-}> = ({ isOwn, handleToggleReaction }) => {
+const ReactionTrigger: FC<{ open: boolean; onToggle: () => void }> = ({
+  open,
+  onToggle,
+}) => {
   const { t } = useTranslation("chats");
   return (
-    <Popover>
-      <PopoverTrigger asChild>
+    <button
+      type="button"
+      onClick={onToggle}
+      aria-expanded={open}
+      aria-label={t("reactions.add")}
+      className={clsx(
+        "absolute top-full -translate-y-1/2 left-2 flex items-center justify-center w-6 h-6 rounded-full border border-border bg-background opacity-0 transition-opacity focus-visible:opacity-100 [@media(hover:none)]:hidden [@media(hover:hover)]:group-hover/bubble:opacity-100",
+        open && "opacity-100",
+      )}
+    >
+      <SmilePlus aria-hidden="true" className="w-3 h-3 text-foreground" />
+    </button>
+  );
+};
+
+const ReactionPicker: FC<{
+  isOwn: boolean;
+  current?: string;
+  onPick: (emoji: string) => void;
+}> = ({ isOwn, current, onPick }) => {
+  const { t } = useTranslation("chats");
+  return (
+    <div
+      role="group"
+      aria-label={t("reactions.add")}
+      className={clsx(
+        "absolute bottom-full mb-2 z-20 flex gap-0.5 rounded-full border border-border bg-background p-1 shadow-lg",
+        "max-w-[calc(100vw-1.5rem)] overflow-x-auto animate-reaction-in motion-reduce:animate-none",
+        isOwn ? "right-0 origin-bottom-right" : "left-0 origin-bottom-left",
+      )}
+    >
+      {EMOJI.map((emoji) => (
         <button
+          key={emoji}
           type="button"
-          className="absolute top-full -translate-y-1/2 left-2 flex items-center justify-center w-6 h-6 rounded-full border border-border bg-background opacity-0 transition-opacity group-hover/bubble:opacity-100 focus-visible:opacity-100"
-          aria-label={t("reactions.add")}
+          aria-label={emoji}
+          aria-pressed={current === emoji}
+          onClick={() => onPick(emoji)}
+          className={clsx(
+            "size-9 shrink-0 flex items-center justify-center rounded-full text-lg transition-transform hover:bg-muted active:scale-90",
+            current === emoji && "bg-muted",
+          )}
         >
-          <SmilePlus aria-hidden="true" className="w-3 h-3 text-foreground" />
+          {emoji}
         </button>
-      </PopoverTrigger>
-      <PopoverContent
-        side="top"
-        align={isOwn ? "end" : "start"}
-        className="w-auto p-1 flex gap-0.5"
-      >
-        {EMOJI.map((emoji) => (
-          <button
-            key={emoji}
-            type="button"
-            onClick={() => handleToggleReaction(emoji)}
-            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-muted text-base"
-          >
-            {emoji}
-          </button>
-        ))}
-      </PopoverContent>
-    </Popover>
+      ))}
+    </div>
   );
 };
 
@@ -206,10 +221,31 @@ export const MessageBubble: FC<{
   const { lang } = useTheme();
   const { confirm } = useModal();
   const toast = useToast();
+  const [reactionsOpen, setReactionsOpen] = useState(false);
+  const rowRef = useRef<HTMLDivElement>(null);
+
+  const handleTap = (e: React.MouseEvent) => {
+    if (isEditing) return;
+    if (!window.matchMedia("(hover: none)").matches) return;
+    if ((e.target as HTMLElement).closest("button, a, img, video")) return;
+    setReactionsOpen((v) => !v);
+  };
 
   useEffect(() => {
-    if (isEditing) textareaRef.current?.focus();
-  }, [isEditing]);
+    if (!reactionsOpen) return;
+    const close = (e: PointerEvent) => {
+      if (!rowRef.current?.contains(e.target as Node)) setReactionsOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setReactionsOpen(false);
+    };
+    document.addEventListener("pointerdown", close);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("pointerdown", close);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [reactionsOpen]);
 
   const cancelEdit = () => {
     setDraft(message.text ?? "");
@@ -256,14 +292,15 @@ export const MessageBubble: FC<{
   };
 
   const handleToggleReaction = async (emoji: string) => {
-    if (!user || !message.reactions) return;
+    if (!user || message._id.startsWith("temp-")) return;
+    const current = message.reactions ?? [];
     const optimistic: MessageType = {
       ...message,
       reactions:
         myReaction === emoji
-          ? message.reactions?.filter((r) => r.userId !== user._id)
+          ? current.filter((r) => r.userId !== user._id)
           : [
-              ...message.reactions?.filter((r) => r.userId !== user._id),
+              ...current.filter((r) => r.userId !== user._id),
               { userId: user._id, emoji },
             ],
     };
@@ -288,7 +325,7 @@ export const MessageBubble: FC<{
   const bubbleInner = (
     <Bubble
       variant={isOwn ? "default" : "secondary"}
-      className="relative items-end"
+      className="relative items-end max-md:select-none max-md:[-webkit-touch-callout:none]"
     >
       {message.media.length > 0 && (
         <div
@@ -386,9 +423,9 @@ export const MessageBubble: FC<{
         handleToggleReaction={handleToggleReaction}
         isEditing={isEditing}
       />
-      <PopoverReactions
-        isOwn={isOwn}
-        handleToggleReaction={handleToggleReaction}
+      <ReactionTrigger
+        open={reactionsOpen}
+        onToggle={() => setReactionsOpen((v) => !v)}
       />
     </Bubble>
   );
@@ -413,11 +450,23 @@ export const MessageBubble: FC<{
         </div>
         <MessageContent>
           <div
+            ref={rowRef}
+            onClick={handleTap}
             className={clsx(
               "group/bubble relative flex",
               isOwn ? "justify-end" : "justify-start",
             )}
           >
+            {reactionsOpen && (
+              <ReactionPicker
+                isOwn={isOwn}
+                current={myReaction}
+                onPick={(emoji) => {
+                  handleToggleReaction(emoji);
+                  setReactionsOpen(false);
+                }}
+              />
+            )}
             {isEditing || !(isOwn || !!message.text) ? (
               bubbleInner
             ) : (
