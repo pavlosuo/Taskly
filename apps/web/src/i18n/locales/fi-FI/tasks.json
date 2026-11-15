@@ -91,7 +91,8 @@
     "pending": "Odottaa",
     "accepted": "Hyväksytty",
     "rejected": "Hylätty",
-    "withdrawn_after_accept": "Peruttu hyväksymisen jälkeen"
+    "withdrawn_after_accept": "Peruttu hyväksymisen jälkeen",
+    "cancelled": "Peruttu"
   },
   "item": {
     "negotiable": "Neuvoteltavissa",

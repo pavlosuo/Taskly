@@ -1,5 +1,9 @@
 {
   "appName": "Taskly",
+  "confirmText": "Bekräfta",
+  "cancelText": "Avboka",
+  "confirmTitle": "Bekráfta handling",
+  "alertTitle": "Varning",
   "notify": {
     "title": "Aviseringar",
     "newMessage": "Nytt meddelande i chatten",

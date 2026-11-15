@@ -91,7 +91,8 @@
     "pending": "Väntar",
     "accepted": "Godkänd",
     "rejected": "Avvisad",
-    "withdrawn_after_accept": "Återkallad efter godkännande"
+    "withdrawn_after_accept": "Återkallad efter godkännande",
+    "cancelled": "Avbokad"
   },
   "item": {
     "negotiable": "Förhandlingsbar",

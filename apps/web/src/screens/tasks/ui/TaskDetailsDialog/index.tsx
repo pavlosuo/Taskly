@@ -754,8 +754,8 @@ export const ClientView = ({ task, onClose }: ViewProps) => {
   const handleDelete = async () => {
     if (isLoading || !(await confirm(t("view.confirm.delete")))) return;
     try {
+      onClose?.();
       await deleteTask(task._id);
-      onClose();
     } catch {}
   };
 
@@ -825,7 +825,7 @@ export const ClientView = ({ task, onClose }: ViewProps) => {
           className={clsx(
             "flex flex-col gap-5",
             !(
-              step === "complete" && FINAL_STEP_STATUSES.includes(task.status)
+              step === "complete" && !FINAL_STEP_STATUSES.includes(task.status)
             ) && "hidden",
           )}
         >
@@ -834,14 +834,7 @@ export const ClientView = ({ task, onClose }: ViewProps) => {
             role="client"
             amount={acceptedResponse?.price}
           />
-          <p
-            className={clsx(
-              "text-sm text-grey py-2 text-center",
-              step === "complete" &&
-                FINAL_STEP_STATUSES.includes(task.status) &&
-                "hidden",
-            )}
-          >
+          <p className={clsx("text-sm text-grey py-2 text-center")}>
             {t("respond.finalLocked")}
           </p>
         </div>

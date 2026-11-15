@@ -9,7 +9,7 @@ export type TaskStatus =
   | "expired";
 
 export type TaskResponseStatus =
-  "pending" | "accepted" | "rejected" | "withdrawn_after_accept";
+  "pending" | "accepted" | "rejected" | "withdrawn_after_accept" | "cancelled";
 
 export interface GeoPoint {
   type: "Point";
@@ -53,18 +53,6 @@ export interface Task {
   completionType?: "client" | "auto";
   cancelReason?: "client" | "overdue";
   assignedTaskerId?: string | null;
-}
-
-export interface TaskResponse {
-  _id: string;
-  taskId: string;
-  clientId: string;
-  taskerId: string;
-  message: string;
-  price?: number;
-  status: TaskResponseStatus;
-  createdAt: Date;
-  updatedAt: Date;
 }
 
 export interface TaskCreateForm {

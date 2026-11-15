@@ -373,24 +373,57 @@ export class TaskService {
     const session = this.server.getClient().startSession();
     try {
       const db = await this.server.getDb();
-      await session.withTransaction(async () => {
-        const task = await db.collection("tasks").findOne({ _id }, { session });
+      await this.notifications.transaction(session, async (notify) => {
+        const tasks = db.collection("tasks");
+        const responses = db.collection("taskResponses");
+        const task = await tasks.findOne({ _id }, { session });
         if (!task) throw { status: 404, message: "task.notFound" };
         if (!task.clientId.equals(user._id))
           throw { status: 403, message: "general.forbidden" };
-        const deletable =
-          task.status === "open" ||
-          task.status === "expired" ||
-          (task.status === "cancelled" && !task.assignedTaskerId);
-        if (!deletable) throw { status: 409, message: "task.cannotDelete" };
-        const res = await db
-          .collection("tasks")
-          .deleteOne({ _id: task._id, status: task.status }, { session });
+        if (!["open", "expired", "cancelled"].includes(task.status))
+          throw { status: 409, message: "task.cannotDelete" };
+
+        const history = await responses.findOne(
+          {
+            taskId: task._id,
+            status: {
+              $in: ["accepted", "cancelled", "withdrawn_after_accept"],
+            },
+          },
+          { session, projection: { _id: 1 } },
+        );
+
+        if (history) throw { status: 409, message: "task.cannotDelete" };
+
+        const pending =
+          task.status === "open"
+            ? await responses
+                .find(
+                  { taskId: task._id, status: "pending" },
+                  { session, projection: { taskerId: 1 } },
+                )
+                .toArray()
+            : [];
+
+        const res = await tasks.deleteOne(
+          { _id: task._id, status: task.status },
+          { session },
+        );
         if (res.deletedCount === 0)
           throw { status: 409, message: "task.cannotDelete" };
-        await db
-          .collection("taskResponses")
-          .deleteMany({ taskId: task._id }, { session });
+        await responses.deleteMany({ taskId: task._id }, { session });
+
+        if (pending.length) {
+          const data = { taskTitle: task.title };
+          await notify(
+            pending.map((r): NotificationInputBack => ({
+              userId: r.taskerId,
+              type: "response_rejected",
+              taskId: task._id,
+              data,
+            })),
+          );
+        }
       });
       return { success: true, status: 200 };
     } catch (e: any) {
@@ -618,6 +651,9 @@ export class TaskService {
           throw { status: 409, message: "task.cannotCancel" };
 
         const now = new Date();
+        const wasAssigned = task.status === "assigned";
+        const assignedTaskerId = task.assignedTaskerId;
+
         const pending = await responses
           .find(
             { taskId: task._id, status: "pending" },
@@ -629,14 +665,18 @@ export class TaskService {
           { $set: { status: "rejected", updatedAt: now } },
           { session },
         );
+
+        const set: Document = {
+          status: "cancelled",
+          cancelReason: user ? "client" : "overdue",
+          updatedAt: now,
+        };
+        if (wasAssigned) set.assignedTaskerId = null;
+
         const res = await tasks.updateOne(
           { _id: task._id, status: { $in: allowed } },
           {
-            $set: {
-              status: "cancelled",
-              cancelReason: user ? "client" : "overdue",
-              updatedAt: now,
-            },
+            $set: set,
             $inc: { responsesCount: -rejected.modifiedCount },
           },
           { session },
@@ -644,8 +684,19 @@ export class TaskService {
         if (res.modifiedCount === 0)
           throw { status: 409, message: "task.cannotCancel" };
 
-        const wasAssigned = task.status === "assigned";
-        if (wasAssigned) await this.payments.refund(session, task._id);
+        if (wasAssigned) {
+          await responses.updateOne(
+            {
+              taskId: task._id,
+              taskerId: assignedTaskerId,
+              status: "accepted",
+            },
+            { $set: { status: "cancelled", updatedAt: now } },
+            { session },
+          );
+          await this.payments.refund(session, task._id);
+        }
+
         const data = { taskTitle: task.title };
         const notices: NotificationInputBack[] = pending.map((r) => ({
           userId: r.taskerId,
@@ -655,7 +706,7 @@ export class TaskService {
         }));
         if (wasAssigned) {
           notices.push({
-            userId: task.assignedTaskerId,
+            userId: assignedTaskerId,
             type: user ? "task_cancelled" : "task_overdue",
             taskId: task._id,
             data,
@@ -1027,11 +1078,10 @@ export class TaskResponseService {
           .collection("taskResponses")
           .findOne({ _id: _responseId, taskId: _taskId }, { session });
         if (!response) throw { status: 404, message: "taskResponse.notFound" };
-        if (response.taskerId.toString() !== user._id.toString())
+        if (!response.taskerId.equals(user._id))
           throw { status: 403, message: "general.forbidden" };
         if (response.status !== "pending")
           throw { status: 409, message: "taskResponse.cannotWithdraw" };
-
         const res = await db
           .collection("taskResponses")
           .deleteOne({ _id: response._id, status: "pending" }, { session });

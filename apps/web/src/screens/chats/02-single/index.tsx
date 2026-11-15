@@ -11,12 +11,7 @@ import { useTranslation, Trans } from "react-i18next";
 import { ArrowLeft } from "lucide-react";
 import { axiosApi } from "@/api/index";
 import { useChats } from "@/providers/ChatProvider";
-import {
-  Message,
-  ChatWithMember,
-  CHAT_PAGE_META,
-  APP_NAME,
-} from "shared/index";
+import { Message, ChatWithMember } from "shared/index";
 import { ImageDisplay } from "@/components/shared/MediaPicker";
 import { MessageBubble } from "@/screens/chats/ui/MessageBubble";
 import { ChatInput } from "@/screens/chats/ui/ChatInput";
@@ -26,7 +21,6 @@ import { useSocket } from "@/providers/SocketProvider";
 import Link from "next/link";
 import { OnlineStatus } from "@/components/shared/OnlineStatus";
 import { FieldError } from "@/components/shared/FieldError";
-import { useTheme } from "@/providers/ThemeProvider";
 import { getAxiosError } from "@/utils/getAxiosError";
 import { Button } from "@/components/ui/button";
 import { useNotifications } from "@/providers/NotificationProvider";
@@ -59,15 +53,8 @@ export const Single: FC<{
   const didInitialScroll = useRef(false);
   const { socket } = useSocket();
   const isTyping = typingByChat[chatId] ?? false;
-  const { lang } = useTheme();
   const [loadMoreFailed, setLoadMoreFailed] = useState(false);
   const { markChatRead: clearChatNotifications } = useNotifications();
-
-  useEffect(() => {
-    const texts = CHAT_PAGE_META[lang];
-    if (!texts) return;
-    document.title = texts.title(chat.member.fullName) + " | " + APP_NAME;
-  }, [lang, chat]);
 
   const loadMore = useCallback(async () => {
     if (!nextCursor || isLoadingMore || loadMoreFailed) return;

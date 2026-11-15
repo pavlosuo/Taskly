@@ -91,7 +91,8 @@
     "pending": "Pending",
     "accepted": "Accepted",
     "rejected": "Rejected",
-    "withdrawn_after_accept": "Withdrawn after accepting"
+    "withdrawn_after_accept": "Withdrawn after accepting",
+    "cancelled": "Cancelled"
   },
   "item": {
     "negotiable": "Negotiable",

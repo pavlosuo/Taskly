@@ -156,7 +156,7 @@ export const ChatInput = () => {
   };
 
   return (
-    <div className="shrink-0 border-t border-border bg-background px-3 pt-2.5 pb-[max(0.75rem,env(safe-area-inset-bottom))] md:px-5">
+    <div className="shrink-0 border-t border-border bg-background px-3 pt-2.5 pb-2.5 md:px-5">
       {pendingMedia.length > 0 && (
         <ul className="mb-1 flex gap-2 overflow-x-auto pt-2 pr-2 pb-1 scrollbar-none [&::-webkit-scrollbar]:hidden">
           {pendingMedia.map((m) => {

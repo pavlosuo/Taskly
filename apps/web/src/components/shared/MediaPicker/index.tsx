@@ -45,6 +45,7 @@ import { useModal } from "@/providers/ModalProvider";
 import { useTheme } from "@/providers/ThemeProvider";
 import { createPortal } from "react-dom";
 import { Lightbox } from "@/components/shared/Lightbox";
+import { useUser } from "@/providers/UserProvider";
 
 export const VideoDisplay = ({ src }: { src: string; className?: string }) => {
   return (
@@ -198,9 +199,11 @@ export function MediaPicker({
     selectedIds.size === 1
       ? (items.find((i) => i._id === [...selectedIds][0]) ?? null)
       : null;
+  const { user } = useUser();
 
   useEffect(() => {
     let cancelled = false;
+    if (!user?._id) return;
     startTransition(() => {
       setIsLoadingMedia(true);
       setError(null);
@@ -219,7 +222,7 @@ export function MediaPicker({
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [user?._id]);
 
   useEffect(() => {
     startTransition(() => {

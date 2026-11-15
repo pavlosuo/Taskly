@@ -1,4 +1,5 @@
 "use client";
+import { useEffect, useState, startTransition } from "react";
 import { Briefcase, Loader2, Send } from "lucide-react";
 import clsx from "clsx";
 import { useTranslation } from "@/hooks/useTranslation";
@@ -22,28 +23,53 @@ export const Tasker = (initial: TaskList) => {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const taskId = searchParams.get("taskId");
-  const task = b.findTask(taskId);
-  const dialogOpen = Boolean(task);
+  const urlTaskId = searchParams.get("taskId");
+  const [activeId, setActiveId] = useState<string | null>(urlTaskId);
+  const found = b.findTask(activeId) ?? null;
+  const [open, setOpen] = useState(Boolean(found));
+  const [snapshot, setSnapshot] = useState<Task | null>(found);
 
-  const updateTaskId = (id: string | null) => {
-    const nextSearchParams = new URLSearchParams(searchParams.toString());
-    if (id) {
-      nextSearchParams.set("taskId", id);
-    } else {
-      nextSearchParams.delete("taskId");
+  useEffect(() => {
+    if (found) {
+      startTransition(() => {
+        setSnapshot(found);
+      });
     }
-    const query = nextSearchParams.toString();
-    const url = query ? `${pathname}?${query}` : pathname;
-    router.replace(url, { scroll: false });
+  }, [found]);
+
+  const task = found ?? snapshot;
+
+  const updateUrl = (id: string | null) => {
+    const next = new URLSearchParams(searchParams.toString());
+    if (id) next.set("taskId", id);
+    else next.delete("taskId");
+    const query = next.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname, {
+      scroll: false,
+    });
   };
 
-  const openTask = (task: Task) => {
-    updateTaskId(task._id);
+  useEffect(() => {
+    startTransition(() => {
+      if (urlTaskId) {
+        setActiveId(urlTaskId);
+        setOpen(true);
+      } else {
+        setOpen(false);
+      }
+    });
+  }, [urlTaskId]);
+
+  const openTask = (item: Task) => {
+    setSnapshot(item);
+    setActiveId(item._id);
+    setOpen(true);
+    updateUrl(item._id);
   };
 
   const closeTask = () => {
-    updateTaskId(null);
+    setOpen(false);
+    updateUrl(null);
   };
 
   const filtered = isFiltered(b.filters, b.query);
@@ -125,8 +151,8 @@ export const Tasker = (initial: TaskList) => {
           b.isListLoading && !isEmpty && "opacity-60",
         )}
       >
-        {b.visible.map((task) => (
-          <TaskListItem key={task._id} task={task} onClick={openTask} />
+        {b.visible.map((item) => (
+          <TaskListItem key={item._id} task={item} onClick={openTask} />
         ))}
       </div>
       {b.hasMore && (
@@ -141,13 +167,11 @@ export const Tasker = (initial: TaskList) => {
         </div>
       )}
       <Dialog
-        open={dialogOpen}
-        onOpenChange={(open) => {
-          if (!open) closeTask();
-        }}
+        open={open && Boolean(task)}
+        onOpenChange={(next) => (next ? setOpen(true) : closeTask())}
       >
         <DialogContent className="max-h-[85vh] w-[calc(100%-2rem)] gap-0 overflow-y-auto sm:max-w-5xl">
-          <TaskerView task={task} onClose={closeTask} />
+          <TaskerView key={task?._id} task={task} onClose={closeTask} />
         </DialogContent>
       </Dialog>
     </div>

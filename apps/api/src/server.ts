@@ -402,11 +402,6 @@ export class Server implements IServer {
       db.collection("tasks").createIndex({ assignedTaskerId: 1 }),
 
       db
-        .collection("taskResponses")
-        .createIndex({ taskId: 1, taskerId: 1 }, { unique: true }),
-      db.collection("taskResponses").createIndex({ taskerId: 1, createdAt: 1 }),
-
-      db
         .collection("payments")
         .createIndex(
           { taskId: 1 },
@@ -474,6 +469,24 @@ export class Server implements IServer {
           partialFilterExpression: { pairKey: { $type: "string" } },
         },
       ),
+
+      db.collection("taskResponses").createIndex({ taskerId: 1, createdAt: 1 }),
+      db
+        .collection("taskResponses")
+        .createIndex({ taskId: 1, taskerId: 1 }, { unique: true }),
+      db.collection("taskResponses").createIndex({ taskId: 1, status: 1 }),
+      db.collection("messages").createIndex({ mediaIds: 1 }),
+      db.collection("media").createIndex({ ownerId: 1 }),
+
+      db
+        .collection("users")
+        .createIndex({ newEmail: 1 }, { sparse: true, name: "idx_new_email" }),
+      db
+        .collection("users")
+        .createIndex(
+          { "profile.newFullPhone": 1 },
+          { sparse: true, name: "idx_new_full_phone" },
+        ),
     ]);
   }
 

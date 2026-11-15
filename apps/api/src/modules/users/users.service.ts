@@ -34,7 +34,6 @@ import {
 import { ObjectId } from "mongodb";
 
 const IMAGE_MIMES = Object.keys(IMAGE_MIME_EXT);
-const CERT_MIMES = [...IMAGE_MIMES, "application/pdf"];
 const INTRO_MIMES = ["video/"];
 
 export class UsersService {
@@ -229,7 +228,7 @@ export class UsersService {
               const media = await this.resolveMedia(
                 user._id,
                 cert.media._id,
-                CERT_MIMES,
+                IMAGE_MIMES,
               );
               if (!media) return badMedia;
               resolved.push({ ...cert, media });
@@ -255,7 +254,7 @@ export class UsersService {
               const media = await this.resolveMedia(
                 user._id,
                 m._id,
-                CERT_MIMES,
+                IMAGE_MIMES,
               );
               if (!media) return badMedia;
               resolved.push({ ...l, certificate: { ...l.certificate, media } });

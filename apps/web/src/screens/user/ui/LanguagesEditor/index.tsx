@@ -125,6 +125,7 @@ export function LanguagesEditor({
                     className="text-xs text-primary hover:text-primary/90 hover:underline"
                     onClick={() =>
                       openPicker({
+                        accept: "image",
                         onSelect: (item) =>
                           onChange(
                             value.map((l) =>

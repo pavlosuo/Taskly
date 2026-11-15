@@ -20,7 +20,8 @@ export const ResponseStatusBadge = ({
           "bg-amber-500/10 text-amber-600": status === "pending",
           "bg-emerald-500/10 text-emerald-600": status === "accepted",
           "bg-destructive/10 text-destructive": status === "rejected",
-          "bg-grey/10 text-grey": status === "withdrawn_after_accept",
+          "bg-grey/10 text-grey":
+            status === "withdrawn_after_accept" || status === "cancelled",
         },
       )}
     >

@@ -1,5 +1,9 @@
 {
   "appName": "Taskly",
+  "confirmText": "Confirm",
+  "cancelText": "Cancel",
+  "confirmTitle": "Confirm action",
+  "alertTitle": "Alert",
   "notify": {
     "title": "Notifications",
     "newMessage": "New message in chat",

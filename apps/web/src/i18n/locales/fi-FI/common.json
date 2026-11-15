@@ -1,5 +1,9 @@
 {
   "appName": "Taskly",
+  "confirmText": "Vahvista",
+  "cancelText": "Peruuttaa",
+  "confirmTitle": "Vahvista toiminto",
+  "alertTitle": "Varoitus",
   "notify": {
     "title": "Ilmoitukset",
     "newMessage": "Uusi viesti keskustelussa",

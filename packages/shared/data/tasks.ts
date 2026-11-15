@@ -14,6 +14,7 @@ export const RESPONSE_STATUSES = [
   "accepted",
   "rejected",
   "withdrawn_after_accept",
+  "cancelled",
 ] as const;
 
 export const NOTIFICATION_TYPES = [

@@ -16,6 +16,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { isFiltered } from "@/utils/tasksUtils";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
+import { useState, useEffect, startTransition } from "react";
 
 export const Client = (initial: TaskList) => {
   const b = useTasks(initial);
@@ -23,28 +24,53 @@ export const Client = (initial: TaskList) => {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const taskId = searchParams.get("taskId");
-  const task = b.findTask(taskId);
-  const dialogOpen = Boolean(task);
+  const urlTaskId = searchParams.get("taskId");
+  const [activeId, setActiveId] = useState<string | null>(urlTaskId);
+  const found = b.findTask(activeId) ?? null;
+  const [open, setOpen] = useState(Boolean(found));
+  const [snapshot, setSnapshot] = useState<Task | null>(found);
 
-  const updateTaskId = (id: string | null) => {
-    const nextSearchParams = new URLSearchParams(searchParams.toString());
-    if (id) {
-      nextSearchParams.set("taskId", id);
-    } else {
-      nextSearchParams.delete("taskId");
+  useEffect(() => {
+    if (found) {
+      startTransition(() => {
+        setSnapshot(found);
+      });
     }
-    const query = nextSearchParams.toString();
-    const url = query ? `${pathname}?${query}` : pathname;
-    router.replace(url, { scroll: false });
+  }, [found]);
+
+  const task = found ?? snapshot;
+
+  const updateUrl = (id: string | null) => {
+    const next = new URLSearchParams(searchParams.toString());
+    if (id) next.set("taskId", id);
+    else next.delete("taskId");
+    const query = next.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname, {
+      scroll: false,
+    });
   };
 
-  const openTask = (task: Task) => {
-    updateTaskId(task._id);
+  useEffect(() => {
+    startTransition(() => {
+      if (urlTaskId) {
+        setActiveId(urlTaskId);
+        setOpen(true);
+      } else {
+        setOpen(false);
+      }
+    });
+  }, [urlTaskId]);
+
+  const openTask = (item: Task) => {
+    setSnapshot(item);
+    setActiveId(item._id);
+    setOpen(true);
+    updateUrl(item._id);
   };
 
   const closeTask = () => {
-    updateTaskId(null);
+    setOpen(false);
+    updateUrl(null);
   };
 
   const filtered = isFiltered(b.filters, b.query);
@@ -55,7 +81,7 @@ export const Client = (initial: TaskList) => {
     <div className="w-full px-4 pb-6 pt-1">
       <div className="flex flex-col gap-4 pb-4">
         <div className="grid grid-cols-1 md:grid-cols-[1fr_1fr] lg:grid-cols-[1fr_max-content_max-content] items-center gap-3">
-          <p className="text-sm text-grey col-span-full lg:col-[auto]">
+          <p className="text-sm text-grey col-span-full lg:col-auto">
             {t("client.title")}
           </p>
           <CreateTaskDialog />
@@ -117,8 +143,8 @@ export const Client = (initial: TaskList) => {
           b.isListLoading && !isEmpty && "opacity-60",
         )}
       >
-        {b.visible.map((task) => (
-          <TaskListItem key={task._id} task={task} onClick={openTask} />
+        {b.visible.map((item) => (
+          <TaskListItem key={item._id} task={item} onClick={openTask} />
         ))}
       </div>
       {b.hasMore && (
@@ -133,13 +159,11 @@ export const Client = (initial: TaskList) => {
         </div>
       )}
       <Dialog
-        open={dialogOpen}
-        onOpenChange={(open) => {
-          if (!open) closeTask();
-        }}
+        open={open && Boolean(task)}
+        onOpenChange={(next) => (next ? setOpen(true) : closeTask())}
       >
         <DialogContent className="max-h-[85vh] w-[calc(100%-2rem)] gap-0 overflow-y-auto sm:max-w-5xl">
-          <ClientView task={task} onClose={closeTask} />
+          <ClientView key={task?._id} task={task} onClose={closeTask} />
         </DialogContent>
       </Dialog>
     </div>

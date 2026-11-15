@@ -26,9 +26,14 @@ export const ChatListItem: FC<{ chat: ChatWithMember }> = ({ chat }) => {
     lastMessage?.text ||
     (lastMessage?.hasMedia ? t("list.attachment") : t("list.noMessages"));
 
+  const fullName =
+    chat.member.fullName === "user.deleted"
+      ? t("list.deletedUser")
+      : chat.member.fullName;
+
   const handleDelete = async () => {
     const confirmed = await confirm(
-      t("list.deleteConfirm", { name: chat.member.fullName }),
+      t("list.deleteConfirm", { name: fullName }),
     );
     if (!confirmed) return;
     try {
@@ -40,11 +45,6 @@ export const ChatListItem: FC<{ chat: ChatWithMember }> = ({ chat }) => {
       setIsDeleting(false);
     }
   };
-
-  const fullName =
-    chat.member.fullName === "user.deleted"
-      ? t("list.deletedUser")
-      : chat.member.fullName;
 
   return (
     <div className="group relative">

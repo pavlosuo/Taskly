@@ -15,6 +15,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface AlertOptions {
   title?: string;
@@ -48,8 +49,8 @@ const initialState: ModalState = {
   type: null,
   title: "",
   message: "",
-  confirmText: "OK",
-  cancelText: "Cancel",
+  confirmText: "common:confirmText",
+  cancelText: "common:cancelText",
   resolve: null,
 };
 
@@ -65,21 +66,24 @@ export const ModalProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
   const [modalState, setModalState] = useState<ModalState>(initialState);
+  const [open, setOpen] = useState(false);
+  const { t } = useTranslation("common");
 
   const alert = useCallback((options: AlertOptions | string): Promise<void> => {
     return new Promise((resolve) => {
       const opts = typeof options === "string" ? { message: options } : options;
       setModalState({
         type: "alert",
-        title: opts.title || "Alert",
+        title: opts.title || "common:alertTitle",
         message: opts.message,
-        confirmText: opts.confirmText || "OK",
+        confirmText: opts.confirmText || initialState.confirmText,
         cancelText: "",
         resolve: () => {
+          setTimeout(() => setOpen(false), 50);
           resolve();
-          setModalState(initialState);
         },
       });
+      setOpen(true);
     });
   }, []);
 
@@ -90,15 +94,16 @@ export const ModalProvider: React.FC<{ children: ReactNode }> = ({
           typeof options === "string" ? { message: options } : options;
         setModalState({
           type: "confirm",
-          title: opts.title || "Confirm",
+          title: opts.title || "common:confirmTitle",
           message: opts.message,
-          confirmText: opts.confirmText || "OK",
-          cancelText: opts.cancelText || "Cancel",
+          confirmText: opts.confirmText || initialState.confirmText,
+          cancelText: opts.cancelText || initialState.cancelText,
           resolve: (value) => {
-            resolve(value as boolean | PromiseLike<boolean>);
-            setModalState(initialState);
+            setTimeout(() => setOpen(false), 50);
+            resolve(value as boolean);
           },
         });
+        setOpen(true);
       });
     },
     [],
@@ -106,29 +111,40 @@ export const ModalProvider: React.FC<{ children: ReactNode }> = ({
 
   const handleConfirm = () => modalState.resolve?.(true);
 
-  const handleCancel = () =>
+  const handleCancel = () => {
+    setTimeout(() => setOpen(false), 50);
     modalState.resolve?.(modalState.type === "confirm" ? false : undefined);
+  };
 
   const handleOpenChange = (open: boolean) => {
-    if (!open) handleCancel();
+    if (!open) {
+      handleCancel();
+    } else {
+      setTimeout(() => setOpen(false), 50);
+    }
   };
 
   return (
     <ModalContext.Provider value={{ alert, confirm }}>
       {children}
-      <Dialog open={!!modalState.type} onOpenChange={handleOpenChange}>
-        <DialogContent className="sm:max-w-sm">
+      <Dialog open={open} onOpenChange={handleOpenChange}>
+        <DialogContent
+          className="sm:max-w-sm"
+          onCloseAutoFocus={() => {
+            setModalState(initialState);
+          }}
+        >
           <DialogHeader>
-            <DialogTitle>{modalState.title}</DialogTitle>
+            <DialogTitle>{t(modalState.title)}</DialogTitle>
             <DialogDescription>{modalState.message}</DialogDescription>
           </DialogHeader>
           <DialogFooter>
             {modalState.type === "confirm" && (
               <Button variant="outline" onClick={handleCancel}>
-                {modalState.cancelText}
+                {t(modalState.cancelText)}
               </Button>
             )}
-            <Button onClick={handleConfirm}>{modalState.confirmText}</Button>
+            <Button onClick={handleConfirm}>{t(modalState.confirmText)}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
