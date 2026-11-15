@@ -117,11 +117,9 @@ export class TaskService {
           ...(maxBudget > 0 && { $lte: maxBudget }),
         };
       }
-
       if (String(query.negotiable) === "true") {
         filter["budget.negotiable"] = true;
       }
-
       const lat = Number(query.lat);
       const lng = Number(query.lng);
       const hasGeo =
@@ -139,9 +137,11 @@ export class TaskService {
           ? hasGeo
             ? "distance"
             : "newest"
-          : TASK_SORTS[query.sort]
+          : typeof query.sort === "string" &&
+              Object.hasOwn(TASK_SORTS, query.sort)
             ? query.sort
             : "newest";
+
       const sort = TASK_SORTS[sortKey];
 
       let allItems: Document[];

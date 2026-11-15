@@ -125,7 +125,7 @@ export class ChatController {
       req.user,
       id,
       messageId,
-      req.body.text,
+      req.body?.text,
     );
     if (!result.success)
       return res.status(result.status).json({
@@ -156,7 +156,7 @@ export class ChatController {
   async manageReaction(req: Request, res: Response) {
     const id = req.params.id as string;
     const messageId = req.params.messageId as string;
-    const reaction = req.body.reaction as string;
+    const reaction = req.body?.reaction as string;
     const result = await this.service.manageReaction(
       req.user,
       id,

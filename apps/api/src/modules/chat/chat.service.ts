@@ -1,15 +1,17 @@
 import { ObjectId } from "mongodb";
-import { ServiceResult } from "shared/types";
 import {
+  ServiceResult,
   ChatWithMember,
   ChatMemberPreview,
   Message,
   CreateChatPayload,
   SendMessagePayload,
-} from "shared/types/chat";
+  EMOJI,
+  CHAT_MESSAGE_MAX_LENGTH,
+  CHAT_MAX_MEDIA,
+} from "shared/index";
 import { ChatBack, MessageBack, IServer, User } from "@/types";
-import { EMOJI } from "shared/data";
-import { stripMediaFields, toObjectId } from "@/utils";
+import { stripMediaFields, toObjectId, clampLimit } from "@/utils";
 import { NotificationService } from "@/modules/notification/notification.service";
 
 export class ChatService {
@@ -236,7 +238,7 @@ export class ChatService {
     payload: CreateChatPayload,
   ): Promise<ServiceResult> {
     try {
-      const otherId = toObjectId(payload.memberId);
+      const otherId = toObjectId(payload?.memberId);
       if (!otherId) {
         return { success: false, status: 400, message: "chat.memberNotFound" };
       }
@@ -418,19 +420,23 @@ export class ChatService {
       const chat = await this.assertParticipant(chatId, user._id);
       if (!chat)
         return { success: false, status: 404, message: "chat.notFound" };
+      const pageLimit = clampLimit(limit);
+      const beforeId = before ? toObjectId(before) : null;
+      if (before && !beforeId)
+        return { success: false, status: 400, message: "general.unknown" };
       const db = await this.server.getDb();
       const query: any = { chatId: chat._id };
-      if (before) query._id = { $lt: new ObjectId(before) };
+      if (beforeId) query._id = { $lt: beforeId };
       const docs = await db
         .collection<MessageBack>("messages")
         .find(query)
         .sort({ _id: -1 })
-        .limit(limit)
+        .limit(pageLimit)
         .toArray();
       const oldestId = docs.length
         ? docs[docs.length - 1]._id.toString()
         : null;
-      const nextCursor = docs.length === limit ? oldestId : null;
+      const nextCursor = docs.length === pageLimit ? oldestId : null;
       const items = await this.populateMessages(docs.reverse());
       return { success: true, status: 200, data: { items, nextCursor } };
     } catch (e) {
@@ -449,12 +455,29 @@ export class ChatService {
       const chat = await this.assertParticipant(chatId, user._id);
       if (!chat)
         return { success: false, status: 404, message: "chat.notFound" };
-      const text = payload.text?.trim() || null;
-      const mediaIds = payload.mediaIds ?? [];
+      const rawText: unknown = payload?.text;
+      if (rawText != null && typeof rawText !== "string")
+        return { success: false, status: 400, message: "chat.message.empty" };
+      if (payload?.mediaIds != null && !Array.isArray(payload?.mediaIds))
+        return {
+          success: false,
+          status: 400,
+          message: "chat.message.invalidMedia",
+        };
+      const text = (rawText as string | undefined)?.trim() || null;
+      if (text && text.length > CHAT_MESSAGE_MAX_LENGTH)
+        return { success: false, status: 400, message: "chat.message.tooLong" };
+      const mediaIds = payload?.mediaIds ?? [];
+      if (mediaIds.length > CHAT_MAX_MEDIA)
+        return {
+          success: false,
+          status: 400,
+          message: "chat.message.tooManyMedia",
+        };
       if (!text && mediaIds.length === 0) {
         return { success: false, status: 400, message: "chat.message.empty" };
       }
-      const rawIds = [...new Set(payload.mediaIds ?? [])];
+      const rawIds = [...new Set(payload?.mediaIds ?? [])];
       const mediaObjectIds = rawIds
         .map((id) => toObjectId(id))
         .filter((id): id is ObjectId => !!id);
@@ -489,7 +512,7 @@ export class ChatService {
         chatId: chat._id,
         senderId: user._id,
         text,
-        mediaIds: mediaIds.map((id) => new ObjectId(id)),
+        mediaIds: mediaObjectIds,
         readBy: otherViewing && otherId ? [user._id, otherId] : [user._id],
         reactions: [],
         edited: false,
@@ -516,6 +539,10 @@ export class ChatService {
           .findOne({ _id: chat._id });
         if (chatUpdated) {
           const [otherView] = await this.enrichChats([chatUpdated], otherId);
+          const [senderView] = await this.enrichChats([chatUpdated], user._id);
+          this.notifications.emit(user._id, "chat:updated", {
+            chat: senderView,
+          });
           this.notifications.emit(otherId, "chat:updated", { chat: otherView });
           if (!otherViewing) {
             try {
@@ -587,13 +614,21 @@ export class ChatService {
       const chat = await this.assertParticipant(chatId, user._id);
       if (!chat)
         return { success: false, status: 404, message: "chat.notFound" };
-      const trimmed = text?.trim();
-      if (!trimmed) {
+      const trimmed = typeof text === "string" ? text.trim() : "";
+      if (!trimmed)
         return { success: false, status: 400, message: "chat.message.noText" };
-      }
+      if (trimmed.length > CHAT_MESSAGE_MAX_LENGTH)
+        return { success: false, status: 400, message: "chat.message.tooLong" };
       const db = await this.server.getDb();
+      const _messageId = toObjectId(messageId);
+      if (!_messageId)
+        return {
+          success: false,
+          status: 404,
+          message: "chat.message.notFound",
+        };
       const msg = await db.collection<MessageBack>("messages").findOne({
-        _id: new ObjectId(messageId),
+        _id: _messageId,
         chatId: chat._id,
       });
       if (!msg)
@@ -650,8 +685,15 @@ export class ChatService {
       if (!chat)
         return { success: false, status: 404, message: "chat.notFound" };
       const db = await this.server.getDb();
+      const _messageId = toObjectId(messageId);
+      if (!_messageId)
+        return {
+          success: false,
+          status: 404,
+          message: "chat.message.notFound",
+        };
       const msg = await db.collection<MessageBack>("messages").findOne({
-        _id: new ObjectId(messageId),
+        _id: _messageId,
         chatId: chat._id,
       });
       if (!msg)
@@ -703,8 +745,15 @@ export class ChatService {
       if (!chat)
         return { success: false, status: 404, message: "chat.notFound" };
       const db = await this.server.getDb();
+      const _messageId = toObjectId(messageId);
+      if (!_messageId)
+        return {
+          success: false,
+          status: 404,
+          message: "chat.message.notFound",
+        };
       const msg = await db.collection<MessageBack>("messages").findOne({
-        _id: new ObjectId(messageId),
+        _id: _messageId,
         chatId: chat._id,
       });
       if (!msg)

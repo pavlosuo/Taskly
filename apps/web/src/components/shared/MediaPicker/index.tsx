@@ -113,7 +113,6 @@ export function FileThumbnail({
     onClick && "cursor-pointer",
     className,
   );
-
   if (item.mimeType.startsWith("image/")) {
     return (
       <div

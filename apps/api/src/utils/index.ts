@@ -281,3 +281,10 @@ export const contentDisposition = (mime: string, filename: string) => {
 };
 
 export const TMP_ROOT = path.join(process.cwd(), "..", "..", "uploads");
+
+export const clampLimit = (raw: unknown, def = 30, max = 50): number => {
+  if (raw === undefined || raw === "") return def;
+  const n = Math.trunc(Number(raw));
+  if (!Number.isFinite(n)) return def;
+  return Math.min(max, Math.max(1, n));
+};

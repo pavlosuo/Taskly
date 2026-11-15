@@ -39,7 +39,8 @@ export const Single: FC<{
 }> = ({ chat, messages: initialMessages, nextCursor: initialNextCursor }) => {
   const { t } = useTranslation(["chats", "common", "errors"]);
   const router = useRouter();
-  const { upsertChat, activeChat, setActiveChat, typingByChat } = useChats();
+  const { upsertChat, activeChat, setActiveChat, typingByChat, clearUnread } =
+    useChats();
   const displayChat = activeChat ?? chat;
   const chatId = displayChat._id;
   const [messages, setMessages] = useState<Message[]>(initialMessages ?? []);
@@ -94,6 +95,19 @@ export const Single: FC<{
 
   const handleMessageSent = (message: Message) => {
     appendMessage(message);
+    if (!message._id.startsWith("temp-")) {
+      upsertChat({
+        ...displayChat,
+        lastMessage: {
+          text: message.text,
+          hasMedia: message.media.length > 0,
+          senderId: message.senderId,
+          createdAt: message.createdAt,
+        },
+        updatedAt: message.createdAt,
+        unreadCount: 0,
+      });
+    }
     startTransition(() => {
       if (scrollRef.current) {
         scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -150,13 +164,10 @@ export const Single: FC<{
   }, [chatId, initialMessages]);
 
   useEffect(() => {
-    axiosApi
-      .markChatRead(chatId)
-      .then(() => {})
-      .catch(() => {});
+    axiosApi.markChatRead(chatId).catch(() => {});
     clearChatNotifications(chatId);
-    upsertChat({ ...chat, unreadCount: 0 });
-  }, [chatId, upsertChat, chat, clearChatNotifications]);
+    clearUnread(chatId);
+  }, [chatId, clearUnread, clearChatNotifications]);
 
   useEffect(() => {
     if (!isLoadingInitial && !didInitialScroll.current && scrollRef.current) {
@@ -183,10 +194,6 @@ export const Single: FC<{
     const handleNew = ({ message }: { message: Message }) => {
       appendMessage(message);
       axiosApi.markChatRead(chatId).catch(() => {});
-      upsertChat({
-        ...chat,
-        unreadCount: 0,
-      });
       startTransition(() => {
         if (scrollRef.current) {
           scrollRef.current.scrollTop = scrollRef.current.scrollHeight;

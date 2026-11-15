@@ -27,3 +27,7 @@ export const OTP_RESEND_SECONDS = 60;
 export const OTP_MAX_ATTEMPTS = 5;
 
 export const LAST_SEEN_THROTTLE_MS = 5 * 60 * 1000;
+
+export const CHAT_MESSAGE_MAX_LENGTH = 4000;
+
+export const CHAT_MAX_MEDIA = 10;

@@ -24,6 +24,7 @@ interface ChatContextType {
   activeChat: ChatWithMember | null;
   isInitialized: boolean;
   typingByChat: Record<string, boolean>;
+  clearUnread: (chatId: string) => void;
   fetchChats: () => Promise<void>;
   createChat: (memberId: string) => Promise<ChatWithMember>;
   deleteChat: (chatId: string) => Promise<void>;
@@ -102,8 +103,15 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
 
   const upsertChat = useCallback((updated: ChatWithMember) => {
     setChats((prev) => {
-      const exists = prev.some((c) => c._id === updated._id);
-      const next = exists
+      const current = prev.find((c) => c._id === updated._id);
+      if (
+        current &&
+        new Date(updated.updatedAt).getTime() <
+          new Date(current.updatedAt).getTime()
+      ) {
+        return prev;
+      }
+      const next = current
         ? prev.map((c) => (c._id === updated._id ? updated : c))
         : [updated, ...prev];
       return [...next].sort(
@@ -111,6 +119,14 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
           new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
       );
     });
+  }, []);
+
+  const clearUnread = useCallback((chatId: string) => {
+    setChats((prev) =>
+      prev.some((c) => c._id === chatId && c.unreadCount > 0)
+        ? prev.map((c) => (c._id === chatId ? { ...c, unreadCount: 0 } : c))
+        : prev,
+    );
   }, []);
 
   useEffect(() => {
@@ -166,6 +182,7 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
         deleteChat,
         upsertChat,
         setActiveChat,
+        clearUnread,
       }}
     >
       {children}
