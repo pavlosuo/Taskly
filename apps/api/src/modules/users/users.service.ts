@@ -584,14 +584,14 @@ export class UsersService {
       await syncCatalogCounts(
         db,
         "skills",
-        user.publicProfile?.skills as Tag[] || [],
+        (user.publicProfile?.skills as Tag[]) || [],
         [],
       );
 
       await syncCatalogCounts(
         db,
         "certificates",
-        user.publicProfile?.certificates as Tag[] || [],
+        (user.publicProfile?.certificates as Tag[]) || [],
         [],
       );
 

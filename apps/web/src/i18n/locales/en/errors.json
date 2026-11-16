@@ -282,7 +282,8 @@
       "denied": "Location access was denied. Allow it in your browser settings",
       "unavailable": "Your location is unavailable right now",
       "timeout": "Getting your location took too long. Try again",
-      "unknown": "Couldn't get your location"
+      "unknown": "Couldn't get your location",
+      "countryNotSupported": "Your country is not supported"
     },
     "update": { "empty": "Nothing to update" }
   },

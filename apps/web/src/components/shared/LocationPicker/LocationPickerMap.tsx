@@ -46,7 +46,7 @@ const ClickHandler = ({
 const RecenterOnChange = ({ lat, lng }: { lat: number; lng: number }) => {
   const map = useMap();
   useEffect(() => {
-    if (lat && lng) {
+    if (Number.isFinite(lat) && Number.isFinite(lng)) {
       map.setView([lat, lng], Math.max(map.getZoom(), 13));
     }
   }, [lat, lng, map]);
@@ -79,6 +79,62 @@ export const LocationPickerMap = ({
   const [isResolving, setIsResolving] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
   const onErrorRef = useRef(onError);
+  const searchControllerRef = useRef<AbortController | null>(null);
+  const isSearchingRef = useRef(false);
+
+  useEffect(() => {
+    searchControllerRef.current?.abort();
+    isSearchingRef.current = false;
+    startTransition(() => {
+      setIsSearching(false);
+      setResults([]);
+      setShowResults(false);
+    });
+  }, [lang]);
+
+  const handleSearch = useCallback(async () => {
+    const trimmedQuery = query.trim();
+
+    if (trimmedQuery.length < 3 || isSearching) return;
+
+    isSearchingRef.current = true;
+
+    searchControllerRef.current?.abort();
+
+    const controller = new AbortController();
+    searchControllerRef.current = controller;
+
+    setIsSearching(true);
+    setShowResults(true);
+    setResults([]);
+
+    try {
+      const items = await searchAddress(trimmedQuery, controller.signal, lang);
+
+      if (!controller.signal.aborted) {
+        setResults(items);
+      }
+    } catch (e) {
+      if (!controller.signal.aborted && e instanceof Error) {
+        onErrorRef.current?.(e.message);
+      }
+    } finally {
+      if (!controller.signal.aborted) {
+        isSearchingRef.current = false;
+        setIsSearching(false);
+      }
+
+      if (searchControllerRef.current === controller) {
+        searchControllerRef.current = null;
+      }
+    }
+  }, [query, lang, isSearching]);
+
+  useEffect(() => {
+    return () => {
+      searchControllerRef.current?.abort();
+    };
+  }, []);
 
   useEffect(() => {
     onErrorRef.current = onError;
@@ -89,35 +145,6 @@ export const LocationPickerMap = ({
       setQuery(value.address ?? "");
     });
   }, [value.address]);
-
-  useEffect(() => {
-    if (!showResults || query.trim().length < 3) {
-      startTransition(() => {
-        setResults([]);
-        setIsSearching(false);
-      });
-      return;
-    }
-    const controller = new AbortController();
-    startTransition(() => {
-      setIsSearching(true);
-    });
-    const timeout = setTimeout(async () => {
-      try {
-        const items = await searchAddress(query, controller.signal, lang);
-        if (!controller.signal.aborted) setResults(items);
-      } catch (e) {
-        if (controller.signal.aborted) return;
-        if (e instanceof Error) onErrorRef.current?.(e.message);
-      } finally {
-        if (!controller.signal.aborted) setIsSearching(false);
-      }
-    }, 400);
-    return () => {
-      clearTimeout(timeout);
-      controller.abort();
-    };
-  }, [query, showResults, lang]);
 
   const pickResult = (result: Location) => {
     setShowResults(false);
@@ -168,8 +195,12 @@ export const LocationPickerMap = ({
     );
   }, [handleMapPick]);
 
-  const center: [number, number] =
-    value.lat && value.lng ? [value.lat, value.lng] : [60.192059, 24.945831];
+  const hasCoordinates =
+    Number.isFinite(value.lat) && Number.isFinite(value.lng);
+
+  const center: [number, number] = hasCoordinates
+    ? [value.lat, value.lng]
+    : [60.192059, 24.945831];
 
   if (disabled) {
     return (
@@ -179,7 +210,7 @@ export const LocationPickerMap = ({
           className="h-full w-full"
         >
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-          {!!value.lat && !!value.lng && (
+          {hasCoordinates && (
             <Marker
               position={[value.lat, value.lng]}
               {...{ icon: markerIcon }}
@@ -194,21 +225,23 @@ export const LocationPickerMap = ({
     <div className={clsx("flex flex-col", className)}>
       <div className="flex items-start gap-2">
         <div className="relative flex-1">
-          <Search
-            aria-hidden="true"
-            className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground pointer-events-none"
-          />
           <Input
             name="location-search"
             value={query}
             onChange={(e) => {
               onInputChange?.(e);
               setQuery(e.target.value);
-              setShowResults(true);
+              setResults([]);
+              setShowResults(false);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                void handleSearch();
+              }
             }}
             placeholder={t("location.placeholder")}
             aria-label={t("location.search")}
-            className="pl-9 pr-9"
             error={error}
           />
           {isSearching && (
@@ -238,6 +271,21 @@ export const LocationPickerMap = ({
             </div>
           )}
         </div>
+        <Button
+          type="button"
+          variant="outline"
+          size="icon"
+          onClick={() => void handleSearch()}
+          disabled={isSearching || query.trim().length < 3}
+          aria-label={t("location.search")}
+          className="w-10 h-10"
+        >
+          {isSearching ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <Search className="w-4 h-4" />
+          )}
+        </Button>
         <Button
           type="button"
           variant="outline"

@@ -285,7 +285,8 @@
       "denied": "Sijaintiin pääsy estettiin. Salli se selaimen asetuksista",
       "unavailable": "Sijaintisi ei ole juuri nyt saatavilla",
       "timeout": "Sijainnin hakeminen kesti liian kauan. Yritä uudelleen",
-      "unknown": "Sijaintia ei voitu hakea"
+      "unknown": "Sijaintia ei voitu hakea",
+      "countryNotSupported": "Valitsemaasi maata ei tuki"
     },
     "update": { "empty": "Ei päivitettävää" }
   },

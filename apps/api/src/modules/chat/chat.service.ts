@@ -522,12 +522,15 @@ export class ChatService {
       const result = await db.collection("messages").insertOne(doc);
       await this.recomputeLastMessage(chat._id);
       if (otherId) {
-        await db
-          .collection<ChatBack>("chats")
-          .updateOne(
-            { _id: chat._id },
-            { $pull: { deletedBy: otherId }, $set: { updatedAt: now } },
-          );
+        await db.collection<ChatBack>("chats").updateOne(
+          { _id: chat._id },
+          {
+            $pullAll: {
+              deletedBy: otherId ? [user._id, otherId] : [user._id],
+            },
+            $set: { updatedAt: now },
+          },
+        );
       }
       const [message] = await this.populateMessages([
         { ...doc, _id: result.insertedId },

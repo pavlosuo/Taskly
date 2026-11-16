@@ -32,7 +32,7 @@ export async function searchAddress(
     },
   });
   if (!res.ok) {
-    throw new Error("task.location.searchAddress");
+    throw new Error("task.location.unknown");
   }
   const data: Item[] = await res.json();
   return data
@@ -66,9 +66,9 @@ export async function reverseGeocode(
       "Accept-Language": language,
     },
   });
-  if (!res.ok) throw new Error("task.location.reverseGeocode");
+  if (!res.ok) throw new Error("task.location.unknown");
   const data = await res.json();
-  if (!COUNTRY_CODES_LIST.includes(data.address.country_code.toLowerCase())) {
+  if (!COUNTRY_CODES_LIST.includes(data.address?.country_code?.toLowerCase())) {
     throw new Error("task.location.countryNotSupported");
   }
   return data.display_name as string;

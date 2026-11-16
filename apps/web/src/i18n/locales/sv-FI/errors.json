@@ -282,7 +282,8 @@
       "denied": "Åtkomst till plats nekades. Tillåt den i webbläsarens inställningar",
       "unavailable": "Din plats är inte tillgänglig just nu",
       "timeout": "Det tog för lång tid att hämta din plats. Försök igen",
-      "unknown": "Det gick inte att hämta din plats"
+      "unknown": "Det gick inte att hämta din plats",
+      "countryNotSupported": "Din landstod stöder inte detta"
     },
     "update": { "empty": "Inget att uppdatera" }
   },
