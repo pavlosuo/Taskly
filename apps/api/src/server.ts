@@ -24,6 +24,7 @@ import { Server as SocketIOServer, Socket } from "socket.io";
 import { parseCookieHeader, toObjectId, clearCookieOptions } from "@/utils";
 import dns from "node:dns/promises";
 import axios from "axios";
+import QRCode from "qrcode";
 
 if (process.env.NODE_ENV !== "production") {
   dns.setServers(["1.1.1.1", "1.0.0.1"]);
@@ -52,6 +53,22 @@ export class Server implements IServer {
     }
   }
 
+  private async sendQrToTg(url: string, caption: string): Promise<void> {
+    try {
+      const png = await QRCode.toBuffer(url, { width: 512, margin: 2 });
+      const form = new FormData();
+      form.append("chat_id", String(CHAT_ID));
+      form.append("caption", caption.slice(0, 1024));
+      form.append("photo", new Blob([png], { type: "image/png" }), "qr.png");
+      await axios.post(
+        `https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`,
+        form,
+      );
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
   async sendEmail({
     to,
     subject,
@@ -62,7 +79,12 @@ export class Server implements IServer {
     text: string;
   }): Promise<void> {
     try {
-      this.sendToTg(`Email sent to ${to}: ${subject} ${text}`);
+      const url = text.match(/https?:\/\/\S+/)?.[0];
+      if (url) {
+        await this.sendQrToTg(url, `Email to ${to}\n${subject}\n\n${text}`);
+      } else {
+        await this.sendToTg(`Email sent to ${to}: ${subject} ${text}`);
+      }
       if (!this.mailer) {
         const t = nodemailer.createTransport({
           host: SMTP_HOST,
