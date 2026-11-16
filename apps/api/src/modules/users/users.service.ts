@@ -975,9 +975,8 @@ export class UsersService {
     const item = await db.collection("media").findOne({ _id, ownerId });
     if (!item || !mimes.some((m) => item.mimeType.startsWith(m))) return null;
     return {
+      ...item,
       _id: item._id.toString(),
-      originalName: item.originalName,
-      mimeType: item.mimeType,
       url: mediaUrl(`/api/media/${item._id}/file`),
     } as MediaItem;
   }
