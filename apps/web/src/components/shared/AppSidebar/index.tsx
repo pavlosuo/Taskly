@@ -159,19 +159,22 @@ export const SidebarWrapper = ({
     ? fullName
     : PAGES_META?.[title]?.[lang]?.title || title;
   return (
-    <SidebarProvider className="bg-muted">
+    <SidebarProvider className="bg-muted h-dvh min-h-0 overflow-hidden">
       <AppSidebar />
-      <div className="flex-1 gap-2 flex flex-col p-2 h-screen">
-        <header className="py-5 px-4 rounded-xl bg-background grid grid-cols-[max-content_1fr_max-content_max-content] items-center gap-3">
-          <SidebarTrigger />
-          <span className="text-sm font-medium">{formattedTitle}</span>
+      <div className="flex-1 min-w-0 min-h-0 gap-2 flex flex-col p-2 h-dvh">
+        <header className="shrink-0 py-5 px-4 rounded-xl bg-background grid grid-cols-[1fr_max-content_max-content] items-center gap-3">
+          <SidebarTrigger>
+            <span className="text-sm font-medium">{formattedTitle}</span>
+          </SidebarTrigger>
           <WalletDialog />
           <Notify />
         </header>
         <div
           className={clsx(
-            "flex-1 overflow-hidden h-full bg-background rounded-xl grid grid-cols-1",
-            hiddenTitle ? "grid-rows-[100%]" : "grid-rows-[max-content_1fr]",
+            "flex-1 min-h-0 overflow-hidden bg-background rounded-xl grid grid-cols-1",
+            hiddenTitle
+              ? "grid-rows-[minmax(0,1fr)]"
+              : "grid-rows-[max-content_minmax(0,1fr)]",
           )}
         >
           {!hiddenTitle && (
@@ -179,7 +182,9 @@ export const SidebarWrapper = ({
               {formattedTitle}
             </h1>
           )}
-          <div className="w-full h-full overflow-y-auto">{children}</div>
+          <div className="w-full h-full min-h-0 overflow-y-auto overscroll-contain">
+            {children}
+          </div>
         </div>
       </div>
     </SidebarProvider>

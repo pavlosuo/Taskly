@@ -240,24 +240,33 @@ function Sidebar({
 function SidebarTrigger({
   className,
   onClick,
+  children,
   ...props
 }: React.ComponentProps<typeof Button>) {
   const { toggleSidebar } = useSidebar();
   return (
-    <Button
-      data-sidebar="trigger"
-      data-slot="sidebar-trigger"
-      size="icon-sm"
-      className={cn(className)}
+    <button
+      className="w-full flex items-center gap-3"
       onClick={(event) => {
         onClick?.(event);
         toggleSidebar();
       }}
-      {...props}
     >
-      <RiSideBarLine />
-      <span className="sr-only">Toggle Sidebar</span>
-    </Button>
+      <Button
+        data-sidebar="trigger"
+        data-slot="sidebar-trigger"
+        size="icon-sm"
+        className={cn(className)}
+        asChild
+        {...props}
+      >
+        <span>
+          <RiSideBarLine />
+          <span className="sr-only">Toggle Sidebar</span>
+        </span>
+      </Button>
+      {children}
+    </button>
   );
 }
 

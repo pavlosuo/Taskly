@@ -7,6 +7,12 @@ import clsx from "clsx";
 import "@/app/globals.css";
 import "@/scss/style.scss";
 
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  interactiveWidget: "resizes-content",
+};
+
 export default async function LocaleLayout({
   children,
 }: {
