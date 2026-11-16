@@ -9,7 +9,7 @@ import {
   Message,
   ChatLastMessage,
   Task,
-  TaskResponse,
+  TaskResponseItem,
   GeoPoint,
   OtpChannel,
   NotificationItem,
@@ -128,7 +128,7 @@ export interface TaskBack extends Omit<
 }
 
 export interface TaskResponseBack extends Omit<
-  TaskResponse,
+  TaskResponseItem,
   "_id" | "taskId" | "clientId" | "taskerId"
 > {
   _id: ObjectId;

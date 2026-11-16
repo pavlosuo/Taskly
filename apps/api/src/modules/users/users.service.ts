@@ -2,9 +2,6 @@ import {
   updateProfileSchema,
   otpSchema,
   changePasswordSchema,
-  publicProfileLangSchema,
-  publicProfileSkillSchema,
-  publicProfileCertificateSchema,
   ServiceResult,
   PublicProfileUser,
   PublicProfileLang,
@@ -12,6 +9,7 @@ import {
   MediaItem,
   PublicProfileCertificate,
   IMAGE_MIME_EXT,
+  Tag,
 } from "shared/index";
 import { CLIENT_URL } from "@/env";
 import { OtpService } from "@/modules/otp/otp.service";
@@ -30,8 +28,9 @@ import {
   stripMediaFields,
   escapeRegex,
   normalizeTagList,
+  syncCatalogCounts,
 } from "@/utils";
-import { ObjectId } from "mongodb";
+import { ObjectId, ClientSession, Document } from "mongodb";
 
 const IMAGE_MIMES = Object.keys(IMAGE_MIME_EXT);
 const INTRO_MIMES = ["video/"];
@@ -46,33 +45,35 @@ export class UsersService {
   }
 
   async updateProfile(req: Request, res: Response): Promise<ServiceResult> {
+    const user = req.user;
+    const parsed = updateProfileSchema.safeParse(req.body);
+    if (!parsed.success)
+      return {
+        success: false,
+        status: 400,
+        message: parsed.error.issues[0].message,
+      };
+    const {
+      username,
+      fullName,
+      fullPhone,
+      phone,
+      code,
+      avatar,
+      payout,
+      email,
+      settings,
+      publicProfile,
+    } = parsed.data;
+    const session = this.server.getClient().startSession();
+
     try {
-      const user = req.user;
-      const parsed = updateProfileSchema.safeParse(req.body);
-      if (!parsed.success)
-        return {
-          success: false,
-          status: 400,
-          message: parsed.error.issues[0].message,
-        };
-      const {
-        username,
-        fullName,
-        fullPhone,
-        phone,
-        code,
-        avatar,
-        payout,
-        email,
-        settings,
-        publicProfile,
-      } = parsed.data;
       const db = await this.server.getDb();
       const users = db.collection("users");
       const updates: Record<string, unknown> = {};
       const unsets: Record<string, ""> = {};
-      const adds: Array<() => Promise<ServiceResult>> = [];
-      const removes: Array<() => Promise<unknown>> = [];
+      const adds: Array<(s: ClientSession) => Promise<ServiceResult>> = [];
+      const removes: Array<(s: ClientSession) => Promise<ServiceResult>> = [];
       const badMedia: ServiceResult = {
         success: false,
         status: 400,
@@ -94,23 +95,23 @@ export class UsersService {
           if (!media) return badMedia;
           updates[field] = media;
           if (oldId === media._id) return null;
-          adds.push(() =>
-            this.mediaService.addPublicSource(media._id, user._id, source),
+          adds.push((s) =>
+            this.mediaService.addPublicSource(media._id, user._id, source, s),
           );
         }
         if (oldId) {
-          removes.push(() =>
-            this.mediaService.removePublicSource(oldId, user._id, source),
+          removes.push((s) =>
+            this.mediaService.removePublicSource(oldId, user._id, source, s),
           );
         }
         return null;
       };
 
       if (username !== undefined && username !== user.username) {
-        const exists = await users.findOne({
-          username,
-          _id: { $ne: user._id },
-        });
+        const exists = await users.findOne(
+          { username, _id: { $ne: user._id } },
+          { collation: { locale: "en", strength: 2 } },
+        );
         if (exists)
           return {
             success: false,
@@ -118,7 +119,7 @@ export class UsersService {
             message: "user.usernameExists",
           };
         updates.username = username;
-        if (user?.role !== "admin")
+        if (user.role !== "admin")
           updates.publicLink = `${CLIENT_URL}/@${username}`;
       }
 
@@ -129,10 +130,13 @@ export class UsersService {
             updates["otps.verify-email.expiresAt"] = new Date(0);
           }
         } else if (email !== user.newEmail) {
-          const exists = await users.findOne({
-            $or: [{ email }, { newEmail: email }],
-            _id: { $ne: user._id },
-          });
+          const exists = await users.findOne(
+            {
+              $or: [{ email }, { newEmail: email }],
+              _id: { $ne: user._id },
+            },
+            { collation: { locale: "en", strength: 2 } },
+          );
           if (exists)
             return { success: false, status: 400, message: "user.emailExists" };
           updates.newEmail = email;
@@ -162,6 +166,8 @@ export class UsersService {
             updates["otps.verify-phone.expiresAt"] = new Date(0);
           }
         } else if (fullPhone !== user.profile?.newFullPhone) {
+          if (phone === undefined || code === undefined)
+            return { success: false, status: 400, message: "phone.invalid" };
           const phoneTaken = await users.findOne({
             $or: [
               { "profile.fullPhone": fullPhone },
@@ -191,8 +197,6 @@ export class UsersService {
         if (theme !== undefined) updates["settings.theme"] = theme;
         if (checkboxes !== undefined)
           updates["settings.checkboxes"] = checkboxes;
-        if (theme) res.cookie("theme", theme, cookieOptions);
-        if (lang) res.cookie("lang", lang, cookieOptions);
       }
 
       if (publicProfile !== undefined) {
@@ -202,28 +206,12 @@ export class UsersService {
         if (bio !== undefined) updates["publicProfile.bio"] = bio;
 
         if (skills !== undefined) {
-          for (const skill of skills) {
-            const r = publicProfileSkillSchema.safeParse(skill);
-            if (!r.success)
-              return {
-                success: false,
-                status: 400,
-                message: r.error.issues[0].message,
-              };
-          }
           updates["publicProfile.skills"] = normalizeTagList(skills);
         }
 
         if (certificates !== undefined) {
           const resolved: PublicProfileCertificate[] = [];
           for (const cert of certificates) {
-            const r = publicProfileCertificateSchema.safeParse(cert);
-            if (!r.success)
-              return {
-                success: false,
-                status: 400,
-                message: r.error.issues[0].message,
-              };
             if (cert.media) {
               const media = await this.resolveMedia(
                 user._id,
@@ -236,19 +224,48 @@ export class UsersService {
               resolved.push(cert);
             }
           }
-          updates["publicProfile.certificates"] = normalizeTagList(resolved);
+          const newCerts = normalizeTagList(
+            resolved,
+          ) as PublicProfileCertificate[];
+          const oldCerts: PublicProfileCertificate[] =
+            user.publicProfile?.certificates ?? [];
+          updates["publicProfile.certificates"] = newCerts;
+
+          for (const old of oldCerts) {
+            const oldMedia = old.media;
+            if (!oldMedia) continue;
+            const next = newCerts.find((n) => n.value === old.value);
+            if (next?.media?._id !== oldMedia._id) {
+              removes.push((s) =>
+                this.mediaService.removePublicSource(
+                  oldMedia._id,
+                  user._id,
+                  `certificate:${old.value}`,
+                  s,
+                ),
+              );
+            }
+          }
+          for (const n of newCerts) {
+            const newMedia = n.media;
+            if (!newMedia) continue;
+            const old = oldCerts.find((o) => o.value === n.value);
+            if (old?.media?._id !== newMedia._id) {
+              adds.push((s) =>
+                this.mediaService.addPublicSource(
+                  newMedia._id,
+                  user._id,
+                  `certificate:${n.value}`,
+                  s,
+                ),
+              );
+            }
+          }
         }
 
         if (languages !== undefined) {
           const resolved: PublicProfileLang[] = [];
           for (const l of languages) {
-            const r = publicProfileLangSchema.safeParse(l);
-            if (!r.success)
-              return {
-                success: false,
-                status: 400,
-                message: r.error.issues[0].message,
-              };
             const m = l.certificate?.media;
             if (m) {
               const media = await this.resolveMedia(
@@ -272,11 +289,12 @@ export class UsersService {
             if (!oldMedia) continue;
             const next = newLangs.find((n) => n.value === old.value);
             if (next?.certificate?.media?._id !== oldMedia._id) {
-              removes.push(() =>
+              removes.push((s) =>
                 this.mediaService.removePublicSource(
                   oldMedia._id,
                   user._id,
                   `language-certificate:${old.value}`,
+                  s,
                 ),
               );
             }
@@ -286,11 +304,12 @@ export class UsersService {
             if (!newMedia) continue;
             const old = oldLangs.find((o) => o.value === n.value);
             if (old?.certificate?.media?._id !== newMedia._id) {
-              adds.push(() =>
+              adds.push((s) =>
                 this.mediaService.addPublicSource(
                   newMedia._id,
                   user._id,
                   `language-certificate:${n.value}`,
+                  s,
                 ),
               );
             }
@@ -331,19 +350,68 @@ export class UsersService {
         };
       }
 
-      for (const add of adds) {
-        const r = await add();
-        if (!r.success) return r;
+      let before = null as Document | null;
+
+      await session.withTransaction(async () => {
+        for (const add of adds) {
+          const r = await add(session);
+          if (!r.success) throw { status: r.status, message: r.message };
+        }
+
+        for (const remove of removes) {
+          const r = await remove(session);
+          if (!r.success && r.status !== 404)
+            throw { status: r.status, message: r.message };
+        }
+
+        before = await users.findOneAndUpdate(
+          { _id: user._id },
+          {
+            ...(Object.keys(updates).length ? { $set: updates } : {}),
+            ...(Object.keys(unsets).length ? { $unset: unsets } : {}),
+          },
+          {
+            session,
+            returnDocument: "before",
+            projection: {
+              "publicProfile.skills": 1,
+              "publicProfile.certificates": 1,
+            },
+          },
+        );
+      });
+
+      const catalogSync: Promise<unknown>[] = [];
+
+      if (updates["publicProfile.skills"] !== undefined) {
+        catalogSync.push(
+          syncCatalogCounts(
+            db,
+            "skills",
+            before?.publicProfile?.skills ?? [],
+            updates["publicProfile.skills"] as Tag[],
+          ),
+        );
       }
-      await users.updateOne(
-        { _id: user._id },
-        {
-          ...(Object.keys(updates).length ? { $set: updates } : {}),
-          ...(Object.keys(unsets).length ? { $unset: unsets } : {}),
-        },
-      );
-      await Promise.allSettled(removes.map((fn) => fn()));
-      const updated = await users.findOne({ _id: user._id });
+
+      if (updates["publicProfile.certificates"] !== undefined) {
+        catalogSync.push(
+          syncCatalogCounts(
+            db,
+            "certificates",
+            before?.publicProfile?.certificates ?? [],
+            updates["publicProfile.certificates"] as Tag[],
+          ),
+        );
+      }
+
+      (await Promise.allSettled(catalogSync)).forEach((r) => {
+        if (r.status === "rejected")
+          console.error("Catalog count sync error:", r.reason);
+      });
+
+      if (settings?.theme) res.cookie("theme", settings.theme, cookieOptions);
+      if (settings?.lang) res.cookie("lang", settings.lang, cookieOptions);
 
       const hiddenNext = settings?.checkboxes?.noOnlineStatus;
       if (
@@ -354,17 +422,33 @@ export class UsersService {
         this.server.setPresenceVisibility(user._id.toString(), hiddenNext);
       }
 
+      const updated = await users.findOne({ _id: user._id });
+
       return {
         success: true,
         status: 200,
         data: { user: toPublicUser(updated) },
       };
     } catch (error: any) {
+      if (error?.status && error?.message) {
+        return { success: false, status: error.status, message: error.message };
+      }
       if (error?.code === 11000) {
-        return { success: false, status: 400, message: "user.unavailableData" };
+        const key = Object.keys(error.keyPattern ?? {})[0];
+        const message =
+          key === "username"
+            ? "user.usernameExists"
+            : key === "email"
+              ? "user.emailExists"
+              : key === "profile.fullPhone"
+                ? "user.phoneExists"
+                : "user.unavailableData";
+        return { success: false, status: 400, message };
       }
       console.error("Update profile error:", error);
       return { success: false, status: 500, message: "general.unknown" };
+    } finally {
+      await session.endSession();
     }
   }
 
@@ -497,6 +581,20 @@ export class UsersService {
         },
       );
 
+      await syncCatalogCounts(
+        db,
+        "skills",
+        user.publicProfile?.skills as Tag[] || [],
+        [],
+      );
+
+      await syncCatalogCounts(
+        db,
+        "certificates",
+        user.publicProfile?.certificates as Tag[] || [],
+        [],
+      );
+
       return { success: true, status: 200 };
     } catch (error) {
       console.error("Deactivate account error:", error);
@@ -609,7 +707,7 @@ export class UsersService {
 
       const taken = await users.findOne(
         { email: confirmed, _id: { $ne: user._id } },
-        { projection: { _id: 1 } },
+        { projection: { _id: 1 }, collation: { locale: "en", strength: 2 } },
       );
       if (taken)
         return { success: false, status: 400, message: "user.emailExists" };
@@ -712,12 +810,11 @@ export class UsersService {
           message: "user.usernameMissing",
         };
       }
-
       const db = await this.server.getDb();
-
       const user = await db.collection("users").findOne<User>(
         { username, deletedAt: { $exists: false } },
         {
+          collation: { locale: "en", strength: 2 },
           projection: {
             username: 1,
             role: 1,

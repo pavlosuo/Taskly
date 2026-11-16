@@ -104,6 +104,7 @@ export interface PublicProfileUser extends TaskerStats {
 export type UpdateProfileForm = Partial<{
   fullName: string;
   username: string;
+  publicLink: string;
   phone: string;
   email: string;
   payout: Payout;

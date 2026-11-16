@@ -4,7 +4,8 @@ import {
   upperSign,
   ServiceResult,
 } from "shared/index";
-import { escapeRegex } from "@/utils";
+import { MESSAGE_MAX_LENGTH } from "shared/data";
+import { escapeRegex, normalizeLabel } from "@/utils";
 
 export class CertificatesService {
   constructor(private server: IServer) {}
@@ -12,10 +13,12 @@ export class CertificatesService {
   async search(q: string): Promise<ServiceResult> {
     try {
       const db = await this.server.getDb();
+      const query =
+        typeof q === "string" ? normalizeLabel(q).slice(0, 100) : "";
       const items = await db
         .collection("certificates")
         .find(
-          q.trim() ? { label: { $regex: escapeRegex(q), $options: "i" } } : {},
+          query ? { label: { $regex: escapeRegex(query), $options: "i" } } : {},
         )
         .sort({ count: -1 })
         .limit(10)
@@ -29,10 +32,29 @@ export class CertificatesService {
 
   async upsert(label: string, description: string): Promise<ServiceResult> {
     try {
+      if (typeof label !== "string")
+        return {
+          success: false,
+          status: 400,
+          message: "certificate.label.required",
+        };
+      if (description != null && typeof description !== "string")
+        return {
+          success: false,
+          status: 400,
+          message: "certificate.description.invalid",
+        };
+      const desc = (description ?? "").trim();
+      if (desc.length > MESSAGE_MAX_LENGTH)
+        return {
+          success: false,
+          status: 400,
+          message: "certificate.description.tooLong",
+        };
+      const normalized = normalizeLabel(label);
       const parsed = publicProfileCertificateSchema.safeParse({
-        label,
-        description,
-        value: label.toLowerCase(),
+        label: normalized,
+        value: normalized.toLowerCase(),
       });
       if (!parsed.success)
         return {
@@ -40,21 +62,35 @@ export class CertificatesService {
           status: 400,
           message: parsed.error.issues[0].message,
         };
-      const db = await this.server.getDb();
-      const normalized = label.trim();
       const final = upperSign(normalized);
-      const result = await db.collection("certificates").findOneAndUpdate(
-        { label: { $regex: `^${escapeRegex(final)}$`, $options: "i" } },
-        {
-          $inc: { count: 1 },
-          $setOnInsert: {
-            label: final,
-            description,
-            createdAt: new Date(),
+      const db = await this.server.getDb();
+      const certificates = db.collection("certificates");
+      const run = () =>
+        certificates.findOneAndUpdate(
+          { label: final },
+          {
+            $setOnInsert: {
+              description: desc,
+              count: 0,
+              createdAt: new Date(),
+            },
           },
-        },
-        { upsert: true, returnDocument: "after" },
-      );
+          {
+            upsert: true,
+            returnDocument: "after",
+            collation: { locale: "en", strength: 2 },
+          },
+        );
+      let result;
+      try {
+        result = await run();
+      } catch (e: any) {
+        if (e?.code !== 11000) throw e;
+        result = await certificates.findOne(
+          { label: final },
+          { collation: { locale: "en", strength: 2 } },
+        );
+      }
       return { success: true, status: 200, data: result };
     } catch (e) {
       console.error("Upsert certificate error:", e);

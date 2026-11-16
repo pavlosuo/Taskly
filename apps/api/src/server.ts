@@ -487,6 +487,23 @@ export class Server implements IServer {
           { "profile.newFullPhone": 1 },
           { sparse: true, name: "idx_new_full_phone" },
         ),
+
+      db.collection("skills").createIndex(
+        { label: 1 },
+        {
+          unique: true,
+          collation: { locale: "en", strength: 2 },
+          name: "uniq_skill_label_ci",
+        },
+      ),
+      db.collection("certificates").createIndex(
+        { label: 1 },
+        {
+          unique: true,
+          collation: { locale: "en", strength: 2 },
+          name: "uniq_certificate_label_ci",
+        },
+      ),
     ]);
   }
 

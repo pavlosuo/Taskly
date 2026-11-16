@@ -23,6 +23,7 @@ import fs from "fs/promises";
 import { ObjectId, type Collection } from "mongodb";
 import { processMedia } from "@/utils/process-media";
 import path from "path";
+import type { ClientSession } from "mongodb";
 
 export class MediaService {
   private static jobsStarted = false;
@@ -228,6 +229,7 @@ export class MediaService {
     id: string,
     ownerId: ObjectId,
     source: string,
+    session?: ClientSession,
   ): Promise<ServiceResult> {
     try {
       const mediaId = toObjectId(id);
@@ -240,6 +242,7 @@ export class MediaService {
         .updateOne(
           { _id: mediaId, ownerId },
           { $addToSet: { publicSources: source } },
+          { session },
         );
       if (res.matchedCount === 0)
         return { success: false, status: 404, message: "media.notFound" };
@@ -254,6 +257,7 @@ export class MediaService {
     id: string,
     ownerId: ObjectId,
     source: string,
+    session?: ClientSession,
   ): Promise<ServiceResult> {
     try {
       const mediaId = toObjectId(id);
@@ -266,6 +270,7 @@ export class MediaService {
         .updateOne(
           { _id: mediaId, ownerId },
           { $pull: { publicSources: source } },
+          { session },
         );
       if (res.matchedCount === 0)
         return { success: false, status: 404, message: "media.notFound" };

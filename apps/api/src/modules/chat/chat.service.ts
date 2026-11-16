@@ -752,31 +752,71 @@ export class ChatService {
           status: 404,
           message: "chat.message.notFound",
         };
-      const msg = await db.collection<MessageBack>("messages").findOne({
-        _id: _messageId,
-        chatId: chat._id,
-      });
-      if (!msg)
+      const current = { $ifNull: ["$reactions", []] };
+      const emojiValue = { $literal: emoji };
+      const updated = await db
+        .collection<MessageBack>("messages")
+        .findOneAndUpdate(
+          { _id: _messageId, chatId: chat._id },
+          [
+            {
+              $set: {
+                reactions: {
+                  $let: {
+                    vars: {
+                      others: {
+                        $filter: {
+                          input: current,
+                          as: "r",
+                          cond: { $ne: ["$$r.userId", user._id] },
+                        },
+                      },
+                      hadSame: {
+                        $gt: [
+                          {
+                            $size: {
+                              $filter: {
+                                input: current,
+                                as: "r",
+                                cond: {
+                                  $and: [
+                                    { $eq: ["$$r.userId", user._id] },
+                                    { $eq: ["$$r.emoji", emojiValue] },
+                                  ],
+                                },
+                              },
+                            },
+                          },
+                          0,
+                        ],
+                      },
+                    },
+                    in: {
+                      $cond: [
+                        "$$hadSame",
+                        "$$others",
+                        {
+                          $concatArrays: [
+                            "$$others",
+                            [{ userId: user._id, emoji: emojiValue }],
+                          ],
+                        },
+                      ],
+                    },
+                  },
+                },
+              },
+            },
+          ],
+          { returnDocument: "after" },
+        );
+      if (!updated)
         return {
           success: false,
           status: 404,
           message: "chat.message.notFound",
         };
-      const myReaction = msg.reactions.find((r) => r.userId.equals(user._id));
-      const isRemovingSame = myReaction?.emoji === emoji;
-      const withoutMine = msg.reactions.filter(
-        (r) => !r.userId.equals(user._id),
-      );
-      const nextReactions = isRemovingSame
-        ? withoutMine
-        : [...withoutMine, { userId: user._id, emoji }];
-      await db
-        .collection<MessageBack>("messages")
-        .updateOne({ _id: msg._id }, { $set: { reactions: nextReactions } });
-      const updated = await db
-        .collection<MessageBack>("messages")
-        .findOne({ _id: msg._id });
-      const [message] = await this.populateMessages([updated!]);
+      const [message] = await this.populateMessages([updated]);
       this.emitToChat(chat._id, "message:updated", { message }, user._id);
       return { success: true, status: 200, data: { message } };
     } catch (e) {

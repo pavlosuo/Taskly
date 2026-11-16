@@ -1,6 +1,6 @@
 import { z } from "zod";
 import libphonenumber from "google-libphonenumber";
-import { removeHtml, validatePassword } from "shared/utils";
+import { removeHtml, validatePassword, utf8Length } from "shared/utils";
 import { MAX_PRICE } from "shared/data";
 
 const phoneUtil = libphonenumber.PhoneNumberUtil.getInstance();
@@ -47,6 +47,10 @@ export const emailField = z
 export const passwordField = z.string().superRefine((val, ctx) => {
   if (!val) {
     custom(ctx, "password.required");
+    return;
+  }
+  if (utf8Length(val) > 72) {
+    custom(ctx, "password.tooLong");
     return;
   }
   const result = validatePassword(val);

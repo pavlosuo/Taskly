@@ -23,8 +23,10 @@ import { OtpService } from "@/modules/otp/otp.service";
 
 export class AuthService {
   private otpService: OtpService;
+  private dummyPassword: string;
 
   constructor(private server: IServer) {
+    this.dummyPassword = bcrypt.hashSync("timing-equalizer", 10);
     this.otpService = new OtpService(server);
     this.registerAdmin({
       email: ADMIN_EMAIL,
@@ -83,21 +85,28 @@ export class AuthService {
       } = parsed.data;
       const db = await this.server.getDb();
       const users = db.collection("users");
-      const existingName = await users.findOne({ username });
+      const existingName = await users.findOne(
+        { username },
+        { collation: { locale: "en", strength: 2 } },
+      );
       if (existingName)
         return {
           success: false,
           status: 400,
           message: "user.usernameExists",
         };
-      const existing = await users.findOne({
-        $or: [
-          { email },
-          { newEmail: email },
-          { "profile.fullPhone": fullPhone },
-          { "profile.newFullPhone": fullPhone },
-        ],
-      });
+      const existing = await users.findOne(
+        {
+          $or: [
+            { email },
+            { newEmail: email },
+            { "profile.fullPhone": fullPhone },
+            { "profile.newFullPhone": fullPhone },
+          ],
+        },
+        { collation: { locale: "en", strength: 2 } },
+      );
+
       if (existing)
         return {
           success: false,
@@ -190,7 +199,10 @@ export class AuthService {
       const { email, password, username } = parsed.data;
       const db = await this.server.getDb();
       const users = db.collection("users");
-      const existing = await users.findOne({ $or: [{ email }, { username }] });
+      const existing = await users.findOne(
+        { $or: [{ email }, { username }] },
+        { collation: { locale: "en", strength: 2 } },
+      );
       if (existing)
         return { success: false, status: 400, message: "user.usernameExists" };
       const passwordHash = await bcrypt.hash(password, 10);
@@ -258,11 +270,14 @@ export class AuthService {
         };
       const { email, password } = parsed.data;
       const db = await this.server.getDb();
-      const user = (await db
+      const user = await db
         .collection("users")
-        .findOne({ email })) as User | null;
-      const isPasswordValid =
-        user && (await bcrypt.compare(password, user.passwordHash));
+        .findOne({ email }, { collation: { locale: "en", strength: 2 } });
+
+      const isPasswordValid = await bcrypt.compare(
+        password,
+        user?.passwordHash ?? this.dummyPassword,
+      );
 
       if (!user || !isPasswordValid)
         return {
@@ -334,7 +349,9 @@ export class AuthService {
         };
       const { email } = parsed.data;
       const db = await this.server.getDb();
-      const user = await db.collection("users").findOne({ email });
+      const user = await db
+        .collection("users")
+        .findOne({ email }, { collation: { locale: "en", strength: 2 } });
       if (!user) return { success: true, status: 200 };
       const resetToken = jwt.sign(
         { id: user._id.toString(), typ: "reset" },

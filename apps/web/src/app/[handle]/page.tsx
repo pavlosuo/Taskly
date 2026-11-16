@@ -21,7 +21,7 @@ export async function generateMetadata({ params }: Props) {
     const { user } = data;
     if (!user) return {};
     return getMetaData({
-      title: username,
+      title: user.username,
       description: truncateForSeo(removeHtml(user.publicProfile.bio || "")),
     });
   } catch {

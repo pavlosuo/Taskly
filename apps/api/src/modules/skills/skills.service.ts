@@ -4,7 +4,7 @@ import {
   upperSign,
 } from "shared/index";
 import { IServer } from "@/types";
-import { escapeRegex } from "@/utils";
+import { escapeRegex, normalizeLabel } from "@/utils";
 
 export class SkillsService {
   constructor(private server: IServer) {}
@@ -12,10 +12,12 @@ export class SkillsService {
   async search(q: string): Promise<ServiceResult> {
     try {
       const db = await this.server.getDb();
+      const query =
+        typeof q === "string" ? normalizeLabel(q).slice(0, 100) : "";
       const items = await db
         .collection("skills")
         .find(
-          q.trim() ? { label: { $regex: escapeRegex(q), $options: "i" } } : {},
+          query ? { label: { $regex: escapeRegex(query), $options: "i" } } : {},
         )
         .sort({ count: -1 })
         .limit(10)
@@ -29,9 +31,12 @@ export class SkillsService {
 
   async upsert(label: string): Promise<ServiceResult> {
     try {
+      if (typeof label !== "string")
+        return { success: false, status: 400, message: "skill.label.required" };
+      const normalized = normalizeLabel(label);
       const parsed = publicProfileSkillSchema.safeParse({
-        label,
-        value: label.toLowerCase(),
+        label: normalized,
+        value: normalized.toLowerCase(),
       });
       if (!parsed.success)
         return {
@@ -39,17 +44,29 @@ export class SkillsService {
           status: 400,
           message: parsed.error.issues[0].message,
         };
-      const db = await this.server.getDb();
-      const normalized = label.trim();
       const final = upperSign(normalized);
-      const result = await db.collection("skills").findOneAndUpdate(
-        { label: { $regex: `^${escapeRegex(final)}$`, $options: "i" } },
-        {
-          $inc: { count: 1 },
-          $setOnInsert: { label: final, createdAt: new Date() },
-        },
-        { upsert: true, returnDocument: "after" },
-      );
+      const db = await this.server.getDb();
+      const skills = db.collection("skills");
+      const run = () =>
+        skills.findOneAndUpdate(
+          { label: final },
+          { $setOnInsert: { count: 0, createdAt: new Date() } },
+          {
+            upsert: true,
+            returnDocument: "after",
+            collation: { locale: "en", strength: 2 },
+          },
+        );
+      let result;
+      try {
+        result = await run();
+      } catch (e: any) {
+        if (e?.code !== 11000) throw e;
+        result = await skills.findOne(
+          { label: final },
+          { collation: { locale: "en", strength: 2 } },
+        );
+      }
       return { success: true, status: 200, data: result };
     } catch (e) {
       console.error("Upsert skill error:", e);

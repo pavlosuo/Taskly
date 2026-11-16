@@ -11,6 +11,7 @@ import {
 import { User } from "@/types";
 import { ObjectId, WithId, Document } from "mongodb";
 import { NODE_ENV, NEXT_PUBLIC_API_URL, OTP_SECRET } from "@/env";
+import type { Db } from "mongodb";
 import path from "path";
 export * from "@/utils/limiters";
 export * from "@/utils/upload";
@@ -288,3 +289,41 @@ export const clampLimit = (raw: unknown, def = 30, max = 50): number => {
   if (!Number.isFinite(n)) return def;
   return Math.min(max, Math.max(1, n));
 };
+
+export const normalizeLabel = (s: string) => s.trim().replace(/\s+/g, " ");
+
+export async function syncCatalogCounts(
+  db: Db,
+  collection: "skills" | "certificates",
+  before: Tag[],
+  after: Tag[],
+): Promise<void> {
+  const keyOf = (t: Tag) => normalizeLabel(t.label).toLowerCase();
+  const toMap = (list: Tag[]) => new Map(list.map((t) => [keyOf(t), t]));
+  const was = toMap(before);
+  const now = toMap(after);
+  const ops: any[] = [];
+  for (const [key, tag] of now) {
+    if (was.has(key)) continue;
+    ops.push({
+      updateOne: {
+        filter: { label: normalizeLabel(tag.label) },
+        update: { $inc: { count: 1 } },
+        collation: { locale: "en", strength: 2 },
+      },
+    });
+  }
+  for (const [key, tag] of was) {
+    if (now.has(key)) continue;
+    ops.push({
+      updateOne: {
+        filter: { label: normalizeLabel(tag.label), count: { $gt: 0 } },
+        update: { $inc: { count: -1 } },
+        collation: { locale: "en", strength: 2 },
+      },
+    });
+  }
+  if (ops.length) {
+    await db.collection(collection).bulkWrite(ops, { ordered: false });
+  }
+}
