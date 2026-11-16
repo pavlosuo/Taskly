@@ -278,7 +278,7 @@ export const LocationPickerMap = ({
           onClick={() => void handleSearch()}
           disabled={isSearching || query.trim().length < 3}
           aria-label={t("location.search")}
-          className="w-10 h-10"
+          className="w-10 h-10 bg-transparent hover:bg-muted"
         >
           {isSearching ? (
             <Loader2 className="w-4 h-4 animate-spin" />

@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { useFormatPrice } from "@/hooks/useFormatPrice";
 import { ReviewPanel } from "@/screens/tasks/ui/ReviewPanel";
 import { useFormatDate } from "@/hooks/useFormatDate";
+import { useSingleTask } from "@/providers/SingleTaskProvider";
 
 const paymentState = (task: Task): PaymentState | null => {
   if (task.status === "assigned" || task.status === "pending_confirmation")
@@ -43,18 +44,17 @@ const PaymentNote = ({
 };
 
 export const TaskFlowPanel = ({
-  task,
   role,
   amount,
   accepted,
   onClose,
 }: {
-  task: Task;
   role: "client" | "tasker";
   amount?: number;
   accepted?: boolean;
   onClose?: () => void;
 }) => {
+  const { task } = useSingleTask();
   const { t } = useTranslation("tasks");
   const { confirm } = useModal();
   const { markDone, abandonTask, isLoading } = useTasks();
@@ -123,7 +123,7 @@ export const TaskFlowPanel = ({
           </Button>
         </div>
       )}
-      {showReview && <ReviewPanel taskId={task._id} />}
+      {showReview && <ReviewPanel />}
     </div>
   );
 };

@@ -65,8 +65,6 @@ const useTabIndicators = (count: number) => {
   const pathname = usePathname();
   const countRef = useRef(count);
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const iconRef = useRef<{ img: HTMLImageElement; href: string } | null>(null);
-  const [iconReady, setIconReady] = useState(false);
 
   useEffect(() => {
     countRef.current = count;
@@ -76,14 +74,10 @@ const useTabIndicators = (count: number) => {
     const audio = new Audio(SOUND_SRC);
     audio.volume = 0.5;
     audioRef.current = audio;
-    const href = getIconLinks()[0]?.href || "/favicon.ico";
-    const img = new Image();
-    img.onload = () => {
-      iconRef.current = { img, href };
-      setIconReady(true);
-    };
-    img.src = href;
     return () => {
+      audio.pause();
+      audio.removeAttribute("src");
+      audio.load();
       audioRef.current = null;
     };
   }, []);
@@ -96,42 +90,16 @@ const useTabIndicators = (count: number) => {
       if (document.title !== next) document.title = next;
     };
     apply();
+    const titleEl = document.querySelector("title");
+    if (!titleEl) return;
     const observer = new MutationObserver(apply);
-    observer.observe(document.head, {
+    observer.observe(titleEl, {
       childList: true,
-      subtree: true,
       characterData: true,
+      subtree: true,
     });
     return () => observer.disconnect();
   }, [count, pathname]);
-
-  useEffect(() => {
-    const icon = iconRef.current;
-    if (!icon) return;
-    if (count === 0) {
-      setFavicon(icon.href);
-      return;
-    }
-    const size = 64;
-    const canvas = document.createElement("canvas");
-    canvas.width = size;
-    canvas.height = size;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-    const r = size * 0.5;
-    const cx = size - r;
-    const cy = r;
-    ctx.beginPath();
-    ctx.arc(cx, cy, r, 0, Math.PI * 2);
-    ctx.fillStyle = BADGE_COLOR;
-    ctx.fill();
-    ctx.fillStyle = "#fff";
-    ctx.font = `bold ${Math.round(r * 1.2)}px sans-serif`;
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillText(count > 9 ? "9+" : String(count), cx, cy + 1);
-    setFavicon(canvas.toDataURL("image/png"));
-  }, [count, pathname, iconReady]);
 
   const playSound = useCallback((key: string) => {
     const play = () => {

@@ -13,6 +13,7 @@ import { useTasks } from "@/providers/TaskProvider";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { FieldError } from "@/components/shared/FieldError";
+import { useSingleTask } from "@/providers/SingleTaskProvider";
 
 const Stars = ({
   value,
@@ -73,7 +74,9 @@ const ReviewBlock = ({
   </div>
 );
 
-export const ReviewPanel = ({ taskId }: { taskId: string }) => {
+export const ReviewPanel = () => {
+  const { task } = useSingleTask();
+  const taskId = task._id;
   const { t } = useTranslation("tasks");
   const { getTaskReviews, createReview, isLoading } = useTasks();
   const [data, setData] = useState<TaskReviews | null>(null);
