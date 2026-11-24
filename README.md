@@ -19,10 +19,7 @@ Post a task · Receive offers · Chat in real time · Pay safely through escrow 
 
 </div>
 
-<!--
-  Tip: add a hero screenshot or a short GIF here, e.g.
-  <p align="center"><img src="docs/screenshot.png" width="900" alt="Taskly dashboard" /></p>
--->
+<p align="center"><img src="docs/screenshot.png" width="900" alt="Taskly dashboard" /></p>
 
 ---
 
@@ -235,7 +232,7 @@ taskly/
 ### 1. Install
 
 ```bash
-git clone https://github.com/<your-username>/taskly.git
+git clone https://github.com/pavlosuo/Taskly.git
 cd taskly
 pnpm install
 ```
@@ -358,7 +355,7 @@ Taskly is an actively developed portfolio project. The core marketplace flow (ta
 
 <div align="center">
 
-**Built by [Your Name](https://github.com/<your-username>)** · [LinkedIn](https://www.linkedin.com/in/<your-handle>) · [Email](mailto:you@example.com)
+**Built by Pavlo Matviienko (https://github.com/pavlosuo)** · [LinkedIn](https://www.linkedin.com/in/pavlo-matviienko-78047944a/) · [Email](pavlomatviienko0612@gmail.com)
 
 *Open to feedback and collaboration.*
 

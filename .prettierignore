@@ -1,0 +1,7 @@
+dist/
+build/
+coverage/
+*.min.js
+*.min.css
+.next/
+README.md
