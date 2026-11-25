@@ -48,6 +48,15 @@ export const authLimiter = rateLimit({
   message: { success: false, status: 429, message: "general.tooManyRequests" },
 });
 
+export const authLimiterIp = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 30,
+  skipSuccessfulRequests: true,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, status: 429, message: "general.tooManyRequests" },
+});
+
 export const globalLimiter = rateLimit({
   windowMs: 60_000,
   limit: 300,
@@ -77,6 +86,14 @@ export const searchLimiter = rateLimit({
 export const uploadLimiter = rateLimit({
   windowMs: 60_000,
   limit: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, status: 429, message: "general.tooManyRequests" },
+});
+
+export const registerLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  limit: 5,
   standardHeaders: true,
   legacyHeaders: false,
   message: { success: false, status: 429, message: "general.tooManyRequests" },

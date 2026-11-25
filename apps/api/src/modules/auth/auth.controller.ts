@@ -53,8 +53,6 @@ export class AuthController {
   }
 
   async logout(req: Request, res: Response) {
-    const user = req.user;
-    if (user) await this.server.revokeSessions(user._id);
     res.clearCookie("token", clearCookieOptions);
     return res.json({ success: true });
   }

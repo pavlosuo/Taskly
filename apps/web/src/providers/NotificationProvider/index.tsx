@@ -20,7 +20,6 @@ const MAX_ITEMS = 50;
 const SOUND_SRC = "/sounds/universfield-new-notification-012-363675.mp3";
 const SOUND_LOCK_MS = 3000;
 const HIDDEN_TAB_DELAY_MS = 400;
-const BADGE_COLOR = "#e40016";
 const TITLE_PREFIX_RE = /^\(\d+\+?\)\s*/;
 
 type ReadPayload = {
@@ -43,23 +42,6 @@ interface NotificationContextType {
 }
 
 const NotificationContext = createContext<NotificationContextType | null>(null);
-
-const getIconLinks = () =>
-  Array.from(document.querySelectorAll<HTMLLinkElement>("link[rel~='icon']"));
-
-const setFavicon = (href: string) => {
-  const links = getIconLinks();
-  if (!links.length) {
-    const link = document.createElement("link");
-    link.rel = "icon";
-    link.href = href;
-    document.head.appendChild(link);
-    return;
-  }
-  links.forEach((l) => {
-    l.href = href;
-  });
-};
 
 const useTabIndicators = (count: number) => {
   const pathname = usePathname();

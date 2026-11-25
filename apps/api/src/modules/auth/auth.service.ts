@@ -17,7 +17,7 @@ import {
 } from "shared/index";
 import { IServer, User } from "@/types";
 import jwt from "jsonwebtoken";
-import { ObjectId } from "mongodb";
+import { ObjectId, MongoServerError } from "mongodb";
 import { hashToken } from "@/utils";
 import { OtpService } from "@/modules/otp/otp.service";
 
@@ -145,7 +145,7 @@ export class AuthService {
           initials: initials,
         },
         settings: {
-          lang: "en",
+          lang: "fi-FI",
           theme: "light",
           checkboxes: {
             email: true,
@@ -172,9 +172,9 @@ export class AuthService {
         status: 200,
         data: { user: fullUser, fullUser },
       };
-    } catch (error: any) {
-      if (error?.code === 11000) {
-        const key = Object.keys(error.keyPattern ?? {})[0];
+    } catch (e: unknown) {
+      if (e instanceof MongoServerError && e.code === 11000) {
+        const key = Object.keys(e.keyPattern ?? {})[0];
         return {
           success: false,
           status: 400,
@@ -182,7 +182,7 @@ export class AuthService {
             key === "username" ? "user.usernameExists" : "user.unavailableData",
         };
       }
-      console.error("Register error:", error);
+      console.error("Register error:", e);
       return { success: false, status: 500, message: "general.unknown" };
     }
   }
@@ -253,8 +253,8 @@ export class AuthService {
         status: 200,
         data: { user: { _id: result.insertedId, ...doc } },
       };
-    } catch (error) {
-      console.error("Register admin error:", error);
+    } catch (e) {
+      console.error("Register admin error:", e);
       return { success: false, status: 500, message: "general.unknown" };
     }
   }
@@ -290,8 +290,8 @@ export class AuthService {
         status: 200,
         data: { user },
       };
-    } catch (error) {
-      console.error("Login error:", error);
+    } catch (e) {
+      console.error("Login error:", e);
       return { success: false, status: 500, message: "general.unknown" };
     }
   }
@@ -332,8 +332,8 @@ export class AuthService {
           { $set: { resetTokenHash: hashToken(resetToken) } },
         );
       return { success: true, status: 200, data: { resetToken } };
-    } catch (error) {
-      console.error("Verify reset OTP error:", error);
+    } catch (e) {
+      console.error("Verify reset OTP error:", e);
       return { success: false, status: 500, message: "general.unknown" };
     }
   }
@@ -371,8 +371,8 @@ export class AuthService {
         text: `Reset your password: ${resetUrl}\n\nLink expires in 1 hour.`,
       });
       return { success: true, status: 200 };
-    } catch (error) {
-      console.error("Forgot password error:", error);
+    } catch (e) {
+      console.error("Forgot password error:", e);
       return { success: false, status: 500, message: "general.unknown" };
     }
   }
@@ -410,8 +410,8 @@ export class AuthService {
         );
       await this.server.revokeSessions(user._id);
       return { success: true, status: 200 };
-    } catch (error) {
-      console.error("Reset password error:", error);
+    } catch (e) {
+      console.error("Reset password error:", e);
       return { success: false, status: 500, message: "general.unknown" };
     }
   }
@@ -441,8 +441,8 @@ export class AuthService {
           data: { reason: "invalid" },
         };
       return { success: true, status: 200 };
-    } catch (error) {
-      console.error("Verify reset token error:", error);
+    } catch (e) {
+      console.error("Verify reset token error:", e);
       return {
         success: false,
         status: 500,

@@ -12,13 +12,14 @@ import {
   ServiceResult,
 } from "shared/index";
 import { toObjectId } from "@/utils";
+import { MongoServerError } from "mongodb";
 
 const pendingBySession = new WeakMap<ClientSession, NotificationItemBack[]>();
 
 const toDto = (d: NotificationItemBack): NotificationItem => ({
   _id: d._id.toString(),
   type: d.type,
-  category: d.category as NotificationItem["category"],
+  category: d.category,
   taskId: d.taskId?.toString() ?? null,
   chatId: d.chatId?.toString() ?? null,
   actor: d.actor ?? null,
@@ -151,14 +152,17 @@ export class NotificationService {
     let doc: NotificationItemBack | null;
     try {
       doc = await run();
-    } catch (e: any) {
-      if (e?.code === 11000) doc = await run();
+    } catch (e: unknown) {
+      if (e instanceof MongoServerError && e.code === 11000) doc = await run();
       else throw e;
     }
     if (doc) this.emitDocs([doc]);
   }
 
-  async list(user: User, query: Record<string, any>): Promise<ServiceResult> {
+  async list(
+    user: User,
+    query: Record<string, unknown>,
+  ): Promise<ServiceResult> {
     try {
       const db = await this.server.getDb();
       const limit = Math.min(50, Math.max(1, Number(query.limit) || 20));

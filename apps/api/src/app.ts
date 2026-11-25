@@ -93,26 +93,26 @@ export function createApp(server: Server): Application {
   app.use((_req, res) => {
     res.status(404).json({ success: false, message: "general.notFound" });
   });
-  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+  app.use((e: unknown, _req: Request, res: Response, _next: NextFunction) => {
     if (res.headersSent) return;
-    if (err instanceof MulterError) {
+    if (e instanceof MulterError) {
       const message =
-        err.code === "LIMIT_FILE_SIZE"
+        e.code === "LIMIT_FILE_SIZE"
           ? "media.fileTooLarge"
           : "media.invalidFile";
       return res.status(400).json({ success: false, status: 400, message });
     }
-    if (err?.type === "entity.parse.failed" || err instanceof SyntaxError) {
+    if (e?.type === "entity.parse.failed" || e instanceof SyntaxError) {
       return res
         .status(400)
         .json({ success: false, status: 400, message: "general.badRequest" });
     }
-    if (err?.name === "UploadError") {
+    if (e?.name === "UploadError") {
       return res
         .status(400)
-        .json({ success: false, status: 400, message: err.message });
+        .json({ success: false, status: 400, message: e.message });
     }
-    console.error("Unhandled error:", err);
+    console.error("Unhandled error:", e);
     return res
       .status(500)
       .json({ success: false, status: 500, message: "general.unknown" });

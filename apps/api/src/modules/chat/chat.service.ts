@@ -13,6 +13,7 @@ import {
 import { ChatBack, MessageBack, IServer, User } from "@/types";
 import { stripMediaFields, toObjectId, clampLimit } from "@/utils";
 import { NotificationService } from "@/modules/notification/notification.service";
+import { MongoServerError } from "mongodb";
 
 export class ChatService {
   private notifications: NotificationService;
@@ -290,7 +291,7 @@ export class ChatService {
       if (existing) {
         if (!existing.pairKey) {
           await chats
-            .updateOne({ _id: existing._id }, { $set: { pairKey } as any })
+            .updateOne({ _id: existing._id }, { $set: { pairKey } })
             .catch(() => {});
         }
         return openExisting(existing);
@@ -309,8 +310,8 @@ export class ChatService {
       try {
         const result = await db.collection("chats").insertOne(doc);
         insertedId = result.insertedId;
-      } catch (e: any) {
-        if (e?.code !== 11000) throw e;
+      } catch (e: unknown) {
+        if (e instanceof MongoServerError && e.code === 11000) throw e;
         const dup = await chats.findOne({ pairKey });
         if (!dup) throw e;
         return openExisting(dup);
@@ -425,7 +426,7 @@ export class ChatService {
       if (before && !beforeId)
         return { success: false, status: 400, message: "general.unknown" };
       const db = await this.server.getDb();
-      const query: any = { chatId: chat._id };
+      const query: Record<string, unknown> = { chatId: chat._id };
       if (beforeId) query._id = { $lt: beforeId };
       const docs = await db
         .collection<MessageBack>("messages")

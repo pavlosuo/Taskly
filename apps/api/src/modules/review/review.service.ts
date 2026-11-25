@@ -1,7 +1,8 @@
-import { IServer, User } from "@/types";
+import { IServer, User, HttpError } from "@/types";
 import { toObjectId } from "@/utils";
 import { ServiceResult, reviewCreateSchema } from "shared/index";
 import { NotificationService } from "@/modules/notification/notification.service";
+import { MongoServerError } from "mongodb";
 
 export class ReviewService {
   private notifications: NotificationService;
@@ -30,7 +31,7 @@ export class ReviewService {
     const session = this.server.getClient().startSession();
     try {
       const db = await this.server.getDb();
-      let review: Record<string, any> | null = null;
+      let review: Record<string, unknown> | null = null;
       await this.notifications.transaction(session, async (notify) => {
         const task = await db
           .collection("tasks")
@@ -76,11 +77,11 @@ export class ReviewService {
         review = { _id: result.insertedId, ...doc };
       });
       return { success: true, status: 201, data: { review } };
-    } catch (e: any) {
-      if (e?.status) {
+    } catch (e: unknown) {
+      if (e instanceof HttpError) {
         return { success: false, status: e.status, message: e.message };
       }
-      if (e?.code === 11000) {
+      if (e instanceof MongoServerError && e.code === 11000) {
         return {
           success: false,
           status: 409,

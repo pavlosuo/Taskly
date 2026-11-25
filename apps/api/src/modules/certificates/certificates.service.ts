@@ -6,6 +6,7 @@ import {
 } from "shared/index";
 import { MESSAGE_MAX_LENGTH } from "shared/data";
 import { escapeRegex, normalizeLabel } from "@/utils";
+import { MongoServerError } from "mongodb";
 
 export class CertificatesService {
   constructor(private server: IServer) {}
@@ -84,8 +85,8 @@ export class CertificatesService {
       let result;
       try {
         result = await run();
-      } catch (e: any) {
-        if (e?.code !== 11000) throw e;
+      } catch (e: unknown) {
+        if (e instanceof MongoServerError && e.code === 11000) throw e;
         result = await certificates.findOne(
           { label: final },
           { collation: { locale: "en", strength: 2 } },

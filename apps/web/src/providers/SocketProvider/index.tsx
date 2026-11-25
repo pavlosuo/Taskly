@@ -43,7 +43,10 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
       transports: ["websocket"],
     });
     instance.on("connect", () => setIsConnected(true));
-    instance.on("disconnect", () => setIsConnected(false));
+    instance.on("disconnect", (reason) => {
+      setIsConnected(false);
+      if (reason === "io server disconnect") instance.connect();
+    });
     socketRef.current = instance;
     startTransition(() => {
       setSocket(instance);

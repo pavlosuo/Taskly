@@ -1,9 +1,8 @@
 import axios from "axios";
 
-export function getAxiosError(err: unknown): string {
-  if (axios.isAxiosError(err)) {
-    const error =
-      err.response?.data?.message || err.message || "general.unknown";
+export function getAxiosError(e: unknown): string {
+  if (axios.isAxiosError(e)) {
+    const error = e.response?.data?.message || e.message || "general.unknown";
     if (error === "Network Error") {
       return "errors:general.unknown";
     }

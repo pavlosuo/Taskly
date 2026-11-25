@@ -18,6 +18,15 @@ import {
 } from "shared/types";
 import { Server as SocketIOServer } from "socket.io";
 
+export class HttpError extends Error {
+  constructor(
+    public status: number,
+    message: string,
+  ) {
+    super(message);
+  }
+}
+
 export type InfoUpload = Partial<Express.Multer.File> & {
   width?: number;
   height?: number;

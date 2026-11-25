@@ -1,4 +1,4 @@
-import { ClientSession, Db, ObjectId } from "mongodb";
+import { ClientSession, ObjectId } from "mongodb";
 import { IServer, User } from "@/types";
 import { PaymentStatus } from "shared/index";
 

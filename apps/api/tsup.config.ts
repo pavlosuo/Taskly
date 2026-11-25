@@ -20,5 +20,5 @@ export default defineConfig({
       comments: false,
     },
   },
-  noExternal: [/^shared/, /^@taskly\//, "nanoid"],
+  noExternal: [/^shared/, /^@taskly\//, "nanoid", "file-type"],
 });

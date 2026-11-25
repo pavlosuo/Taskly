@@ -1,5 +1,11 @@
-import { IServer, User, TaskBack, NotificationInputBack } from "@/types";
-import { ObjectId, Document } from "mongodb";
+import {
+  IServer,
+  User,
+  TaskBack,
+  NotificationInputBack,
+  HttpError,
+} from "@/types";
+import { ObjectId, Document, MongoServerError } from "mongodb";
 import {
   TASK_SORTS,
   EARTH_RADIUS_M,
@@ -91,18 +97,25 @@ export class TaskService {
     }
   }
 
-  async getAll(query: Record<string, any>, user: User): Promise<ServiceResult> {
+  async getAll(
+    query: Record<string, unknown>,
+    user: User,
+  ): Promise<ServiceResult> {
     try {
       const db = await this.server.getDb();
       const tasks = db.collection("tasks");
       const page = Math.max(1, Number(query.page) || 1);
       const limit = Math.min(50, Math.max(1, Number(query.limit) || 25));
-      const filter: Record<string, any> = { status: "open" };
-      const skills = splitList(query.skill);
+      const filter: Record<string, unknown> = { status: "open" };
+      const skills = splitList(
+        typeof query.skill === "string" ? query.skill : "",
+      );
       if (skills.length) filter["skills.value"] = { $in: skills };
-      const certs = splitList(query.certificate);
+      const certs = splitList(
+        typeof query.certificate === "string" ? query.certificate : "",
+      );
       if (certs.length) filter["certificates.value"] = { $in: certs };
-      const q = String(query.q ?? "")
+      const q = String(typeof query.q === "string" ? query.q : "")
         .trim()
         .slice(0, 100);
       if (q) {
@@ -195,6 +208,7 @@ export class TaskService {
           .find({ clientId: user._id })
           .project({ geo: 0 })
           .sort({ createdAt: -1 })
+          .limit(200)
           .toArray();
       }
 
@@ -203,12 +217,15 @@ export class TaskService {
           tasks
             .find({ assignedTaskerId: user._id })
             .project({ geo: 0 })
+            .sort({ createdAt: -1 })
+            .limit(200)
             .toArray(),
           db
             .collection("taskResponses")
             .find({ taskerId: user._id })
             .project({ taskId: 1, status: 1, price: 1 })
-            .sort({ createdAt: 1 })
+            .sort({ createdAt: -1 })
+            .limit(200)
             .toArray(),
         ]);
 
@@ -319,7 +336,7 @@ export class TaskService {
         };
       }
       const data = parsed.data;
-      const update: Record<string, any> = { updatedAt: new Date() };
+      const update: Record<string, unknown> = { updatedAt: new Date() };
       if (data.title !== undefined) update.title = data.title;
       if (data.description !== undefined) update.description = data.description;
       if (data.skills !== undefined)
@@ -426,8 +443,8 @@ export class TaskService {
         }
       });
       return { success: true, status: 200 };
-    } catch (e: any) {
-      if (e?.status) {
+    } catch (e: unknown) {
+      if (e instanceof HttpError) {
         return { success: false, status: e.status, message: e.message };
       }
       console.error("Delete task error:", e);
@@ -498,8 +515,8 @@ export class TaskService {
         ]);
       });
       return { success: true, status: 200 };
-    } catch (e: any) {
-      if (e?.status) {
+    } catch (e: unknown) {
+      if (e instanceof HttpError) {
         return { success: false, status: e.status, message: e.message };
       }
       console.error("Mark task done error:", e);
@@ -555,8 +572,8 @@ export class TaskService {
         ]);
       });
       return { success: true, status: 200 };
-    } catch (e: any) {
-      if (e?.status) {
+    } catch (e: unknown) {
+      if (e instanceof HttpError) {
         return { success: false, status: e.status, message: e.message };
       }
       console.error("Abandon task error:", e);
@@ -621,8 +638,8 @@ export class TaskService {
         await notify(notices);
       });
       return { success: true, status: 200 };
-    } catch (e: any) {
-      if (e?.status) {
+    } catch (e: unknown) {
+      if (e instanceof HttpError) {
         return { success: false, status: e.status, message: e.message };
       }
       console.error("Complete task error:", e);
@@ -723,8 +740,8 @@ export class TaskService {
         await notify(notices);
       });
       return { success: true, status: 200 };
-    } catch (e: any) {
-      if (e?.status) {
+    } catch (e: unknown) {
+      if (e instanceof HttpError) {
         return { success: false, status: e.status, message: e.message };
       }
       console.error("Cancel task error:", e);
@@ -786,8 +803,8 @@ export class TaskService {
         await notify(notices);
       });
       return { success: true, status: 200 };
-    } catch (e: any) {
-      if (e?.status) {
+    } catch (e: unknown) {
+      if (e instanceof HttpError) {
         return { success: false, status: e.status, message: e.message };
       }
       console.error("Expire task error:", e);
@@ -851,7 +868,7 @@ export class TaskService {
         running = false;
       }
     };
-    tick();
+    tick().catch(() => {});
     return setInterval(tick, 60_000);
   }
 }
@@ -941,11 +958,11 @@ export class TaskResponseService {
         response = { _id: result.insertedId, ...doc };
       });
       return { success: true, status: 201, data: { response } };
-    } catch (e: any) {
-      if (e?.status) {
+    } catch (e: unknown) {
+      if (e instanceof HttpError) {
         return { success: false, status: e.status, message: e.message };
       }
-      if (e?.code === 11000) {
+      if (e instanceof MongoServerError && e.code === 11000) {
         return {
           success: false,
           status: 409,
@@ -1096,8 +1113,8 @@ export class TaskResponseService {
           );
       });
       return { success: true, status: 200 };
-    } catch (e: any) {
-      if (e?.status) {
+    } catch (e: unknown) {
+      if (e instanceof HttpError) {
         return { success: false, status: e.status, message: e.message };
       }
       console.error("Withdraw task response error:", e);
@@ -1207,8 +1224,8 @@ export class TaskResponseService {
         await notify(notices);
       });
       return { success: true, status: 200 };
-    } catch (e: any) {
-      if (e?.status) {
+    } catch (e: unknown) {
+      if (e instanceof HttpError) {
         return { success: false, status: e.status, message: e.message };
       }
       console.error("Accept task response error:", e);
@@ -1278,8 +1295,8 @@ export class TaskResponseService {
         ]);
       });
       return { success: true, status: 200 };
-    } catch (e: any) {
-      if (e?.status) {
+    } catch (e: unknown) {
+      if (e instanceof HttpError) {
         return { success: false, status: e.status, message: e.message };
       }
       console.error("Decline task response error:", e);

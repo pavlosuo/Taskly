@@ -3,7 +3,7 @@ import path from "path";
 import fs from "fs";
 import sharp from "sharp";
 import { nanoid } from "nanoid";
-import { fromFile } from "file-type";
+import { fileTypeFromFile } from "file-type";
 import { Request } from "express";
 import {
   ALLOWED_MIME_TYPES,
@@ -31,7 +31,7 @@ async function verifyFile(
   p: string,
   declared: string,
 ): Promise<{ mime: string; ext: string } | null> {
-  const detected = await fromFile(p).catch(() => undefined);
+  const detected = await fileTypeFromFile(p).catch(() => undefined);
   if (!detected) {
     const ext = TEXT_EXT[declared];
     return ext && (await looksLikeText(p)) ? { mime: declared, ext } : null;
@@ -49,7 +49,7 @@ class TempDiskStorage implements multer.StorageEngine {
   _handleFile(
     req: Request,
     file: Express.Multer.File,
-    cb: (error?: any, info?: Partial<Express.Multer.File>) => void,
+    cb: (e?: unknown, info?: Partial<Express.Multer.File>) => void,
   ) {
     let settled = false;
     let tmpPath = "";
@@ -108,7 +108,7 @@ class TempDiskStorage implements multer.StorageEngine {
             height,
           });
         } catch (e) {
-          done(e as Error);
+          done(e as e);
         }
       };
       stream.on("error", done);
@@ -116,16 +116,16 @@ class TempDiskStorage implements multer.StorageEngine {
       stream.on("finish", () => void finalize());
       file.stream.pipe(stream);
     } catch (e) {
-      done(e as Error);
+      done(e as e);
     }
   }
 
   _removeFile(
     _req: Request,
     file: Express.Multer.File,
-    cb: (error: Error | null) => void,
+    cb: (e: Error | null) => void,
   ) {
-    const p = (file as any).path as string | undefined;
+    const p = (file as unknown).path as string | undefined;
     if (!p) return cb(null);
     fs.unlink(p, () => cb(null));
   }

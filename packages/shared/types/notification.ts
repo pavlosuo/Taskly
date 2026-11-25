@@ -50,7 +50,7 @@ export type NotificationItem = {
   taskId: string | null;
   chatId: string | null;
   actor: NotificationActor | null;
-  data: Record<string, any>;
+  data: Record<string, unknown>;
   read: boolean;
   createdAt: Date;
 };

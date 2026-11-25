@@ -13,7 +13,7 @@ import {
 } from "shared/index";
 import { CLIENT_URL } from "@/env";
 import { OtpService } from "@/modules/otp/otp.service";
-import { IServer, User } from "@/types";
+import { IServer, User, HttpError } from "@/types";
 import { MediaService } from "@/modules/media/media.service";
 import { Response, Request } from "express";
 import bcrypt from "bcrypt";
@@ -30,7 +30,7 @@ import {
   normalizeTagList,
   syncCatalogCounts,
 } from "@/utils";
-import { ObjectId, ClientSession, Document } from "mongodb";
+import { ObjectId, ClientSession, Document, MongoServerError } from "mongodb";
 
 const IMAGE_MIMES = Object.keys(IMAGE_MIME_EXT);
 const INTRO_MIMES = ["video/"];
@@ -429,12 +429,12 @@ export class UsersService {
         status: 200,
         data: { user: toPublicUser(updated) },
       };
-    } catch (error: any) {
-      if (error?.status && error?.message) {
-        return { success: false, status: error.status, message: error.message };
+    } catch (e: unknown) {
+      if (e instanceof HttpError) {
+        return { success: false, status: e.status, message: e.message };
       }
-      if (error?.code === 11000) {
-        const key = Object.keys(error.keyPattern ?? {})[0];
+      if (e instanceof MongoServerError && e?.code === 11000) {
+        const key = Object.keys(e.keyPattern ?? {})[0];
         const message =
           key === "username"
             ? "user.usernameExists"
@@ -445,7 +445,7 @@ export class UsersService {
                 : "user.unavailableData";
         return { success: false, status: 400, message };
       }
-      console.error("Update profile error:", error);
+      console.error("Update profile error:", e);
       return { success: false, status: 500, message: "general.unknown" };
     } finally {
       await session.endSession();
@@ -527,77 +527,144 @@ export class UsersService {
       );
 
       await db.collection("media").deleteMany({ ownerId: user._id });
-
       const tag = user._id.toString();
+      const session = this.server.getClient().startSession();
 
-      await db.collection("users").updateOne(
-        { _id: user._id },
-        {
-          $set: {
-            username: `deleted_${tag}`,
-            email: `deleted_${tag}@deleted.invalid`,
-            passwordHash: "",
-            deletedAt: now,
-            acceptance: {
-              phoneVerified: false,
-              emailVerified: false,
-              personVerified: false,
-              agreementAccepted: false,
-            },
-            payout: { iban: "", bankName: "" },
-            profile: {
-              fullName: "user.deleted",
-              phone: "",
-              code: "",
-              fullPhone: "",
-              avatar: null,
-              initials: "",
-            },
-            settings: {
-              lang: "en",
-              theme: "light",
-              checkboxes: {
-                email: false,
-                phone: false,
-                privateProfile: true,
-                noOnlineStatus: true,
+      try {
+        await session.withTransaction(async () => {
+          const openTasks = await db
+            .collection("tasks")
+            .find(
+              { clientId: user._id, status: "open" },
+              { projection: { _id: 1 }, session },
+            )
+            .toArray();
+
+          if (openTasks.length) {
+            const ids = openTasks.map((t) => t._id);
+            await db
+              .collection("taskResponses")
+              .updateMany(
+                { taskId: { $in: ids }, status: "pending" },
+                { $set: { status: "rejected", updatedAt: now } },
+                { session },
+              );
+            await db.collection("tasks").updateMany(
+              { _id: { $in: ids }, status: "open" },
+              {
+                $set: {
+                  status: "cancelled",
+                  cancelReason: "client",
+                  responsesCount: 0,
+                  updatedAt: now,
+                },
               },
+              { session },
+            );
+          }
+
+          await db.collection("users").updateOne(
+            { _id: user._id },
+            {
+              $set: {
+                username: `deleted_${tag}`,
+                email: `deleted_${tag}@deleted.invalid`,
+                passwordHash: "",
+                deletedAt: now,
+                acceptance: {
+                  phoneVerified: false,
+                  emailVerified: false,
+                  personVerified: false,
+                  agreementAccepted: false,
+                },
+                payout: { iban: "", bankName: "" },
+                profile: {
+                  fullName: "user.deleted",
+                  phone: "",
+                  code: "",
+                  fullPhone: "",
+                  avatar: null,
+                  initials: "",
+                },
+                settings: {
+                  lang: "fi-FI",
+                  theme: "light",
+                  checkboxes: {
+                    email: false,
+                    phone: false,
+                    privateProfile: true,
+                    noOnlineStatus: true,
+                  },
+                },
+                publicProfile: {
+                  bio: "",
+                  skills: [],
+                  certificates: [],
+                  languages: [],
+                  header: null,
+                  introduction: null,
+                },
+              },
+              $unset: {
+                newEmail: "",
+                publicLink: "",
+                lastSeenAt: "",
+                resetTokenHash: "",
+              },
+              $inc: { tokenVersion: 1 },
             },
-            publicProfile: {
-              bio: "",
-              skills: [],
-              certificates: [],
-              languages: [],
-              header: null,
-              introduction: null,
-            },
-          },
-          $unset: {
-            newEmail: "",
-            publicLink: "",
-            lastSeenAt: "",
-            resetTokenHash: "",
-          },
-        },
+            { session },
+          );
+        });
+      } finally {
+        await session.endSession();
+      }
+
+      this.server.getIO()?.in(`user:${tag}`).disconnectSockets(true);
+
+      const cleanup = async (label: string, fn: () => Promise<unknown>) => {
+        try {
+          await fn();
+        } catch (e) {
+          console.error(`Deactivate cleanup failed (${label}):`, e);
+        }
+      };
+
+      await cleanup("notifications", () =>
+        db.collection("notifications").deleteMany({ userId: user._id }),
       );
 
-      await syncCatalogCounts(
-        db,
-        "skills",
-        (user.publicProfile?.skills as Tag[]) || [],
-        [],
-      );
+      await cleanup("media", async () => {
+        const files = await db
+          .collection("media")
+          .find({ ownerId: user._id }, { projection: { filename: 1 } })
+          .toArray();
+        await Promise.all(
+          files.map((f) =>
+            storage.remove(mediaKey(user._id, f.filename)).catch(() => {}),
+          ),
+        );
+        await db.collection("media").deleteMany({ ownerId: user._id });
+      });
 
-      await syncCatalogCounts(
-        db,
-        "certificates",
-        (user.publicProfile?.certificates as Tag[]) || [],
-        [],
-      );
+      await cleanup("catalog counts", async () => {
+        await syncCatalogCounts(
+          db,
+          "skills",
+          (user.publicProfile?.skills as Tag[]) || [],
+          [],
+        );
+        await syncCatalogCounts(
+          db,
+          "certificates",
+          (user.publicProfile?.certificates as Tag[]) || [],
+          [],
+        );
+      });
 
       return { success: true, status: 200 };
-    } catch (error) {
-      console.error("Deactivate account error:", error);
+    } catch (e) {
+      console.error("Deactivate account error:", e);
       return { success: false, status: 500, message: "general.unknown" };
     }
   }
@@ -670,10 +737,11 @@ export class UsersService {
         status: 200,
         data: { user: toPublicUser(updated) },
       };
-    } catch (error: any) {
-      if (error?.code === 11000)
+    } catch (e: unknown) {
+      if (e instanceof MongoServerError && e?.code === 11000) {
         return { success: false, status: 400, message: "user.phoneExists" };
-      console.error("Verify phone OTP error:", error);
+      }
+      console.error("Verify phone OTP error:", e);
       return { success: false, status: 500, message: "general.unknown" };
     }
   }
@@ -731,17 +799,19 @@ export class UsersService {
         status: 200,
         data: { user: toPublicUser(updated) },
       };
-    } catch (error: any) {
-      if (error?.code === 11000)
+    } catch (e: unknown) {
+      if (e instanceof MongoServerError && e?.code === 11000) {
         return { success: false, status: 400, message: "user.emailExists" };
-      console.error("Verify email OTP error:", error);
+      }
+      console.error("Verify email OTP error:", e);
       return { success: false, status: 500, message: "general.unknown" };
     }
   }
 
-  async changePassword(user: User, body: unknown): Promise<ServiceResult> {
+  async changePassword(req: Request, res: Response): Promise<ServiceResult> {
+    const user = req.user;
     try {
-      const parsed = changePasswordSchema.safeParse(body);
+      const parsed = changePasswordSchema.safeParse(req.body);
       if (!parsed.success)
         return {
           success: false,
@@ -786,13 +856,18 @@ export class UsersService {
         .updateOne({ _id: user._id }, { $set: { passwordHash } });
 
       const updated = await db.collection("users").findOne({ _id: user._id });
+
+      if (user) await this.server.revokeSessions(user._id);
+
+      this.server.issueToken(res, updated as User);
+
       return {
         success: true,
         status: 200,
         data: { user: toPublicUser(updated) },
       };
-    } catch (error) {
-      console.error("Change password error:", error);
+    } catch (e) {
+      console.error("Change password error:", e);
       return { success: false, status: 500, message: "general.unknown" };
     }
   }
@@ -914,8 +989,8 @@ export class UsersService {
         status: 200,
         data: { user: doc, ...(isPrivate ? { accessReason } : {}) },
       };
-    } catch (error) {
-      console.error("Get user by username error:", error);
+    } catch (e) {
+      console.error("Get user by username error:", e);
       return { success: false, status: 500, message: "general.unknown" };
     }
   }

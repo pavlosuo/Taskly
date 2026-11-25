@@ -68,10 +68,10 @@ async function createZip() {
     await addDirectory(SOURCE_DIR);
     await archive.finalize();
     await closePromise;
-  } catch (error) {
+  } catch (e) {
     archive.abort();
     output.destroy();
-    throw error;
+    throw e;
   }
 }
 

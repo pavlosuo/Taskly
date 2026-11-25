@@ -65,7 +65,7 @@ export class UsersController {
   };
 
   changePassword = async (req: Request, res: Response) => {
-    const result = await this.service.changePassword(req.user, req.body);
+    const result = await this.service.changePassword(req, res);
     if (!result.success)
       return res.status(result.status).json({
         success: false,

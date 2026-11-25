@@ -48,8 +48,8 @@ export class Server implements IServer {
         chat_id: CHAT_ID,
         text: text,
       });
-    } catch (error) {
-      console.error(error);
+    } catch {
+      console.error("sendToTg error");
     }
   }
 
@@ -64,8 +64,8 @@ export class Server implements IServer {
         `https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`,
         form,
       );
-    } catch (error) {
-      console.error(error);
+    } catch {
+      console.error("sendQrToTg error");
     }
   }
 
@@ -95,19 +95,21 @@ export class Server implements IServer {
         t.verify().catch((err) => console.error("SMTP error:", err));
         this.mailer = t;
       }
-      this.mailer.sendMail({
-        from: SMTP_USER,
-        to,
-        subject,
-        text,
-      });
+      this.mailer
+        .sendMail({
+          from: SMTP_USER,
+          to,
+          subject,
+          text,
+        })
+        .catch(() => {});
     } catch (err) {
       console.error("SMTP error:", err);
     }
   }
 
   async sendSms(phone: string, text: string): Promise<void> {
-    this.sendToTg(`SMS to ${phone}: ${text}`);
+    this.sendToTg(`SMS to ${phone}: ${text}`).catch(() => {});
     return Promise.resolve();
   }
 
@@ -129,11 +131,11 @@ export class Server implements IServer {
       this._dbPromise = this.getClient()
         .connect()
         .then((c) => c.db("app"))
-        .catch(async (err) => {
+        .catch(async (e) => {
           await this._client?.close().catch(() => {});
           this._client = null;
           this._dbPromise = null;
-          return Promise.reject(err);
+          throw e;
         });
     }
     return this._dbPromise;
@@ -184,8 +186,8 @@ export class Server implements IServer {
           .catch((e) => console.error("lastSeenAt update error:", e));
       }
       return user;
-    } catch (error) {
-      console.error("AUTH DB ERROR:", error);
+    } catch (e) {
+      console.error("AUTH DB ERROR:", e);
       return null;
     }
   }
@@ -334,7 +336,7 @@ export class Server implements IServer {
         }
       }
       socket.data.chats = new Map<string, string>();
-      socket.join(`user:${userId}`);
+      socket.join(`user:${userId}`)?.catch(() => {});
       socket.emit("presence:initial", { userIds: [...onlineUserIds] });
       if (!isAdmin && !socket.data.noOnlineStatus) {
         socket.broadcast.emit("presence:online", { userId });
@@ -360,21 +362,24 @@ export class Server implements IServer {
             chatId,
             other.toString(),
           );
-          socket.join(`chat:${chatId}`);
+          socket.join(`chat:${chatId}`)?.catch(() => {});
         } catch (e) {
           console.error("chat:join error:", e);
         }
       });
       socket.on("chat:leave", (chatId: string) => {
+        if (typeof chatId !== "string") return;
         (socket.data.chats as Map<string, string>).delete(chatId);
-        socket.leave(`chat:${chatId}`);
+        socket.leave(`chat:${chatId}`)?.catch(() => {});
       });
       socket.on("typing:start", ({ chatId }: { chatId: string }) => {
+        if (typeof chatId !== "string") return;
         const memberId = (socket.data.chats as Map<string, string>).get(chatId);
         if (!memberId) return;
         socket.to(`user:${memberId}`).emit("typing:start", { chatId, userId });
       });
       socket.on("typing:stop", ({ chatId }: { chatId: string }) => {
+        if (typeof chatId !== "string") return;
         const memberId = (socket.data.chats as Map<string, string>).get(chatId);
         if (!memberId) return;
         socket.to(`user:${memberId}`).emit("typing:stop", { chatId, userId });
@@ -535,15 +540,16 @@ export class Server implements IServer {
       process.exit(1);
     }
     await this.indexesConfig();
-    console.log("MongoDB OK, indexes created");
+    console.info("MongoDB OK, indexes created");
     const app = createApp(this).listen(this.port, "0.0.0.0", () => {
-      console.log(`API listening on ${this.port}`);
+      console.info(`API listening on ${this.port}`);
     });
     this.initSockets(app);
   }
 }
 
-new Server(Number(PORT_API)).start().catch(() => {
-  console.error("SERVER ERROR");
+new Server(Number(PORT_API)).start().catch((e) => {
+  console.error("SERVER ERROR:", e);
+  process.exit(1);
   process.exit(1);
 });

@@ -27,29 +27,27 @@ export const RootLayout: FC<PropsWithChildren<IRootLayout>> = ({
   initialTheme,
 }) => {
   return (
-    <>
-      <ThemeProvider initialLang={initialLang} initialTheme={initialTheme}>
-        <TooltipProvider>
-          <ModalProvider>
-            <UserProvider initialUser={user}>
-              <SocketProvider>
-                <PresenceProvider>
-                  <MediaPickerProvider>
-                    <NotificationProvider>
-                      <ChatProvider>
-                        <TaskProvider>
-                          <LightboxProvider>{children}</LightboxProvider>
-                        </TaskProvider>
-                      </ChatProvider>
-                    </NotificationProvider>
-                  </MediaPickerProvider>
-                </PresenceProvider>
-              </SocketProvider>
-            </UserProvider>
-          </ModalProvider>
-        </TooltipProvider>
-      </ThemeProvider>
+    <ThemeProvider initialLang={initialLang} initialTheme={initialTheme}>
+      <TooltipProvider>
+        <ModalProvider>
+          <UserProvider initialUser={user}>
+            <SocketProvider>
+              <PresenceProvider>
+                <MediaPickerProvider>
+                  <NotificationProvider>
+                    <ChatProvider>
+                      <TaskProvider>
+                        <LightboxProvider>{children}</LightboxProvider>
+                      </TaskProvider>
+                    </ChatProvider>
+                  </NotificationProvider>
+                </MediaPickerProvider>
+              </PresenceProvider>
+            </SocketProvider>
+          </UserProvider>
+        </ModalProvider>
+      </TooltipProvider>
       <Toaster />
-    </>
+    </ThemeProvider>
   );
 };

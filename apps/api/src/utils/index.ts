@@ -11,8 +11,9 @@ import {
 import { User } from "@/types";
 import { ObjectId, WithId, Document } from "mongodb";
 import { NODE_ENV, NEXT_PUBLIC_API_URL, OTP_SECRET } from "@/env";
-import type { Db } from "mongodb";
+import type { Db, AnyBulkWriteOperation } from "mongodb";
 import path from "path";
+import os from "os";
 export * from "@/utils/limiters";
 export * from "@/utils/upload";
 export * from "@/utils/storage";
@@ -225,7 +226,7 @@ export const escapeRegex = (s: string) => {
   return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 };
 
-export const splitList = (value: unknown) => {
+export const splitList = (value: string) => {
   return String(value ?? "")
     .split(",")
     .map((s) => s.trim())
@@ -281,7 +282,8 @@ export const contentDisposition = (mime: string, filename: string) => {
   return `${type}; filename="${safe}"`;
 };
 
-export const TMP_ROOT = path.join(process.cwd(), "..", "..", "uploads");
+export const TMP_ROOT =
+  process.env.UPLOAD_TMP_DIR || path.join(os.tmpdir(), "taskly-uploads");
 
 export const clampLimit = (raw: unknown, def = 30, max = 50): number => {
   if (raw === undefined || raw === "") return def;
@@ -302,7 +304,7 @@ export async function syncCatalogCounts(
   const toMap = (list: Tag[]) => new Map(list.map((t) => [keyOf(t), t]));
   const was = toMap(before);
   const now = toMap(after);
-  const ops: any[] = [];
+  const ops: AnyBulkWriteOperation<Document>[] = [];
   for (const [key, tag] of now) {
     if (was.has(key)) continue;
     ops.push({

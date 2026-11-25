@@ -116,7 +116,8 @@ async function probeVideo(p: string) {
   const s = out.streams?.[0];
   if (!s) throw new Error("no video stream");
   const rotation = Number(
-    s.side_data_list?.find((d: any) => d.rotation !== undefined)?.rotation ??
+    s.side_data_list?.find((d: unknown) => d.rotation !== undefined)
+      ?.rotation ??
       s.tags?.rotate ??
       0,
   );

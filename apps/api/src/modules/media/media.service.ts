@@ -16,7 +16,6 @@ import {
   MessageBack,
   IServer,
   User,
-  MediaSource,
   MediaUpdate,
 } from "@/types";
 import fs from "fs/promises";
@@ -36,10 +35,32 @@ export class MediaService {
   }
 
   private async startJobs() {
-    const run = () =>
-      this.cleanup().catch((e) => console.error("Cleanup error:", e));
+    const run = async () => {
+      await this.recoverStaleMedia().catch((e) =>
+        console.error("recoverStaleMedia error:", e),
+      );
+      await this.cleanup().catch((e) => console.error("Cleanup error:", e));
+    };
     await run();
     setInterval(run, 24 * 3_600_000).unref();
+  }
+
+  private async recoverStaleMedia(): Promise<void> {
+    const db = await this.server.getDb();
+    const media = db.collection("media");
+    const cutoff = new Date(Date.now() - 30 * 60 * 1000);
+    const failed = await media.updateMany(
+      { status: "processing", uploadedAt: { $lt: cutoff } },
+      { $set: { status: "failed", size: 0, optimizing: false } },
+    );
+    const unlocked = await media.updateMany(
+      { status: "ready", optimizing: true, uploadedAt: { $lt: cutoff } },
+      { $set: { optimizing: false } },
+    );
+    if (failed.modifiedCount || unlocked.modifiedCount)
+      console.warn(
+        `Recovered stale media: ${failed.modifiedCount} failed, ${unlocked.modifiedCount} unlocked`,
+      );
   }
 
   private async cleanup() {
@@ -308,7 +329,22 @@ export class MediaService {
       const disposition = poster
         ? "inline"
         : contentDisposition(item.mimeType, item.originalName);
-      const sign = async (): Promise<ServiceResult<any>> => {
+      const sign = async (): Promise<
+        ServiceResult<
+          | {
+              kind: "local";
+              path: string;
+              mimeType: string;
+              disposition: string;
+            }
+          | {
+              kind: "remote";
+              url: string;
+              mimeType: string;
+              disposition: string;
+            }
+        >
+      > => {
         if (!poster && item.status !== "ready") {
           const localPath = path.join(
             TMP_ROOT,

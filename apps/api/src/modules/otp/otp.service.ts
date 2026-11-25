@@ -80,8 +80,8 @@ export class OtpService {
         channel: "phone",
         destination: data.fullPhone,
       });
-    } catch (error) {
-      console.error("Send OTP error:", error);
+    } catch (e) {
+      console.error("Send OTP error:", e);
       return { success: false, status: 500, message: "general.unknown" };
     }
   }
@@ -140,8 +140,8 @@ export class OtpService {
         throw e;
       }
       return { success: true, status: 200 };
-    } catch (error) {
-      console.error("Send OTP error:", error);
+    } catch (e) {
+      console.error("Send OTP error:", e);
       return { success: false, status: 500, message: "general.unknown" };
     }
   }
@@ -228,8 +228,8 @@ export class OtpService {
           destination: rec.destination,
         },
       };
-    } catch (error) {
-      console.error("Consume OTP error:", error);
+    } catch (e) {
+      console.error("Consume OTP error:", e);
       return { ok: false, status: 500, message: "general.unknown" };
     }
   }

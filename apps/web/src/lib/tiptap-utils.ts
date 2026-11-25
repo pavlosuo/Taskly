@@ -149,8 +149,8 @@ export function findNodeAtPosition(editor: Editor, position: number) {
       return null;
     }
     return node;
-  } catch (error) {
-    console.error(`Error getting node at position ${position}:`, error);
+  } catch (e) {
+    console.error(`Error getting node at position ${position}:`, e);
     return null;
   }
 }

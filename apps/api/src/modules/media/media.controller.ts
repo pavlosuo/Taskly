@@ -4,6 +4,7 @@ import { IServer } from "@/types";
 import { Readable } from "stream";
 import { pipeline } from "stream/promises";
 import path from "path";
+import { ServiceResult } from "shared/types";
 
 export class MediaController {
   private service: MediaService;
@@ -18,7 +19,7 @@ export class MediaController {
     this.servePoster = this.servePoster.bind(this);
   }
 
-  private send(res: Response, result: any) {
+  private send(res: Response, result: ServiceResult) {
     if (!result.success) {
       return res.status(result.status).json({
         success: false,
@@ -78,15 +79,15 @@ export class MediaController {
             dotfiles: "deny",
             cacheControl: false,
           },
-          (err: any) => {
-            if (!err || res.headersSent) return;
-            if (err.code === "ENOENT" && retry) {
-              this.handleServe(req, res, false, poster);
+          (e?: NodeJS.ErrnoException | null) => {
+            if (!e || res.headersSent) return;
+            if (e.code === "ENOENT" && retry) {
+              this.handleServe(req, res, false, poster).catch(() => {});
               return;
             }
-            res.status(err.code === "ENOENT" ? 404 : 500).json({
+            res.status(e.code === "ENOENT" ? 404 : 500).json({
               success: false,
-              status: err.code === "ENOENT" ? 404 : 500,
+              status: e.code === "ENOENT" ? 404 : 500,
               message: "general.unknown",
             });
           },
@@ -115,7 +116,7 @@ export class MediaController {
         return;
       }
       if (upstream.status === 404 && retry) {
-        this.handleServe(req, res, false, poster);
+        this.handleServe(req, res, false, poster).catch(() => {});
         return;
       }
       if (!upstream.ok && upstream.status !== 416) {
@@ -143,8 +144,9 @@ export class MediaController {
         return;
       }
       await pipeline(Readable.fromWeb(upstream.body), res);
-    } catch (e: any) {
-      if (e?.name === "AbortError" || res.headersSent) return;
+    } catch (e: unknown) {
+      if ((e instanceof Error && e.name === "AbortError") || res.headersSent)
+        return;
       res
         .status(500)
         .json({ success: false, status: 500, message: "general.unknown" });

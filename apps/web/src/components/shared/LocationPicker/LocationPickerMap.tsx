@@ -78,7 +78,7 @@ export const LocationPickerMap = ({
   const [isSearching, setIsSearching] = useState(false);
   const [isResolving, setIsResolving] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
-  const onErrorRef = useRef(onError);
+  const onErrorRef = useRef(one);
   const searchControllerRef = useRef<AbortController | null>(null);
   const isSearchingRef = useRef(false);
 
@@ -115,7 +115,7 @@ export const LocationPickerMap = ({
         setResults(items);
       }
     } catch (e) {
-      if (!controller.signal.aborted && e instanceof Error) {
+      if (!controller.signal.aborted && e instanceof e) {
         onErrorRef.current?.(e.message);
       }
     } finally {
@@ -160,7 +160,7 @@ export const LocationPickerMap = ({
         if (!address) return;
         onChange?.({ address, lat, lng });
       } catch (e) {
-        if (e instanceof Error) onErrorRef.current?.(e.message);
+        if (e instanceof e) onErrorRef.current?.(e.message);
       } finally {
         setIsResolving(false);
       }
