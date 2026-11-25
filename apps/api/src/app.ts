@@ -17,7 +17,7 @@ import { taskRoutes } from "@/modules/task/task.routes";
 import { notificationRoutes } from "@/modules/notification/notification.routes";
 import { reviewRoutes } from "@/modules/review/review.routes";
 import { paymentRoutes } from "@/modules/payment/payment.routes";
-import { settingsSchema } from "shared/index";
+import { settingsSchema, UploadError } from "shared/index";
 import express, { Application, Request, Response, NextFunction } from "express";
 import { MulterError } from "multer";
 
@@ -95,6 +95,7 @@ export function createApp(server: Server): Application {
   });
   app.use((e: unknown, _req: Request, res: Response, _next: NextFunction) => {
     if (res.headersSent) return;
+
     if (e instanceof MulterError) {
       const message =
         e.code === "LIMIT_FILE_SIZE"
@@ -102,16 +103,19 @@ export function createApp(server: Server): Application {
           : "media.invalidFile";
       return res.status(400).json({ success: false, status: 400, message });
     }
-    if (e?.type === "entity.parse.failed" || e instanceof SyntaxError) {
-      return res
-        .status(400)
-        .json({ success: false, status: 400, message: "general.badRequest" });
-    }
-    if (e?.name === "UploadError") {
+
+    if (e instanceof UploadError) {
       return res
         .status(400)
         .json({ success: false, status: 400, message: e.message });
     }
+
+    if (e instanceof Error && "type" in e && e.type === "entity.parse.failed") {
+      return res
+        .status(400)
+        .json({ success: false, status: 400, message: "general.badRequest" });
+    }
+
     console.error("Unhandled error:", e);
     return res
       .status(500)

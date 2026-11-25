@@ -10,10 +10,11 @@ import {
   PublicProfileCertificate,
   IMAGE_MIME_EXT,
   Tag,
+  HttpError,
 } from "shared/index";
 import { CLIENT_URL } from "@/env";
 import { OtpService } from "@/modules/otp/otp.service";
-import { IServer, User, HttpError } from "@/types";
+import { IServer, User } from "@/types";
 import { MediaService } from "@/modules/media/media.service";
 import { Response, Request } from "express";
 import bcrypt from "bcrypt";

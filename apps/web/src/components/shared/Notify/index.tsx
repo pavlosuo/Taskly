@@ -77,7 +77,8 @@ export const Notify = () => {
     if (n.type === "chat_message") {
       const preview =
         n.data.preview || (n.data.hasMedia ? t("notify:media") : "");
-      const extra = n.data.count > 1 ? ` (+${n.data.count - 1})` : "";
+      const number = typeof n.data.count === "number" ? n.data.count : 0;
+      const extra = number > 1 ? ` (+${number - 1})` : "";
       return {
         title: n.actor?.fullName ?? t("notify:types.chat_message.title"),
         description: `${preview}${extra}`,

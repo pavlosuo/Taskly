@@ -1,10 +1,4 @@
-import {
-  IServer,
-  User,
-  TaskBack,
-  NotificationInputBack,
-  HttpError,
-} from "@/types";
+import { IServer, User, TaskBack, NotificationInputBack } from "@/types";
 import { ObjectId, Document, MongoServerError } from "mongodb";
 import {
   TASK_SORTS,
@@ -16,6 +10,7 @@ import {
   taskCreateSchema,
   taskUpdateSchema,
   taskResponseCreateSchema,
+  HttpError,
 } from "shared/index";
 import {
   normalizeTagList,

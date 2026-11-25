@@ -9,6 +9,22 @@ export type PolicyTexts = {
   policyContent: string;
 };
 
+export class HttpError extends Error {
+  constructor(
+    public status: number,
+    message: string,
+  ) {
+    super(message);
+  }
+}
+
+export class UploadError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "UploadError";
+  }
+}
+
 export type PolicyData = {
   translations: Partial<Record<Lang, PolicyTexts>>;
   updatedAt?: Date;

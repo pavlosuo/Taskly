@@ -1,6 +1,6 @@
-import { IServer, User, HttpError } from "@/types";
+import { IServer, User } from "@/types";
 import { toObjectId } from "@/utils";
-import { ServiceResult, reviewCreateSchema } from "shared/index";
+import { ServiceResult, reviewCreateSchema, HttpError } from "shared/index";
 import { NotificationService } from "@/modules/notification/notification.service";
 import { MongoServerError } from "mongodb";
 

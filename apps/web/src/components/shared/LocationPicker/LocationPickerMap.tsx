@@ -24,6 +24,7 @@ import clsx from "clsx";
 import { searchAddress, reverseGeocode } from "@/lib/api/geo";
 import { useTheme } from "@/providers/ThemeProvider";
 import { FieldError } from "@/components/shared/FieldError";
+import { HttpError } from "shared/index";
 
 const markerIcon = L.icon({
   iconUrl: "/assets/pin.svg",
@@ -78,7 +79,7 @@ export const LocationPickerMap = ({
   const [isSearching, setIsSearching] = useState(false);
   const [isResolving, setIsResolving] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
-  const onErrorRef = useRef(one);
+  const onErrorRef = useRef(onError);
   const searchControllerRef = useRef<AbortController | null>(null);
   const isSearchingRef = useRef(false);
 
@@ -110,12 +111,11 @@ export const LocationPickerMap = ({
 
     try {
       const items = await searchAddress(trimmedQuery, controller.signal, lang);
-
       if (!controller.signal.aborted) {
         setResults(items);
       }
     } catch (e) {
-      if (!controller.signal.aborted && e instanceof e) {
+      if (!controller.signal.aborted && e instanceof HttpError) {
         onErrorRef.current?.(e.message);
       }
     } finally {
@@ -160,7 +160,7 @@ export const LocationPickerMap = ({
         if (!address) return;
         onChange?.({ address, lat, lng });
       } catch (e) {
-        if (e instanceof e) onErrorRef.current?.(e.message);
+        if (e instanceof HttpError) onErrorRef.current?.(e.message);
       } finally {
         setIsResolving(false);
       }

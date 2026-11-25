@@ -371,7 +371,7 @@ export const TaskToolbar = ({
             )}
             {geoError && (
               <p role="alert" className="text-center text-xs text-destructive">
-                {t(geoe)}
+                {t(geoError)}
               </p>
             )}
           </div>

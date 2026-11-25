@@ -108,7 +108,7 @@ class TempDiskStorage implements multer.StorageEngine {
             height,
           });
         } catch (e) {
-          done(e as e);
+          done(e as Error);
         }
       };
       stream.on("error", done);
@@ -116,7 +116,7 @@ class TempDiskStorage implements multer.StorageEngine {
       stream.on("finish", () => void finalize());
       file.stream.pipe(stream);
     } catch (e) {
-      done(e as e);
+      done(e as Error);
     }
   }
 
@@ -125,7 +125,7 @@ class TempDiskStorage implements multer.StorageEngine {
     file: Express.Multer.File,
     cb: (e: Error | null) => void,
   ) {
-    const p = (file as unknown).path as string | undefined;
+    const p = file.path as string | undefined;
     if (!p) return cb(null);
     fs.unlink(p, () => cb(null));
   }

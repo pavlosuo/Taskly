@@ -13,9 +13,10 @@
     "start": "pnpm --parallel -r run start",
     "start:web": "pnpm --filter @taskly/web start",
     "start:api": "pnpm --filter @taskly/api start",
-    "format": "prettier --write .",
     "lint": "pnpm --filter @taskly/web lint && pnpm --filter @taskly/api lint",
-    "zip": "node zip-project.js"
+    "typecheck": "pnpm --filter @taskly/web typecheck && pnpm --filter @taskly/api typecheck",
+    "zip": "node zip-project.js",
+    "format": "prettier --write ."
   },
   "devDependencies": {
     "@types/node": "20.19.0",
